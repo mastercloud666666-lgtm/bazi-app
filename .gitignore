@@ -1,5 +1,6 @@
-.env.local
 .env
+.env.*
+!.env.local.example
 node_modules/
 .supabase/
 public/env.js
