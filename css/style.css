@@ -25,6 +25,16 @@ header h1 { font-size: 2rem; color: var(--gold); letter-spacing: 4px; }
 .subtitle { color: var(--text-muted); margin-top: 8px; }
 .back-link { color: var(--gold); text-decoration: none; display: block; margin-bottom: 12px; }
 
+/* 导航栏 */
+.nav-bar { display: flex; justify-content: center; gap: 4px; margin-bottom: 24px; }
+.nav-bar a { padding: 8px 20px; border-radius: 20px; color: var(--text-muted); text-decoration: none; font-size: 0.95rem; border: 1px solid transparent; transition: all 0.2s; }
+.nav-bar a:hover { color: var(--gold); border-color: rgba(201,168,76,0.3); }
+.nav-bar a.active { color: var(--dark); background: var(--gold); font-weight: bold; }
+
+/* 服务页通用 */
+textarea { width: 100%; padding: 10px 12px; background: var(--dark2); border: 1px solid rgba(201,168,76,0.3); border-radius: 8px; color: var(--text); font-size: 1rem; resize: vertical; font-family: inherit; }
+.error-msg { color: var(--red); }
+
 .card, .form-card {
   background: var(--card);
   border-radius: 12px;

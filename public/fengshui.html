@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>风水 - 八字命理</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <nav class="nav-bar">
+        <a href="index.html">八字</a>
+        <a href="qiming.html">起名</a>
+        <a href="zhanbu.html">占卜</a>
+        <a href="fengshui.html" class="active">风水</a>
+      </nav>
+      <h1>风水</h1>
+      <p class="subtitle">住宅·办公，趋吉避凶</p>
+    </header>
+
+    <main>
+      <form id="fengshui-form" class="form-card">
+        <div class="form-group">
+          <label>地点类型</label>
+          <div class="radio-group">
+            <label><input type="radio" name="loctype" value="住宅" checked> 住宅</label>
+            <label><input type="radio" name="loctype" value="办公室"> 办公室</label>
+            <label><input type="radio" name="loctype" value="店铺"> 店铺</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>主要关切</label>
+          <div class="radio-group" style="flex-wrap:wrap; gap:12px 24px;">
+            <label><input type="radio" name="concern" value="财运" checked> 财运</label>
+            <label><input type="radio" name="concern" value="健康"> 健康</label>
+            <label><input type="radio" name="concern" value="感情"> 感情</label>
+            <label><input type="radio" name="concern" value="事业"> 事业</label>
+            <label><input type="radio" name="concern" value="整体运势"> 整体运势</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>描述你的空间情况</label>
+          <textarea id="description" rows="5"
+            placeholder="例：我家是东南朝向，门对着厕所，客厅正中有柱子，卧室在西北角，入门见到的是餐桌...请尽量详细描述" required></textarea>
+        </div>
+        <button type="submit" class="btn-primary">获取风水建议</button>
+      </form>
+
+      <div id="result-loading" style="display:none" class="card">
+        <p class="price-desc">风水师正在为你分析格局，请稍候...</p>
+      </div>
+
+      <div id="result-section" style="display:none" class="card card-premium">
+        <h2>风水分析</h2>
+        <div id="result-text" class="analysis-text"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/services.js"></script>
+  <script>
+    document.getElementById('fengshui-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const location    = document.querySelector('input[name=loctype]:checked').value;
+      const concern     = document.querySelector('input[name=concern]:checked').value;
+      const description = document.getElementById('description').value.trim();
+
+      showLoading();
+      try {
+        const text = await callAnalyze({
+          service: 'fengshui',
+          location, concern, description,
+        });
+        showResult(text);
+      } catch {
+        showError('获取失败，请刷新重试');
+      }
+    });
+  </script>
+</body>
+</html>

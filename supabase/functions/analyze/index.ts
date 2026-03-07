@@ -17,11 +17,59 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { trade_no, year, month, day, hour, gender, bazi_str,
-            dayun_text, special_years_text, start_age } = await req.json();
+    const body = await req.json();
+    const { trade_no, service = 'bazi' } = body;
 
-    const currentYear = new Date().getFullYear();
-    const prompt = `客户生辰：${year}年${month}月${day}日${hour}时，${gender}命，八字：${bazi_str}，当前年份：${currentYear}年。
+    let prompt = '';
+
+    if (service === 'qiming') {
+      const { surname, birth_year, birth_month, birth_day, gender, wuxing_short, hope } = body;
+      prompt = `客户姓氏：${surname}，生辰：${birth_year}年${birth_month}月${birth_day}日，${gender}，五行：${wuxing_short}，期望寓意：${hope || '无特殊要求'}。
+
+帮这位客户推荐3个名字，每个名字说：
+1. 名字写法
+2. 读音和声调
+3. 字义解释
+4. 为什么适合这个五行（补缺或加强）
+5. 整体寓意
+
+要求：用口语，像朋友在帮你取名字一样，不要写标题符号，每个名字之间空一行，直接从第一个名字开始说。`;
+
+    } else if (service === 'zhanbu') {
+      const { question, method, number1, number2, number3 } = body;
+      const nums = [number1, number2, number3].filter(Boolean);
+      prompt = `客户想问的事：${question}
+起卦方式：${method === 'meihua' ? '梅花易数' : '六爻'}
+起卦数字：${nums.join('、') || '随机'}
+
+请用${method === 'meihua' ? '梅花易数' : '六爻'}帮客户解这个问题：
+1. 起什么卦（说卦名和主要象意）
+2. 这个卦针对客户问题说明什么
+3. 结果判断（好/中/差，说清楚）
+4. 具体建议（做什么、避什么、何时有转机）
+
+用口语，直接给结论，不写标题符号，不引用古文原文，说完建议就结束。`;
+
+    } else if (service === 'fengshui') {
+      const { location, concern, description } = body;
+      prompt = `客户情况：${description}
+地点：${location || '未说明'}
+主要关切：${concern}
+
+请从风水角度分析并给出实用建议：
+1. 主要问题在哪里（具体说是哪个方位或格局）
+2. 对家运/事业/健康有什么影响
+3. 具体改善方法（3-5条，说清楚怎么做）
+4. 注意事项
+
+用口语，像一个走访过的风水师在给你当面说，不写标题符号，实用为主，直接从分析开始。`;
+
+    } else {
+      // 八字
+      const { year, month, day, hour, gender, bazi_str,
+              dayun_text, special_years_text, start_age } = body;
+      const currentYear = new Date().getFullYear();
+      prompt = `客户生辰：${year}年${month}月${day}日${hour}时，${gender}命，八字：${bazi_str}，当前年份：${currentYear}年。
 
 以下大运和特殊年份数据已由专业软件算好，请直接用这些数据分析，不要自己重新推算：
 
@@ -53,6 +101,7 @@ ${special_years_text}
 
 绝对禁止：任何位置写诗或引用古文、使用Markdown符号（#*_等）、写祝福语收尾、自己重新推算大运流年（用提供的数据）。
 直接从分析内容开始，说完第九段就结束。`;
+    } // end else bazi
 
     const dsRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',

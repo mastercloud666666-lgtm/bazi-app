@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>占卜 - 八字命理</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <nav class="nav-bar">
+        <a href="index.html">八字</a>
+        <a href="qiming.html">起名</a>
+        <a href="zhanbu.html" class="active">占卜</a>
+        <a href="fengshui.html">风水</a>
+      </nav>
+      <h1>占卜</h1>
+      <p class="subtitle">梅花易数 · 六爻，为你解惑</p>
+    </header>
+
+    <main>
+      <form id="zhanbu-form" class="form-card">
+        <div class="form-group">
+          <label>占卜方式</label>
+          <div class="radio-group">
+            <label><input type="radio" name="method" value="meihua" checked> 梅花易数</label>
+            <label><input type="radio" name="method" value="liuyao"> 六爻</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>你想问什么</label>
+          <textarea id="question" rows="3" placeholder="例：我今年的事业发展如何？这次合作能成功吗？" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>起卦数字 <span class="label-hint">（请随心输入1-999内的数字，不填则随机）</span></label>
+          <div class="form-row">
+            <div class="form-group">
+              <input type="number" id="num1" min="1" max="999" placeholder="数字一">
+            </div>
+            <div class="form-group">
+              <input type="number" id="num2" min="1" max="999" placeholder="数字二">
+            </div>
+            <div class="form-group">
+              <input type="number" id="num3" min="1" max="999" placeholder="数字三">
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary">开始占卜</button>
+      </form>
+
+      <div id="result-loading" style="display:none" class="card">
+        <p class="price-desc">正在为你起卦解读，请稍候...</p>
+      </div>
+
+      <div id="result-section" style="display:none" class="card card-premium">
+        <h2>卦象解读</h2>
+        <div id="result-text" class="analysis-text"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/services.js"></script>
+  <script>
+    document.getElementById('zhanbu-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const method   = document.querySelector('input[name=method]:checked').value;
+      const question = document.getElementById('question').value.trim();
+      const num1 = document.getElementById('num1').value || Math.floor(Math.random() * 999 + 1);
+      const num2 = document.getElementById('num2').value || Math.floor(Math.random() * 999 + 1);
+      const num3 = document.getElementById('num3').value || Math.floor(Math.random() * 999 + 1);
+
+      showLoading();
+      try {
+        const text = await callAnalyze({
+          service: 'zhanbu',
+          method, question,
+          number1: num1, number2: num2, number3: num3,
+        });
+        showResult(text);
+      } catch {
+        showError('获取失败，请刷新重试');
+      }
+    });
+  </script>
+</body>
+</html>
