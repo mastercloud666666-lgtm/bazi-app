@@ -292,8 +292,14 @@ async function autoAnalyze(birthData, bazi) {
     });
     const data = await res.json();
     if (data.analysis) {
-      localStorage.setItem(cacheKey, data.analysis);
-      showAnalysis(data.analysis);
+      const cleaned = data.analysis
+        .replace(/#{1,6}\s*/g, '')      // 去掉 # 标题
+        .replace(/\*{1,3}([^*]+)\*{1,3}/g, '$1')  // 去掉 **加粗** *斜体*
+        .replace(/^\s*[-–—]\s+/gm, '')  // 去掉列表符号
+        .replace(/\n{3,}/g, '\n\n')     // 多余空行压缩
+        .trim();
+      localStorage.setItem(cacheKey, cleaned);
+      showAnalysis(cleaned);
     } else {
       if (loading) loading.innerHTML = '<p>解读获取失败，请刷新重试</p>';
     }

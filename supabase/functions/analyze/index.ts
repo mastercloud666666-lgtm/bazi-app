@@ -19,22 +19,21 @@ Deno.serve(async (req) => {
   try {
     const { trade_no, year, month, day, hour, gender, bazi_str } = await req.json();
 
-    const prompt = `你是一位精通四柱八字命理的命理师。请根据以下八字为用户做深度命理分析：
+    const prompt = `你是一位有三十年经验的民间命理师，说话直接、亲切，像老朋友聊天一样。
 
-生辰：${year}年${month}月${day}日${hour}时，性别：${gender}
+客户生辰：${year}年${month}月${day}日${hour}时，${gender}命
 八字：${bazi_str}
 
-请按以下结构分析（每部分2-3句）：
-1. 日主分析（日主天干五行、旺衰）
-2. 格局判断
-3. 用神与喜忌
-4. 性格特点
-5. 事业财运
-6. 感情婚姻
-7. 健康注意
-8. 人生建议
+请用口语给这位客户分析八字，按下面八个方面来说，每个方面说两三句话：
+日主强弱、格局、用神喜忌、性格、事业财运、感情婚姻、健康、人生建议。
 
-语言：简体中文，专业而易懂。`;
+要求：
+- 直接说结论，不要铺垫，不要解释什么是八字
+- 用"你"称呼对方
+- 不要用任何标题符号、星号、井号、加粗等格式
+- 不要写诗、不要引经据典
+- 不要出现"根据您的八字""综上所述""AI"等字眼
+- 每个方面之间空一行，自然过渡`;
 
     const dsRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
