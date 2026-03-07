@@ -8,7 +8,15 @@ const supabase = createClient(
 );
 const anthropic = new Anthropic({ apiKey: Deno.env.get('CLAUDE_API_KEY')! });
 
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, content-type',
+};
+
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: CORS });
+  }
   const { trade_no, year, month, day, hour, gender, bazi_str } = await req.json();
 
   const prompt = `你是一位精通四柱八字命理的命理师。请根据以下八字为用户做深度命理分析：
@@ -36,9 +44,12 @@ Deno.serve(async (req) => {
 
   const analysis = message.content[0].type === 'text' ? message.content[0].text : '';
 
-  await supabase.from('orders').update({ analysis }).eq('trade_no', trade_no);
+  // 有 trade_no 时才写数据库（付费流程用），免费模式跳过
+  if (trade_no) {
+    await supabase.from('orders').update({ analysis }).eq('trade_no', trade_no);
+  }
 
-  return new Response(JSON.stringify({ ok: true }), {
-    headers: { 'Content-Type': 'application/json' },
+  return new Response(JSON.stringify({ ok: true, analysis }), {
+    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
   });
 });

@@ -1,7 +1,7 @@
 // js/app.js
 
-const SUPABASE_URL  = '__SUPABASE_URL__';
-const SUPABASE_ANON = '__SUPABASE_ANON_KEY__';
+const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_c-WUJSnlgfz3V_cJj97yXg_RUeeDZMG';
 const HUPI_APPID    = '__HUPI_APPID__';
 
 // ── 真太阳时计算 ──────────────────────────────────────────────────
@@ -178,14 +178,17 @@ if (document.getElementById('bazi-table-section')) {
       </div>`;
   });
 
-  // 检查是否已付费（localStorage 缓存）
-  const cacheKey = `bazi_${year}_${month}_${day}_${hour}`;
+  // 检查 localStorage 缓存
+  const cacheKey = `bazi_${year}_${month}_${day}_${hour}_${gender}`;
   const cached   = localStorage.getItem(cacheKey);
   if (cached) {
     showAnalysis(cached);
+  } else {
+    // 自动触发分析（免费模式）
+    autoAnalyze({ year, month, day, hour, gender, birthplace }, bazi);
   }
 
-  // 付款按钮
+  // 付款按钮（付费模式预留）
   const payBtn = document.getElementById('pay-btn');
   if (payBtn) {
     payBtn.addEventListener('click', () => startPayment({ year, month, day, hour, gender }, bazi));
@@ -260,4 +263,41 @@ function showAnalysis(text) {
   document.getElementById('analysis-loading').style.display = 'none';
   document.getElementById('analysis-content').style.display = 'block';
   document.getElementById('analysis-text').textContent = text;
+}
+
+// ── 免费自动分析 ───────────────────────────────────────────────────
+async function autoAnalyze(birthData, bazi) {
+  const locked  = document.getElementById('analysis-locked');
+  const loading = document.getElementById('analysis-loading');
+  if (locked)  locked.style.display  = 'none';
+  if (loading) loading.style.display = 'block';
+
+  const baziStr = `${bazi.year.tg}${bazi.year.dz}年 ${bazi.month.tg}${bazi.month.dz}月 ${bazi.day.tg}${bazi.day.dz}日 ${bazi.hour.tg}${bazi.hour.dz}时`;
+  const cacheKey = `bazi_${birthData.year}_${birthData.month}_${birthData.day}_${birthData.hour}_${birthData.gender}`;
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON}`,
+      },
+      body: JSON.stringify({
+        year: birthData.year, month: birthData.month,
+        day: birthData.day, hour: birthData.hour,
+        gender: birthData.gender,
+        birthplace: birthData.birthplace || '',
+        bazi_str: baziStr,
+      }),
+    });
+    const data = await res.json();
+    if (data.analysis) {
+      localStorage.setItem(cacheKey, data.analysis);
+      showAnalysis(data.analysis);
+    } else {
+      if (loading) loading.innerHTML = '<p>解读获取失败，请刷新重试</p>';
+    }
+  } catch {
+    if (loading) loading.innerHTML = '<p>网络错误，请刷新重试</p>';
+  }
 }
