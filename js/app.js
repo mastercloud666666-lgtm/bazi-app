@@ -7,26 +7,65 @@ const HUPI_APPID    = '__HUPI_APPID__';
 // ── 首页逻辑 ──────────────────────────────────────────────────────
 const form = document.getElementById('bazi-form');
 if (form) {
+  // 阳历/农历切换
+  document.querySelectorAll('input[name=caltype]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const isLunar = radio.value === 'lunar';
+      document.getElementById('leap-group').style.display = isLunar ? 'block' : 'none';
+      document.getElementById('lbl-solar').classList.toggle('active', !isLunar);
+      document.getElementById('lbl-lunar').classList.toggle('active', isLunar);
+    });
+  });
+
   form.addEventListener('submit', e => {
     e.preventDefault();
-    const year   = parseInt(document.getElementById('year').value);
-    const month  = parseInt(document.getElementById('month').value);
-    const day    = parseInt(document.getElementById('day').value);
-    const hour   = parseInt(document.getElementById('hour').value);
-    const gender = document.querySelector('input[name=gender]:checked').value;
-    const params = new URLSearchParams({ year, month, day, hour, gender });
+    let year   = parseInt(document.getElementById('year').value);
+    let month  = parseInt(document.getElementById('month').value);
+    let day    = parseInt(document.getElementById('day').value);
+    const hour       = parseInt(document.getElementById('hour').value);
+    const gender     = document.querySelector('input[name=gender]:checked').value;
+    const birthplace = document.getElementById('birthplace').value;
+    const caltype    = document.querySelector('input[name=caltype]:checked').value;
+
+    if (caltype === 'lunar') {
+      // 农历转阳历
+      const isLeap = document.getElementById('is-leap').checked;
+      try {
+        const lunar = Lunar.fromYmd(year, month, day);
+        // lunar-javascript: 闰月需用 LunarMonth.fromYm(y,m).isLeap()
+        const solar = isLeap
+          ? Lunar.fromYmd(year, -month, day).getSolar()  // 负数月表示闰月
+          : lunar.getSolar();
+        year  = solar.getYear();
+        month = solar.getMonth();
+        day   = solar.getDay();
+      } catch (err) {
+        alert('农历日期转换失败，请检查输入是否正确');
+        return;
+      }
+    }
+
+    const params = new URLSearchParams({ year, month, day, hour, gender, birthplace });
     window.location.href = `result.html?${params}`;
   });
 }
 
 // ── 结果页逻辑 ────────────────────────────────────────────────────
 if (document.getElementById('bazi-table-section')) {
-  const p      = new URLSearchParams(location.search);
-  const year   = parseInt(p.get('year'));
-  const month  = parseInt(p.get('month'));
-  const day    = parseInt(p.get('day'));
-  const hour   = parseInt(p.get('hour'));
-  const gender = p.get('gender');
+  const p          = new URLSearchParams(location.search);
+  const year       = parseInt(p.get('year'));
+  const month      = parseInt(p.get('month'));
+  const day        = parseInt(p.get('day'));
+  const hour       = parseInt(p.get('hour'));
+  const gender     = p.get('gender');
+  const birthplace = p.get('birthplace') || '';
+
+  // 渲染出生信息摘要
+  const hourLabels = {23:'子',1:'丑',3:'寅',5:'卯',7:'辰',9:'巳',11:'午',13:'未',15:'申',17:'酉',19:'戌',21:'亥'};
+  const birthInfo = document.getElementById('birth-info');
+  if (birthInfo) {
+    birthInfo.textContent = `${year}年${month}月${day}日 ${hourLabels[hour] || ''}时　${gender}${birthplace ? '　' + birthplace : ''}`;
+  }
 
   // 计算八字
   const bazi = BaziCalc.calculateBazi(year, month, day, hour);

@@ -85,3 +85,16 @@ input[type=number], select {
 .price { font-size: 2rem; color: var(--red); font-weight: bold; margin-bottom: 16px; }
 .analysis-text { line-height: 2; color: var(--text); white-space: pre-wrap; }
 .coming-soon { color: var(--gold); font-size: 1.1rem; letter-spacing: 2px; margin-top: 8px; }
+
+/* 出生信息摘要 */
+.birth-info { text-align: center; color: var(--text-muted); font-size: 0.95rem; letter-spacing: 1px; }
+
+/* 阳历/农历切换 */
+.calendar-toggle { display: flex; gap: 0; border-radius: 8px; overflow: hidden; border: 1px solid rgba(201,168,76,0.4); width: fit-content; }
+.toggle-btn { padding: 8px 24px; cursor: pointer; color: var(--text-muted); background: var(--dark2); transition: all 0.2s; font-size: 0.95rem; }
+.toggle-btn input[type=radio] { display: none; }
+.toggle-btn.active { background: var(--gold); color: #1a1a2e; font-weight: bold; }
+
+/* 闰月复选框 */
+.checkbox-label { display: flex; align-items: center; gap: 8px; color: var(--text); cursor: pointer; }
+.checkbox-label input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--gold); }
