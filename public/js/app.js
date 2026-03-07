@@ -203,10 +203,14 @@ if (document.getElementById('bazi-table-section')) {
     autoAnalyze({ year, month, day, hour, gender, birthplace }, bazi, daYunData, specialYears);
   }
 
-  // 付款按钮（付费模式预留）
+  // 付款按钮（测试阶段：直接生成完整报告）
   const payBtn = document.getElementById('pay-btn');
   if (payBtn) {
-    payBtn.addEventListener('click', () => startPayment({ year, month, day, hour, gender }, bazi));
+    payBtn.addEventListener('click', () => {
+      payBtn.disabled = true;
+      payBtn.textContent = '生成中...';
+      fullAnalyze({ year, month, day, hour, gender, birthplace }, bazi, daYunData, specialYears);
+    });
   }
 
   // 检查 URL 中是否有回调参数（支付成功后跳回）
@@ -322,6 +326,50 @@ function renderSpecialYears(specialYears, currentYear) {
     </div>`;
   });
   el.innerHTML = html;
+}
+
+// ── 完整分析（测试/付费解锁后调用）─────────────────────────────────
+async function fullAnalyze(birthData, bazi, daYunData, specialYears) {
+  const currentYear = new Date().getFullYear();
+  const loading = document.getElementById('analysis-loading');
+  const content = document.getElementById('analysis-content');
+  const payPrompt = document.getElementById('pay-prompt');
+  if (content) content.style.display = 'none';
+  if (payPrompt) payPrompt.style.display = 'none';
+  if (loading) loading.style.display = 'block';
+
+  const baziStr = `${bazi.year.tg}${bazi.year.dz}年 ${bazi.month.tg}${bazi.month.dz}月 ${bazi.day.tg}${bazi.day.dz}日 ${bazi.hour.tg}${bazi.hour.dz}时`;
+  const fullCacheKey = `bazi_full_${birthData.year}_${birthData.month}_${birthData.day}_${birthData.hour}_${birthData.gender}`;
+  const dayunText = daYunData.dayuns.map(d => `${d.gz}（${d.ageStart}岁起，${d.yearStart}年）`).join('、');
+  const specialText = specialYears.length
+    ? specialYears.map(s => `${s.year}年${s.gz}（${s.year < currentYear ? '已过' : s.year === currentYear ? '今年' : '未来'}）：${s.reasons.join('；')}`).join('\n')
+    : '一生中无明显天克地冲或岁运并临年份';
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON}` },
+      body: JSON.stringify({
+        year: birthData.year, month: birthData.month, day: birthData.day, hour: birthData.hour,
+        gender: birthData.gender, birthplace: birthData.birthplace || '',
+        bazi_str: baziStr, dayun_text: dayunText, special_years_text: specialText,
+        start_age: daYunData.startAge,
+      }),
+    });
+    const data = await res.json();
+    if (data.analysis) {
+      const cleaned = data.analysis
+        .replace(/#{1,6}\s*/g, '').replace(/\*{1,3}([^*\n]+)\*{1,3}/g, '$1')
+        .replace(/^\s*[-–—>]\s*/gm, '').replace(/由\s*DeepSeek\s*生成.*$/gis, '')
+        .replace(/Powered by DeepSeek.*$/gis, '').replace(/\n{3,}/g, '\n\n').trim();
+      localStorage.setItem(fullCacheKey, cleaned);
+      showAnalysis(cleaned);
+    } else {
+      if (loading) loading.innerHTML = '<p>解读获取失败，请刷新重试</p>';
+    }
+  } catch (err) {
+    if (loading) loading.innerHTML = `<p>网络错误：${err?.message || err}，请刷新重试</p>`;
+  }
 }
 
 // ── 免费自动分析 ───────────────────────────────────────────────────
