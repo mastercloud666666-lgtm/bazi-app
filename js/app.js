@@ -269,11 +269,13 @@ async function pollForAnalysis(tradeNo, cacheKey) {
   document.getElementById('analysis-loading').innerHTML = '<p>查询超时，请刷新页面重试</p>';
 }
 
+const DISCLAIMER = '\n\n以上内容为传统文化推演，仅供参考，请理性看待，切勿迷信。';
+
 function showAnalysis(text) {
   document.getElementById('analysis-locked').style.display  = 'none';
   document.getElementById('analysis-loading').style.display = 'none';
   document.getElementById('analysis-content').style.display = 'block';
-  document.getElementById('analysis-text').textContent = text;
+  document.getElementById('analysis-text').textContent = text + DISCLAIMER;
 }
 
 // ── 渲染大运表格 ───────────────────────────────────────────────────

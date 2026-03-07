@@ -27,12 +27,14 @@ function cleanAnalysis(text) {
     .trim();
 }
 
+const DISCLAIMER = '\n\n以上内容为传统文化推演，仅供参考，请理性看待，切勿迷信。';
+
 function showResult(text) {
   const el = document.getElementById('result-text');
   const section = document.getElementById('result-section');
   const loading = document.getElementById('result-loading');
   if (loading) loading.style.display = 'none';
-  if (el) el.textContent = cleanAnalysis(text);
+  if (el) el.textContent = cleanAnalysis(text) + DISCLAIMER;
   if (section) section.style.display = 'block';
 }
 
