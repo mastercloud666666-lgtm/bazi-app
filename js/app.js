@@ -293,10 +293,12 @@ async function autoAnalyze(birthData, bazi) {
     const data = await res.json();
     if (data.analysis) {
       const cleaned = data.analysis
-        .replace(/#{1,6}\s*/g, '')      // 去掉 # 标题
-        .replace(/\*{1,3}([^*]+)\*{1,3}/g, '$1')  // 去掉 **加粗** *斜体*
-        .replace(/^\s*[-–—]\s+/gm, '')  // 去掉列表符号
-        .replace(/\n{3,}/g, '\n\n')     // 多余空行压缩
+        .replace(/#{1,6}\s*/g, '')
+        .replace(/\*{1,3}([^*\n]+)\*{1,3}/g, '$1')
+        .replace(/^\s*[-–—>]\s*/gm, '')
+        .replace(/由\s*DeepSeek\s*生成.*$/gis, '')
+        .replace(/Powered by DeepSeek.*$/gis, '')
+        .replace(/\n{3,}/g, '\n\n')
         .trim();
       localStorage.setItem(cacheKey, cleaned);
       showAnalysis(cleaned);
