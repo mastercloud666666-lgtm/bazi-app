@@ -280,6 +280,8 @@ function showAnalysis(text) {
   document.getElementById('analysis-loading').style.display = 'none';
   document.getElementById('analysis-content').style.display = 'block';
   document.getElementById('analysis-text').textContent = text + DISCLAIMER;
+  const payPrompt = document.getElementById('pay-prompt');
+  if (payPrompt) payPrompt.style.display = 'block';
 }
 
 // ── 渲染大运表格 ───────────────────────────────────────────────────
@@ -359,6 +361,7 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
         dayun_text: dayunText,
         special_years_text: specialText,
         start_age: daYunData.startAge,
+        free_only: true,
       }),
     });
     const data = await res.json();

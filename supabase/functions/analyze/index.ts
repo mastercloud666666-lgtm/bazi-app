@@ -139,8 +139,19 @@ Deno.serve(async (req) => {
     } else {
       // 八字
       const { year, month, day, hour, gender, bazi_str,
-              dayun_text, special_years_text, start_age } = body;
+              dayun_text, special_years_text, start_age, free_only } = body;
       const currentYear = new Date().getFullYear();
+
+      if (free_only) {
+        prompt = `客户${gender}命，八字：${bazi_str}。
+
+请根据日主天干五行和八字格局，分析这位客户的性格特点。要求：
+1. 先用一句话说明日主和格局（如"你是丙火日主，身强，偏印格"）
+2. 再说2-3个具体的性格特点，每个特点单独一段，结合格局和日柱来说，用具体的例子或表现方式描述
+3. 最后一段说一个需要注意的性格短板
+
+用口语，用"你"称呼对方，不写标题符号，不写诗，不引用古文，直接从分析开始，说完就结束。`;
+      } else {
       prompt = `客户生辰：${year}年${month}月${day}日${hour}时，${gender}命，八字：${bazi_str}，当前年份：${currentYear}年。
 
 以下大运和特殊年份数据已由专业软件算好，请直接用这些数据分析，不要自己重新推算：
@@ -173,6 +184,7 @@ ${special_years_text}
 
 绝对禁止：任何位置写诗或引用古文、使用Markdown符号（#*_等）、写祝福语收尾、自己重新推算大运流年（用提供的数据）。
 直接从分析内容开始，说完第九段就结束。`;
+      } // end if free_only else
     } // end else bazi
 
     const dsRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
