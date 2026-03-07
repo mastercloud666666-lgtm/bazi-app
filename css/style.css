@@ -89,6 +89,12 @@ input[type=number], select {
 /* 出生信息摘要 */
 .birth-info { text-align: center; color: var(--text-muted); font-size: 0.95rem; letter-spacing: 1px; }
 
+/* 经度/真太阳时提示 */
+.label-hint { color: var(--text-muted); font-size: 0.8rem; font-weight: normal; }
+.geo-hint { font-size: 0.82rem; color: var(--text-muted); margin-top: 6px; min-height: 18px; }
+.geo-hint.ok { color: var(--gold); }
+.geo-hint.err { color: var(--red); }
+
 /* 阳历/农历切换 */
 .calendar-toggle { display: flex; gap: 0; border-radius: 8px; overflow: hidden; border: 1px solid rgba(201,168,76,0.4); width: fit-content; }
 .toggle-btn { padding: 8px 24px; cursor: pointer; color: var(--text-muted); background: var(--dark2); transition: all 0.2s; font-size: 0.95rem; }
