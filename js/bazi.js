@@ -191,26 +191,12 @@ function calculateDaYun(yearPillar, monthPillar, gender, birthYear, birthMonth, 
 }
 
 /**
- * 检测天克地冲：天干相差6位 且 地支相差6位
- */
-function isTianKeDiChong(tg1, dz1, tg2, dz2) {
-  const tgClash = Math.abs(tg1 - tg2) === 6;
-  const dzClash = Math.abs(dz1 - dz2) === 6;
-  return tgClash && dzClash;
-}
-
-/**
  * 计算未来N年的特殊流年
- * @returns {[{year, gz, type, reason}]}
+ * 天克地冲：流年天干与日柱天干相差6位，且流年地支与日柱地支相差6位
+ * 岁运并临：流年干支与当前大运干支完全相同（两个字都一样）
  */
-function calcSpecialYears(bazi, dayuns, startAge, birthYear, currentYear, n) {
+function calcSpecialYears(bazi, dayuns, birthYear, currentYear, n) {
   const special = [];
-  // 当前大运
-  const currentAge = currentYear - birthYear;
-  const curDayun = dayuns.find((d, i) => {
-    const next = dayuns[i + 1];
-    return currentAge >= d.ageStart && (!next || currentAge < next.ageStart);
-  });
 
   for (let y = currentYear; y < currentYear + n; y++) {
     const lyTgIdx = ((y - 4) % 10 + 10) % 10;
@@ -218,25 +204,30 @@ function calcSpecialYears(bazi, dayuns, startAge, birthYear, currentYear, n) {
     const lyGz    = TIANGAN[lyTgIdx] + DIZHI[lyDzIdx];
     const reasons = [];
 
-    // 天克地冲日柱
-    if (isTianKeDiChong(lyTgIdx, lyDzIdx, bazi.day.tgIdx, bazi.day.dzIdx)) {
-      reasons.push(`流年${lyGz}与日柱${bazi.day.tg}${bazi.day.dz}天克地冲`);
+    // 天克地冲：流年 vs 日柱，天干差6 + 地支差6
+    const tgClash = Math.abs(lyTgIdx - bazi.day.tgIdx) === 6;
+    const dzClash = Math.abs(lyDzIdx - bazi.day.dzIdx) === 6;
+    if (tgClash && dzClash) {
+      reasons.push(`天克地冲：流年${lyGz}与日柱${bazi.day.tg}${bazi.day.dz}天干相冲、地支相冲`);
     }
-    // 天克地冲年柱
-    if (isTianKeDiChong(lyTgIdx, lyDzIdx, bazi.year.tgIdx, bazi.year.dzIdx)) {
-      reasons.push(`流年${lyGz}与年柱${bazi.year.tg}${bazi.year.dz}天克地冲`);
+
+    // 找该年所在大运（按年龄）
+    const ageInYear = y - birthYear;
+    let curDayun = null;
+    for (let i = 0; i < dayuns.length; i++) {
+      const nextStart = dayuns[i + 1] ? dayuns[i + 1].ageStart : 999;
+      if (ageInYear >= dayuns[i].ageStart && ageInYear < nextStart) {
+        curDayun = dayuns[i]; break;
+      }
     }
-    // 岁运并临：流年干支与当前大运干支相同
+
+    // 岁运并临：流年干支 = 大运干支（完全相同）
     if (curDayun && lyTgIdx === curDayun.tgIdx && lyDzIdx === curDayun.dzIdx) {
-      reasons.push(`流年与大运${curDayun.gz}岁运并临，力量加倍`);
-    }
-    // 岁运并临：流年干支与当前大运天干相同（天干并临）
-    if (curDayun && lyTgIdx === curDayun.tgIdx) {
-      reasons.push(`流年天干与大运${curDayun.gz}天干相同，岁运天干并临`);
+      reasons.push(`岁运并临：流年${lyGz}与大运${curDayun.gz}干支完全相同，力量加倍`);
     }
 
     if (reasons.length) {
-      special.push({ year: y, gz: lyGz, reasons });
+      special.push({ year: y, gz: lyGz, dayun: curDayun ? curDayun.gz : '', reasons });
     }
   }
   return special;

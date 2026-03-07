@@ -181,7 +181,13 @@ if (document.getElementById('bazi-table-section')) {
   // 计算大运和特殊流年
   const daYunData  = BaziCalc.calculateDaYun(bazi.year, bazi.month, gender, year, month, day);
   const currentYear = new Date().getFullYear();
-  const specialYears = BaziCalc.calcSpecialYears(bazi, daYunData.dayuns, daYunData.startAge, year, currentYear, 8);
+  const specialYears = BaziCalc.calcSpecialYears(bazi, daYunData.dayuns, year, currentYear, 10);
+
+  // 渲染大运表格
+  renderDaYun(daYunData, currentYear, year);
+
+  // 渲染特殊年份
+  renderSpecialYears(specialYears);
 
   // 检查 localStorage 缓存
   const cacheKey = `bazi_${year}_${month}_${day}_${hour}_${gender}`;
@@ -268,6 +274,42 @@ function showAnalysis(text) {
   document.getElementById('analysis-loading').style.display = 'none';
   document.getElementById('analysis-content').style.display = 'block';
   document.getElementById('analysis-text').textContent = text;
+}
+
+// ── 渲染大运表格 ───────────────────────────────────────────────────
+function renderDaYun(daYunData, currentYear, birthYear) {
+  const el = document.getElementById('dayun-section');
+  if (!el) return;
+  const currentAge = currentYear - birthYear;
+  let html = `<p class="dayun-meta">${daYunData.forward ? '顺行' : '逆行'}，${daYunData.startAge}岁起运</p><div class="dayun-grid">`;
+  daYunData.dayuns.forEach(d => {
+    const isCurrent = currentAge >= d.ageStart && currentAge < d.ageStart + 10;
+    html += `<div class="dayun-item${isCurrent ? ' current' : ''}">
+      <div class="dayun-gz">${d.gz}</div>
+      <div class="dayun-age">${d.ageStart}岁</div>
+      <div class="dayun-year">${d.yearStart}年</div>
+    </div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ── 渲染特殊年份 ───────────────────────────────────────────────────
+function renderSpecialYears(specialYears) {
+  const el = document.getElementById('special-years-section');
+  if (!el) return;
+  if (!specialYears.length) {
+    el.innerHTML = '<p class="price-desc">未来10年内无天克地冲或岁运并临年份</p>';
+    return;
+  }
+  let html = '';
+  specialYears.forEach(s => {
+    html += `<div class="special-year-item">
+      <span class="special-year-tag">${s.year}年 ${s.gz}</span>
+      ${s.reasons.map(r => `<span class="special-year-reason">${r}</span>`).join('')}
+    </div>`;
+  });
+  el.innerHTML = html;
 }
 
 // ── 免费自动分析 ───────────────────────────────────────────────────

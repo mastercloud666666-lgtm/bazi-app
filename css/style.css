@@ -95,6 +95,21 @@ input[type=number], select {
 .geo-hint.ok { color: var(--gold); }
 .geo-hint.err { color: var(--red); }
 
+/* 大运 */
+.card-warning { border-color: #e94560; }
+.dayun-meta { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 12px; }
+.dayun-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.dayun-item { background: var(--dark2); border-radius: 8px; padding: 10px 8px; text-align: center; min-width: 60px; border: 1px solid rgba(201,168,76,0.15); }
+.dayun-item.current { border-color: var(--gold); background: rgba(201,168,76,0.1); }
+.dayun-gz { font-size: 1.2rem; color: var(--gold); font-weight: bold; }
+.dayun-age { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+.dayun-year { font-size: 0.72rem; color: var(--text-muted); }
+
+/* 特殊年份 */
+.special-year-item { margin-bottom: 12px; }
+.special-year-tag { display: inline-block; background: rgba(233,69,96,0.2); color: #e94560; border-radius: 4px; padding: 2px 8px; font-weight: bold; margin-bottom: 4px; margin-right: 6px; }
+.special-year-reason { display: block; color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; padding-left: 4px; }
+
 /* 阳历/农历切换 */
 .calendar-toggle { display: flex; gap: 0; border-radius: 8px; overflow: hidden; border: 1px solid rgba(201,168,76,0.4); width: fit-content; }
 .toggle-btn { padding: 8px 24px; cursor: pointer; color: var(--text-muted); background: var(--dark2); transition: all 0.2s; font-size: 0.95rem; }
