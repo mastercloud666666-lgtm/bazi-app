@@ -83,7 +83,7 @@ input[type=number], select {
 /* AI 解读 */
 .price-desc { color: var(--text-muted); margin-bottom: 12px; line-height: 1.6; }
 .price { font-size: 2rem; color: var(--red); font-weight: bold; margin-bottom: 16px; }
-.analysis-text { line-height: 2; color: var(--text); white-space: pre-wrap; }
+.analysis-text { line-height: 1.9; color: var(--text); white-space: pre-wrap; font-size: 0.97rem; }
 .coming-soon { color: var(--gold); font-size: 1.1rem; letter-spacing: 2px; margin-top: 8px; }
 
 /* 出生信息摘要 */
