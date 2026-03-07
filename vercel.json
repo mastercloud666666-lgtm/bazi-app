@@ -1,0 +1,6 @@
+{
+  "outputDirectory": "public",
+  "redirects": [
+    { "source": "/", "destination": "/index.html" }
+  ]
+}
