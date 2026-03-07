@@ -1,7 +1,7 @@
 // js/app.js
 
 const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
-const SUPABASE_ANON = 'sb_publishable_c-WUJSnlgfz3V_cJj97yXg_RUeeDZMG';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const HUPI_APPID    = '__HUPI_APPID__';
 
 // ── 真太阳时计算 ──────────────────────────────────────────────────
