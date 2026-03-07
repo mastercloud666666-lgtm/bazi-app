@@ -193,10 +193,14 @@ if (document.getElementById('bazi-table-section')) {
   // 渲染特殊年份
   renderSpecialYears(specialYears, currentYear);
 
-  // 检查 localStorage 缓存
-  const cacheKey = `bazi_${year}_${month}_${day}_${hour}_${gender}`;
-  const cached   = localStorage.getItem(cacheKey);
-  if (cached) {
+  // 检查 localStorage 缓存（先查完整版，再查免费版）
+  const cacheKey     = `bazi_${year}_${month}_${day}_${hour}_${gender}`;
+  const fullCacheKey = `bazi_full_${year}_${month}_${day}_${hour}_${gender}`;
+  const cachedFull   = localStorage.getItem(fullCacheKey);
+  const cached       = localStorage.getItem(cacheKey);
+  if (cachedFull) {
+    showAnalysis(cachedFull, true);
+  } else if (cached) {
     showAnalysis(cached);
   } else {
     // 自动触发分析（免费模式）
@@ -279,13 +283,13 @@ async function pollForAnalysis(tradeNo, cacheKey) {
 
 const DISCLAIMER = '\n\n以上内容为传统文化推演，仅供参考，请理性看待，切勿迷信。';
 
-function showAnalysis(text) {
+function showAnalysis(text, hidePay = false) {
   document.getElementById('analysis-locked').style.display  = 'none';
   document.getElementById('analysis-loading').style.display = 'none';
   document.getElementById('analysis-content').style.display = 'block';
   document.getElementById('analysis-text').textContent = text + DISCLAIMER;
   const payPrompt = document.getElementById('pay-prompt');
-  if (payPrompt) payPrompt.style.display = 'block';
+  if (payPrompt) payPrompt.style.display = hidePay ? 'none' : 'block';
 }
 
 // ── 渲染大运表格 ───────────────────────────────────────────────────
@@ -363,7 +367,7 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears) {
         .replace(/^\s*[-–—>]\s*/gm, '').replace(/由\s*DeepSeek\s*生成.*$/gis, '')
         .replace(/Powered by DeepSeek.*$/gis, '').replace(/\n{3,}/g, '\n\n').trim();
       localStorage.setItem(fullCacheKey, cleaned);
-      showAnalysis(cleaned);
+      showAnalysis(cleaned, true);
     } else {
       if (loading) loading.innerHTML = '<p>解读获取失败，请刷新重试</p>';
     }
