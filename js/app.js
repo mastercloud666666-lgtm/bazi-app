@@ -181,13 +181,17 @@ if (document.getElementById('bazi-table-section')) {
   // 计算大运和特殊流年
   const daYunData  = BaziCalc.calculateDaYun(bazi.year, bazi.month, gender, year, month, day);
   const currentYear = new Date().getFullYear();
-  const specialYears = BaziCalc.calcSpecialYears(bazi, daYunData.dayuns, year, currentYear, 10);
+  // 从起运年到最后一步大运结束（覆盖全生命周期）
+  const lastDayun  = daYunData.dayuns[daYunData.dayuns.length - 1];
+  const lifeEndYear = year + lastDayun.ageStart + 10;
+  const lifeStartYear = year + daYunData.startAge;
+  const specialYears = BaziCalc.calcSpecialYears(bazi, daYunData.dayuns, year, lifeStartYear, lifeEndYear);
 
   // 渲染大运表格
   renderDaYun(daYunData, currentYear, year);
 
   // 渲染特殊年份
-  renderSpecialYears(specialYears);
+  renderSpecialYears(specialYears, currentYear);
 
   // 检查 localStorage 缓存
   const cacheKey = `bazi_${year}_${month}_${day}_${hour}_${gender}`;
@@ -297,17 +301,21 @@ function renderDaYun(daYunData, currentYear, birthYear) {
 }
 
 // ── 渲染特殊年份 ───────────────────────────────────────────────────
-function renderSpecialYears(specialYears) {
+function renderSpecialYears(specialYears, currentYear) {
   const el = document.getElementById('special-years-section');
   if (!el) return;
   if (!specialYears.length) {
-    el.innerHTML = '<p class="price-desc">未来10年内无天克地冲或岁运并临年份</p>';
+    el.innerHTML = '<p class="price-desc">一生中无天克地冲或岁运并临年份</p>';
     return;
   }
   let html = '';
   specialYears.forEach(s => {
-    html += `<div class="special-year-item">
-      <span class="special-year-tag">${s.year}年 ${s.gz}</span>
+    const isPast    = s.year < currentYear;
+    const isCurrent = s.year === currentYear;
+    const label     = isPast ? '已过' : isCurrent ? '今年' : '';
+    const tagClass  = isPast ? 'special-year-tag past' : isCurrent ? 'special-year-tag current-year' : 'special-year-tag';
+    html += `<div class="special-year-item${isPast ? ' past' : ''}">
+      <span class="${tagClass}">${s.year}年 ${s.gz}${label ? '（' + label + '）' : ''}</span>
       ${s.reasons.map(r => `<span class="special-year-reason">${r}</span>`).join('')}
     </div>`;
   });
@@ -332,8 +340,8 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
 
     // 格式化特殊年份文字
     const specialText = specialYears.length
-      ? specialYears.map(s => `${s.year}年${s.gz}：${s.reasons.join('；')}`).join('\n')
-      : '未来8年内无明显天克地冲或岁运并临年份';
+      ? specialYears.map(s => `${s.year}年${s.gz}（${s.year < currentYear ? '已过' : s.year === currentYear ? '今年' : '未来'}）：${s.reasons.join('；')}`).join('\n')
+      : '一生中无明显天克地冲或岁运并临年份';
 
     const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
       method: 'POST',

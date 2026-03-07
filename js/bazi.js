@@ -195,10 +195,10 @@ function calculateDaYun(yearPillar, monthPillar, gender, birthYear, birthMonth, 
  * 天克地冲：流年天干与日柱天干相差6位，且流年地支与日柱地支相差6位
  * 岁运并临：流年干支与当前大运干支完全相同（两个字都一样）
  */
-function calcSpecialYears(bazi, dayuns, birthYear, currentYear, n) {
+function calcSpecialYears(bazi, dayuns, birthYear, startYear, endYear) {
   const special = [];
 
-  for (let y = currentYear; y < currentYear + n; y++) {
+  for (let y = startYear; y <= endYear; y++) {
     const lyTgIdx = ((y - 4) % 10 + 10) % 10;
     const lyDzIdx = ((y - 4) % 12 + 12) % 12;
     const lyGz    = TIANGAN[lyTgIdx] + DIZHI[lyDzIdx];

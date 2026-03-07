@@ -118,6 +118,9 @@ input[type=number], select {
 /* 特殊年份 */
 .special-year-item { margin-bottom: 12px; }
 .special-year-tag { display: inline-block; background: rgba(233,69,96,0.2); color: #e94560; border-radius: 4px; padding: 2px 8px; font-weight: bold; margin-bottom: 4px; margin-right: 6px; }
+.special-year-tag.current-year { background: rgba(233,69,96,0.4); color: #ff6b80; }
+.special-year-tag.past { background: rgba(160,160,176,0.15); color: var(--text-muted); }
+.special-year-item.past { opacity: 0.55; }
 .special-year-reason { display: block; color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; padding-left: 4px; }
 
 /* 占卜方式选择卡片 */
