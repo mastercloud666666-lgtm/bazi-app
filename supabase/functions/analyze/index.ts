@@ -42,8 +42,8 @@ Deno.serve(async (req) => {
 
 第九段：流年提醒。在${currentYear}年到${currentYear + 5}年中，找出天克地冲年（流年天干地支与日柱或年柱形成天克地冲）、岁运并临年（流年与大运同气或形成特殊组合），点出具体年份，解释为什么这年要注意，要注意什么事。
 
-绝对禁止：开头写诗或引用古文名句、使用任何Markdown符号（#*_等）、写"综上所述"、写"根据您的八字"、写"AI"。
-直接从"你这个八字…"或"你的日主…"开始说正文。`;
+绝对禁止：任何位置写诗或引用古文名句（开头结尾都不行）、使用任何Markdown符号（#*_等）、写"综上所述"、写"根据您的八字"、写"AI"、结尾写祝福语或总结句。
+直接从"你这个八字…"或"你的日主…"开始，说完人生建议那段就结束，不要加任何收尾。`;
 
     const dsRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
@@ -76,17 +76,30 @@ Deno.serve(async (req) => {
       .replace(/\n{3,}/g, '\n\n')
       .trim();
 
-    // 去掉开头的诗句（第一行若不含"你"字且含有"；""、"等古文标点则判定为诗句删掉）
+    // 去掉开头和结尾的诗句
+    const isPoemLine = (line: string) => {
+      const t = line.trim();
+      if (!t || t.includes('你') || t.length < 4) return false;
+      // 含"；"的对仗句、四字以内短句含古文意象、押韵特征
+      return t.includes('；') ||
+        /^[\u4e00-\u9fa5]{4,8}[，。][\u4e00-\u9fa5]{4,8}[，。！]?$/.test(t) ||
+        /[鳞韵潜翠玉辉渊云霞风雷龙凤].{0,6}[；，。]/.test(t);
+    };
+
     const lines = analysis.split('\n');
-    if (lines.length > 1) {
-      const firstLine = lines[0].trim();
-      const looksLikePoem = !firstLine.includes('你') &&
-        (firstLine.includes('；') || firstLine.includes('，') && firstLine.includes('。') ||
-         /[金木水火土][鳞韵潜翠玉]/.test(firstLine));
-      if (looksLikePoem) {
-        analysis = lines.slice(1).join('\n').trim();
-      }
+
+    // 去开头诗句
+    while (lines.length && isPoemLine(lines[0])) lines.shift();
+
+    // 去结尾诗句（连续检查末尾非空行）
+    while (lines.length) {
+      const last = lines[lines.length - 1].trim();
+      if (!last) { lines.pop(); continue; }
+      if (isPoemLine(last)) { lines.pop(); continue; }
+      break;
     }
+
+    analysis = lines.join('\n').trim();
 
     // 有 trade_no 时才写数据库（付费流程用），免费模式跳过
     if (trade_no) {
