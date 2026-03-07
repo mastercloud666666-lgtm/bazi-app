@@ -123,5 +123,124 @@ function calculateBazi(year, month, day, hour) {
   return { year: yearPillar, month: monthPillar, day: dayPillar, hour: hourPillar, wuxing };
 }
 
+// ── 大运计算 ──────────────────────────────────────────────────────
+
+// 各月节气（节，非中气）近似日期 [月, 日]
+const JIEQI_DATES = [
+  [1,6],[2,4],[3,6],[4,5],[5,6],[6,6],
+  [7,7],[8,7],[9,8],[10,8],[11,7],[12,7]
+];
+
+function getJieqiDate(year, month) {
+  const [m, d] = JIEQI_DATES[((month - 1) % 12 + 12) % 12];
+  let y = year;
+  if (month > 12) { y += Math.floor((month - 1) / 12); }
+  if (month < 1)  { y += Math.floor((month - 1) / 12); }
+  return new Date(y, m - 1, d);
+}
+
+function daysBetween(d1, d2) {
+  return Math.round(Math.abs(d2 - d1) / 86400000);
+}
+
+/**
+ * 计算大运
+ * @returns {{ startAge, dayuns: [{gz, tgIdx, dzIdx, ageStart, yearStart}] }}
+ */
+function calculateDaYun(yearPillar, monthPillar, gender, birthYear, birthMonth, birthDay) {
+  // 阳男阴女顺行，阴男阳女逆行
+  const yearTgYang = yearPillar.tgIdx % 2 === 0;
+  const isMale     = gender === '男';
+  const forward    = (isMale && yearTgYang) || (!isMale && !yearTgYang);
+
+  const birthDate = new Date(birthYear, birthMonth - 1, birthDay);
+  let days;
+
+  if (forward) {
+    // 顺推：找出生后第一个节气
+    let m = birthMonth, y = birthYear;
+    let jDate = getJieqiDate(y, m);
+    if (jDate <= birthDate) { m++; if (m > 12) { m = 1; y++; } jDate = getJieqiDate(y, m); }
+    days = daysBetween(birthDate, jDate);
+  } else {
+    // 逆推：找出生前第一个节气
+    let m = birthMonth, y = birthYear;
+    let jDate = getJieqiDate(y, m);
+    if (jDate >= birthDate) { m--; if (m < 1) { m = 12; y--; } jDate = getJieqiDate(y, m); }
+    days = daysBetween(jDate, birthDate);
+  }
+
+  const startAge = Math.round(days / 3);
+
+  const dayuns = [];
+  let tgIdx = monthPillar.tgIdx;
+  let dzIdx = monthPillar.dzIdx;
+
+  for (let i = 0; i < 8; i++) {
+    if (forward) { tgIdx = (tgIdx + 1) % 10; dzIdx = (dzIdx + 1) % 12; }
+    else         { tgIdx = (tgIdx - 1 + 10) % 10; dzIdx = (dzIdx - 1 + 12) % 12; }
+    dayuns.push({
+      gz: TIANGAN[tgIdx] + DIZHI[dzIdx],
+      tgIdx, dzIdx,
+      ageStart: startAge + i * 10,
+      yearStart: birthYear + startAge + i * 10,
+    });
+  }
+
+  return { forward, startAge, dayuns };
+}
+
+/**
+ * 检测天克地冲：天干相差6位 且 地支相差6位
+ */
+function isTianKeDiChong(tg1, dz1, tg2, dz2) {
+  const tgClash = Math.abs(tg1 - tg2) === 6;
+  const dzClash = Math.abs(dz1 - dz2) === 6;
+  return tgClash && dzClash;
+}
+
+/**
+ * 计算未来N年的特殊流年
+ * @returns {[{year, gz, type, reason}]}
+ */
+function calcSpecialYears(bazi, dayuns, startAge, birthYear, currentYear, n) {
+  const special = [];
+  // 当前大运
+  const currentAge = currentYear - birthYear;
+  const curDayun = dayuns.find((d, i) => {
+    const next = dayuns[i + 1];
+    return currentAge >= d.ageStart && (!next || currentAge < next.ageStart);
+  });
+
+  for (let y = currentYear; y < currentYear + n; y++) {
+    const lyTgIdx = ((y - 4) % 10 + 10) % 10;
+    const lyDzIdx = ((y - 4) % 12 + 12) % 12;
+    const lyGz    = TIANGAN[lyTgIdx] + DIZHI[lyDzIdx];
+    const reasons = [];
+
+    // 天克地冲日柱
+    if (isTianKeDiChong(lyTgIdx, lyDzIdx, bazi.day.tgIdx, bazi.day.dzIdx)) {
+      reasons.push(`流年${lyGz}与日柱${bazi.day.tg}${bazi.day.dz}天克地冲`);
+    }
+    // 天克地冲年柱
+    if (isTianKeDiChong(lyTgIdx, lyDzIdx, bazi.year.tgIdx, bazi.year.dzIdx)) {
+      reasons.push(`流年${lyGz}与年柱${bazi.year.tg}${bazi.year.dz}天克地冲`);
+    }
+    // 岁运并临：流年干支与当前大运干支相同
+    if (curDayun && lyTgIdx === curDayun.tgIdx && lyDzIdx === curDayun.dzIdx) {
+      reasons.push(`流年与大运${curDayun.gz}岁运并临，力量加倍`);
+    }
+    // 岁运并临：流年干支与当前大运天干相同（天干并临）
+    if (curDayun && lyTgIdx === curDayun.tgIdx) {
+      reasons.push(`流年天干与大运${curDayun.gz}天干相同，岁运天干并临`);
+    }
+
+    if (reasons.length) {
+      special.push({ year: y, gz: lyGz, reasons });
+    }
+  }
+  return special;
+}
+
 // 导出（浏览器全局）
-window.BaziCalc = { calculateBazi, WUXING, TIANGAN, DIZHI };
+window.BaziCalc = { calculateBazi, calculateDaYun, calcSpecialYears, WUXING, TIANGAN, DIZHI };

@@ -178,6 +178,11 @@ if (document.getElementById('bazi-table-section')) {
       </div>`;
   });
 
+  // 计算大运和特殊流年
+  const daYunData  = BaziCalc.calculateDaYun(bazi.year, bazi.month, gender, year, month, day);
+  const currentYear = new Date().getFullYear();
+  const specialYears = BaziCalc.calcSpecialYears(bazi, daYunData.dayuns, daYunData.startAge, year, currentYear, 8);
+
   // 检查 localStorage 缓存
   const cacheKey = `bazi_${year}_${month}_${day}_${hour}_${gender}`;
   const cached   = localStorage.getItem(cacheKey);
@@ -185,7 +190,7 @@ if (document.getElementById('bazi-table-section')) {
     showAnalysis(cached);
   } else {
     // 自动触发分析（免费模式）
-    autoAnalyze({ year, month, day, hour, gender, birthplace }, bazi);
+    autoAnalyze({ year, month, day, hour, gender, birthplace }, bazi, daYunData, specialYears);
   }
 
   // 付款按钮（付费模式预留）
@@ -266,7 +271,7 @@ function showAnalysis(text) {
 }
 
 // ── 免费自动分析 ───────────────────────────────────────────────────
-async function autoAnalyze(birthData, bazi) {
+async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
   const locked  = document.getElementById('analysis-locked');
   const loading = document.getElementById('analysis-loading');
   if (locked)  locked.style.display  = 'none';
@@ -276,6 +281,16 @@ async function autoAnalyze(birthData, bazi) {
   const cacheKey = `bazi_${birthData.year}_${birthData.month}_${birthData.day}_${birthData.hour}_${birthData.gender}`;
 
   try {
+    // 格式化大运文字
+    const dayunText = daYunData.dayuns.map(d =>
+      `${d.gz}（${d.ageStart}岁起，${d.yearStart}年）`
+    ).join('、');
+
+    // 格式化特殊年份文字
+    const specialText = specialYears.length
+      ? specialYears.map(s => `${s.year}年${s.gz}：${s.reasons.join('；')}`).join('\n')
+      : '未来8年内无明显天克地冲或岁运并临年份';
+
     const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
       method: 'POST',
       headers: {
@@ -288,6 +303,9 @@ async function autoAnalyze(birthData, bazi) {
         gender: birthData.gender,
         birthplace: birthData.birthplace || '',
         bazi_str: baziStr,
+        dayun_text: dayunText,
+        special_years_text: specialText,
+        start_age: daYunData.startAge,
       }),
     });
     const data = await res.json();
