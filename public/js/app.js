@@ -349,6 +349,8 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears) {
     ? specialYears.map(s => `${s.year}年${s.gz}（${s.year < currentYear ? '已过' : s.year === currentYear ? '今年' : '未来'}）：${s.reasons.join('；')}`).join('\n')
     : '一生中无明显天克地冲或岁运并临年份';
 
+  const analysisText = document.getElementById('analysis-text');
+
   try {
     const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
       method: 'POST',
@@ -360,16 +362,52 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears) {
         start_age: daYunData.startAge,
       }),
     });
-    const data = await res.json();
-    if (data.analysis) {
-      const cleaned = data.analysis
+
+    if (!res.ok || !res.body) {
+      if (loading) loading.innerHTML = '<p>解读获取失败，请刷新重试</p>';
+      return;
+    }
+
+    // 切换到流式显示
+    if (loading) loading.style.display = 'none';
+    if (content) content.style.display = 'block';
+    if (analysisText) analysisText.textContent = '';
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let buffer = '';
+
+    outer: while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (data === '[DONE]') break outer;
+        try {
+          const delta = JSON.parse(data).choices?.[0]?.delta?.content || '';
+          if (delta) {
+            fullText += delta;
+            if (analysisText) analysisText.textContent = fullText;
+          }
+        } catch {}
+      }
+    }
+
+    if (fullText) {
+      const cleaned = fullText
         .replace(/#{1,6}\s*/g, '').replace(/\*{1,3}([^*\n]+)\*{1,3}/g, '$1')
         .replace(/^\s*[-–—>]\s*/gm, '').replace(/由\s*DeepSeek\s*生成.*$/gis, '')
         .replace(/Powered by DeepSeek.*$/gis, '').replace(/\n{3,}/g, '\n\n').trim();
       localStorage.setItem(fullCacheKey, cleaned);
       showAnalysis(cleaned, true);
     } else {
-      if (loading) loading.innerHTML = '<p>解读获取失败，请刷新重试</p>';
+      if (loading) { loading.style.display = 'block'; loading.innerHTML = '<p>解读获取失败，请刷新重试</p>'; }
+      if (content) content.style.display = 'none';
     }
   } catch (err) {
     if (loading) loading.innerHTML = `<p>网络错误：${err?.message || err}，请刷新重试</p>`;
