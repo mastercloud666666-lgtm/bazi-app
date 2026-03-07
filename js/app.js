@@ -324,6 +324,7 @@ function renderSpecialYears(specialYears, currentYear) {
 
 // ── 免费自动分析 ───────────────────────────────────────────────────
 async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
+  const currentYear = new Date().getFullYear();
   const locked  = document.getElementById('analysis-locked');
   const loading = document.getElementById('analysis-loading');
   if (locked)  locked.style.display  = 'none';
@@ -375,7 +376,7 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
     } else {
       if (loading) loading.innerHTML = '<p>解读获取失败，请刷新重试</p>';
     }
-  } catch {
-    if (loading) loading.innerHTML = '<p>网络错误，请刷新重试</p>';
+  } catch (err) {
+    if (loading) loading.innerHTML = `<p>网络错误：${err?.message || err}，请刷新重试</p>`;
   }
 }
