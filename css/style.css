@@ -120,6 +120,30 @@ input[type=number], select {
 .special-year-tag { display: inline-block; background: rgba(233,69,96,0.2); color: #e94560; border-radius: 4px; padding: 2px 8px; font-weight: bold; margin-bottom: 4px; margin-right: 6px; }
 .special-year-reason { display: block; color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; padding-left: 4px; }
 
+/* 占卜方式选择卡片 */
+.method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.method-card {
+  display: block; padding: 14px 12px; border-radius: 10px;
+  border: 1px solid rgba(201,168,76,0.25); background: var(--dark2);
+  cursor: pointer; transition: all 0.2s; position: relative;
+}
+.method-card input[type=radio] { display: none; }
+.method-card:hover { border-color: rgba(201,168,76,0.6); }
+.method-card.active { border-color: var(--gold); background: rgba(201,168,76,0.1); }
+.method-name { color: var(--gold); font-size: 1rem; font-weight: bold; margin-bottom: 6px; }
+.method-desc { color: var(--text-muted); font-size: 0.8rem; line-height: 1.5; }
+
+/* 户型图上传 */
+.upload-area {
+  border: 2px dashed rgba(201,168,76,0.35); border-radius: 10px;
+  padding: 20px; text-align: center; cursor: pointer;
+  transition: border-color 0.2s; background: var(--dark2);
+}
+.upload-area:hover, .upload-area.drag-over { border-color: var(--gold); }
+.upload-placeholder { color: var(--text-muted); }
+.upload-icon { font-size: 2rem; margin-bottom: 8px; }
+.upload-hint { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
+
 /* 阳历/农历切换 */
 .calendar-toggle { display: flex; gap: 0; border-radius: 8px; overflow: hidden; border: 1px solid rgba(201,168,76,0.4); width: fit-content; }
 .toggle-btn { padding: 8px 24px; cursor: pointer; color: var(--text-muted); background: var(--dark2); transition: all 0.2s; font-size: 0.95rem; }

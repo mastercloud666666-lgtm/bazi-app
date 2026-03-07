@@ -36,9 +36,48 @@ Deno.serve(async (req) => {
 要求：用口语，像朋友在帮你取名字一样，不要写标题符号，每个名字之间空一行，直接从第一个名字开始说。`;
 
     } else if (service === 'zhanbu') {
-      const { question, method, number1, number2, number3 } = body;
-      const nums = [number1, number2, number3].filter(Boolean);
-      prompt = `客户想问的事：${question}
+      const { question, method, number1, number2, number3, ke_month, ke_day, ke_hour } = body;
+
+      if (method === 'daliuren') {
+        prompt = `客户问事：${question}
+起课时间：${ke_month}月${ke_day}日${ke_hour}时
+
+请用大六壬为客户推算：
+1. 四课三传（说出课名和传名）
+2. 主课意象对这件事的指示
+3. 三传（初传、中传、末传）分别说明事情的起因、经过、结果
+4. 总体判断（成/不成，何时有结果）
+5. 建议和注意事项
+
+用口语，像资深命理师在面对面说，不写标题符号，不引用古文，直接从分析开始说完就结束。`;
+
+      } else if (method === 'xiaoliuren') {
+        const hourMap: Record<string, number> = {
+          子:1, 丑:2, 寅:3, 卯:4, 辰:5, 巳:6, 午:7, 未:8, 申:9, 酉:10, 戌:11, 亥:12
+        };
+        const sixStars = ['先锋', '小吉', '速喜', '赤口', '留连', '空亡'];
+        const m = Number(ke_month) || new Date().getMonth() + 1;
+        const d = Number(ke_day) || new Date().getDate();
+        const hIdx = hourMap[ke_hour] ?? 1;
+        const mainIdx = ((m - 1 + d - 1) % 6 + 6) % 6;
+        const mainStar = sixStars[mainIdx];
+        const subIdx = ((mainIdx + hIdx - 1) % 6 + 6) % 6;
+        const subStar = sixStars[subIdx];
+        prompt = `客户问事：${question}
+起课时间：${m}月${d}日${ke_hour}时
+小六壬推算：月起${sixStars[((m-1)%6+6)%6]}，日起${mainStar}，时落${subStar}
+
+请用小六壬为客户解读：
+1. 所起的将神是"${subStar}"，说明这个将神的吉凶含义
+2. 针对客户问的具体事情说明指示
+3. 结果判断（成/不成/待定，给个明确倾向）
+4. 最佳行动建议
+
+用口语，简洁直接，不写标题符号，不引用古文，说完建议就结束。`;
+
+      } else {
+        const nums = [number1, number2, number3].filter(Boolean);
+        prompt = `客户想问的事：${question}
 起卦方式：${method === 'meihua' ? '梅花易数' : '六爻'}
 起卦数字：${nums.join('、') || '随机'}
 
@@ -49,6 +88,7 @@ Deno.serve(async (req) => {
 4. 具体建议（做什么、避什么、何时有转机）
 
 用口语，直接给结论，不写标题符号，不引用古文原文，说完建议就结束。`;
+      }
 
     } else if (service === 'fengshui') {
       const { location, concern, description } = body;

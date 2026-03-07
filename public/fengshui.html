@@ -44,6 +44,18 @@
           <textarea id="description" rows="5"
             placeholder="例：我家是东南朝向，门对着厕所，客厅正中有柱子，卧室在西北角，入门见到的是餐桌...请尽量详细描述" required></textarea>
         </div>
+        <div class="form-group">
+          <label>户型图 <span class="label-hint">（可选，上传平面图辅助分析）</span></label>
+          <div class="upload-area" id="upload-area">
+            <input type="file" id="floor-plan" accept="image/*" style="display:none">
+            <div id="upload-placeholder" class="upload-placeholder">
+              <div class="upload-icon">🏠</div>
+              <div>点击上传户型图</div>
+              <div class="upload-hint">支持 JPG、PNG、GIF，建议10MB以内</div>
+            </div>
+            <img id="floor-plan-preview" style="display:none; max-width:100%; border-radius:8px;">
+          </div>
+        </div>
         <button type="submit" class="btn-primary">获取风水建议</button>
       </form>
 
@@ -60,17 +72,46 @@
 
   <script src="../js/services.js"></script>
   <script>
+    // 图片上传交互
+    const uploadArea = document.getElementById('upload-area');
+    const fileInput  = document.getElementById('floor-plan');
+    const preview    = document.getElementById('floor-plan-preview');
+    const placeholder = document.getElementById('upload-placeholder');
+
+    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+    uploadArea.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadArea.classList.remove('drag-over');
+      if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+    function handleFile(file) {
+      const reader = new FileReader();
+      reader.onload = ev => {
+        preview.src = ev.target.result;
+        preview.style.display = 'block';
+        placeholder.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+
     document.getElementById('fengshui-form').addEventListener('submit', async e => {
       e.preventDefault();
       const location    = document.querySelector('input[name=loctype]:checked').value;
       const concern     = document.querySelector('input[name=concern]:checked').value;
       const description = document.getElementById('description').value.trim();
+      const hasImage    = preview.style.display !== 'none';
+      const imageNote   = hasImage ? '（客户已上传户型图，请结合以上文字描述综合分析）' : '';
 
       showLoading();
       try {
         const text = await callAnalyze({
           service: 'fengshui',
-          location, concern, description,
+          location, concern,
+          description: description + imageNote,
         });
         showResult(text);
       } catch {

@@ -16,24 +16,48 @@
         <a href="fengshui.html">风水</a>
       </nav>
       <h1>占卜</h1>
-      <p class="subtitle">梅花易数 · 六爻，为你解惑</p>
+      <p class="subtitle">多种方式，为你解惑</p>
     </header>
 
     <main>
       <form id="zhanbu-form" class="form-card">
+
+        <!-- 方式选择 -->
         <div class="form-group">
           <label>占卜方式</label>
-          <div class="radio-group">
-            <label><input type="radio" name="method" value="meihua" checked> 梅花易数</label>
-            <label><input type="radio" name="method" value="liuyao"> 六爻</label>
+          <div class="method-grid">
+            <label class="method-card active" id="card-meihua">
+              <input type="radio" name="method" value="meihua" checked>
+              <div class="method-name">梅花易数</div>
+              <div class="method-desc">以数起卦，万物皆可成卦象，随机取数即可占问，适合任何事项</div>
+            </label>
+            <label class="method-card" id="card-liuyao">
+              <input type="radio" name="method" value="liuyao">
+              <div class="method-name">六爻</div>
+              <div class="method-desc">以铜钱摇卦，六爻层层深入，卦象详细，可问人事吉凶走向</div>
+            </label>
+            <label class="method-card" id="card-daliuren">
+              <input type="radio" name="method" value="daliuren">
+              <div class="method-name">大六壬</div>
+              <div class="method-desc">古代官方占术，以起课时间推四课三传，精准预测重大事件和时间节点</div>
+            </label>
+            <label class="method-card" id="card-xiaoliuren">
+              <input type="radio" name="method" value="xiaoliuren">
+              <div class="method-name">小六壬</div>
+              <div class="method-desc">民间最常用，以月日时三数起六将（先锋、小吉、速喜、赤口、留连、空亡），简便快捷</div>
+            </label>
           </div>
         </div>
+
+        <!-- 问题 -->
         <div class="form-group">
           <label>你想问什么</label>
-          <textarea id="question" rows="3" placeholder="例：我今年的事业发展如何？这次合作能成功吗？" required></textarea>
+          <textarea id="question" rows="3" placeholder="例：我今年事业发展如何？这次合作能否成功？" required></textarea>
         </div>
-        <div class="form-group">
-          <label>起卦数字 <span class="label-hint">（请随心输入1-999内的数字，不填则随机）</span></label>
+
+        <!-- 梅花/六爻：随机数字 -->
+        <div id="input-numbers" class="form-group">
+          <label>起卦数字 <span class="label-hint">（随心输入1-999内的数字，不填则随机）</span></label>
           <div class="form-row">
             <div class="form-group">
               <input type="number" id="num1" min="1" max="999" placeholder="数字一">
@@ -46,6 +70,37 @@
             </div>
           </div>
         </div>
+
+        <!-- 大六壬/小六壬：起课时间 -->
+        <div id="input-time" class="form-group" style="display:none">
+          <label>起课时间 <span class="label-hint">（默认当前时间）</span></label>
+          <div class="form-row">
+            <div class="form-group">
+              <input type="number" id="ke-month" min="1" max="12" placeholder="月">
+            </div>
+            <div class="form-group">
+              <input type="number" id="ke-day" min="1" max="31" placeholder="日">
+            </div>
+            <div class="form-group">
+              <select id="ke-hour">
+                <option value="">时辰</option>
+                <option value="子">子时 23-01</option>
+                <option value="丑">丑时 01-03</option>
+                <option value="寅">寅时 03-05</option>
+                <option value="卯">卯时 05-07</option>
+                <option value="辰">辰时 07-09</option>
+                <option value="巳">巳时 09-11</option>
+                <option value="午">午时 11-13</option>
+                <option value="未">未时 13-15</option>
+                <option value="申">申时 15-17</option>
+                <option value="酉">酉时 17-19</option>
+                <option value="戌">戌时 19-21</option>
+                <option value="亥">亥时 21-23</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <button type="submit" class="btn-primary">开始占卜</button>
       </form>
 
@@ -62,21 +117,46 @@
 
   <script src="../js/services.js"></script>
   <script>
+    // 方法切换
+    document.querySelectorAll('input[name=method]').forEach(r => {
+      r.addEventListener('change', () => {
+        document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
+        r.closest('.method-card').classList.add('active');
+        const needTime = r.value === 'daliuren' || r.value === 'xiaoliuren';
+        document.getElementById('input-numbers').style.display = needTime ? 'none' : 'block';
+        document.getElementById('input-time').style.display    = needTime ? 'block' : 'none';
+      });
+    });
+
+    // 默认填入当前时间
+    const now = new Date();
+    document.getElementById('ke-month').value = now.getMonth() + 1;
+    document.getElementById('ke-day').value   = now.getDate();
+    const hourNames = ['子','丑','丑','寅','寅','卯','卯','辰','辰','巳','巳','午','午','未','未','申','申','酉','酉','戌','戌','亥','亥','子'];
+    const keHourSel = document.getElementById('ke-hour');
+    Array.from(keHourSel.options).forEach(o => {
+      if (o.value === hourNames[now.getHours()]) keHourSel.value = o.value;
+    });
+
     document.getElementById('zhanbu-form').addEventListener('submit', async e => {
       e.preventDefault();
       const method   = document.querySelector('input[name=method]:checked').value;
       const question = document.getElementById('question').value.trim();
-      const num1 = document.getElementById('num1').value || Math.floor(Math.random() * 999 + 1);
-      const num2 = document.getElementById('num2').value || Math.floor(Math.random() * 999 + 1);
-      const num3 = document.getElementById('num3').value || Math.floor(Math.random() * 999 + 1);
+      let payload = { service: 'zhanbu', method, question };
+
+      if (method === 'daliuren' || method === 'xiaoliuren') {
+        payload.ke_month = document.getElementById('ke-month').value || now.getMonth() + 1;
+        payload.ke_day   = document.getElementById('ke-day').value   || now.getDate();
+        payload.ke_hour  = document.getElementById('ke-hour').value  || hourNames[now.getHours()];
+      } else {
+        payload.number1 = document.getElementById('num1').value || Math.floor(Math.random()*999+1);
+        payload.number2 = document.getElementById('num2').value || Math.floor(Math.random()*999+1);
+        payload.number3 = document.getElementById('num3').value || Math.floor(Math.random()*999+1);
+      }
 
       showLoading();
       try {
-        const text = await callAnalyze({
-          service: 'zhanbu',
-          method, question,
-          number1: num1, number2: num2, number3: num3,
-        });
+        const text = await callAnalyze(payload);
         showResult(text);
       } catch {
         showError('获取失败，请刷新重试');
