@@ -178,6 +178,9 @@ if (document.getElementById('bazi-table-section')) {
       </div>`;
   });
 
+  // 渲染命局干支关系
+  renderPillarRelations(bazi);
+
   // 计算大运和特殊流年
   const daYunData  = BaziCalc.calculateDaYun(bazi.year, bazi.month, gender, year, month, day);
   const currentYear = new Date().getFullYear();
@@ -290,6 +293,90 @@ function showAnalysis(text, hidePay = false) {
   document.getElementById('analysis-text').textContent = text + DISCLAIMER;
   const payPrompt = document.getElementById('pay-prompt');
   if (payPrompt) payPrompt.style.display = hidePay ? 'none' : 'block';
+}
+
+// ── 渲染命局干支关系 ───────────────────────────────────────────────
+function renderPillarRelations(bazi) {
+  const el = document.getElementById('pillar-relations');
+  if (!el) return;
+
+  const stems   = [bazi.year.tg, bazi.month.tg, bazi.day.tg, bazi.hour.tg];
+  const branches = [bazi.year.dz, bazi.month.dz, bazi.day.dz, bazi.hour.dz];
+  const labels  = ['年','月','日','时'];
+
+  const items = []; // { text, type: 'he'|'chong'|'xing'|'hai'|'po' }
+
+  // 天干五合
+  const STEM_HE = {'甲己':'合土','乙庚':'合金','丙辛':'合水','丁壬':'合木','戊癸':'合火'};
+  for (let i = 0; i < 4; i++) for (let j = i+1; j < 4; j++) {
+    const k = stems[i]+stems[j], k2 = stems[j]+stems[i];
+    if (STEM_HE[k])  items.push({ text:`${labels[i]}${stems[i]}·${labels[j]}${stems[j]} 天干${STEM_HE[k]}`, type:'he' });
+    else if (STEM_HE[k2]) items.push({ text:`${labels[j]}${stems[j]}·${labels[i]}${stems[i]} 天干${STEM_HE[k2]}`, type:'he' });
+  }
+
+  // 地支六合
+  const BR_SIX = {'子丑':'合土','寅亥':'合木','卯戌':'合火','辰酉':'合金','巳申':'合水','午未':'合火'};
+  // 地支六冲
+  const BR_CHONG = new Set(['子午','丑未','寅申','卯酉','辰戌','巳亥']);
+  // 地支三合局
+  const BR_SAN = [['寅','午','戌','火'],['巳','酉','丑','金'],['申','子','辰','水'],['亥','卯','未','木']];
+  // 地支三会局
+  const BR_HUI = [['寅','卯','辰','木'],['巳','午','未','火'],['申','酉','戌','金'],['亥','子','丑','水']];
+  // 地支三刑
+  const BR_XING3A = new Set(['寅','巳','申']); // 寅巳申三刑
+  const BR_XING3B = new Set(['丑','未','戌']); // 丑未戌三刑
+  // 地支相破
+  const BR_PO = new Set(['子酉','酉子','丑辰','辰丑','寅亥','亥寅','卯午','午卯','巳申','申巳','未戌','戌未']);
+  // 地支相害
+  const BR_HAI = new Set(['子未','未子','丑午','午丑','寅巳','巳寅','卯辰','辰卯','申亥','亥申','酉戌','戌酉']);
+
+  for (let i = 0; i < 4; i++) for (let j = i+1; j < 4; j++) {
+    const b1 = branches[i], b2 = branches[j];
+    const k = b1+b2, k2 = b2+b1;
+    // 六合
+    if (BR_SIX[k])  items.push({ text:`${labels[i]}${b1}·${labels[j]}${b2} 六合（${BR_SIX[k]}）`, type:'he' });
+    else if (BR_SIX[k2]) items.push({ text:`${labels[j]}${b2}·${labels[i]}${b1} 六合（${BR_SIX[k2]}）`, type:'he' });
+    // 六冲
+    if (BR_CHONG.has(k) || BR_CHONG.has(k2)) items.push({ text:`${labels[i]}${b1}·${labels[j]}${b2} 相冲`, type:'chong' });
+    // 自刑
+    if (b1 === b2 && ['午','辰','亥','酉'].includes(b1)) items.push({ text:`${b1}${b1} 自刑`, type:'xing' });
+    // 相破
+    if (BR_PO.has(k)) items.push({ text:`${labels[i]}${b1}·${labels[j]}${b2} 相破`, type:'po' });
+    // 相害
+    if (BR_HAI.has(k)) items.push({ text:`${labels[i]}${b1}·${labels[j]}${b2} 相害`, type:'hai' });
+  }
+
+  // 子卯相刑
+  const haizi = branches.includes('子'), haomao = branches.includes('卯');
+  if (haizi && haomao) items.push({ text:'子卯相刑', type:'xing' });
+
+  // 寅巳申三刑
+  if (['寅','巳','申'].every(b => branches.includes(b))) items.push({ text:'寅巳申 三刑', type:'xing' });
+  // 丑未戌三刑
+  if (['丑','未','戌'].every(b => branches.includes(b))) items.push({ text:'丑未戌 三刑', type:'xing' });
+
+  // 三合局
+  for (const [a,b,c,wx] of BR_SAN) {
+    const got = [a,b,c].filter(x => branches.includes(x));
+    if (got.length === 3) items.push({ text:`${a}${b}${c} 三合${wx}局`, type:'he' });
+    else if (got.length === 2) items.push({ text:`${got.join('')} 半合${wx}局`, type:'he' });
+  }
+
+  // 三会局
+  for (const [a,b,c,wx] of BR_HUI) {
+    if ([a,b,c].every(x => branches.includes(x))) items.push({ text:`${a}${b}${c} 三会${wx}局`, type:'he' });
+  }
+
+  if (!items.length) {
+    el.innerHTML = '<p style="color:#a0a0b0;font-size:0.85rem;margin-top:4px;">命局地支较纯，无明显刑冲合害</p>';
+    return;
+  }
+
+  const colorMap = { he:'#4caf80', chong:'#e94560', xing:'#e08030', hai:'#c070c0', po:'#8090c0' };
+  el.innerHTML = '<p style="color:#a0a0b0;font-size:0.8rem;margin-bottom:8px;">命局干支关系</p>'
+    + items.map(it =>
+        `<span style="display:inline-block;margin:3px 4px;padding:3px 8px;border-radius:4px;font-size:0.8rem;background:${colorMap[it.type]}22;border:1px solid ${colorMap[it.type]}66;color:${colorMap[it.type]}">${it.text}</span>`
+      ).join('');
 }
 
 // ── 渲染大运表格 ───────────────────────────────────────────────────
