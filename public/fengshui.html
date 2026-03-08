@@ -3,79 +3,115 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>风水 - 八字命理</title>
+  <title>风水 · 天机命理</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Jura:wght@300;400&family=Crimson+Pro:ital@1&family=IBM+Plex+Mono:wght@300;400&family=Noto+Serif+SC:wght@200;300;400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div class="container">
+  <div class="page">
+
+    <!-- Nav -->
+    <nav class="nav-bar">
+      <a href="index.html">八字</a>
+      <a href="hepan.html">合盘</a>
+      <a href="qiming.html">起名</a>
+      <a href="zhanbu.html">占卜</a>
+      <a href="fengshui.html" class="active">风水</a>
+    </nav>
+
+    <!-- Header -->
     <header>
-      <nav class="nav-bar">
-        <a href="index.html">八字</a>
-        <a href="qiming.html">起名</a>
-        <a href="zhanbu.html">占卜</a>
-        <a href="fengshui.html" class="active">风水</a>
-      </nav>
-      <h1>风水</h1>
-      <p class="subtitle">住宅·办公，趋吉避凶</p>
+      <div class="icon-wrap">方</div>
+      <h1>風　水</h1>
+      <p class="subtitle">住宅 · 办公，趋吉避凶</p>
+      <div class="gold-rule"></div>
     </header>
 
     <main>
-      <form id="fengshui-form" class="form-card">
-        <div class="form-group">
-          <label>地点类型</label>
-          <div class="radio-group">
-            <label><input type="radio" name="loctype" value="住宅" checked> 住宅</label>
-            <label><input type="radio" name="loctype" value="办公室"> 办公室</label>
-            <label><input type="radio" name="loctype" value="店铺"> 店铺</label>
+
+      <!-- Form card -->
+      <form id="fengshui-form" class="card form-card">
+        <div class="form-top-bar"></div>
+        <div class="card-inner">
+
+          <div class="section-head" style="margin-bottom:14px;">
+            <div class="section-dot"></div>
+            <span>填 写 空 间 信 息</span>
           </div>
-        </div>
-        <div class="form-group">
-          <label>主要关切</label>
-          <div class="radio-group" style="flex-wrap:wrap; gap:12px 24px;">
-            <label><input type="radio" name="concern" value="财运" checked> 财运</label>
-            <label><input type="radio" name="concern" value="健康"> 健康</label>
-            <label><input type="radio" name="concern" value="感情"> 感情</label>
-            <label><input type="radio" name="concern" value="事业"> 事业</label>
-            <label><input type="radio" name="concern" value="整体运势"> 整体运势</label>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>描述你的空间情况</label>
-          <textarea id="description" rows="5"
-            placeholder="例：我家是东南朝向，门对着厕所，客厅正中有柱子，卧室在西北角，入门见到的是餐桌...请尽量详细描述" required></textarea>
-        </div>
-        <div class="form-group">
-          <label>户型图 <span class="label-hint">（可选，上传平面图辅助分析）</span></label>
-          <div class="upload-area" id="upload-area">
-            <input type="file" id="floor-plan" accept="image/*" style="display:none">
-            <div id="upload-placeholder" class="upload-placeholder">
-              <div class="upload-icon">🏠</div>
-              <div>点击上传户型图</div>
-              <div class="upload-hint">支持 JPG、PNG、GIF，建议10MB以内</div>
+
+          <div class="form-group">
+            <label>地点类型</label>
+            <div class="radio-group">
+              <label><input type="radio" name="loctype" value="住宅" checked> 住宅</label>
+              <label><input type="radio" name="loctype" value="办公室"> 办公室</label>
+              <label><input type="radio" name="loctype" value="店铺"> 店铺</label>
             </div>
-            <img id="floor-plan-preview" style="display:none; max-width:100%; border-radius:8px;">
           </div>
+
+          <div class="form-group">
+            <label>主要关切</label>
+            <div class="radio-group">
+              <label><input type="radio" name="concern" value="财运" checked> 财运</label>
+              <label><input type="radio" name="concern" value="健康"> 健康</label>
+              <label><input type="radio" name="concern" value="感情"> 感情</label>
+              <label><input type="radio" name="concern" value="事业"> 事业</label>
+              <label><input type="radio" name="concern" value="整体运势"> 整体运势</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>描述你的空间情况</label>
+            <textarea id="description" rows="5"
+              placeholder="例：我家是东南朝向，门对着厕所，客厅正中有柱子，卧室在西北角，入门见到的是餐桌…请尽量详细描述" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>户型图 <span class="label-hint">· 可选，上传平面图辅助分析</span></label>
+            <div class="upload-area" id="upload-area">
+              <input type="file" id="floor-plan" accept="image/*" style="display:none">
+              <div id="upload-placeholder" class="upload-placeholder">
+                <div class="upload-icon">🏠</div>
+                <div>点击上传户型图</div>
+                <div class="upload-hint">支持 JPG、PNG、GIF，建议 10 MB 以内</div>
+              </div>
+              <img id="floor-plan-preview" style="display:none; max-width:100%; border-radius:8px;">
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary">获取风水建议</button>
+
         </div>
-        <button type="submit" class="btn-primary">获取风水建议</button>
       </form>
 
+      <!-- Loading -->
       <div id="result-loading" style="display:none" class="card">
-        <p class="price-desc">风水师正在为你分析格局，请稍候...</p>
+        <div class="card-inner">
+          <p class="price-desc">风水师正在为你分析格局，请稍候…</p>
+        </div>
       </div>
 
+      <!-- Result -->
       <div id="result-section" style="display:none" class="card card-premium">
-        <h2>风水分析</h2>
-        <div id="result-text" class="analysis-text"></div>
+        <div class="form-top-bar"></div>
+        <div class="card-inner">
+          <div class="section-head">
+            <div class="section-dot"></div>
+            <span>风 水 分 析</span>
+          </div>
+          <div id="result-text" class="analysis-text"></div>
+        </div>
       </div>
+
     </main>
   </div>
 
   <script src="js/services.js"></script>
   <script>
     // 图片上传交互
-    const uploadArea = document.getElementById('upload-area');
-    const fileInput  = document.getElementById('floor-plan');
-    const preview    = document.getElementById('floor-plan-preview');
+    const uploadArea  = document.getElementById('upload-area');
+    const fileInput   = document.getElementById('floor-plan');
+    const preview     = document.getElementById('floor-plan-preview');
     const placeholder = document.getElementById('upload-placeholder');
 
     uploadArea.addEventListener('click', () => fileInput.click());

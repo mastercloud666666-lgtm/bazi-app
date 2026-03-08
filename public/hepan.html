@@ -5,352 +5,318 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>天机命理 · 合盘分析</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Jura:wght@300;400&family=Crimson+Pro:ital@1&family=IBM+Plex+Mono:wght@300;400&family=Noto+Serif+SC:wght@200;300;400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <style>
+    /* ── hepan-specific: rose accent for female ── */
     :root {
-      --blue-deep:  #1a56db;
-      --blue-mid:   #3b82f6;
-      --blue-soft:  #93c5fd;
-      --blue-pale:  #dbeafe;
-      --blue-ice:   #eff6ff;
-      --rose-deep:  #be185d;
-      --rose-mid:   #ec4899;
-      --rose-soft:  #f9a8d4;
-      --rose-pale:  #fce7f3;
-      --rose-ice:   #fdf2f8;
-      --white:      #ffffff;
-      --ink:        #1e3a5f;
-      --ink2:       #3b5a87;
-      --ink3:       #6b89b4;
+      --rose-deep: #be185d;
+      --rose-mid:  #ec4899;
+      --rose-pale: #fce7f3;
+      --rose-ice:  #fdf2f8;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { min-height: 100vh; font-family: 'Noto Serif SC', 'SimSun', serif; }
-
-    body { background: #eef4fd; color: var(--ink); overflow-x: hidden; }
-
-    body::before {
-      content: ''; position: fixed; inset: 0; z-index: 0;
-      background:
-        radial-gradient(ellipse 80% 55% at 10% 0%,  rgba(147,197,253,.4) 0%, transparent 55%),
-        radial-gradient(ellipse 60% 60% at 90% 100%, rgba(249,168,212,.25) 0%, transparent 55%),
-        radial-gradient(ellipse 60% 50% at 50% 40%,  rgba(239,246,255,.8) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    .page { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; padding: 28px 20px 70px; }
-
-    /* ── 导航 ── */
-    nav {
-      display: flex; justify-content: center; gap: 2px;
-      margin-bottom: 36px; animation: fadeUp .5s both;
-      flex-wrap: wrap;
-    }
-    nav a {
-      padding: 6px 13px; border-radius: 20px;
-      color: var(--ink3); text-decoration: none;
-      font-size: .78rem; letter-spacing: 1.5px;
-      border: 1px solid transparent; transition: all .22s;
-    }
-    nav a:hover { color: var(--blue-mid); background: rgba(59,130,246,.08); }
-    nav a.active {
-      color: var(--white);
-      background: linear-gradient(135deg, var(--rose-deep), var(--rose-mid));
-      box-shadow: 0 4px 12px rgba(236,72,153,.35);
-    }
+    .page { max-width: 560px; margin: 0 auto; padding: 28px 20px 70px; position: relative; z-index: 1; }
 
     /* ── 品牌头部 ── */
-    .hero {
-      text-align: center; margin-bottom: 32px;
-      animation: fadeUp .6s .08s both;
+    .hero { margin-bottom: 32px; animation: fadeUp .55s .06s both; }
+    .hero-row {
+      display: flex; align-items: center; gap: 16px; margin-bottom: 10px;
     }
 
-    /* 双环徽章 */
-    .union-wrap {
-      width: 80px; height: 56px;
-      margin: 0 auto 18px;
-      position: relative;
-      display: flex; align-items: center; justify-content: center;
+    /* 乾坤图标 */
+    .union-icon {
+      width: 58px; height: 58px; flex-shrink: 0;
+      position: relative; display: flex; align-items: center; justify-content: center;
     }
-    .union-ring {
-      width: 48px; height: 48px;
-      border-radius: 50%;
+    .ring-man, .ring-woman {
+      width: 34px; height: 34px; border-radius: 50%;
       position: absolute;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem; font-weight: 600;
+      font-size: .75rem; font-weight: 600;
+      box-shadow: 0 4px 14px rgba(0,0,0,.12);
     }
     .ring-man {
-      left: 0;
+      left: 0; top: 50%; transform: translateY(-50%);
       background: linear-gradient(135deg, #e0eeff, #bfdbfe);
-      box-shadow: 0 6px 20px rgba(59,130,246,.3), inset 0 1px 0 rgba(255,255,255,.9);
-      color: var(--blue-deep);
+      color: var(--bl-deep);
       animation: floatL 3.5s ease-in-out infinite;
     }
     .ring-woman {
-      right: 0;
-      background: linear-gradient(135deg, #fce7f3, #fbcfe8);
-      box-shadow: 0 6px 20px rgba(236,72,153,.25), inset 0 1px 0 rgba(255,255,255,.9);
+      right: 0; top: 50%; transform: translateY(-50%);
+      background: linear-gradient(135deg, var(--rose-pale), #fbcfe8);
       color: var(--rose-deep);
       animation: floatR 3.5s ease-in-out infinite .4s;
     }
     .ring-center {
       position: absolute; left: 50%; top: 50%;
       transform: translate(-50%,-50%);
-      width: 16px; height: 16px; border-radius: 50%;
-      background: linear-gradient(135deg, #a855f7, #ec4899);
+      width: 11px; height: 11px; border-radius: 50%;
+      background: linear-gradient(135deg, #a855f7, var(--rose-mid));
       box-shadow: 0 2px 8px rgba(168,85,247,.4);
       z-index: 2;
       animation: centerPulse 2s ease-in-out infinite;
     }
-    @keyframes floatL {
-      0%,100% { transform: translateY(0) translateX(0); }
-      50%      { transform: translateY(-4px) translateX(-2px); }
-    }
-    @keyframes floatR {
-      0%,100% { transform: translateY(0) translateX(0); }
-      50%      { transform: translateY(-4px) translateX(2px); }
-    }
-    @keyframes centerPulse {
-      0%,100% { transform: translate(-50%,-50%) scale(1); opacity: .9; }
-      50%      { transform: translate(-50%,-50%) scale(1.3); opacity: 1; }
-    }
+    @keyframes floatL  { 0%,100%{transform:translateY(-50%) translateX(0)} 50%{transform:translateY(-60%) translateX(-2px)} }
+    @keyframes floatR  { 0%,100%{transform:translateY(-50%) translateX(0)} 50%{transform:translateY(-60%) translateX(2px)} }
+    @keyframes centerPulse { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.9} 50%{transform:translate(-50%,-50%) scale(1.35);opacity:1} }
 
+    .hero-text { flex: 1; }
     .hero-title {
-      font-size: 1.5rem; font-weight: 300;
+      font-size: 1.7rem; font-weight: 300;
       letter-spacing: 10px; text-indent: 10px;
-      color: var(--ink); margin-bottom: 6px;
+      color: var(--ink); margin-bottom: 5px;
     }
-    .hero-sub { font-size: .72rem; letter-spacing: 3px; color: var(--ink3); margin-bottom: 12px; }
-    .hero-desc {
-      font-size: .82rem; line-height: 1.9; letter-spacing: 1px;
-      color: var(--ink2);
+    .hero-en {
+      font-family: var(--font-jura); font-size: .7rem;
+      letter-spacing: 2px; color: var(--ink3);
     }
-    .hero-desc em { font-style: normal; color: var(--rose-deep); font-weight: 500; }
+    .gold-rule {
+      height: 1px; width: 240px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+      margin: 10px 0 12px; position: relative;
+    }
+    .gold-rule::after {
+      content: ''; position: absolute; right: 0; top: -2px;
+      width: 5px; height: 5px; border-radius: 50%; background: var(--gold);
+    }
+    .hero-tagline { font-size: .82rem; color: var(--ink2); letter-spacing: 1.5px; margin-bottom: 6px; }
+    .hero-quote { font-family: var(--font-it); font-style: italic; font-size: 1rem; color: rgba(147,186,251,.85); line-height: 1.5; }
 
     /* 付费标签 */
     .paid-badge {
       display: inline-flex; align-items: center; gap: 5px;
       background: linear-gradient(135deg, var(--rose-deep), var(--rose-mid));
-      color: white; font-size: .68rem; letter-spacing: 2px;
-      padding: 4px 12px; border-radius: 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 3px 10px rgba(236,72,153,.3);
+      color: white; font-family: var(--font-jura); font-size: .66rem; letter-spacing: 2px;
+      padding: 4px 12px; border-radius: 20px; margin-bottom: 14px;
+      box-shadow: 0 3px 10px rgba(236,72,153,.25);
     }
 
     /* ── 表单区 ── */
-    .forms-area { animation: fadeUp .6s .18s both; }
+    .forms-area { animation: fadeUp .55s .14s both; }
 
+    /* person cards */
     .person-card {
-      background: rgba(255,255,255,.82);
-      border: 1px solid rgba(255,255,255,.95);
-      border-radius: 18px;
-      padding: 22px 22px 18px;
-      margin-bottom: 14px;
-      backdrop-filter: blur(20px) saturate(1.5);
-      box-shadow: 0 8px 32px rgba(30,86,219,.08), 0 2px 8px rgba(59,130,246,.05);
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(255,255,255,.92);
+      border-radius: 18px; margin-bottom: 12px;
+      backdrop-filter: blur(24px) saturate(1.5);
+      box-shadow: 0 1px 0 rgba(255,255,255,.85) inset, 0 20px 60px rgba(20,82,205,.08);
+      overflow: hidden;
     }
-    .person-card.male   { border-top: 3px solid var(--blue-mid); }
-    .person-card.female { border-top: 3px solid var(--rose-mid); }
+    .card-top-bar { height: 5px; }
+    .person-card.male   .card-top-bar { background: linear-gradient(90deg, var(--bl-deep), var(--bl-core)); }
+    .person-card.female .card-top-bar { background: linear-gradient(90deg, var(--rose-deep), var(--rose-mid)); }
+    .card-inner { padding: 20px 20px 16px; }
 
-    .person-head {
-      display: flex; align-items: center; gap: 10px;
-      margin-bottom: 18px;
-    }
+    .person-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
     .person-dot {
       width: 28px; height: 28px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: .8rem; color: white; flex-shrink: 0;
+      font-family: var(--font-zh); font-size: .75rem; color: white; flex-shrink: 0;
     }
-    .person-dot.male   { background: linear-gradient(135deg, var(--blue-deep), var(--blue-mid)); }
+    .person-dot.male   { background: linear-gradient(135deg, var(--bl-deep), var(--bl-core)); }
     .person-dot.female { background: linear-gradient(135deg, var(--rose-deep), var(--rose-mid)); }
-    .person-label { font-size: .82rem; letter-spacing: 3px; color: var(--ink2); font-weight: 400; }
+    .person-label {
+      font-family: var(--font-jura); font-size: .76rem;
+      letter-spacing: 3px; color: var(--ink2);
+    }
 
-    /* 阳历/农历切换 */
+    /* cal toggle per gender */
     .cal-toggle {
       display: inline-flex;
-      border: 1px solid var(--blue-pale); border-radius: 8px;
-      overflow: hidden; margin-bottom: 16px; background: var(--blue-ice);
+      border-radius: 10px; overflow: hidden; margin-bottom: 14px;
+      background: var(--bl-xl);
+      border: 1px solid var(--bl-pale);
     }
-    .person-card.female .cal-toggle { border-color: var(--rose-pale); background: var(--rose-ice); }
+    .person-card.female .cal-toggle { background: var(--rose-ice); border-color: var(--rose-pale); }
     .cal-btn {
-      padding: 6px 18px; cursor: pointer;
-      font-size: .8rem; letter-spacing: 2px;
-      color: var(--ink3); background: transparent;
-      transition: all .2s; font-family: inherit;
+      padding: 5px 18px; cursor: pointer;
+      font-family: var(--font-zh); font-size: .8rem; letter-spacing: 2px;
+      color: var(--ink3); background: transparent; transition: all .2s;
     }
     .cal-btn input[type=radio] { display: none; }
     .cal-btn.active.blue {
-      background: linear-gradient(135deg, var(--blue-deep), var(--blue-mid));
-      color: #fff; border-radius: 6px; margin: 2px;
-      box-shadow: 0 2px 8px rgba(59,130,246,.35);
+      background: linear-gradient(135deg, var(--bl-deep), var(--bl-core));
+      color: #fff; border-radius: 8px; margin: 2px;
+      box-shadow: 0 2px 8px rgba(48,117,238,.35);
     }
     .cal-btn.active.rose {
       background: linear-gradient(135deg, var(--rose-deep), var(--rose-mid));
-      color: #fff; border-radius: 6px; margin: 2px;
+      color: #fff; border-radius: 8px; margin: 2px;
       box-shadow: 0 2px 8px rgba(236,72,153,.35);
     }
 
-    .field { margin-bottom: 14px; }
+    .field { margin-bottom: 13px; }
     .field label {
-      display: block; font-size: .7rem; letter-spacing: 2px;
-      color: var(--ink3); margin-bottom: 6px;
+      display: block; font-family: var(--font-jura); font-size: .7rem;
+      letter-spacing: 2px; color: var(--ink3); margin-bottom: 6px;
     }
-    .label-hint { font-size: .65rem; color: var(--blue-soft); }
     .row { display: flex; gap: 8px; }
     .row .field { flex: 1; }
 
-    input[type=number], input[type=text], select {
-      width: 100%; padding: 9px 11px;
-      background: rgba(239,246,255,.7);
-      border: 1px solid rgba(147,197,253,.5);
-      border-radius: 10px; color: var(--ink);
-      font-size: .9rem; font-family: inherit;
-      transition: border-color .22s, box-shadow .22s;
+    input[type=number], select {
+      width: 100%; padding: 8px 11px;
+      background: rgba(234,241,255,.75);
+      border: 1px solid rgba(147,186,251,.45);
+      border-radius: 9px; color: var(--ink);
+      font-size: .88rem; font-family: var(--font-zh);
+      transition: border-color .2s, box-shadow .2s;
       -webkit-appearance: none;
     }
     .person-card.female input[type=number],
-    .person-card.female input[type=text],
     .person-card.female select {
-      background: rgba(252,231,243,.5);
-      border-color: rgba(249,168,212,.5);
+      background: rgba(252,231,243,.45);
+      border-color: rgba(249,168,212,.4);
     }
     input:focus, select:focus {
-      outline: none;
-      border-color: var(--blue-mid);
-      box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+      outline: none; border-color: var(--bl-core);
+      box-shadow: 0 0 0 3px rgba(48,117,238,.1);
     }
     .person-card.female input:focus,
     .person-card.female select:focus {
       border-color: var(--rose-mid);
-      box-shadow: 0 0 0 3px rgba(236,72,153,.12);
+      box-shadow: 0 0 0 3px rgba(236,72,153,.1);
     }
     select option { background: #fff; color: var(--ink); }
     .leap-label {
       display: flex; align-items: center; gap: 8px;
-      cursor: pointer; color: var(--ink2); font-size: .85rem;
+      cursor: pointer; color: var(--ink2); font-size: .84rem;
     }
-    .leap-label input { width: 14px; height: 14px; accent-color: var(--blue-deep); }
+    .leap-label input { width: 14px; height: 14px; accent-color: var(--bl-deep); }
 
-    /* ── 提交按钮 ── */
+    /* 提交按钮 */
     .btn-union {
-      width: 100%; padding: 15px;
-      background: linear-gradient(135deg, var(--blue-deep) 0%, #7c3aed 50%, var(--rose-deep) 100%);
-      border: none; border-radius: 14px; color: #fff;
-      font-family: inherit; font-size: .92rem; font-weight: 400;
-      letter-spacing: 4px; cursor: pointer;
-      box-shadow: 0 6px 24px rgba(124,58,237,.35);
-      position: relative; overflow: hidden;
-      transition: all .28s;
-      margin-top: 4px;
+      width: 100%; padding: 14px; margin-top: 4px;
+      background: linear-gradient(135deg, var(--bl-deep) 0%, #7c3aed 50%, var(--rose-deep) 100%);
+      border: none; border-radius: 22px; color: #fff;
+      font-family: var(--font-zh); font-size: .9rem;
+      letter-spacing: 5px; cursor: pointer;
+      box-shadow: 0 6px 24px rgba(124,58,237,.32);
+      position: relative; overflow: hidden; transition: all .25s;
     }
     .btn-union::before {
       content: ''; position: absolute; inset: 0;
       background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.15) 50%, transparent 70%);
-      transform: translateX(-100%); transition: transform .55s ease;
+      transform: translateX(-100%); transition: transform .5s ease;
     }
-    .btn-union:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(124,58,237,.45); }
+    .btn-union:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(124,58,237,.42); }
     .btn-union:hover::before { transform: translateX(100%); }
-    .btn-union:active { transform: translateY(0) scale(.99); }
 
     /* ── 结果区 ── */
     #result-section { display: none; animation: fadeUp .5s both; }
 
-    /* 两人八字概览卡 */
-    .bazi-overview {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-      margin-bottom: 14px;
-    }
+    .bazi-overview { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
     .bazi-mini-card {
-      background: rgba(255,255,255,.82);
-      border-radius: 14px; padding: 16px 14px;
-      border: 1px solid rgba(255,255,255,.95);
+      background: rgba(255,255,255,.78);
+      border-radius: 14px; overflow: hidden;
+      border: 1px solid rgba(255,255,255,.92);
       backdrop-filter: blur(16px);
-      box-shadow: 0 4px 16px rgba(30,86,219,.07);
-      text-align: center;
+      box-shadow: 0 4px 16px rgba(20,82,205,.07);
     }
-    .bazi-mini-card.male   { border-top: 2.5px solid var(--blue-mid); }
-    .bazi-mini-card.female { border-top: 2.5px solid var(--rose-mid); }
-    .mini-label { font-size: .68rem; letter-spacing: 2px; color: var(--ink3); margin-bottom: 10px; }
+    .mini-top { height: 4px; }
+    .bazi-mini-card.male   .mini-top { background: linear-gradient(90deg, var(--bl-deep), var(--bl-core)); }
+    .bazi-mini-card.female .mini-top { background: linear-gradient(90deg, var(--rose-deep), var(--rose-mid)); }
+    .mini-body { padding: 12px; text-align: center; }
+    .mini-label { font-family: var(--font-jura); font-size: .62rem; letter-spacing: 2px; color: var(--ink3); margin-bottom: 10px; }
     .mini-pillars { display: flex; justify-content: center; gap: 4px; }
     .mini-pillar { text-align: center; }
-    .mini-pillar-lbl { font-size: .55rem; color: var(--ink3); margin-bottom: 4px; }
-    .mini-tg { font-size: 1.1rem; font-weight: 600; }
-    .mini-dz { font-size: 1.1rem; margin-top: 1px; color: var(--ink2); }
-    .bazi-mini-card.male   .mini-tg { color: var(--blue-deep); }
+    .mini-pillar-lbl { font-size: .52rem; color: var(--ink3); margin-bottom: 3px; }
+    .mini-tg { font-size: 1.05rem; font-weight: 600; }
+    .mini-dz { font-size: 1.05rem; margin-top: 1px; color: var(--ink2); }
+    .bazi-mini-card.male   .mini-tg { color: var(--bl-deep); }
     .bazi-mini-card.female .mini-tg { color: var(--rose-deep); }
 
     /* 合缘指标 */
-    .compat-row {
-      display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;
-    }
+    .compat-row { display: flex; gap: 7px; margin-bottom: 12px; flex-wrap: wrap; }
     .compat-tag {
-      padding: 5px 12px; border-radius: 20px;
-      font-size: .75rem; letter-spacing: 1px;
+      padding: 4px 11px; border-radius: 14px;
+      font-family: var(--font-jura); font-size: .72rem; letter-spacing: 1px;
       border: 1px solid;
     }
-    .compat-tag.good  { color: #059669; background: rgba(5,150,105,.08); border-color: rgba(5,150,105,.3); }
-    .compat-tag.warn  { color: #d97706; background: rgba(217,119,6,.08); border-color: rgba(217,119,6,.3); }
-    .compat-tag.bad   { color: #dc2626; background: rgba(220,38,38,.08); border-color: rgba(220,38,38,.3); }
+    .compat-tag.good  { color: #059669; background: rgba(5,150,105,.07);  border-color: rgba(5,150,105,.25); }
+    .compat-tag.warn  { color: #d97706; background: rgba(217,119,6,.07);  border-color: rgba(217,119,6,.25); }
+    .compat-tag.bad   { color: #dc2626; background: rgba(220,38,38,.07);  border-color: rgba(220,38,38,.25); }
 
-    /* 付费锁定区 */
+    /* 付费卡 */
     .pay-card {
-      background: linear-gradient(135deg, rgba(255,255,255,.88), rgba(252,231,243,.6));
-      border: 1px solid rgba(236,72,153,.3);
-      border-radius: 16px; padding: 22px 20px;
-      backdrop-filter: blur(20px);
-      box-shadow: 0 8px 32px rgba(236,72,153,.1);
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(255,255,255,.92);
+      border-radius: 18px; overflow: hidden;
+      backdrop-filter: blur(24px);
+      box-shadow: 0 1px 0 rgba(255,255,255,.85) inset, 0 20px 60px rgba(20,82,205,.08);
     }
+    .pay-card-bar {
+      height: 5px;
+      background: linear-gradient(90deg, var(--bl-deep), #7c3aed, var(--rose-mid));
+    }
+    .pay-card-body { padding: 22px 20px 18px; }
     .pay-title {
-      font-size: 1rem; font-weight: 600; letter-spacing: 2px;
-      text-align: center; margin-bottom: 6px;
-      background: linear-gradient(135deg, var(--rose-deep), var(--blue-deep));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      font-size: 1rem; font-weight: 300; letter-spacing: 4px; text-indent: 4px;
+      text-align: center; margin-bottom: 5px; color: var(--ink);
     }
     .pay-sub {
-      font-size: .78rem; color: var(--ink3); text-align: center;
-      margin-bottom: 16px; line-height: 1.7;
+      font-family: var(--font-jura); font-size: .7rem; color: var(--ink3);
+      text-align: center; margin-bottom: 14px; line-height: 1.8; letter-spacing: .5px;
     }
     .pay-features {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 5px 10px;
-      margin-bottom: 16px; font-size: .76rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px;
+      margin-bottom: 14px;
     }
-    .pay-features span { color: var(--ink2); padding: 3px 0; line-height: 1.5; }
+    .pay-features span {
+      font-size: .72rem; color: var(--ink2); padding: 3px 0; line-height: 1.6;
+    }
     .btn-pay {
-      width: 100%; padding: 13px;
+      width: 100%; padding: 12px;
       background: linear-gradient(135deg, #7c3aed, var(--rose-mid));
-      border: none; border-radius: 10px; color: #fff;
-      font-family: inherit; font-size: .9rem; font-weight: 600;
-      letter-spacing: 3px; cursor: pointer;
-      box-shadow: 0 4px 16px rgba(124,58,237,.35);
+      border: none; border-radius: 20px; color: #fff;
+      font-family: var(--font-zh); font-size: .88rem;
+      letter-spacing: 4px; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(124,58,237,.3);
       transition: all .25s;
     }
-    .btn-pay:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,58,237,.45); }
+    .btn-pay:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,58,237,.42); }
     .btn-pay:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 
-    /* 分析结果 */
-    #hepan-loading { display: none; color: var(--ink3); font-size: .9rem; padding: 16px 0; text-align: center; }
+    /* 加载 & 分析 */
+    #hepan-loading {
+      display: none; text-align: center; padding: 20px 0;
+      font-family: var(--font-jura); font-size: .8rem;
+      color: var(--ink3); letter-spacing: 1px;
+    }
     #hepan-content { display: none; }
     #hepan-text {
       line-height: 2; color: var(--ink); white-space: pre-wrap;
-      font-size: .93rem;
-      background: rgba(255,255,255,.8); border-radius: 14px;
+      font-size: .92rem;
+      background: rgba(255,255,255,.78); border-radius: 16px;
       padding: 20px; backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,.9);
-      box-shadow: 0 4px 20px rgba(30,86,219,.06);
+      border: 1px solid rgba(255,255,255,.92);
+      box-shadow: 0 4px 20px rgba(20,82,205,.06);
     }
-    .disclaimer { font-size: .75rem; color: var(--ink3); margin-top: 12px; text-align: center; line-height: 1.7; }
+    .disclaimer {
+      font-family: var(--font-jura); font-size: .66rem; color: var(--ink3);
+      margin-top: 10px; text-align: center; line-height: 1.8; letter-spacing: .5px;
+    }
+
+    /* back link */
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px; margin-bottom: 28px;
+      font-family: var(--font-jura); font-size: .74rem; letter-spacing: 1.5px;
+      color: var(--ink3); text-decoration: none; transition: color .18s;
+    }
+    .back-link:hover { color: var(--bl-deep); }
 
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(14px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from { opacity:0; transform:translateY(12px); }
+      to   { opacity:1; transform:translateY(0); }
     }
   </style>
 </head>
 <body>
 <div class="page">
 
-  <nav>
+  <!-- 导航 -->
+  <nav class="nav-bar">
     <a href="index.html">八字</a>
     <a href="hepan.html" class="active">合盘</a>
     <a href="qiming.html">起名</a>
@@ -358,21 +324,24 @@
     <a href="fengshui.html">风水</a>
   </nav>
 
-  <!-- 头部 -->
+  <!-- 品牌头部 -->
   <header class="hero">
-    <div class="union-wrap">
-      <div class="union-ring ring-man">乾</div>
-      <div class="union-ring ring-woman">坤</div>
-      <div class="ring-center"></div>
+    <div class="hero-row">
+      <div class="union-icon">
+        <div class="ring-man">乾</div>
+        <div class="ring-woman">坤</div>
+        <div class="ring-center"></div>
+      </div>
+      <div class="hero-text">
+        <h1 class="hero-title">合盘配对</h1>
+        <p class="hero-en">HÉPÁN · COMPATIBILITY</p>
+      </div>
     </div>
-    <h1 class="hero-title">合盘配对</h1>
-    <p class="hero-sub">乾坤相合 · 命理牵缘</p>
-    <div class="paid-badge">✦ 深度定制 · 完整报告</div>
-    <p class="hero-desc">
-      双命相合，察<em>五行互补</em>之缘<br>
-      论日主相生，看<em>财官婚姻</em>走势<br>
-      测感情深浅，断<em>子女大运</em>配合
-    </p>
+    <div class="gold-rule"></div>
+    <p class="hero-tagline">乾坤相合　·　命理牵缘</p>
+    <p class="hero-quote">Two fates, one mirror — still water reveals what is hidden.</p>
+    <br>
+    <span class="paid-badge">✦ 深度定制 · 完整报告</span>
   </header>
 
   <!-- 表单 -->
@@ -381,131 +350,137 @@
 
       <!-- 男方 -->
       <div class="person-card male">
-        <div class="person-head">
-          <div class="person-dot male">乾</div>
-          <span class="person-label">男 方 生 辰</span>
-        </div>
+        <div class="card-top-bar"></div>
+        <div class="card-inner">
+          <div class="person-head">
+            <div class="person-dot male">乾</div>
+            <span class="person-label">男 方 生 辰</span>
+          </div>
 
-        <div class="cal-toggle">
-          <label class="cal-btn active blue" id="man-lbl-solar">
-            <input type="radio" name="man-caltype" value="solar" checked>阳历
-          </label>
-          <label class="cal-btn" id="man-lbl-lunar">
-            <input type="radio" name="man-caltype" value="lunar">农历
-          </label>
-        </div>
+          <div class="cal-toggle">
+            <label class="cal-btn active blue" id="man-lbl-solar">
+              <input type="radio" name="man-caltype" value="solar" checked>阳历
+            </label>
+            <label class="cal-btn" id="man-lbl-lunar">
+              <input type="radio" name="man-caltype" value="lunar">农历
+            </label>
+          </div>
 
-        <div class="field">
-          <label>出 生 年 份</label>
-          <input type="number" id="man-year" min="1900" max="2100" placeholder="例：1990" required>
-        </div>
-        <div class="row">
           <div class="field">
-            <label>月</label>
-            <select id="man-month" required>
-              <option value="">— 月 —</option>
-              <option value="1">一月</option><option value="2">二月</option>
-              <option value="3">三月</option><option value="4">四月</option>
-              <option value="5">五月</option><option value="6">六月</option>
-              <option value="7">七月</option><option value="8">八月</option>
-              <option value="9">九月</option><option value="10">十月</option>
-              <option value="11">十一月</option><option value="12">十二月</option>
-            </select>
+            <label>出 生 年 份</label>
+            <input type="number" id="man-year" min="1900" max="2100" placeholder="例：1990" required>
           </div>
-          <div class="field">
-            <label>日</label>
-            <input type="number" id="man-day" min="1" max="31" placeholder="— 日 —" required>
+          <div class="row">
+            <div class="field">
+              <label>月</label>
+              <select id="man-month" required>
+                <option value="">— 月 —</option>
+                <option value="1">一月</option><option value="2">二月</option>
+                <option value="3">三月</option><option value="4">四月</option>
+                <option value="5">五月</option><option value="6">六月</option>
+                <option value="7">七月</option><option value="8">八月</option>
+                <option value="9">九月</option><option value="10">十月</option>
+                <option value="11">十一月</option><option value="12">十二月</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>日</label>
+              <input type="number" id="man-day" min="1" max="31" placeholder="— 日 —" required>
+            </div>
+            <div class="field">
+              <label>时 辰</label>
+              <select id="man-hour" required>
+                <option value="">— 时 —</option>
+                <option value="23">子 23—01</option>
+                <option value="1">丑 01—03</option>
+                <option value="3">寅 03—05</option>
+                <option value="5">卯 05—07</option>
+                <option value="7">辰 07—09</option>
+                <option value="9">巳 09—11</option>
+                <option value="11">午 11—13</option>
+                <option value="13">未 13—15</option>
+                <option value="15">申 15—17</option>
+                <option value="17">酉 17—19</option>
+                <option value="19">戌 19—21</option>
+                <option value="21">亥 21—23</option>
+              </select>
+            </div>
           </div>
-          <div class="field">
-            <label>时 辰</label>
-            <select id="man-hour" required>
-              <option value="">— 时 —</option>
-              <option value="23">子 23—01</option>
-              <option value="1">丑 01—03</option>
-              <option value="3">寅 03—05</option>
-              <option value="5">卯 05—07</option>
-              <option value="7">辰 07—09</option>
-              <option value="9">巳 09—11</option>
-              <option value="11">午 11—13</option>
-              <option value="13">未 13—15</option>
-              <option value="15">申 15—17</option>
-              <option value="17">酉 17—19</option>
-              <option value="19">戌 19—21</option>
-              <option value="21">亥 21—23</option>
-            </select>
+          <div class="field" id="man-leap-group" style="display:none">
+            <label class="leap-label">
+              <input type="checkbox" id="man-is-leap">闰月
+            </label>
           </div>
-        </div>
-        <div class="field" id="man-leap-group" style="display:none">
-          <label class="leap-label">
-            <input type="checkbox" id="man-is-leap">闰月
-          </label>
         </div>
       </div>
 
       <!-- 女方 -->
       <div class="person-card female">
-        <div class="person-head">
-          <div class="person-dot female">坤</div>
-          <span class="person-label">女 方 生 辰</span>
-        </div>
+        <div class="card-top-bar"></div>
+        <div class="card-inner">
+          <div class="person-head">
+            <div class="person-dot female">坤</div>
+            <span class="person-label">女 方 生 辰</span>
+          </div>
 
-        <div class="cal-toggle">
-          <label class="cal-btn active rose" id="woman-lbl-solar">
-            <input type="radio" name="woman-caltype" value="solar" checked>阳历
-          </label>
-          <label class="cal-btn" id="woman-lbl-lunar">
-            <input type="radio" name="woman-caltype" value="lunar">农历
-          </label>
-        </div>
+          <div class="cal-toggle">
+            <label class="cal-btn active rose" id="woman-lbl-solar">
+              <input type="radio" name="woman-caltype" value="solar" checked>阳历
+            </label>
+            <label class="cal-btn" id="woman-lbl-lunar">
+              <input type="radio" name="woman-caltype" value="lunar">农历
+            </label>
+          </div>
 
-        <div class="field">
-          <label>出 生 年 份</label>
-          <input type="number" id="woman-year" min="1900" max="2100" placeholder="例：1992" required>
-        </div>
-        <div class="row">
           <div class="field">
-            <label>月</label>
-            <select id="woman-month" required>
-              <option value="">— 月 —</option>
-              <option value="1">一月</option><option value="2">二月</option>
-              <option value="3">三月</option><option value="4">四月</option>
-              <option value="5">五月</option><option value="6">六月</option>
-              <option value="7">七月</option><option value="8">八月</option>
-              <option value="9">九月</option><option value="10">十月</option>
-              <option value="11">十一月</option><option value="12">十二月</option>
-            </select>
+            <label>出 生 年 份</label>
+            <input type="number" id="woman-year" min="1900" max="2100" placeholder="例：1992" required>
           </div>
-          <div class="field">
-            <label>日</label>
-            <input type="number" id="woman-day" min="1" max="31" placeholder="— 日 —" required>
+          <div class="row">
+            <div class="field">
+              <label>月</label>
+              <select id="woman-month" required>
+                <option value="">— 月 —</option>
+                <option value="1">一月</option><option value="2">二月</option>
+                <option value="3">三月</option><option value="4">四月</option>
+                <option value="5">五月</option><option value="6">六月</option>
+                <option value="7">七月</option><option value="8">八月</option>
+                <option value="9">九月</option><option value="10">十月</option>
+                <option value="11">十一月</option><option value="12">十二月</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>日</label>
+              <input type="number" id="woman-day" min="1" max="31" placeholder="— 日 —" required>
+            </div>
+            <div class="field">
+              <label>时 辰</label>
+              <select id="woman-hour" required>
+                <option value="">— 时 —</option>
+                <option value="23">子 23—01</option>
+                <option value="1">丑 01—03</option>
+                <option value="3">寅 03—05</option>
+                <option value="5">卯 05—07</option>
+                <option value="7">辰 07—09</option>
+                <option value="9">巳 09—11</option>
+                <option value="11">午 11—13</option>
+                <option value="13">未 13—15</option>
+                <option value="15">申 15—17</option>
+                <option value="17">酉 17—19</option>
+                <option value="19">戌 19—21</option>
+                <option value="21">亥 21—23</option>
+              </select>
+            </div>
           </div>
-          <div class="field">
-            <label>时 辰</label>
-            <select id="woman-hour" required>
-              <option value="">— 时 —</option>
-              <option value="23">子 23—01</option>
-              <option value="1">丑 01—03</option>
-              <option value="3">寅 03—05</option>
-              <option value="5">卯 05—07</option>
-              <option value="7">辰 07—09</option>
-              <option value="9">巳 09—11</option>
-              <option value="11">午 11—13</option>
-              <option value="13">未 13—15</option>
-              <option value="15">申 15—17</option>
-              <option value="17">酉 17—19</option>
-              <option value="19">戌 19—21</option>
-              <option value="21">亥 21—23</option>
-            </select>
+          <div class="field" id="woman-leap-group" style="display:none">
+            <label class="leap-label">
+              <input type="checkbox" id="woman-is-leap">闰月
+            </label>
           </div>
-        </div>
-        <div class="field" id="woman-leap-group" style="display:none">
-          <label class="leap-label">
-            <input type="checkbox" id="woman-is-leap">闰月
-          </label>
         </div>
       </div>
 
-      <button type="submit" class="btn-union">合 盘 配 对</button>
+      <button type="submit" class="btn-union">合　盘　配　对</button>
     </form>
   </div>
 
@@ -515,12 +490,18 @@
     <!-- 两人八字概览 -->
     <div class="bazi-overview">
       <div class="bazi-mini-card male">
-        <div class="mini-label">男 方 八 字</div>
-        <div class="mini-pillars" id="man-pillars"></div>
+        <div class="mini-top"></div>
+        <div class="mini-body">
+          <div class="mini-label">男 方 八 字</div>
+          <div class="mini-pillars" id="man-pillars"></div>
+        </div>
       </div>
       <div class="bazi-mini-card female">
-        <div class="mini-label">女 方 八 字</div>
-        <div class="mini-pillars" id="woman-pillars"></div>
+        <div class="mini-top"></div>
+        <div class="mini-body">
+          <div class="mini-label">女 方 八 字</div>
+          <div class="mini-pillars" id="woman-pillars"></div>
+        </div>
       </div>
     </div>
 
@@ -529,25 +510,28 @@
 
     <!-- 付费卡 -->
     <div class="pay-card" id="pay-card">
-      <p class="pay-title">解锁完整合盘报告</p>
-      <p class="pay-sub">以上为命理速览，完整合盘报告深度分析两命相合程度<br>涵盖 10 大维度 · 约 3000 字精准解读</p>
-      <div class="pay-features">
-        <span>▸ 日主五行 · 相生相克关系</span>
-        <span>▸ 五行互补 · 扶持与消耗</span>
-        <span>▸ 日支合缘 · 六合冲克分析</span>
-        <span>▸ 婚姻星状态 · 配偶宫剖析</span>
-        <span>▸ 财运互助 · 两人财路配合</span>
-        <span>▸ 感情深浅 · 桃花与婚期</span>
-        <span>▸ 感情隐患 · 第三者风险</span>
-        <span>▸ 子女缘分 · 数量与时机</span>
-        <span>▸ 大运配合 · 缘分旺衰节点</span>
-        <span style="grid-column:span 2">▸ 综合评分与合婚建议 · 改善关系的五行调整方向</span>
+      <div class="pay-card-bar"></div>
+      <div class="pay-card-body">
+        <p class="pay-title">解锁完整合盘报告</p>
+        <p class="pay-sub">以上为命理速览　·　完整合盘深度分析两命相合程度<br>涵盖 10 大维度 · 约 3000 字精准解读</p>
+        <div class="pay-features">
+          <span>▸ 日主五行 · 相生相克关系</span>
+          <span>▸ 五行互补 · 扶持与消耗</span>
+          <span>▸ 日支合缘 · 六合冲克分析</span>
+          <span>▸ 婚姻星状态 · 配偶宫剖析</span>
+          <span>▸ 财运互助 · 两人财路配合</span>
+          <span>▸ 感情深浅 · 桃花与婚期</span>
+          <span>▸ 感情隐患 · 第三者风险</span>
+          <span>▸ 子女缘分 · 数量与时机</span>
+          <span>▸ 大运配合 · 缘分旺衰节点</span>
+          <span style="grid-column:span 2">▸ 综合评分与合婚建议 · 五行调整方向</span>
+        </div>
+        <button class="btn-pay" id="hepan-pay-btn">立　即　解　锁　合　盘　报　告</button>
       </div>
-      <button class="btn-pay" id="hepan-pay-btn">立 即 解 锁 合 盘 报 告</button>
     </div>
 
     <!-- 加载中 -->
-    <div id="hepan-loading">命理师正在为您解读合盘，请稍候...</div>
+    <div id="hepan-loading">命理师正在为您解读合盘，请稍候…</div>
 
     <!-- 分析内容 -->
     <div id="hepan-content">

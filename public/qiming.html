@@ -3,72 +3,109 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>起名 - 八字命理</title>
+  <title>起名 · 天机命理</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Jura:wght@300;400&family=Crimson+Pro:ital@1&family=IBM+Plex+Mono:wght@300;400&family=Noto+Serif+SC:wght@200;300;400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div class="container">
+  <div class="page">
+
+    <!-- Nav -->
+    <nav class="nav-bar">
+      <a href="index.html">八字</a>
+      <a href="hepan.html">合盘</a>
+      <a href="qiming.html" class="active">起名</a>
+      <a href="zhanbu.html">占卜</a>
+      <a href="fengshui.html">风水</a>
+    </nav>
+
+    <!-- Header -->
     <header>
-      <nav class="nav-bar">
-        <a href="index.html">八字</a>
-        <a href="qiming.html" class="active">起名</a>
-        <a href="zhanbu.html">占卜</a>
-        <a href="fengshui.html">风水</a>
-      </nav>
-      <h1>起名</h1>
+      <div class="icon-wrap">文</div>
+      <h1>起　名</h1>
       <p class="subtitle">结合八字五行，为你推荐好名字</p>
+      <div class="gold-rule"></div>
     </header>
 
     <main>
-      <form id="qiming-form" class="form-card">
-        <div class="form-group">
-          <label>姓氏</label>
-          <input type="text" id="surname" placeholder="例：王" maxlength="3" required>
-        </div>
-        <div class="form-group">
-          <label>出生年份</label>
-          <input type="number" id="year" min="1900" max="2100" placeholder="例：2024" required>
-        </div>
-        <div class="form-row">
+
+      <!-- Form card -->
+      <form id="qiming-form" class="card form-card">
+        <div class="form-top-bar"></div>
+        <div class="card-inner">
+
+          <div class="section-head">
+            <div class="section-dot"></div>
+            <span>填 写 信 息</span>
+          </div>
+
           <div class="form-group">
-            <label>月</label>
-            <select id="month" required>
-              <option value="">月</option>
-              <option value="1">1月</option><option value="2">2月</option>
-              <option value="3">3月</option><option value="4">4月</option>
-              <option value="5">5月</option><option value="6">6月</option>
-              <option value="7">7月</option><option value="8">8月</option>
-              <option value="9">9月</option><option value="10">10月</option>
-              <option value="11">11月</option><option value="12">12月</option>
-            </select>
+            <label>姓氏</label>
+            <input type="text" id="surname" placeholder="例：王" maxlength="3" required>
           </div>
+
           <div class="form-group">
-            <label>日</label>
-            <input type="number" id="day" min="1" max="31" placeholder="日" required>
+            <label>出生年份</label>
+            <input type="number" id="year" min="1900" max="2100" placeholder="例：2024" required>
           </div>
-        </div>
-        <div class="form-group">
-          <label>性别</label>
-          <div class="radio-group">
-            <label><input type="radio" name="gender" value="男" required> 男</label>
-            <label><input type="radio" name="gender" value="女"> 女</label>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>月</label>
+              <select id="month" required>
+                <option value="">— 月 —</option>
+                <option value="1">1月</option><option value="2">2月</option>
+                <option value="3">3月</option><option value="4">4月</option>
+                <option value="5">5月</option><option value="6">6月</option>
+                <option value="7">7月</option><option value="8">8月</option>
+                <option value="9">9月</option><option value="10">10月</option>
+                <option value="11">11月</option><option value="12">12月</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>日</label>
+              <input type="number" id="day" min="1" max="31" placeholder="— 日 —" required>
+            </div>
           </div>
+
+          <div class="form-group">
+            <label>性别</label>
+            <div class="radio-group">
+              <label><input type="radio" name="gender" value="男" required> 男</label>
+              <label><input type="radio" name="gender" value="女"> 女</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>期望寓意 <span class="label-hint">· 可选</span></label>
+            <input type="text" id="hope" placeholder="例：聪明伶俐、事业有成、温柔大方">
+          </div>
+
+          <button type="submit" class="btn-primary">生成名字</button>
+
         </div>
-        <div class="form-group">
-          <label>期望寓意 <span class="label-hint">（可选）</span></label>
-          <input type="text" id="hope" placeholder="例：聪明伶俐、事业有成、温柔大方">
-        </div>
-        <button type="submit" class="btn-primary">生成名字</button>
       </form>
 
+      <!-- Loading -->
       <div id="result-loading" style="display:none" class="card">
-        <p class="price-desc">命理师正在为你推算合适的名字，请稍候...</p>
+        <div class="card-inner">
+          <p class="price-desc">命理师正在为你推算合适的名字，请稍候…</p>
+        </div>
       </div>
 
+      <!-- Result -->
       <div id="result-section" style="display:none" class="card card-premium">
-        <h2>推荐名字</h2>
-        <div id="result-text" class="analysis-text"></div>
+        <div class="form-top-bar"></div>
+        <div class="card-inner">
+          <div class="section-head">
+            <div class="section-dot"></div>
+            <span>推 荐 名 字</span>
+          </div>
+          <div id="result-text" class="analysis-text"></div>
+        </div>
       </div>
+
     </main>
   </div>
 

@@ -3,115 +3,147 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>占卜 - 八字命理</title>
+  <title>占卜 · 天机命理</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Jura:wght@300;400&family=Crimson+Pro:ital@1&family=IBM+Plex+Mono:wght@300;400&family=Noto+Serif+SC:wght@200;300;400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div class="container">
+  <div class="page">
+
+    <!-- Nav -->
+    <nav class="nav-bar">
+      <a href="index.html">八字</a>
+      <a href="hepan.html">合盘</a>
+      <a href="qiming.html">起名</a>
+      <a href="zhanbu.html" class="active">占卜</a>
+      <a href="fengshui.html">风水</a>
+    </nav>
+
+    <!-- Header -->
     <header>
-      <nav class="nav-bar">
-        <a href="index.html">八字</a>
-        <a href="qiming.html">起名</a>
-        <a href="zhanbu.html" class="active">占卜</a>
-        <a href="fengshui.html">风水</a>
-      </nav>
-      <h1>占卜</h1>
+      <div class="icon-wrap">卦</div>
+      <h1>占　卜</h1>
       <p class="subtitle">多种方式，为你解惑</p>
+      <div class="gold-rule"></div>
     </header>
 
     <main>
-      <form id="zhanbu-form" class="form-card">
 
-        <!-- 方式选择 -->
-        <div class="form-group">
-          <label>占卜方式</label>
-          <div class="method-grid">
-            <label class="method-card active" id="card-meihua">
-              <input type="radio" name="method" value="meihua" checked>
-              <div class="method-name">梅花易数</div>
-              <div class="method-desc">以数起卦，万物皆可成卦象，随机取数即可占问，适合任何事项</div>
-            </label>
-            <label class="method-card" id="card-liuyao">
-              <input type="radio" name="method" value="liuyao">
-              <div class="method-name">六爻</div>
-              <div class="method-desc">以铜钱摇卦，六爻层层深入，卦象详细，可问人事吉凶走向</div>
-            </label>
-            <label class="method-card" id="card-daliuren">
-              <input type="radio" name="method" value="daliuren">
-              <div class="method-name">大六壬</div>
-              <div class="method-desc">古代官方占术，以起课时间推四课三传，精准预测重大事件和时间节点</div>
-            </label>
-            <label class="method-card" id="card-xiaoliuren">
-              <input type="radio" name="method" value="xiaoliuren">
-              <div class="method-name">小六壬</div>
-              <div class="method-desc">民间最常用，以月日时三数起六将（先锋、小吉、速喜、赤口、留连、空亡），简便快捷</div>
-            </label>
-          </div>
-        </div>
+      <!-- Form card -->
+      <form id="zhanbu-form" class="card form-card">
+        <div class="form-top-bar"></div>
+        <div class="card-inner">
 
-        <!-- 问题 -->
-        <div class="form-group">
-          <label>你想问什么</label>
-          <textarea id="question" rows="3" placeholder="例：我今年事业发展如何？这次合作能否成功？" required></textarea>
-        </div>
-
-        <!-- 梅花/六爻：随机数字 -->
-        <div id="input-numbers" class="form-group">
-          <label>起卦数字 <span class="label-hint">（随心输入1-999内的数字，不填则随机）</span></label>
-          <div class="form-row">
-            <div class="form-group">
-              <input type="number" id="num1" min="1" max="999" placeholder="数字一">
+          <!-- 方式选择 -->
+          <div class="form-group">
+            <div class="section-head" style="margin-bottom:12px;">
+              <div class="section-dot"></div>
+              <span>选 择 占 卜 方 式</span>
             </div>
-            <div class="form-group">
-              <input type="number" id="num2" min="1" max="999" placeholder="数字二">
-            </div>
-            <div class="form-group">
-              <input type="number" id="num3" min="1" max="999" placeholder="数字三">
+            <div class="method-grid">
+              <label class="method-card active" id="card-meihua">
+                <input type="radio" name="method" value="meihua" checked>
+                <div class="method-name">梅花易数</div>
+                <div class="method-desc">以数起卦，万物皆可成卦象，随机取数即可占问，适合任何事项</div>
+              </label>
+              <label class="method-card" id="card-liuyao">
+                <input type="radio" name="method" value="liuyao">
+                <div class="method-name">六爻</div>
+                <div class="method-desc">以铜钱摇卦，六爻层层深入，卦象详细，可问人事吉凶走向</div>
+              </label>
+              <label class="method-card" id="card-daliuren">
+                <input type="radio" name="method" value="daliuren">
+                <div class="method-name">大六壬</div>
+                <div class="method-desc">古代官方占术，以起课时间推四课三传，精准预测重大事件和时间节点</div>
+              </label>
+              <label class="method-card" id="card-xiaoliuren">
+                <input type="radio" name="method" value="xiaoliuren">
+                <div class="method-name">小六壬</div>
+                <div class="method-desc">民间最常用，以月日时三数起六将（先锋、小吉、速喜、赤口、留连、空亡），简便快捷</div>
+              </label>
             </div>
           </div>
-        </div>
 
-        <!-- 大六壬/小六壬：起课时间 -->
-        <div id="input-time" class="form-group" style="display:none">
-          <label>起课时间 <span class="label-hint">（默认当前时间）</span></label>
-          <div class="form-row">
-            <div class="form-group">
-              <input type="number" id="ke-month" min="1" max="12" placeholder="月">
+          <!-- 问题 -->
+          <div class="form-group">
+            <div class="section-head" style="margin-bottom:10px;">
+              <div class="section-dot"></div>
+              <span>你 想 问 什 么</span>
             </div>
-            <div class="form-group">
-              <input type="number" id="ke-day" min="1" max="31" placeholder="日">
-            </div>
-            <div class="form-group">
-              <select id="ke-hour">
-                <option value="">时辰</option>
-                <option value="子">子时 23-01</option>
-                <option value="丑">丑时 01-03</option>
-                <option value="寅">寅时 03-05</option>
-                <option value="卯">卯时 05-07</option>
-                <option value="辰">辰时 07-09</option>
-                <option value="巳">巳时 09-11</option>
-                <option value="午">午时 11-13</option>
-                <option value="未">未时 13-15</option>
-                <option value="申">申时 15-17</option>
-                <option value="酉">酉时 17-19</option>
-                <option value="戌">戌时 19-21</option>
-                <option value="亥">亥时 21-23</option>
-              </select>
+            <textarea id="question" rows="3" placeholder="例：我今年事业发展如何？这次合作能否成功？" required></textarea>
+          </div>
+
+          <!-- 梅花/六爻：随机数字 -->
+          <div id="input-numbers" class="form-group">
+            <label>起卦数字 <span class="label-hint">· 随心输入 1–999，不填则随机</span></label>
+            <div class="form-row">
+              <div class="form-group">
+                <input type="number" id="num1" min="1" max="999" placeholder="数字一">
+              </div>
+              <div class="form-group">
+                <input type="number" id="num2" min="1" max="999" placeholder="数字二">
+              </div>
+              <div class="form-group">
+                <input type="number" id="num3" min="1" max="999" placeholder="数字三">
+              </div>
             </div>
           </div>
-        </div>
 
-        <button type="submit" class="btn-primary">开始占卜</button>
+          <!-- 大六壬/小六壬：起课时间 -->
+          <div id="input-time" class="form-group" style="display:none">
+            <label>起课时间 <span class="label-hint">· 默认当前时间</span></label>
+            <div class="form-row">
+              <div class="form-group">
+                <input type="number" id="ke-month" min="1" max="12" placeholder="月">
+              </div>
+              <div class="form-group">
+                <input type="number" id="ke-day" min="1" max="31" placeholder="日">
+              </div>
+              <div class="form-group">
+                <select id="ke-hour">
+                  <option value="">时辰</option>
+                  <option value="子">子时 23-01</option>
+                  <option value="丑">丑时 01-03</option>
+                  <option value="寅">寅时 03-05</option>
+                  <option value="卯">卯时 05-07</option>
+                  <option value="辰">辰时 07-09</option>
+                  <option value="巳">巳时 09-11</option>
+                  <option value="午">午时 11-13</option>
+                  <option value="未">未时 13-15</option>
+                  <option value="申">申时 15-17</option>
+                  <option value="酉">酉时 17-19</option>
+                  <option value="戌">戌时 19-21</option>
+                  <option value="亥">亥时 21-23</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary">开始占卜</button>
+
+        </div>
       </form>
 
+      <!-- Loading -->
       <div id="result-loading" style="display:none" class="card">
-        <p class="price-desc">正在为你起卦解读，请稍候...</p>
+        <div class="card-inner">
+          <p class="price-desc">正在为你起卦解读，请稍候…</p>
+        </div>
       </div>
 
+      <!-- Result -->
       <div id="result-section" style="display:none" class="card card-premium">
-        <h2>卦象解读</h2>
-        <div id="result-text" class="analysis-text"></div>
+        <div class="form-top-bar"></div>
+        <div class="card-inner">
+          <div class="section-head">
+            <div class="section-dot"></div>
+            <span>卦 象 解 读</span>
+          </div>
+          <div id="result-text" class="analysis-text"></div>
+        </div>
       </div>
+
     </main>
   </div>
 
