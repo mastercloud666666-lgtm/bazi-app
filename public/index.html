@@ -3,26 +3,405 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>八字命理 - 免费排盘 资深命理师解读</title>
+  <title>天机命理 · 八字深度解读</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── 主题覆盖：深邃星空 × 东方墨蓝 ── */
+    :root {
+      --b0: #03070f;
+      --b1: #060e1c;
+      --b2: #0a1628;
+      --b3: #0d1e38;
+      --ba: #3d8ef0;
+      --bl: #8ec5fc;
+      --bi: #deeeff;
+      --gold: #c9a84c;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--b0);
+      font-family: 'Noto Serif SC', 'SimSun', serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── 星空背景 ── */
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .stars::before, .stars::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+    }
+    .stars::before {
+      background-image:
+        radial-gradient(1px 1px at  8% 12%, rgba(255,255,255,.90) 0%,transparent 100%),
+        radial-gradient(1px 1px at 22% 28%, rgba(142,197,252,.70) 0%,transparent 100%),
+        radial-gradient(1.5px 1.5px at 38%  5%, rgba(255,255,255,.85) 0%,transparent 100%),
+        radial-gradient(1px 1px at 55% 18%, rgba(255,255,255,.55) 0%,transparent 100%),
+        radial-gradient(1px 1px at 72% 32%, rgba(142,197,252,.65) 0%,transparent 100%),
+        radial-gradient(1.5px 1.5px at 88%  9%, rgba(255,255,255,.80) 0%,transparent 100%),
+        radial-gradient(1px 1px at 12% 55%, rgba(255,255,255,.40) 0%,transparent 100%),
+        radial-gradient(1px 1px at 48% 50%, rgba(142,197,252,.50) 0%,transparent 100%),
+        radial-gradient(1.5px 1.5px at 91% 58%, rgba(255,255,255,.70) 0%,transparent 100%),
+        radial-gradient(1px 1px at 28% 72%, rgba(255,255,255,.35) 0%,transparent 100%),
+        radial-gradient(1px 1px at 68% 78%, rgba(142,197,252,.45) 0%,transparent 100%),
+        radial-gradient(1px 1px at  4% 88%, rgba(255,255,255,.60) 0%,transparent 100%),
+        radial-gradient(1px 1px at 44% 93%, rgba(255,255,255,.30) 0%,transparent 100%),
+        radial-gradient(1.5px 1.5px at 96% 82%, rgba(255,255,255,.75) 0%,transparent 100%),
+        radial-gradient(1px 1px at 62%  3%, rgba(255,255,255,.50) 0%,transparent 100%),
+        radial-gradient(1px 1px at 79% 65%, rgba(142,197,252,.40) 0%,transparent 100%),
+        radial-gradient(1px 1px at 33% 42%, rgba(255,255,255,.30) 0%,transparent 100%),
+        radial-gradient(1px 1px at 17% 38%, rgba(142,197,252,.55) 0%,transparent 100%),
+        radial-gradient(1px 1px at 57% 68%, rgba(255,255,255,.45) 0%,transparent 100%),
+        radial-gradient(1.5px 1.5px at 84% 22%, rgba(255,255,255,.65) 0%,transparent 100%);
+      animation: twinkle 6s ease-in-out infinite alternate;
+    }
+    .stars::after {
+      background-image:
+        radial-gradient(1px 1px at 15% 20%, rgba(255,255,255,.50) 0%,transparent 100%),
+        radial-gradient(1px 1px at 35% 62%, rgba(142,197,252,.60) 0%,transparent 100%),
+        radial-gradient(1px 1px at 52% 35%, rgba(255,255,255,.40) 0%,transparent 100%),
+        radial-gradient(1px 1px at 75% 48%, rgba(255,255,255,.55) 0%,transparent 100%),
+        radial-gradient(1px 1px at 93% 30%, rgba(142,197,252,.45) 0%,transparent 100%),
+        radial-gradient(1px 1px at  6% 72%, rgba(255,255,255,.35) 0%,transparent 100%),
+        radial-gradient(1px 1px at 82% 90%, rgba(255,255,255,.60) 0%,transparent 100%);
+      animation: twinkle 9s ease-in-out infinite alternate-reverse;
+    }
+    @keyframes twinkle {
+      from { opacity: .6; }
+      to   { opacity: 1; }
+    }
+
+    /* 顶部光晕 */
+    .glow-top {
+      position: fixed;
+      top: -120px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 300px;
+      background: radial-gradient(ellipse, rgba(61,142,240,.18) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* 背景八卦字符 */
+    .bg-gua {
+      position: fixed;
+      pointer-events: none;
+      z-index: 0;
+      line-height: 1;
+      user-select: none;
+      opacity: .025;
+      color: var(--bl);
+    }
+    .bg-gua-1 { top: 8%; left: -10px; font-size: 140px; letter-spacing: 16px; animation: bgFloat 20s ease-in-out infinite; }
+    .bg-gua-2 { bottom: 10%; right: -10px; font-size: 100px; letter-spacing: 12px; animation: bgFloat 25s ease-in-out infinite reverse; opacity: .018; color: var(--gold); }
+    @keyframes bgFloat {
+      0%,100% { transform: translateY(0px) rotate(0deg); }
+      50%      { transform: translateY(-12px) rotate(1deg); }
+    }
+
+    /* ── 布局 ── */
+    .container { max-width: 560px; margin: 0 auto; padding: 20px 16px 48px; position: relative; z-index: 1; }
+
+    /* ── 导航 ── */
+    .nav-bar {
+      display: flex; justify-content: center; gap: 4px;
+      margin-bottom: 32px;
+      animation: fadeUp .7s both;
+    }
+    .nav-bar a {
+      padding: 7px 18px; border-radius: 20px;
+      color: rgba(142,197,252,.5); text-decoration: none;
+      font-size: .88rem; border: 1px solid transparent;
+      transition: all .25s; letter-spacing: 1px;
+    }
+    .nav-bar a:hover { color: var(--bl); border-color: rgba(61,142,240,.3); }
+    .nav-bar a.active {
+      color: var(--bi); background: rgba(61,142,240,.18);
+      border-color: rgba(61,142,240,.45); font-weight: 600;
+    }
+
+    /* ── 英雄区 ── */
+    .hero {
+      text-align: center;
+      padding: 8px 0 36px;
+      position: relative;
+    }
+
+    /* 轨道圆环 */
+    .orbital-wrap {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 300px; height: 300px;
+      pointer-events: none;
+    }
+    .ring {
+      position: absolute; border-radius: 50%;
+      border: 1px solid rgba(61,142,240,.12);
+      top: 50%; left: 50%;
+    }
+    .ring-1 { width: 200px; height: 200px; margin: -100px 0 0 -100px; animation: spin 28s linear infinite; }
+    .ring-2 { width: 280px; height: 280px; margin: -140px 0 0 -140px; animation: spin 45s linear infinite reverse; border-color: rgba(201,168,76,.07); }
+    .ring-1::after, .ring-2::after {
+      content: '◆'; position: absolute; top: -5px; left: 50%;
+      transform: translateX(-50%); font-size: 7px; color: rgba(61,142,240,.5);
+    }
+    .ring-2::after { color: rgba(201,168,76,.4); }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    /* 主字符 */
+    .hero-char {
+      font-size: 5.5rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      line-height: 1;
+      margin-bottom: 6px;
+      display: inline-block;
+      background: linear-gradient(170deg, #ffffff 0%, #8ec5fc 35%, #3d8ef0 60%, #c9a84c 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 0 28px rgba(61,142,240,.5));
+      animation: charReveal 1.1s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes charReveal {
+      from { opacity:0; transform:scale(.75) translateY(20px); filter:blur(16px) drop-shadow(0 0 0 transparent); }
+      to   { opacity:1; transform:scale(1) translateY(0);    filter:blur(0)   drop-shadow(0 0 28px rgba(61,142,240,.5)); }
+    }
+
+    .hero-brand {
+      font-size: .95rem; letter-spacing: 8px; font-weight: 300;
+      color: rgba(142,197,252,.8);
+      margin-bottom: 18px;
+      animation: fadeUp .9s .25s both;
+    }
+
+    /* 分隔线 */
+    .rule {
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px; margin-bottom: 16px;
+      animation: fadeUp .9s .4s both;
+    }
+    .rule::before, .rule::after {
+      content: '';
+      width: 48px; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(61,142,240,.5), transparent);
+    }
+    .rule span { font-size: .68rem; letter-spacing: 4px; color: rgba(61,142,240,.6); }
+
+    /* 营销文案 */
+    .hero-copy {
+      font-size: .88rem; line-height: 2;
+      color: rgba(142,197,252,.65);
+      letter-spacing: 1px;
+      animation: fadeUp .9s .55s both;
+    }
+    .hero-copy em {
+      font-style: normal;
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .hero-copy strong {
+      font-weight: 400;
+      color: rgba(222,238,255,.85);
+    }
+
+    /* ── 表单卡片 ── */
+    .form-card {
+      background: rgba(8,18,34,.78);
+      border: 1px solid rgba(61,142,240,.22);
+      border-radius: 16px;
+      padding: 28px 22px 22px;
+      backdrop-filter: blur(24px) saturate(1.4);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.04) inset,
+        0 24px 64px rgba(0,0,0,.55),
+        0 0 48px rgba(61,142,240,.07);
+      animation: fadeUp .9s .75s both;
+      margin-bottom: 0;
+    }
+
+    .form-section-label {
+      font-size: .7rem; letter-spacing: 4px;
+      color: rgba(61,142,240,.65);
+      margin-bottom: 22px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .form-section-label::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg, rgba(61,142,240,.25), transparent);
+    }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      color: rgba(142,197,252,.75) !important;
+      font-size: .82rem; margin-bottom: 7px; letter-spacing: 1px;
+    }
+    .label-hint { color: rgba(142,197,252,.35) !important; font-size: .75rem; }
+
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-group { flex: 1; }
+
+    input[type=number], input[type=text], select {
+      width: 100%; padding: 10px 12px;
+      background: rgba(255,255,255,.05) !important;
+      border: 1px solid rgba(61,142,240,.2) !important;
+      border-radius: 8px;
+      color: #deeeff !important;
+      font-size: .95rem;
+      font-family: inherit;
+      transition: border-color .25s, box-shadow .25s, background .25s;
+    }
+    input[type=number]:focus, input[type=text]:focus, select:focus {
+      outline: none;
+      border-color: rgba(61,142,240,.6) !important;
+      background: rgba(61,142,240,.07) !important;
+      box-shadow: 0 0 0 3px rgba(61,142,240,.12), 0 0 16px rgba(61,142,240,.12);
+    }
+    select option { background: #0a1628; color: #deeeff; }
+
+    /* 阳历/农历切换 */
+    .calendar-toggle {
+      display: flex; border-radius: 8px; overflow: hidden;
+      border: 1px solid rgba(61,142,240,.28) !important;
+      width: fit-content;
+    }
+    .toggle-btn {
+      padding: 8px 26px; cursor: pointer;
+      color: rgba(142,197,252,.45) !important;
+      background: rgba(255,255,255,.04) !important;
+      transition: all .2s; font-size: .9rem; letter-spacing: 1px;
+    }
+    .toggle-btn input[type=radio] { display: none; }
+    .toggle-btn.active {
+      background: rgba(61,142,240,.22) !important;
+      color: #deeeff !important; font-weight: 600;
+    }
+
+    /* 性别 */
+    .radio-group { display: flex; gap: 28px; padding-top: 4px; }
+    .radio-group label { color: rgba(142,197,252,.75) !important; cursor: pointer; letter-spacing: 1px; font-size: .92rem; }
+    .radio-group input { accent-color: var(--ba); }
+
+    /* 闰月 */
+    .checkbox-label { display: flex; align-items: center; gap: 8px; color: rgba(142,197,252,.7) !important; cursor: pointer; }
+    .checkbox-label input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--ba); }
+
+    /* 地点提示 */
+    .geo-hint { font-size: .8rem; color: rgba(142,197,252,.45) !important; margin-top: 6px; min-height: 18px; }
+    .geo-hint.ok  { color: rgba(61,142,240,.9) !important; }
+    .geo-hint.err { color: #e94560 !important; }
+
+    /* 提交按钮 */
+    .btn-primary {
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, #1a4a8a 0%, #2a6abb 50%, #1a4a8a 100%);
+      background-size: 200% 100%;
+      border: 1px solid rgba(61,142,240,.45) !important;
+      border-radius: 10px;
+      color: #e8f4ff !important;
+      font-size: 1rem; font-weight: 600;
+      letter-spacing: 5px; cursor: pointer;
+      margin-top: 10px;
+      position: relative; overflow: hidden;
+      transition: all .3s;
+      box-shadow: 0 4px 20px rgba(61,142,240,.28), 0 0 0 1px rgba(255,255,255,.05) inset;
+    }
+    .btn-primary::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.08) 50%, transparent 65%);
+      transform: translateX(-100%);
+      transition: transform .55s ease;
+    }
+    .btn-primary:hover::before { transform: translateX(100%); }
+    .btn-primary:hover {
+      box-shadow: 0 6px 28px rgba(61,142,240,.42), 0 0 0 1px rgba(61,142,240,.35) inset;
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    /* ── 功能小标签 ── */
+    .feature-strip {
+      display: flex;
+      border-top: 1px solid rgba(61,142,240,.1);
+      margin-top: 20px; padding-top: 16px;
+      gap: 0;
+    }
+    .feat {
+      flex: 1; text-align: center;
+      padding: 6px 2px;
+      border-right: 1px solid rgba(61,142,240,.1);
+    }
+    .feat:last-child { border-right: none; }
+    .feat-ico { font-size: 1.1rem; display: block; margin-bottom: 3px; }
+    .feat-lbl { font-size: .68rem; letter-spacing: 1px; color: rgba(142,197,252,.4); line-height: 1.5; }
+
+    /* ── 动画 ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
+
+  <!-- 背景层 -->
+  <div class="stars"></div>
+  <div class="glow-top"></div>
+  <div class="bg-gua bg-gua-1">☰ ☷ ☳ ☴</div>
+  <div class="bg-gua bg-gua-2">☵ ☲ ☶ ☱</div>
+
   <div class="container">
-    <header>
-      <nav class="nav-bar">
-        <a href="index.html" class="active">八字</a>
-        <a href="qiming.html">起名</a>
-        <a href="zhanbu.html">占卜</a>
-        <a href="fengshui.html">风水</a>
-      </nav>
-      <h1>八字命理</h1>
-      <p class="subtitle">输入生辰，免费排盘，资深命理师解读</p>
+
+    <!-- 导航 -->
+    <nav class="nav-bar">
+      <a href="index.html" class="active">八字</a>
+      <a href="qiming.html">起名</a>
+      <a href="zhanbu.html">占卜</a>
+      <a href="fengshui.html">风水</a>
+    </nav>
+
+    <!-- 英雄区 -->
+    <header class="hero">
+      <div class="orbital-wrap">
+        <div class="ring ring-1"></div>
+        <div class="ring ring-2"></div>
+      </div>
+
+      <div class="hero-char">命</div>
+      <p class="hero-brand">天 机 命 理</p>
+
+      <div class="rule"><span>✦ 古 法 推 演 ✦</span></div>
+
+      <p class="hero-copy">
+        千年命学，凝于一盘<br>
+        <em>你的专属军师</em>，<strong>洞悉天机</strong>，为你量身推演<br>
+        <em>格局</em>定命，<em>流年</em>指路，<em>财库</em>开合尽在掌握
+      </p>
     </header>
 
+    <!-- 表单 -->
     <main>
       <form id="bazi-form" class="form-card">
 
-        <!-- 阳历 / 农历切换 -->
+        <div class="form-section-label">填 写 生 辰</div>
+
+        <!-- 阳历/农历 -->
         <div class="form-group">
           <div class="calendar-toggle">
             <label class="toggle-btn active" id="lbl-solar">
@@ -38,17 +417,18 @@
           <label>出生年份</label>
           <input type="number" id="year" min="1900" max="2100" placeholder="例：1990" required>
         </div>
+
         <div class="form-row">
           <div class="form-group">
             <label>月</label>
             <select id="month" required>
-              <option value="">月</option>
-              <option value="1">1月</option><option value="2">2月</option>
-              <option value="3">3月</option><option value="4">4月</option>
-              <option value="5">5月</option><option value="6">6月</option>
-              <option value="7">7月</option><option value="8">8月</option>
-              <option value="9">9月</option><option value="10">10月</option>
-              <option value="11">11月</option><option value="12">12月</option>
+              <option value="">月份</option>
+              <option value="1">一月</option><option value="2">二月</option>
+              <option value="3">三月</option><option value="4">四月</option>
+              <option value="5">五月</option><option value="6">六月</option>
+              <option value="7">七月</option><option value="8">八月</option>
+              <option value="9">九月</option><option value="10">十月</option>
+              <option value="11">十一月</option><option value="12">十二月</option>
             </select>
           </div>
           <div class="form-group">
@@ -59,46 +439,74 @@
             <label>时辰</label>
             <select id="hour" required>
               <option value="">时辰</option>
-              <option value="23">子时 23-01</option>
-              <option value="1">丑时 01-03</option>
-              <option value="3">寅时 03-05</option>
-              <option value="5">卯时 05-07</option>
-              <option value="7">辰时 07-09</option>
-              <option value="9">巳时 09-11</option>
-              <option value="11">午时 11-13</option>
-              <option value="13">未时 13-15</option>
-              <option value="15">申时 15-17</option>
-              <option value="17">酉时 17-19</option>
-              <option value="19">戌时 19-21</option>
-              <option value="21">亥时 21-23</option>
+              <option value="23">子时 23—01</option>
+              <option value="1">丑时 01—03</option>
+              <option value="3">寅时 03—05</option>
+              <option value="5">卯时 05—07</option>
+              <option value="7">辰时 07—09</option>
+              <option value="9">巳时 09—11</option>
+              <option value="11">午时 11—13</option>
+              <option value="13">未时 13—15</option>
+              <option value="15">申时 15—17</option>
+              <option value="17">酉时 17—19</option>
+              <option value="19">戌时 19—21</option>
+              <option value="21">亥时 21—23</option>
             </select>
           </div>
         </div>
 
-        <!-- 农历闰月（仅农历时显示） -->
+        <!-- 农历闰月 -->
         <div class="form-group" id="leap-group" style="display:none">
           <label class="checkbox-label">
             <input type="checkbox" id="is-leap"> 闰月
           </label>
         </div>
 
+        <!-- 性别 -->
         <div class="form-group">
           <label>性别</label>
           <div class="radio-group">
-            <label><input type="radio" name="gender" value="男" required> 男</label>
-            <label><input type="radio" name="gender" value="女"> 女</label>
+            <label><input type="radio" name="gender" value="男" required> 男命</label>
+            <label><input type="radio" name="gender" value="女"> 女命</label>
           </div>
         </div>
 
+        <!-- 出生地 -->
         <div class="form-group">
-          <label>出生地 <span class="label-hint">（可选，用于真太阳时校正）</span></label>
-          <input type="text" id="birthplace" placeholder="例：北京 / 纽约 / 东京 / London" autocomplete="off">
+          <label>出生地 <span class="label-hint">· 可选，用于真太阳时校正</span></label>
+          <input type="text" id="birthplace" placeholder="如：北京 / 上海 / 广州 / 纽约" autocomplete="off">
           <div class="geo-hint" id="geo-hint"></div>
         </div>
 
-        <button type="submit" class="btn-primary">免费排盘</button>
+        <button type="submit" class="btn-primary">排 盘 解 读</button>
+
+        <!-- 功能亮点 -->
+        <div class="feature-strip">
+          <div class="feat">
+            <span class="feat-ico">☯</span>
+            <span class="feat-lbl">格局<br>定命</span>
+          </div>
+          <div class="feat">
+            <span class="feat-ico">✦</span>
+            <span class="feat-lbl">神煞<br>精析</span>
+          </div>
+          <div class="feat">
+            <span class="feat-ico">◎</span>
+            <span class="feat-lbl">流年<br>预测</span>
+          </div>
+          <div class="feat">
+            <span class="feat-ico">⊕</span>
+            <span class="feat-lbl">财库<br>分析</span>
+          </div>
+          <div class="feat">
+            <span class="feat-ico">⟐</span>
+            <span class="feat-lbl">感情<br>婚姻</span>
+          </div>
+        </div>
+
       </form>
     </main>
+
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
