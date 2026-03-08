@@ -9,13 +9,17 @@
   <link rel="stylesheet" href="css/style.css">
   <style>
     :root {
-      --ink:    #070c16;
-      --ink2:   #0c1827;
-      --gold:   #c9a84c;
-      --gold2:  rgba(201,168,76,0.18);
-      --ice:    #c8ddf0;
-      --mist:   rgba(180,210,240,0.42);
-      --dim:    rgba(180,210,240,0.22);
+      --blue-deep:  #1a56db;
+      --blue-mid:   #3b82f6;
+      --blue-soft:  #93c5fd;
+      --blue-pale:  #dbeafe;
+      --blue-ice:   #eff6ff;
+      --white:      #ffffff;
+      --ink:        #1e3a5f;
+      --ink2:       #3b5a87;
+      --ink3:       #6b89b4;
+      --mist:       rgba(59,130,246,0.12);
+      --shadow:     rgba(30,86,219,0.15);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -26,297 +30,343 @@
     }
 
     body {
-      background: var(--ink);
-      color: var(--ice);
+      background: #eef4fd;
+      color: var(--ink);
       overflow-x: hidden;
     }
 
-    /* ── 背景：渐变光晕 + 极细噪点 ── */
+    /* ── 背景：蓝白光晕渐变 ── */
     body::before {
       content: '';
       position: fixed; inset: 0; z-index: 0;
       background:
-        radial-gradient(ellipse 80% 50% at 20% -5%,  rgba(30,70,130,.22) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 60% at 80% 110%, rgba(15,40,90,.30)  0%, transparent 60%),
-        radial-gradient(ellipse 100% 40% at 50% 50%, rgba(5,10,22,.60)   0%, transparent 100%);
+        radial-gradient(ellipse 90% 60% at 10% 0%,   rgba(147,197,253,.45) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 70% at 90% 100%,  rgba(59,130,246,.20) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 50% 40%,   rgba(239,246,255,.80) 0%, transparent 70%);
       pointer-events: none;
     }
 
-    /* SVG 噪点纹理 */
-    body::after {
-      content: '';
-      position: fixed; inset: 0; z-index: 0;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-      background-size: 300px 300px;
-      pointer-events: none; opacity: .55;
-    }
-
     /* ── 布局 ── */
-    .page { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; padding: 28px 20px 60px; }
+    .page {
+      position: relative; z-index: 1;
+      max-width: 500px; margin: 0 auto;
+      padding: 28px 20px 70px;
+    }
 
     /* ── 顶部导航 ── */
     nav {
-      display: flex; justify-content: center; gap: 2px;
-      margin-bottom: 44px;
-      animation: appear .6s both;
+      display: flex; justify-content: center; gap: 4px;
+      margin-bottom: 40px;
+      animation: fadeUp .5s both;
     }
     nav a {
-      padding: 6px 16px; border-radius: 2px;
-      color: var(--dim); text-decoration: none;
-      font-size: .8rem; letter-spacing: 2px;
+      padding: 7px 18px; border-radius: 20px;
+      color: var(--ink3); text-decoration: none;
+      font-size: .82rem; letter-spacing: 2px;
       border: 1px solid transparent;
-      transition: all .25s;
+      transition: all .22s;
     }
-    nav a:hover { color: var(--mist); border-color: rgba(201,168,76,.2); }
+    nav a:hover { color: var(--blue-mid); background: rgba(59,130,246,.08); }
     nav a.active {
-      color: var(--gold); border-color: rgba(201,168,76,.35);
-      background: rgba(201,168,76,.06);
+      color: var(--white);
+      background: linear-gradient(135deg, var(--blue-deep), var(--blue-mid));
+      box-shadow: 0 4px 12px rgba(59,130,246,.35);
     }
 
-    /* ── 品牌徽章 ── */
+    /* ── 品牌区 ── */
     .brand-wrap {
       text-align: center;
-      margin-bottom: 32px;
-      animation: appear .8s .1s both;
+      margin-bottom: 36px;
+      animation: fadeUp .6s .08s both;
     }
 
-    /* 印章式徽章 */
-    .seal {
-      width: 64px; height: 64px;
-      margin: 0 auto 18px;
+    /* 3D 水晶立方徽标 */
+    .crystal-wrap {
+      width: 80px; height: 80px;
+      margin: 0 auto 22px;
       position: relative;
       display: flex; align-items: center; justify-content: center;
     }
-    .seal-outer {
+
+    /* 外层发光底座 */
+    .crystal-glow {
+      position: absolute; inset: -8px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(59,130,246,.2) 0%, transparent 70%);
+      animation: glowPulse 3s ease-in-out infinite;
+    }
+
+    /* 主晶体块 */
+    .crystal {
+      width: 64px; height: 64px;
+      position: relative;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #ffffff 0%, #e0eeff 40%, #bfdbfe 100%);
+      box-shadow:
+        0 8px 32px rgba(59,130,246,.30),
+        0 2px 8px  rgba(59,130,246,.15),
+        inset 0 1px 0 rgba(255,255,255,.9),
+        inset 0 -1px 0 rgba(147,197,253,.4);
+      display: flex; align-items: center; justify-content: center;
+      animation: crystalFloat 4s ease-in-out infinite;
+    }
+
+    /* 高光反射 */
+    .crystal::before {
+      content: '';
+      position: absolute;
+      top: 6px; left: 6px;
+      width: 28px; height: 28px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(255,255,255,.85) 0%, rgba(255,255,255,.0) 100%);
+    }
+
+    /* 侧面棱线 */
+    .crystal::after {
+      content: '';
       position: absolute; inset: 0;
-      border: 1px solid rgba(201,168,76,.55);
-      border-radius: 2px;
-      transform: rotate(45deg);
-      animation: sealPulse 4s ease-in-out infinite;
+      border-radius: 18px;
+      border: 1.5px solid rgba(255,255,255,.6);
     }
-    .seal-inner {
-      position: absolute; inset: 8px;
-      border: 1px solid rgba(201,168,76,.2);
-      border-radius: 1px;
-      transform: rotate(45deg);
-    }
-    .seal-char {
-      font-size: 1.6rem; font-weight: 600;
-      color: var(--gold);
+
+    .crystal-char {
+      font-size: 1.8rem; font-weight: 600;
+      color: var(--blue-deep);
       position: relative; z-index: 1;
-      line-height: 1;
-      text-shadow: 0 0 20px rgba(201,168,76,.4);
+      text-shadow: 0 2px 8px rgba(59,130,246,.25);
     }
-    @keyframes sealPulse {
-      0%,100% { opacity: .7; box-shadow: 0 0 0 0 rgba(201,168,76,.1); }
-      50%      { opacity: 1;  box-shadow: 0 0 0 6px rgba(201,168,76,.0); }
+
+    /* 底部小圆点装饰 */
+    .crystal-dots {
+      display: flex; gap: 6px;
+      justify-content: center; margin-top: 10px;
+    }
+    .crystal-dots span {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--blue-soft);
+      opacity: .5;
+    }
+    .crystal-dots span:nth-child(2) { opacity: .8; background: var(--blue-mid); transform: scale(1.2); }
+
+    @keyframes glowPulse {
+      0%, 100% { opacity: .6; transform: scale(1); }
+      50%       { opacity: 1;  transform: scale(1.08); }
+    }
+    @keyframes crystalFloat {
+      0%, 100% { transform: translateY(0px);   box-shadow: 0 8px 32px rgba(59,130,246,.30), 0 2px 8px rgba(59,130,246,.15), inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(147,197,253,.4); }
+      50%       { transform: translateY(-6px);  box-shadow: 0 16px 48px rgba(59,130,246,.35), 0 4px 16px rgba(59,130,246,.20), inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(147,197,253,.4); }
     }
 
     /* 品牌名 */
     .brand-name {
-      font-size: 1.6rem; font-weight: 200;
-      letter-spacing: 14px; color: var(--ice);
-      margin-bottom: 10px;
-      text-indent: 14px; /* 补偿 letter-spacing */
+      font-size: 1.65rem; font-weight: 300;
+      letter-spacing: 12px; text-indent: 12px;
+      color: var(--ink);
+      margin-bottom: 8px;
     }
 
-    /* 细线分隔 */
-    .ornament {
-      display: flex; align-items: center;
-      justify-content: center; gap: 10px;
+    /* 副标题 */
+    .brand-sub {
+      font-size: .75rem; letter-spacing: 4px;
+      color: var(--ink3);
       margin-bottom: 14px;
-    }
-    .ornament::before, .ornament::after {
-      content: '';
-      flex: 1; max-width: 60px; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(201,168,76,.4), transparent);
-    }
-    .ornament span {
-      font-size: .6rem; letter-spacing: 4px; color: rgba(201,168,76,.5);
     }
 
     /* 标语 */
     .tagline {
-      font-size: .82rem; font-weight: 300;
-      line-height: 2.1; letter-spacing: 2px;
-      color: var(--mist);
+      font-size: .83rem; font-weight: 300;
+      line-height: 2.0; letter-spacing: 1.5px;
+      color: var(--ink2);
     }
     .tagline em {
-      font-style: normal; color: var(--gold); font-weight: 400;
+      font-style: normal;
+      color: var(--blue-deep);
+      font-weight: 500;
+      background: linear-gradient(90deg, var(--blue-deep), var(--blue-mid));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     /* ── 表单容器 ── */
     .form-wrap {
-      animation: appear .8s .3s both;
-    }
-
-    /* 竖线装饰 + 节标题 */
-    .section-head {
-      display: flex; align-items: center; gap: 10px;
-      margin-bottom: 18px;
-    }
-    .section-head::before {
-      content: ''; width: 2px; height: 14px;
-      background: linear-gradient(180deg, var(--gold), transparent);
-      border-radius: 1px;
-      flex-shrink: 0;
-    }
-    .section-head span {
-      font-size: .7rem; letter-spacing: 4px; color: rgba(201,168,76,.65);
-    }
-    .section-head::after {
-      content: ''; flex: 1; height: 1px;
-      background: linear-gradient(90deg, rgba(201,168,76,.15), transparent);
+      animation: fadeUp .6s .2s both;
     }
 
     /* 表单卡片 */
     form {
-      background: rgba(12,24,40,.7);
-      border: 1px solid rgba(201,168,76,.14);
-      border-radius: 4px;
-      padding: 28px 22px 20px;
-      backdrop-filter: blur(16px);
+      background: rgba(255,255,255,.82);
+      border: 1px solid rgba(255,255,255,.95);
+      border-radius: 20px;
+      padding: 28px 24px 22px;
+      backdrop-filter: blur(24px) saturate(1.5);
       box-shadow:
-        0 1px 0 rgba(255,255,255,.04) inset,
-        0 32px 80px rgba(0,0,0,.5);
+        0 1px 0 rgba(255,255,255,.8) inset,
+        0 20px 60px rgba(30,86,219,.10),
+        0 4px 16px rgba(59,130,246,.08);
+    }
+
+    /* 节标题 */
+    .section-head {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 20px;
+    }
+    .section-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue-deep), var(--blue-mid));
+      flex-shrink: 0;
+      box-shadow: 0 0 8px rgba(59,130,246,.5);
+    }
+    .section-head span {
+      font-size: .72rem; letter-spacing: 4px;
+      color: var(--blue-deep); font-weight: 400;
+    }
+    .section-head::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg, rgba(59,130,246,.2), transparent);
     }
 
     /* 阳历/农历切换 */
     .cal-toggle {
       display: inline-flex;
-      border: 1px solid rgba(201,168,76,.22);
-      border-radius: 2px;
+      border: 1px solid var(--blue-pale);
+      border-radius: 8px;
       overflow: hidden;
       margin-bottom: 18px;
+      background: var(--blue-ice);
     }
     .cal-btn {
       padding: 7px 22px; cursor: pointer;
       font-size: .82rem; letter-spacing: 2px;
-      color: var(--dim);
+      color: var(--ink3);
       background: transparent;
       transition: all .2s;
       font-family: inherit;
     }
     .cal-btn input[type=radio] { display: none; }
     .cal-btn.active {
-      background: rgba(201,168,76,.14);
-      color: var(--gold);
+      background: linear-gradient(135deg, var(--blue-deep), var(--blue-mid));
+      color: #fff;
+      border-radius: 6px;
+      margin: 2px;
+      box-shadow: 0 2px 8px rgba(59,130,246,.35);
     }
 
     /* 输入行 */
     .field { margin-bottom: 16px; }
     .field label {
       display: block;
-      font-size: .72rem; letter-spacing: 3px;
-      color: rgba(200,221,240,.4);
-      margin-bottom: 8px;
+      font-size: .72rem; letter-spacing: 2px;
+      color: var(--ink3);
+      margin-bottom: 7px;
     }
-    .label-hint { font-size: .68rem; letter-spacing: 1px; color: rgba(200,221,240,.22); }
+    .label-hint { font-size: .66rem; letter-spacing: 1px; color: var(--blue-soft); }
 
     .row { display: flex; gap: 10px; }
     .row .field { flex: 1; }
 
     input[type=number], input[type=text], select {
       width: 100%;
-      padding: 9px 12px;
-      background: rgba(255,255,255,.04);
-      border: none;
-      border-bottom: 1px solid rgba(201,168,76,.22);
-      border-radius: 0;
-      color: var(--ice);
+      padding: 10px 13px;
+      background: rgba(239,246,255,.7);
+      border: 1px solid rgba(147,197,253,.5);
+      border-radius: 10px;
+      color: var(--ink);
       font-size: .93rem;
       font-family: inherit;
-      transition: border-color .25s, background .25s;
+      transition: border-color .22s, background .22s, box-shadow .22s;
       -webkit-appearance: none;
     }
     input:focus, select:focus {
       outline: none;
-      border-bottom-color: rgba(201,168,76,.7);
-      background: rgba(201,168,76,.04);
+      border-color: var(--blue-mid);
+      background: rgba(255,255,255,.95);
+      box-shadow: 0 0 0 3px rgba(59,130,246,.12);
     }
-    select option { background: #0c1827; color: #c8ddf0; }
+    select option { background: #fff; color: var(--ink); }
 
     /* 性别 */
     .gender-row { display: flex; gap: 20px; padding-top: 2px; }
     .gender-row label {
-      display: flex; align-items: center; gap: 7px;
+      display: flex; align-items: center; gap: 8px;
       cursor: pointer;
-      font-size: .88rem; letter-spacing: 1px;
-      color: rgba(200,221,240,.5);
-      transition: color .2s;
+      font-size: .9rem; letter-spacing: 1px;
+      color: var(--ink2);
+      transition: color .18s;
     }
-    .gender-row label:hover { color: var(--mist); }
+    .gender-row label:hover { color: var(--blue-deep); }
     .gender-row input[type=radio] {
-      width: 14px; height: 14px;
-      accent-color: var(--gold);
+      width: 15px; height: 15px;
+      accent-color: var(--blue-deep);
       flex-shrink: 0;
     }
 
     /* 闰月 */
     .leap-label {
       display: flex; align-items: center; gap: 8px;
-      cursor: pointer; color: rgba(200,221,240,.45);
+      cursor: pointer; color: var(--ink2);
       font-size: .85rem; letter-spacing: 1px;
     }
-    .leap-label input { width: 14px; height: 14px; accent-color: var(--gold); }
+    .leap-label input { width: 14px; height: 14px; accent-color: var(--blue-deep); }
 
     /* 地理提示 */
     .geo-hint {
-      font-size: .75rem; letter-spacing: 1px;
-      color: rgba(200,221,240,.3);
-      margin-top: 6px; min-height: 16px;
+      font-size: .72rem; letter-spacing: 1px;
+      color: var(--ink3);
+      margin-top: 5px; min-height: 16px;
     }
-    .geo-hint.ok  { color: rgba(201,168,76,.7); }
+    .geo-hint.ok  { color: var(--blue-deep); }
     .geo-hint.err { color: #e94560; }
 
     /* ── 提交按钮 ── */
     .submit {
       width: 100%; margin-top: 22px; padding: 14px;
-      background: transparent;
-      border: 1px solid rgba(201,168,76,.45);
-      border-radius: 2px;
-      color: var(--gold);
+      background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-mid) 100%);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
       font-family: inherit;
-      font-size: .88rem; font-weight: 400;
-      letter-spacing: 6px;
+      font-size: .92rem; font-weight: 400;
+      letter-spacing: 5px;
       cursor: pointer;
       position: relative; overflow: hidden;
-      transition: all .3s;
+      box-shadow: 0 4px 20px rgba(59,130,246,.40);
+      transition: all .28s;
     }
     .submit::before {
       content: '';
       position: absolute; inset: 0;
-      background: linear-gradient(110deg, transparent 30%, rgba(201,168,76,.08) 50%, transparent 70%);
+      background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.18) 50%, transparent 70%);
       transform: translateX(-100%);
-      transition: transform .6s ease;
+      transition: transform .55s ease;
     }
     .submit:hover {
-      background: rgba(201,168,76,.08);
-      border-color: rgba(201,168,76,.75);
-      color: #e8d090;
-      box-shadow: 0 0 24px rgba(201,168,76,.1);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(59,130,246,.50);
     }
     .submit:hover::before { transform: translateX(100%); }
-    .submit:active { transform: scale(.99); }
+    .submit:active { transform: translateY(0px) scale(.99); }
 
     /* ── 底部功能栏 ── */
     .feat-row {
       display: flex; gap: 0;
-      border-top: 1px solid rgba(201,168,76,.08);
+      border-top: 1px solid rgba(147,197,253,.25);
       margin-top: 20px; padding-top: 16px;
     }
     .feat {
       flex: 1; text-align: center;
-      border-right: 1px solid rgba(201,168,76,.08);
-      padding: 0 4px;
+      border-right: 1px solid rgba(147,197,253,.2);
+      padding: 4px 2px;
     }
     .feat:last-child { border-right: none; }
-    .feat-ico { font-size: .95rem; display: block; margin-bottom: 3px; color: rgba(201,168,76,.5); }
-    .feat-txt { font-size: .62rem; letter-spacing: 1px; color: rgba(180,210,240,.3); line-height: 1.4; }
+    .feat-ico {
+      font-size: .9rem; display: block; margin-bottom: 3px;
+      color: var(--blue-mid);
+    }
+    .feat-txt { font-size: .6rem; letter-spacing: 1px; color: var(--ink3); line-height: 1.5; }
 
     /* ── 动画 ── */
-    @keyframes appear {
-      from { opacity: 0; transform: translateY(10px); }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
       to   { opacity: 1; transform: translateY(0); }
     }
   </style>
@@ -334,15 +384,18 @@
 
   <!-- 品牌区 -->
   <header class="brand-wrap">
-    <div class="seal">
-      <div class="seal-outer"></div>
-      <div class="seal-inner"></div>
-      <span class="seal-char">命</span>
+    <div class="crystal-wrap">
+      <div class="crystal-glow"></div>
+      <div class="crystal">
+        <span class="crystal-char">命</span>
+      </div>
+    </div>
+    <div class="crystal-dots">
+      <span></span><span></span><span></span>
     </div>
 
     <h1 class="brand-name">天机命理</h1>
-
-    <div class="ornament"><span>· 古法推演 · 量身定制 ·</span></div>
+    <p class="brand-sub">古法推演 · 量身定制</p>
 
     <p class="tagline">
       千年命学，凝于一盘<br>
@@ -355,7 +408,10 @@
   <div class="form-wrap">
     <form id="bazi-form">
 
-      <div class="section-head"><span>填 写 生 辰</span></div>
+      <div class="section-head">
+        <div class="section-dot"></div>
+        <span>填 写 生 辰</span>
+      </div>
 
       <!-- 阳历/农历 -->
       <div class="cal-toggle">
