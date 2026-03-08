@@ -129,11 +129,10 @@
       border: 1.5px solid rgba(255,255,255,.6);
     }
 
-    .crystal-char {
-      font-size: 1.8rem; font-weight: 600;
-      color: var(--blue-deep);
+    /* 洛书SVG */
+    .luoshu-svg {
       position: relative; z-index: 1;
-      text-shadow: 0 2px 8px rgba(59,130,246,.25);
+      filter: drop-shadow(0 2px 6px rgba(59,130,246,.3));
     }
 
     /* 底部小圆点装饰 */
@@ -155,6 +154,13 @@
     @keyframes crystalFloat {
       0%, 100% { transform: translateY(0px);   box-shadow: 0 8px 32px rgba(59,130,246,.30), 0 2px 8px rgba(59,130,246,.15), inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(147,197,253,.4); }
       50%       { transform: translateY(-6px);  box-shadow: 0 16px 48px rgba(59,130,246,.35), 0 4px 16px rgba(59,130,246,.20), inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(147,197,253,.4); }
+    }
+
+    /* 洛书标注 */
+    .lobook-label {
+      font-size: .62rem; letter-spacing: 6px; text-indent: 6px;
+      color: var(--blue-mid); opacity: .6;
+      margin-top: -4px; margin-bottom: 10px;
     }
 
     /* 品牌名 */
@@ -387,13 +393,75 @@
     <div class="crystal-wrap">
       <div class="crystal-glow"></div>
       <div class="crystal">
-        <span class="crystal-char">命</span>
+        <!-- 洛书 · 九宫点阵 -->
+        <svg class="luoshu-svg" width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <!-- 九宫格线 -->
+          <line x1="16" y1="2" x2="16" y2="46" stroke="rgba(59,130,246,0.28)" stroke-width="0.6"/>
+          <line x1="32" y1="2" x2="32" y2="46" stroke="rgba(59,130,246,0.28)" stroke-width="0.6"/>
+          <line x1="2" y1="16" x2="46" y2="16" stroke="rgba(59,130,246,0.28)" stroke-width="0.6"/>
+          <line x1="2" y1="32" x2="46" y2="32" stroke="rgba(59,130,246,0.28)" stroke-width="0.6"/>
+          <!-- (0,0)=4 阴·蓝 center(8,8) -->
+          <circle cx="5.5" cy="5.5" r="1.4" fill="#3b82f6"/>
+          <circle cx="10.5" cy="5.5" r="1.4" fill="#3b82f6"/>
+          <circle cx="5.5" cy="10.5" r="1.4" fill="#3b82f6"/>
+          <circle cx="10.5" cy="10.5" r="1.4" fill="#3b82f6"/>
+          <!-- (0,1)=9 阳·白 center(24,8) -->
+          <circle cx="21" cy="5"  r="1.4" fill="white"/>
+          <circle cx="24" cy="5"  r="1.4" fill="white"/>
+          <circle cx="27" cy="5"  r="1.4" fill="white"/>
+          <circle cx="21" cy="8"  r="1.4" fill="white"/>
+          <circle cx="24" cy="8"  r="1.4" fill="white"/>
+          <circle cx="27" cy="8"  r="1.4" fill="white"/>
+          <circle cx="21" cy="11" r="1.4" fill="white"/>
+          <circle cx="24" cy="11" r="1.4" fill="white"/>
+          <circle cx="27" cy="11" r="1.4" fill="white"/>
+          <!-- (0,2)=2 阴·蓝 center(40,8) -->
+          <circle cx="40" cy="5.5"  r="1.4" fill="#3b82f6"/>
+          <circle cx="40" cy="10.5" r="1.4" fill="#3b82f6"/>
+          <!-- (1,0)=3 阳·白 center(8,24) -->
+          <circle cx="8"   cy="21"  r="1.4" fill="white"/>
+          <circle cx="5.5" cy="27"  r="1.4" fill="white"/>
+          <circle cx="10.5" cy="27" r="1.4" fill="white"/>
+          <!-- (1,1)=5 阳·白 center(24,24) -->
+          <circle cx="21.5" cy="21.5" r="1.4" fill="white"/>
+          <circle cx="26.5" cy="21.5" r="1.4" fill="white"/>
+          <circle cx="24"   cy="24"   r="1.4" fill="white"/>
+          <circle cx="21.5" cy="26.5" r="1.4" fill="white"/>
+          <circle cx="26.5" cy="26.5" r="1.4" fill="white"/>
+          <!-- (1,2)=7 阳·白 center(40,24) -->
+          <circle cx="37.5" cy="21" r="1.4" fill="white"/>
+          <circle cx="42.5" cy="21" r="1.4" fill="white"/>
+          <circle cx="37.5" cy="24" r="1.4" fill="white"/>
+          <circle cx="40"   cy="24" r="1.4" fill="white"/>
+          <circle cx="42.5" cy="24" r="1.4" fill="white"/>
+          <circle cx="37.5" cy="27" r="1.4" fill="white"/>
+          <circle cx="42.5" cy="27" r="1.4" fill="white"/>
+          <!-- (2,0)=8 阴·蓝 center(8,40) -->
+          <circle cx="5.5"  cy="37" r="1.4" fill="#3b82f6"/>
+          <circle cx="8"    cy="37" r="1.4" fill="#3b82f6"/>
+          <circle cx="10.5" cy="37" r="1.4" fill="#3b82f6"/>
+          <circle cx="5.5"  cy="40" r="1.4" fill="#3b82f6"/>
+          <circle cx="10.5" cy="40" r="1.4" fill="#3b82f6"/>
+          <circle cx="5.5"  cy="43" r="1.4" fill="#3b82f6"/>
+          <circle cx="8"    cy="43" r="1.4" fill="#3b82f6"/>
+          <circle cx="10.5" cy="43" r="1.4" fill="#3b82f6"/>
+          <!-- (2,1)=1 阳·白 center(24,40) -->
+          <circle cx="24" cy="40" r="1.4" fill="white"/>
+          <!-- (2,2)=6 阴·蓝 center(40,40) -->
+          <circle cx="37.5" cy="37" r="1.4" fill="#3b82f6"/>
+          <circle cx="42.5" cy="37" r="1.4" fill="#3b82f6"/>
+          <circle cx="37.5" cy="40" r="1.4" fill="#3b82f6"/>
+          <circle cx="42.5" cy="40" r="1.4" fill="#3b82f6"/>
+          <circle cx="37.5" cy="43" r="1.4" fill="#3b82f6"/>
+          <circle cx="42.5" cy="43" r="1.4" fill="#3b82f6"/>
+        </svg>
       </div>
     </div>
     <div class="crystal-dots">
       <span></span><span></span><span></span>
     </div>
 
+    <p class="lobook-label">洛　書</p>
     <h1 class="brand-name">天机命理</h1>
     <p class="brand-sub">古法推演 · 量身定制</p>
 
