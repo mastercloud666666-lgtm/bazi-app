@@ -197,9 +197,10 @@ if (document.getElementById('bazi-table-section')) {
   // 检查 localStorage 缓存
   const cacheKey = `bazi_${year}_${month}_${day}_${hour}_${gender}`;
   const cached   = localStorage.getItem(cacheKey);
-  if (cached) {
+  if (cached && cached.length > 100) {
     showAnalysis(cached);
   } else {
+    if (cached !== null) localStorage.removeItem(cacheKey); // 清除无效缓存
     // 自动触发分析（免费模式）
     autoAnalyze({ year, month, day, hour, gender, birthplace }, bazi, daYunData, specialYears);
   }
