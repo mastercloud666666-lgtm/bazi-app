@@ -182,7 +182,15 @@ if (form) {
       // 直接跳转支付
       paidBtn.disabled = true;
       paidBtn.textContent = '正在跳转...';
-      startPayment({ year, month, day, hour: solarHour, gender, birthplace }, bazi);
+
+      try {
+        await startPayment({ year, month, day, hour: solarHour, gender, birthplace }, bazi);
+      } catch (err) {
+        console.error('支付跳转失败:', err);
+        alert('跳转支付失败，请刷新页面重试');
+        paidBtn.disabled = false;
+        paidBtn.textContent = '付费深度解读';
+      }
     });
   }
 }
@@ -299,8 +307,13 @@ if (document.getElementById('bazi-table-section')) {
 
 // ── 支付 ──────────────────────────────────────────────────────────
 async function startPayment(birthData, bazi) {
+  console.log('开始支付流程...', birthData, bazi);
+
   const tradeNo = 'bazi_' + Date.now();
   const baziStr = `${bazi.year.tg}${bazi.year.dz}年 ${bazi.month.tg}${bazi.month.dz}月 ${bazi.day.tg}${bazi.day.dz}日 ${bazi.hour.tg}${bazi.hour.dz}时`;
+
+  console.log('订单号:', tradeNo);
+  console.log('HUPI_APPID:', HUPI_APPID);
 
   // 先在 Supabase 插入订单记录（失败也不影响跳转）
   try {
@@ -317,12 +330,15 @@ async function startPayment(birthData, bazi) {
         birth_input: JSON.stringify({ ...birthData, bazi_str: baziStr }),
       }),
     });
+    console.log('订单创建成功');
   } catch (err) {
     console.error('订单创建失败，继续跳转支付:', err);
   }
 
   const callbackUrl = location.href.split('?')[0]
     + '?' + new URLSearchParams({ ...birthData, trade_no: tradeNo, paid: 'true' });
+
+  console.log('回调地址:', callbackUrl);
 
   // 跳转迅虎支付收款页（调试模式：0.01元）
   const params = new URLSearchParams({
@@ -334,7 +350,11 @@ async function startPayment(birthData, bazi) {
     return_url: callbackUrl,
     time:       Math.floor(Date.now() / 1000),
   });
-  window.location.href = `https://api.xunhupay.com/payment/do.html?${params}`;
+
+  const payUrl = `https://api.xunhupay.com/payment/do.html?${params}`;
+  console.log('支付URL:', payUrl);
+
+  window.location.href = payUrl;
 }
 
 // ── 轮询等待分析结果 ──────────────────────────────────────────────
