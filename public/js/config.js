@@ -91,6 +91,7 @@ function md5(input) {
   const result = [a, b, c, d];
   return result.map(n => {
     const hex = (n >>> 0).toString(16).padStart(8, '0');
-    return hex.match(/../g)!.reverse().join('');
+    const match = hex.match(/../g);
+    return match ? match.reverse().join('') : '';
   }).join('');
 }
