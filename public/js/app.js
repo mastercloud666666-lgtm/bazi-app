@@ -336,8 +336,7 @@ async function startPayment(birthData, bazi) {
     console.error('订单创建失败，继续跳转支付:', err);
   }
 
-  const callbackUrl = location.href.split('?')[0]
-    + '?' + new URLSearchParams({ ...birthData, trade_no: tradeNo, paid: 'true' });
+  const callbackUrl = location.origin + '/result.html?trade_no=' + tradeNo;
 
   console.log('回调地址:', callbackUrl);
 
