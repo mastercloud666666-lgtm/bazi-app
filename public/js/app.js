@@ -325,7 +325,6 @@ if (form) {
   }
 
   // 检查 URL 中是否有回调参数（支付成功后跳回）
-  const tradeNo = p.get('trade_no');
   if (tradeNo) {
     pollForAnalysis(tradeNo, cacheKey);
   }
