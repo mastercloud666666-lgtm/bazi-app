@@ -301,14 +301,17 @@ if (form) {
   const fullCacheKey = `bazi_full_${year}_${month}_${day}_${hour}_${gender}`;
   const cachedFull   = localStorage.getItem(fullCacheKey);
   const cached       = localStorage.getItem(cacheKey);
+
+  // 优先显示完整版缓存
   if (cachedFull) {
     showAnalysis(cachedFull, true);
-  } else if (cached) {
+  } else if (cached && !tradeNo) {
+    // 如果有免费版缓存且不是支付回调，显示免费版
     showAnalysis(cached);
-  } else if (!isPaidMode) {
-    // 非付费模式：自动触发分析（免费模式）
+  } else if (!isPaidMode && !tradeNo) {
+    // 非付费模式且不是支付回调：自动触发分析（免费模式）
     autoAnalyze({ year, month, day, hour, gender, birthplace }, bazi, daYunData, specialYears);
-  } else {
+  } else if (isPaidMode) {
     // 付费模式：显示付费提示
     const locked = document.getElementById('analysis-locked');
     if (locked) locked.style.display = 'block';
@@ -326,6 +329,13 @@ if (form) {
 
   // 检查 URL 中是否有回调参数（支付成功后跳回）
   if (tradeNo) {
+    // 立即显示加载提示，隐藏其他内容
+    document.getElementById('analysis-locked').style.display = 'none';
+    document.getElementById('pay-prompt').style.display = 'none';
+    document.getElementById('analysis-content').style.display = 'none';
+    document.getElementById('analysis-loading').style.display = 'block';
+    document.getElementById('analysis-loading').innerHTML = '<p class="price-desc">支付成功，正在生成深度命理报告，请稍候…</p>';
+    
     pollForAnalysis(tradeNo, cacheKey);
   }
   }
@@ -334,10 +344,51 @@ if (form) {
 async function startPayment(birthData, bazi) {
   console.log('开始支付流程...', birthData, bazi);
 
+  // 立即显示加载提示
+  const payPrompt = document.getElementById('pay-prompt');
+  const lockedSection = document.getElementById('analysis-locked');
+  const loadingSection = document.getElementById('analysis-loading');
+  const contentSection = document.getElementById('analysis-content');
+  
+  if (payPrompt) payPrompt.style.display = 'none';
+  if (lockedSection) lockedSection.style.display = 'none';
+  if (contentSection) contentSection.style.display = 'none';
+  if (loadingSection) {
+    loadingSection.style.display = 'block';
+    loadingSection.innerHTML = '<p class="price-desc">正在创建支付订单，请稍候…</p>';
+  }
+
   const tradeNo = 'bazi_' + Date.now();
   const baziStr = `${bazi.year.tg}${bazi.year.dz}年 ${bazi.month.tg}${bazi.month.dz}月 ${bazi.day.tg}${bazi.day.dz}日 ${bazi.hour.tg}${bazi.hour.dz}时`;
 
   console.log('订单号:', tradeNo);
+
+  // 计算大运和特殊年份
+  const daYunData = BaziCalc.calculateDaYun(bazi.year, bazi.month, birthData.gender, birthData.year, birthData.month, birthData.day);
+  const currentYear = new Date().getFullYear();
+  const lastDayun = daYunData.dayuns[daYunData.dayuns.length - 1];
+  const lifeEndYear = birthData.year + lastDayun.ageStart + 10;
+  const lifeStartYear = birthData.year + daYunData.startAge;
+  const specialYears = BaziCalc.calcSpecialYears(bazi, daYunData.dayuns, birthData.year, lifeStartYear, lifeEndYear);
+
+  // 格式化大运文本
+  const dayunText = daYunData.dayuns.map(d => `${d.tg}${d.dz} (${d.ageStart}-${d.ageEnd}岁)`).join('、');
+
+  // 格式化特殊年份文本
+  let specialYearsText = '';
+  if (specialYears && specialYears.length > 0) {
+    specialYearsText = specialYears.map(s => {
+      const type = s.type === '天克地冲' ? '天克地冲' : '岁运并临';
+      return `${s.year}年：${type}（${s.desc}）`;
+    }).join('\n');
+  } else {
+    specialYearsText = '一生中无明显天克地冲或岁运并临年份';
+  }
+
+  // 更新加载提示
+  if (loadingSection) {
+    loadingSection.innerHTML = '<p class="price-desc">正在跳转支付页面…</p>';
+  }
 
   // 先在 Supabase 插入订单记录（失败也不影响跳转）
   try {
@@ -351,7 +402,13 @@ async function startPayment(birthData, bazi) {
       },
       body: JSON.stringify({
         trade_no: tradeNo,
-        birth_input: JSON.stringify({ ...birthData, bazi_str: baziStr }),
+        birth_input: JSON.stringify({
+          ...birthData,
+          bazi_str: baziStr,
+          dayun_text: dayunText,
+          special_years_text: specialYearsText,
+          start_age: daYunData.startAge,
+        }),
       }),
     });
     console.log('订单创建成功');
@@ -407,23 +464,46 @@ async function startPayment(birthData, bazi) {
 
 // ── 轮询等待分析结果 ──────────────────────────────────────────────
 async function pollForAnalysis(tradeNo, cacheKey) {
-  document.getElementById('analysis-locked').style.display  = 'none';
-  document.getElementById('analysis-loading').style.display = 'block';
+  // 使用完整版缓存键
+  const fullCacheKey = cacheKey.replace('bazi_', 'bazi_full_');
 
-  for (let i = 0; i < 20; i++) {
-    await new Promise(r => setTimeout(r, 3000));
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${tradeNo}&select=paid,analysis`,
-      { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` }}
-    );
-    const [order] = await res.json();
-    if (order?.paid && order?.analysis) {
-      localStorage.setItem(cacheKey, order.analysis);
-      showAnalysis(order.analysis);
-      return;
+  // 减少轮询间隔到 1.5 秒，最大尝试 40 次（60 秒）
+  for (let i = 0; i < 40; i++) {
+    try {
+      await new Promise(r => setTimeout(r, 1500));
+      
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${tradeNo}&select=paid,analysis`,
+        { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` }}
+      );
+      
+      const [order] = await res.json();
+      
+      if (order?.paid && order?.analysis) {
+        // 保存到完整版缓存
+        localStorage.setItem(fullCacheKey, order.analysis);
+        showAnalysis(order.analysis, true); // hidePay = true，隐藏付费提示
+        return;
+      }
+      
+      // 更新加载提示（每 5 次更新一次）
+      if (i % 5 === 0 && i > 0) {
+        const seconds = Math.ceil((i + 1) * 1.5);
+        document.getElementById('analysis-loading').innerHTML = `<p class="price-desc">正在生成深度命理报告（已等待 ${seconds} 秒），请稍候…</p>`;
+      }
+    } catch (err) {
+      console.error('轮询查询失败:', err);
     }
   }
-  document.getElementById('analysis-loading').innerHTML = '<p>查询超时，请刷新页面重试</p>';
+  
+  // 超时处理
+  document.getElementById('analysis-loading').innerHTML = `
+    <p class="price-desc">报告生成时间较长，您可以：</p>
+    <div style="margin-top:16px;">
+      <button onclick="location.reload()" style="padding:10px 24px;background:#2563eb;color:white;border:none;border-radius:4px;cursor:pointer;font-size:14px;">刷新页面</button>
+      <button onclick="pollForAnalysis('${tradeNo}', '${cacheKey}')" style="padding:10px 24px;background:#4b5563;color:white;border:none;border-radius:4px;cursor:pointer;font-size:14px;margin-left:12px;">继续等待</button>
+    </div>
+  `;
 }
 
 const DISCLAIMER = '\n\n以上内容为传统文化推演，仅供参考，请理性看待，切勿迷信。';

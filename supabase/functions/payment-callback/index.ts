@@ -136,7 +136,20 @@ Deno.serve(async (req) => {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
     },
-    body: JSON.stringify({ trade_no: trade_order_id, ...birth }),
+    body: JSON.stringify({
+      trade_no: trade_order_id,
+      service: 'bazi',
+      free_only: false,
+      year: birth.year,
+      month: birth.month,
+      day: birth.day,
+      hour: birth.hour,
+      gender: birth.gender,
+      bazi_str: birth.bazi_str,
+      dayun_text: birth.dayun_text,
+      special_years_text: birth.special_years_text,
+      start_age: birth.start_age,
+    }),
   });
 
   return new Response('success', { status: 200 });
