@@ -126,7 +126,7 @@ if (form) {
   // 付费按钮点击事件
   const paidBtn = document.getElementById('paid-btn');
   if (paidBtn) {
-    paidBtn.addEventListener('click', () => {
+    paidBtn.addEventListener('click', async () => {
       // 验证表单
       const yearEl   = document.getElementById('year');
       const monthEl  = document.getElementById('month');
