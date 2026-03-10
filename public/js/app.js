@@ -385,30 +385,26 @@ async function startPayment(birthData, bazi) {
   console.log('签名结果:', sign);
 
   // 跳转迅虎支付收款页
-  const params = new URLSearchParams({ ...payParams, sign });
-  const payUrl = `https://api.xunhupay.com/payment/do.html?${params}`;
-  console.log('支付URL:', payUrl);
+  console.log('支付参数:', payParams);
+  console.log('签名:', sign);
 
-  // 尝试跳转支付页面
-  try {
-    window.open(payUrl, '_self');
-  } catch (e) {
-    console.error('跳转失败，尝试其他方式:', e);
-    // 备用方案：创建一个表单提交
-    const form = document.createElement('form');
-    form.method = 'GET';
-    form.action = 'https://api.xunhupay.com/payment/do.html';
-    Object.entries({ ...payParams, sign }).forEach(([key, value]) => {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = key;
-      input.value = value;
-      form.appendChild(input);
-    });
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
-  }
+  // 使用 POST 表单提交跳转（迅虎支付要求 POST）
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = 'https://api.xunhupay.com/payment/do.html';
+  form.style.display = 'none';
+
+  Object.entries({ ...payParams, sign }).forEach(([key, value]) => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = key;
+    input.value = value;
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
 }
 
 // ── 轮询等待分析结果 ──────────────────────────────────────────────
