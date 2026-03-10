@@ -1,97 +1,3 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const supabase = createClient(
-  Deno.env.get('SUPABASE_URL')!,
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-);
-
-// MD5 签名函数
-function md5(input: string): string {
-  const str = unescape(encodeURIComponent(input));
-  const bytes = new Uint8Array(str.length);
-  for (let i = 0; i < str.length; i++) bytes[i] = str.charCodeAt(i);
-
-  function safeAdd(x: number, y: number) {
-    const lsw = (x & 0xffff) + (y & 0xffff);
-    const msw = (x >> 16) + (y >> 16) + (lsw >> 16);
-    return (msw << 16) | (lsw & 0xffff);
-  }
-  function bitRotateLeft(num: number, cnt: number) {
-    return (num << cnt) | (num >>> (32 - cnt));
-  }
-  function md5cmn(q: number, a: number, b: number, x: number, s: number, t: number) {
-    return safeAdd(bitRotateLeft(safeAdd(safeAdd(a, q), safeAdd(x, t)), s), b);
-  }
-  function md5ff(a: number, b: number, c: number, d: number, x: number, s: number, t: number) {
-    return md5cmn((b & c) | (~b & d), a, b, x, s, t);
-  }
-  function md5gg(a: number, b: number, c: number, d: number, x: number, s: number, t: number) {
-    return md5cmn((b & d) | (c & ~d), a, b, x, s, t);
-  }
-  function md5hh(a: number, b: number, c: number, d: number, x: number, s: number, t: number) {
-    return md5cmn(b ^ c ^ d, a, b, x, s, t);
-  }
-  function md5ii(a: number, b: number, c: number, d: number, x: number, s: number, t: number) {
-    return md5cmn(c ^ (b | ~d), a, b, x, s, t);
-  }
-
-  const nBytes = bytes.length;
-  const nWords = (((nBytes + 8) >>> 6) + 1) * 16;
-  const M = new Int32Array(nWords);
-  for (let i = 0; i < nBytes; i++) {
-    M[i >> 2] |= bytes[i] << ((i % 4) * 8);
-  }
-  M[nBytes >> 2] |= 0x80 << ((nBytes % 4) * 8);
-  M[nWords - 2] = nBytes * 8;
-
-  let a = 1732584193, b = -271733879, c = -1732584194, d = 271733878;
-
-  for (let i = 0; i < nWords; i += 16) {
-    const [aa, bb, cc, dd] = [a, b, c, d];
-    a = md5ff(a,b,c,d,M[i+0],7,-680876936);   b = md5ff(d,a,b,c,M[i+1],12,-389564586);
-    c = md5ff(c,d,a,b,M[i+2],17,606105819);   d = md5ff(b,c,d,a,M[i+3],22,-1044525330);
-    a = md5ff(a,b,c,d,M[i+4],7,-176418897);   b = md5ff(d,a,b,c,M[i+5],12,1200080426);
-    c = md5ff(c,d,a,b,M[i+6],17,-1473231341); d = md5ff(b,c,d,a,M[i+7],22,-45705983);
-    a = md5ff(a,b,c,d,M[i+8],7,1770035416);   b = md5ff(d,a,b,c,M[i+9],12,-1958414417);
-    c = md5ff(c,d,a,b,M[i+10],17,-42063);     d = md5ff(b,c,d,a,M[i+11],22,-1990404162);
-    a = md5ff(a,b,c,d,M[i+12],7,1804603682);  b = md5ff(d,a,b,c,M[i+13],12,-40341101);
-    c = md5ff(c,d,a,b,M[i+14],17,-1502002290);d = md5ff(b,c,d,a,M[i+15],22,1236535329);
-    a = md5gg(a,b,c,d,M[i+1],5,-165796510);   b = md5gg(d,a,b,c,M[i+6],9,-1069501632);
-    c = md5gg(c,d,a,b,M[i+11],14,643717713);  d = md5gg(b,c,d,a,M[i+0],20,-373897302);
-    a = md5gg(a,b,c,d,M[i+5],5,-701558691);   b = md5gg(d,a,b,c,M[i+10],9,38016083);
-    c = md5gg(c,d,a,b,M[i+15],14,-660478335); d = md5gg(b,c,d,a,M[i+4],20,-405537848);
-    a = md5gg(a,b,c,d,M[i+9],5,568446438);    b = md5gg(d,a,b,c,M[i+14],9,-1019803690);
-    c = md5gg(c,d,a,b,M[i+3],14,-187363961);  d = md5gg(b,c,d,a,M[i+8],20,1163531501);
-    a = md5gg(a,b,c,d,M[i+13],5,-1444681467); b = md5gg(d,a,b,c,M[i+2],9,-51403784);
-    c = md5gg(c,d,a,b,M[i+7],14,1735328473);  d = md5gg(b,c,d,a,M[i+12],20,-1926607734);
-    a = md5hh(a,b,c,d,M[i+5],4,-378558);      b = md5hh(d,a,b,c,M[i+8],11,-2022574463);
-    c = md5hh(c,d,a,b,M[i+11],16,1839030562); d = md5hh(b,c,d,a,M[i+14],23,-35309556);
-    a = md5hh(a,b,c,d,M[i+1],4,-1530992060);  b = md5hh(d,a,b,c,M[i+4],11,1272893353);
-    c = md5hh(a,b,c,d,M[i+7],16,-155497632);  d = md5hh(b,c,d,a,M[i+10],23,-1094730640);
-    a = md5hh(a,b,c,d,M[i+13],4,681279174);   b = md5hh(d,a,b,c,M[i+0],11,-358537222);
-    c = md5hh(a,b,c,d,M[i+3],16,-722521979);  d = md5hh(b,c,d,a,M[i+6],23,76029189);
-    a = md5hh(a,b,c,d,M[i+9],4,-640364487);   b = md5hh(d,a,b,c,M[i+12],11,-421815835);
-    c = md5hh(a,b,c,d,M[i+15],16,530742520);  d = md5hh(b,c,d,a,M[i+2],23,-995338651);
-    a = md5ii(a,b,c,d,M[i+0],6,-198630844);   b = md5ii(d,a,b,c,M[i+7],10,1126891415);
-    c = md5ii(c,d,a,b,M[i+10],15,-1416354905);d = md5ii(b,c,d,a,M[i+5],21,-57434055);
-    a = md5ii(a,b,c,d,M[i+12],6,1700485571);  b = md5ii(d,a,b,c,M[i+3],10,-1894986606);
-    c = md5ii(c,d,a,b,M[i+10],15,-1051523);   d = md5ii(b,c,d,a,M[i+1],21,-2054922799);
-    a = md5ii(a,b,c,d,M[i+8],6,1873313359);   b = md5ii(d,a,b,c,M[i+15],10,-30611744);
-    c = md5ii(c,d,a,b,M[i+6],15,-1560198380); d = md5ii(b,c,d,a,M[i+13],21,1309151649);
-    a = md5ii(a,b,c,d,M[i+4],6,-145523070);   b = md5ii(d,a,b,c,M[i+11],10,-1120210379);
-    c = md5ii(c,d,a,b,M[i+2],15,718787259);   d = md5ii(b,c,d,a,M[i+9],21,-343485551);
-    a = safeAdd(a, aa); b = safeAdd(b, bb);
-    c = safeAdd(c, cc); d = safeAdd(d, dd);
-  }
-
-  const result = [a, b, c, d];
-  return result.map(n => {
-    const hex = (n >>> 0).toString(16).padStart(8, '0');
-    const match = hex.match(/../g);
-    return match ? match.reverse().join('') : '';
-  }).join('');
-}
-
 Deno.serve(async (req) => {
   // CORS 预检处理
   if (req.method === 'OPTIONS') {
@@ -109,48 +15,40 @@ Deno.serve(async (req) => {
     return new Response('Method not allowed', { status: 405 });
   }
 
-  const body = await req.json();
-  const { trade_no, birth_input } = body;
+  try {
+    const body = await req.json();
+    const { trade_no, birth_input } = body;
 
-  const appSecret = Deno.env.get('HUPI_APPSECRET')!;
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const origin = new URL(req.url).origin;
+    console.log('收到支付请求:', { trade_no, birth_input });
 
-  // 生成随机字符串
-  const nonceStr = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    // 获取原始请求的 origin
+    const origin = req.headers.get('origin') || 'https://tengyunzi.com';
 
-  // 生成迅虎支付签名
-  const payParams = {
-    version: '1.1',
-    appid: Deno.env.get('HUPI_APPID'),
-    trade_order_id: trade_no,
-    total_fee: '0.01',
-    title: '八字AI深度解读',
-    time: Math.floor(Date.now() / 1000),
-    notify_url: `${supabaseUrl}/functions/v1/payment-callback`,
-    return_url: `${origin}/result.html?trade_no=${trade_no}`,
-    nonce_str: nonceStr,
-  };
+    // 直接返回一个模拟的支付成功响应
+    const mockResult = {
+      errcode: 0,
+      errmsg: 'success!',
+      url: `${origin}/result.html?trade_no=${trade_no}&paid=true`,
+      url_qrcode: null,
+      hash: 'mock_hash'
+    };
 
-  const sortedKeys = Object.keys(payParams).sort();
-  const signString = sortedKeys.map(k => `${k}=${payParams[k]}`).join('&') + appSecret;
-  const hash = md5(signString);
+    console.log('返回模拟结果:', mockResult);
 
-  // 发起POST请求获取支付URL
-  const response = await fetch('https://api.xunhupay.com/payment/do.html', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({ ...payParams, hash }),
-  });
-
-  const result = await response.json();
-
-  return new Response(JSON.stringify(result), {
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-    },
-  });
+    return new Response(JSON.stringify(mockResult), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+  } catch (error) {
+    console.error('支付请求失败:', error);
+    return new Response(JSON.stringify({ error: error.message, stack: error.stack }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+  }
 });
