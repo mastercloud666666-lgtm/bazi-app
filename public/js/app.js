@@ -338,8 +338,6 @@ async function startPayment(birthData, bazi) {
   const baziStr = `${bazi.year.tg}${bazi.year.dz}年 ${bazi.month.tg}${bazi.month.dz}月 ${bazi.day.tg}${bazi.day.dz}日 ${bazi.hour.tg}${bazi.hour.dz}时`;
 
   console.log('订单号:', tradeNo);
-  console.log('HUPI_APPID:', HUPI_APPID);
-  console.log('HUPI_APPSECRET:', HUPI_APPSECRET ? '已加载' : '未加载');
 
   // 先在 Supabase 插入订单记录（失败也不影响跳转）
   try {
@@ -361,43 +359,20 @@ async function startPayment(birthData, bazi) {
     console.error('订单创建失败，继续跳转支付:', err);
   }
 
-  const callbackUrl = location.origin + '/result.html?trade_no=' + tradeNo;
+  console.log('调用后端代理创建支付...');
 
-  console.log('回调地址:', callbackUrl);
-
-  // 生成随机字符串
-  const nonceStr = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-
-  // 生成迅虎支付签名（按照官方文档的参数名）
-  const payParams = {
-    version: '1.1',
-    appid: HUPI_APPID,
-    trade_order_id: tradeNo,
-    total_fee: '0.01',
-    title: '八字AI深度解读',
-    time: Math.floor(Date.now() / 1000),
-    notify_url: `${SUPABASE_URL}/functions/v1/payment-callback`,
-    return_url: callbackUrl,
-    nonce_str: nonceStr,
-  };
-
-  // 签名算法：按参数名排序 -> 拼接 -> 加密
-  const sortedKeys = Object.keys(payParams).sort();
-  const signString = sortedKeys.map(k => `${k}=${payParams[k]}`).join('&') + HUPI_APPSECRET;
-  const hash = md5(signString);
-
-  console.log('签名字符串:', signString);
-  console.log('签名结果:', hash);
-  console.log('支付参数:', payParams);
-
-  // 发起POST请求获取支付URL
+  // 调用后端代理创建支付
   try {
-    const response = await fetch('https://api.xunhupay.com/payment/do.html', {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${SUPABASE_ANON}`,
       },
-      body: new URLSearchParams({ ...payParams, hash }),
+      body: JSON.stringify({
+        trade_no: tradeNo,
+        birth_input: { ...birthData, bazi_str: baziStr },
+      }),
     });
 
     const result = await response.json();
