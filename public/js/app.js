@@ -196,16 +196,42 @@ if (form) {
 }
 
 // ── 结果页逻辑 ────────────────────────────────────────────────────
-if (document.getElementById('bazi-table-section')) {
+(async () => {
+  if (document.getElementById('bazi-table-section')) {
   const p          = new URLSearchParams(location.search);
-  const year       = parseInt(p.get('year'));
-  const month      = parseInt(p.get('month'));
-  const day        = parseInt(p.get('day'));
-  const hour       = parseInt(p.get('hour'));       // 真太阳时校正后
-  const inputHour  = parseInt(p.get('inputHour')); // 原始输入
-  const gender     = p.get('gender');
-  const birthplace = p.get('birthplace') || '';
-  const lon        = p.get('lon') || '';
+  let year, month, day, hour, inputHour, gender, birthplace, lon;
+
+  // 检查是否只传了 trade_no（从支付回调返回）
+  const tradeNo = p.get('trade_no');
+  if (tradeNo && !p.get('year')) {
+    // 从数据库获取出生信息
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${tradeNo}&select=birth_input`,
+      { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` }}
+    );
+    const [order] = await res.json();
+    if (order && order.birth_input) {
+      const birth = JSON.parse(order.birth_input);
+      year       = birth.year;
+      month      = birth.month;
+      day        = birth.day;
+      hour       = birth.hour;
+      inputHour  = birth.hour;
+      gender     = birth.gender;
+      birthplace = birth.birthplace || '';
+      lon        = birth.lon || '';
+    }
+  } else {
+    // 从 URL 参数获取
+    year       = parseInt(p.get('year'));
+    month      = parseInt(p.get('month'));
+    day        = parseInt(p.get('day'));
+    hour       = parseInt(p.get('hour'));       // 真太阳时校正后
+    inputHour  = parseInt(p.get('inputHour')); // 原始输入
+    gender     = p.get('gender');
+    birthplace = p.get('birthplace') || '';
+    lon        = p.get('lon') || '';
+  }
 
   // 渲染出生信息摘要
   const hourLabels = {23:'子',1:'丑',3:'寅',5:'卯',7:'辰',9:'巳',11:'午',13:'未',15:'申',17:'酉',19:'戌',21:'亥'};
@@ -303,8 +329,8 @@ if (document.getElementById('bazi-table-section')) {
   if (tradeNo) {
     pollForAnalysis(tradeNo, cacheKey);
   }
-}
-
+  }
+})();
 // ── 支付 ──────────────────────────────────────────────────────────
 async function startPayment(birthData, bazi) {
   console.log('开始支付流程...', birthData, bazi);
