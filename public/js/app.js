@@ -389,7 +389,26 @@ async function startPayment(birthData, bazi) {
   const payUrl = `https://api.xunhupay.com/payment/do.html?${params}`;
   console.log('支付URL:', payUrl);
 
-  window.location.href = payUrl;
+  // 尝试跳转支付页面
+  try {
+    window.open(payUrl, '_self');
+  } catch (e) {
+    console.error('跳转失败，尝试其他方式:', e);
+    // 备用方案：创建一个表单提交
+    const form = document.createElement('form');
+    form.method = 'GET';
+    form.action = 'https://api.xunhupay.com/payment/do.html';
+    Object.entries({ ...payParams, sign }).forEach(([key, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+  }
 }
 
 // ── 轮询等待分析结果 ──────────────────────────────────────────────
