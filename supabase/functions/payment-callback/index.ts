@@ -128,8 +128,12 @@ Deno.serve(async (req) => {
 
   await supabase.from('orders').update({ paid: true }).eq('trade_no', trade_order_id);
 
-  // 异步触发 AI 分析（不等待结果）
+  console.log(`Order ${trade_order_id} marked as paid, triggering analysis...`);
+
+  // 异步触发 AI 分析（不等待结果，但添加错误处理）
   const birth = JSON.parse(order.birth_input);
+  
+  // 使用不等待的 fetch，确保即使出错也不影响回调响应
   fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/analyze`, {
     method: 'POST',
     headers: {
@@ -150,7 +154,11 @@ Deno.serve(async (req) => {
       special_years_text: birth.special_years_text,
       start_age: birth.start_age,
     }),
+  }).catch(err => {
+    console.error(`Failed to trigger analysis for order ${trade_order_id}:`, err);
+    // 分析失败不影响支付状态，用户可以手动刷新页面获取结果
   });
 
+  console.log(`Analysis triggered for order ${trade_order_id}`);
   return new Response('success', { status: 200 });
 });

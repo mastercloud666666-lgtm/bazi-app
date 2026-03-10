@@ -184,7 +184,7 @@ Deno.serve(async (req) => {
       title: '八字AI深度解读',
       time: Math.floor(Date.now() / 1000),
       notify_url: `${supabaseUrl}/functions/v1/payment-callback`,
-      return_url: `${origin}/result.html?trade_no=${trade_no}`,
+      return_url: `${origin}/payment-success.html`,
       nonce_str: nonceStr,
     };
 
