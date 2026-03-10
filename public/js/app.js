@@ -314,6 +314,7 @@ async function startPayment(birthData, bazi) {
 
   console.log('订单号:', tradeNo);
   console.log('HUPI_APPID:', HUPI_APPID);
+  console.log('HUPI_APPSECRET:', HUPI_APPSECRET ? '已加载' : '未加载');
 
   // 先在 Supabase 插入订单记录（失败也不影响跳转）
   try {
@@ -340,17 +341,27 @@ async function startPayment(birthData, bazi) {
 
   console.log('回调地址:', callbackUrl);
 
-  // 跳转迅虎支付收款页（调试模式：0.01元）
-  const params = new URLSearchParams({
+  // 生成迅虎支付签名
+  const payParams = {
     appid:      HUPI_APPID,
     title:      '八字AI深度解读',
-    total_fee:  '0.01', // 调试模式设置为 0.01 元
+    total_fee:  '0.01',
     trade_no:   tradeNo,
     notify_url: `${SUPABASE_URL}/functions/v1/payment-callback`,
     return_url: callbackUrl,
     time:       Math.floor(Date.now() / 1000),
-  });
+  };
 
+  // 签名算法：按参数名排序 -> 拼接 -> 加密
+  const sortedKeys = Object.keys(payParams).sort();
+  const signString = sortedKeys.map(k => `${k}=${payParams[k]}`).join('&') + HUPI_APPSECRET;
+  const sign = md5(signString);
+
+  console.log('签名字符串:', signString);
+  console.log('签名结果:', sign);
+
+  // 跳转迅虎支付收款页
+  const params = new URLSearchParams({ ...payParams, sign });
   const payUrl = `https://api.xunhupay.com/payment/do.html?${params}`;
   console.log('支付URL:', payUrl);
 
