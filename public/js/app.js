@@ -302,20 +302,24 @@ async function startPayment(birthData, bazi) {
   const tradeNo = 'bazi_' + Date.now();
   const baziStr = `${bazi.year.tg}${bazi.year.dz}年 ${bazi.month.tg}${bazi.month.dz}月 ${bazi.day.tg}${bazi.day.dz}日 ${bazi.hour.tg}${bazi.hour.dz}时`;
 
-  // 先在 Supabase 插入订单记录
-  await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
-    method: 'POST',
-    headers: {
-      apikey: SUPABASE_ANON,
-      Authorization: `Bearer ${SUPABASE_ANON}`,
-      'Content-Type': 'application/json',
-      Prefer: 'return=minimal',
-    },
-    body: JSON.stringify({
-      trade_no: tradeNo,
-      birth_input: JSON.stringify({ ...birthData, bazi_str: baziStr }),
-    }),
-  });
+  // 先在 Supabase 插入订单记录（失败也不影响跳转）
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON,
+        Authorization: `Bearer ${SUPABASE_ANON}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify({
+        trade_no: tradeNo,
+        birth_input: JSON.stringify({ ...birthData, bazi_str: baziStr }),
+      }),
+    });
+  } catch (err) {
+    console.error('订单创建失败，继续跳转支付:', err);
+  }
 
   const callbackUrl = location.href.split('?')[0]
     + '?' + new URLSearchParams({ ...birthData, trade_no: tradeNo, paid: 'true' });
