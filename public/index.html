@@ -354,6 +354,24 @@
     .submit:hover::before { transform:translateX(100%); }
     .submit:active { transform:scale(.99); }
 
+    /* 按钮行 */
+    .btn-row {
+      display:flex; gap:12px; margin-top:20px;
+    }
+    .btn-row .submit {
+      flex:1; margin-top:0; font-size:.82rem; letter-spacing:4px;
+    }
+    /* 付费按钮样式 */
+    .btn-paid {
+      background:linear-gradient(135deg, rgba(198,162,68,.85), rgba(198,162,68,.7));
+      border-color:rgba(198,162,68,.55);
+      box-shadow:0 4px 24px rgba(198,162,68,.35);
+    }
+    .btn-paid:hover {
+      background:linear-gradient(135deg, rgba(198,162,68,.95), rgba(198,162,68,.8));
+      box-shadow:0 8px 32px rgba(198,162,68,.5);
+    }
+
     /* ── 功能行 ── */
     .feat-row {
       display:flex; gap:0;
@@ -584,7 +602,10 @@
             <div class="geo-hint" id="geo-hint"></div>
           </div>
 
-          <button type="submit" class="submit">排　盘　解　读</button>
+          <div class="btn-row">
+            <button type="submit" class="submit btn-free">免费排　盘　解　读</button>
+            <button type="button" class="submit btn-paid" id="paid-btn">付费深度解读</button>
+          </div>
 
           <div class="feat-row">
             <div class="feat"><span class="feat-ico">☯</span><span class="feat-txt">格局<br>定命</span></div>

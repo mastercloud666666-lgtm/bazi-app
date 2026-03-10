@@ -118,9 +118,73 @@ if (form) {
       inputHour: hour,         // 原始输入时辰（供结果页显示）
       gender, birthplace,
       lon: lonUsed !== null ? lonUsed.toFixed(2) : '',
+      paid: 'false',           // 标记为免费模式
     });
     window.location.href = `result.html?${params}`;
   });
+
+  // 付费按钮点击事件
+  const paidBtn = document.getElementById('paid-btn');
+  if (paidBtn) {
+    paidBtn.addEventListener('click', () => {
+      // 验证表单
+      const yearEl   = document.getElementById('year');
+      const monthEl  = document.getElementById('month');
+      const dayEl    = document.getElementById('day');
+      const hourEl   = document.getElementById('hour');
+      const genderEl = document.querySelector('input[name=gender]:checked');
+
+      if (!yearEl.value || !monthEl.value || !dayEl.value || !hourEl.value || !genderEl) {
+        alert('请填写完整的生辰信息');
+        return;
+      }
+
+      let year   = parseInt(yearEl.value);
+      let month  = parseInt(monthEl.value);
+      let day    = parseInt(dayEl.value);
+      let hour   = parseInt(hourEl.value);
+      const gender     = genderEl.value;
+      const birthplace = document.getElementById('birthplace').value.trim();
+      const caltype    = document.querySelector('input[name=caltype]:checked').value;
+
+      // 农历转阳历
+      if (caltype === 'lunar') {
+        const isLeap = document.getElementById('is-leap').checked;
+        try {
+          const solar = isLeap
+            ? Lunar.fromYmd(year, -month, day).getSolar()
+            : Lunar.fromYmd(year, month, day).getSolar();
+          year  = solar.getYear();
+          month = solar.getMonth();
+          day   = solar.getDay();
+        } catch {
+          alert('农历日期转换失败，请检查输入是否正确');
+          return;
+        }
+      }
+
+      // 真太阳时校正
+      let solarHour = hour;
+      let lonUsed   = null;
+      if (geoCache) {
+        lonUsed = geoCache.lon;
+        const tzOffset = Math.round(lonUsed / 15);
+        const eqtMin   = equationOfTime(year, month, day);
+        const lonMin   = longitudeCorrection(lonUsed, tzOffset);
+        const totalMin = eqtMin + lonMin;
+        const birthMin = hour * 60 + totalMin;
+        solarHour = ((Math.floor(birthMin / 60) % 24) + 24) % 24;
+      }
+
+      // 计算八字数据
+      const bazi = BaziCalc.calculateBazi(year, month, day, solarHour);
+
+      // 直接跳转支付
+      paidBtn.disabled = true;
+      paidBtn.textContent = '正在跳转...';
+      startPayment({ year, month, day, hour: solarHour, gender, birthplace }, bazi);
+    });
+  }
 }
 
 // ── 结果页逻辑 ────────────────────────────────────────────────────
@@ -195,6 +259,9 @@ if (document.getElementById('bazi-table-section')) {
   // 渲染特殊年份
   renderSpecialYears(specialYears, currentYear);
 
+  // 检查是否为付费模式
+  const isPaidMode = p.get('paid') === 'true';
+
   // 检查 localStorage 缓存（先查完整版，再查免费版）
   const cacheKey     = `bazi_${year}_${month}_${day}_${hour}_${gender}`;
   const fullCacheKey = `bazi_full_${year}_${month}_${day}_${hour}_${gender}`;
@@ -204,9 +271,13 @@ if (document.getElementById('bazi-table-section')) {
     showAnalysis(cachedFull, true);
   } else if (cached) {
     showAnalysis(cached);
-  } else {
-    // 自动触发分析（免费模式）
+  } else if (!isPaidMode) {
+    // 非付费模式：自动触发分析（免费模式）
     autoAnalyze({ year, month, day, hour, gender, birthplace }, bazi, daYunData, specialYears);
+  } else {
+    // 付费模式：显示付费提示
+    const locked = document.getElementById('analysis-locked');
+    if (locked) locked.style.display = 'block';
   }
 
   // 付款按钮（跳转虎皮椒支付）
@@ -247,7 +318,7 @@ async function startPayment(birthData, bazi) {
   });
 
   const callbackUrl = location.href.split('?')[0]
-    + '?' + new URLSearchParams({ ...birthData, trade_no: tradeNo });
+    + '?' + new URLSearchParams({ ...birthData, trade_no: tradeNo, paid: 'true' });
 
   // 跳转迅虎支付收款页（调试模式：0.01元）
   const params = new URLSearchParams({
