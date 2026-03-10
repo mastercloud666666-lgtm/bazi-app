@@ -393,6 +393,7 @@ async function startPayment(birthData, bazi) {
   form.method = 'POST';
   form.action = 'https://api.xunhupay.com/payment/do.html';
   form.style.display = 'none';
+  form.target = '_self';
 
   Object.entries({ ...payParams, sign }).forEach(([key, value]) => {
     const input = document.createElement('input');
@@ -402,9 +403,18 @@ async function startPayment(birthData, bazi) {
     form.appendChild(input);
   });
 
+  console.log('表单元素:', form);
+  console.log('表单输入框数量:', form.querySelectorAll('input').length);
+
   document.body.appendChild(form);
-  form.submit();
-  document.body.removeChild(form);
+  console.log('表单已添加到页面');
+
+  // 延迟提交，确保表单已正确添加到 DOM
+  setTimeout(() => {
+    console.log('开始提交表单...');
+    form.submit();
+    console.log('表单已提交');
+  }, 100);
 }
 
 // ── 轮询等待分析结果 ──────────────────────────────────────────────
