@@ -110,20 +110,23 @@ Deno.serve(async (req) => {
     return new Response('sign error', { status: 400 });
   }
 
-  const { trade_no, status } = data;
-  if (status !== '1') {
+  // 迅虎支付回调参数：trade_order_id, status (OD=已支付)
+  const trade_order_id = data.trade_order_id || data.trade_no;
+  const status = data.status;
+
+  if (status !== 'OD') {
     return new Response('not paid', { status: 200 });
   }
 
   // 查询订单并标记已支付
   const { data: order } = await supabase
-    .from('orders').select('birth_input').eq('trade_no', trade_no).single();
+    .from('orders').select('birth_input').eq('trade_no', trade_order_id).single();
 
   if (!order) {
     return new Response('order not found', { status: 404 });
   }
 
-  await supabase.from('orders').update({ paid: true }).eq('trade_no', trade_no);
+  await supabase.from('orders').update({ paid: true }).eq('trade_no', trade_order_id);
 
   // 异步触发 AI 分析（不等待结果）
   const birth = JSON.parse(order.birth_input);
@@ -133,7 +136,7 @@ Deno.serve(async (req) => {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
     },
-    body: JSON.stringify({ trade_no, ...birth }),
+    body: JSON.stringify({ trade_no: trade_order_id, ...birth }),
   });
 
   return new Response('success', { status: 200 });

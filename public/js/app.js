@@ -365,56 +365,69 @@ async function startPayment(birthData, bazi) {
 
   console.log('回调地址:', callbackUrl);
 
-  // 生成迅虎支付签名
+  // 生成随机字符串
+  const nonceStr = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+  // 生成迅虎支付签名（按照官方文档的参数名）
   const payParams = {
-    appid:      HUPI_APPID,
-    title:      '八字AI深度解读',
-    total_fee:  '0.01',
-    trade_no:   tradeNo,
+    version: '1.1',
+    appid: HUPI_APPID,
+    trade_order_id: tradeNo,
+    total_fee: '0.01',
+    title: '八字AI深度解读',
+    time: Math.floor(Date.now() / 1000),
     notify_url: `${SUPABASE_URL}/functions/v1/payment-callback`,
     return_url: callbackUrl,
-    time:       Math.floor(Date.now() / 1000),
+    nonce_str: nonceStr,
   };
 
   // 签名算法：按参数名排序 -> 拼接 -> 加密
   const sortedKeys = Object.keys(payParams).sort();
   const signString = sortedKeys.map(k => `${k}=${payParams[k]}`).join('&') + HUPI_APPSECRET;
-  const sign = md5(signString);
+  const hash = md5(signString);
 
   console.log('签名字符串:', signString);
-  console.log('签名结果:', sign);
-
-  // 跳转迅虎支付收款页
+  console.log('签名结果:', hash);
   console.log('支付参数:', payParams);
-  console.log('签名:', sign);
 
-  // 使用 POST 表单提交跳转（迅虎支付要求 POST）
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = 'https://api.xunhupay.com/payment/do.html';
-  form.style.display = 'none';
-  form.target = '_self';
+  // 发起POST请求获取支付URL
+  try {
+    const response = await fetch('https://api.xunhupay.com/payment/do.html', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({ ...payParams, hash }),
+    });
 
-  Object.entries({ ...payParams, sign }).forEach(([key, value]) => {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = key;
-    input.value = value;
-    form.appendChild(input);
-  });
+    const result = await response.json();
+    console.log('支付API返回:', result);
 
-  console.log('表单元素:', form);
-  console.log('表单输入框数量:', form.querySelectorAll('input').length);
-
-  document.body.appendChild(form);
-  console.log('表单已添加到页面');
-
-  // 延迟提交，确保表单已正确添加到 DOM
-  setTimeout(() => {
-    console.log('开始提交表单...');
-    form.submit();
-    console.log('表单已提交');
-  }, 100);
+    if (result.errcode === 0) {
+      // 跳转到支付页面
+      const payUrl = result.url || result.url_qrcode;
+      console.log('跳转到支付页面:', payUrl);
+      window.location.href = payUrl;
+    } else {
+      console.error('支付API错误:', result.errmsg);
+      alert(`支付请求失败：${result.errmsg}`);
+      // 重置按钮状态
+      const btn = document.getElementById('paid-btn');
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '付费深度解读';
+      }
+    }
+  } catch (err) {
+    console.error('支付请求失败:', err);
+    alert('支付请求失败，请稍后重试');
+    // 重置按钮状态
+    const btn = document.getElementById('paid-btn');
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '付费深度解读';
+    }
+  }
 }
 
 // ── 轮询等待分析结果 ──────────────────────────────────────────────
