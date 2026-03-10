@@ -2,7 +2,6 @@
 
 const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
-const HUPI_APPID    = '__HUPI_APPID__';
 
 // ── 真太阳时计算 ──────────────────────────────────────────────────
 // 均时差（Spencer 公式），返回分钟数
@@ -210,13 +209,13 @@ if (document.getElementById('bazi-table-section')) {
     autoAnalyze({ year, month, day, hour, gender, birthplace }, bazi, daYunData, specialYears);
   }
 
-  // 付款按钮（测试阶段：直接生成完整报告）
+  // 付款按钮（跳转虎皮椒支付）
   const payBtn = document.getElementById('pay-btn');
   if (payBtn) {
     payBtn.addEventListener('click', () => {
       payBtn.disabled = true;
-      payBtn.textContent = '生成中...';
-      fullAnalyze({ year, month, day, hour, gender, birthplace }, bazi, daYunData, specialYears);
+      payBtn.textContent = '正在跳转...';
+      startPayment({ year, month, day, hour, gender, birthplace }, bazi);
     });
   }
 
@@ -250,17 +249,17 @@ async function startPayment(birthData, bazi) {
   const callbackUrl = location.href.split('?')[0]
     + '?' + new URLSearchParams({ ...birthData, trade_no: tradeNo });
 
-  // 跳转虎皮椒收款页
+  // 跳转迅虎支付收款页（调试模式：0.01元）
   const params = new URLSearchParams({
     appid:      HUPI_APPID,
     title:      '八字AI深度解读',
-    total_fee:  '9.9',
+    total_fee:  '0.01', // 调试模式设置为 0.01 元
     trade_no:   tradeNo,
     notify_url: `${SUPABASE_URL}/functions/v1/payment-callback`,
     return_url: callbackUrl,
     time:       Math.floor(Date.now() / 1000),
   });
-  window.location.href = `https://pay.hupijiao.com/api/pay/index?${params}`;
+  window.location.href = `https://api.xunhupay.com/payment/do.html?${params}`;
 }
 
 // ── 轮询等待分析结果 ──────────────────────────────────────────────

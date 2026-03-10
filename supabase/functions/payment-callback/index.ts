@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
   const params = new URLSearchParams(body);
   const data = Object.fromEntries(params.entries());
 
-  // 验签（虎皮椒 MD5 签名）
+  // 验签（迅虎支付 MD5 签名）
   const appSecret = Deno.env.get('HUPI_APPSECRET')!;
   const { sign, ...rest } = data;
   const sortedStr = Object.keys(rest).sort()
