@@ -3,31 +3,31 @@
 const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
-const APP_BUILD = '20260314-pricing-auth-v1';
+const APP_BUILD = '20260314-pricing-auth-testv2';
 const PAYMENT_OPTIONS = [
   {
     id: 'basic',
     title: '\u5355\u6b21\u6df1\u5ea6\u89e3\u8bfb',
-    subtitle: '\u9002\u5408\u9996\u6b21\u4f53\u9a8c',
+    subtitle: '\u9002\u5408\u9996\u6b21\u4f53\u9a8c \u00b7 \u6d4b\u8bd5\u4ef7 0.01 \u5143',
     description: '\u542b 1 \u6b21\u5b8c\u6574\u62a5\u544a\u00b7\u547d\u5c40\u5168\u89e3',
-    fee: '29.00',
+    fee: '0.01',
     tag: '\u4f53\u9a8c',
   },
   {
     id: 'pro',
     title: '\u4e09\u6b21\u89e3\u8bfb\u5957\u9910',
-    subtitle: '\u4e3b\u63a8\u9009\u62e9\uff0c\u6027\u4ef7\u6bd4\u6700\u9ad8',
-    description: '\u542b 3 \u6b21\u5b8c\u6574\u62a5\u544a\u00b7\u6bcf\u6b21\u4f4e\u81f3 19.7 \u5143',
-    fee: '59.00',
+    subtitle: '\u4e3b\u63a8\u9009\u62e9 \u00b7 \u6d4b\u8bd5\u4ef7 0.01 \u5143',
+    description: '\u542b 3 \u6b21\u89e3\u8bfb\u6743\u76ca\u00b7\u5f53\u524d\u6d4b\u8bd5\u7edf\u4e00 0.01 \u5143',
+    fee: '0.01',
     tag: '\u63a8\u8350',
     recommended: true,
   },
   {
     id: 'vip',
     title: '\u6708\u5ea6\u4f1a\u5458',
-    subtitle: '\u9002\u5408\u957f\u671f\u8ddf\u8e2a\u8fd0\u52bf',
-    description: '\u542b 30 \u5929 6 \u6b21\u6df1\u5ea6\u89e3\u8bfb\u00b7\u4f18\u5148\u751f\u6210',
-    fee: '99.00',
+    subtitle: '\u9002\u5408\u957f\u671f\u8ddf\u8e2a\u8fd0\u52bf \u00b7 \u6d4b\u8bd5\u4ef7 0.01 \u5143',
+    description: '\u542b 30 \u5929\u4f1a\u5458\u6743\u76ca\u00b7\u5f53\u524d\u6d4b\u8bd5\u7edf\u4e00 0.01 \u5143',
+    fee: '0.01',
     tag: '\u4f1a\u5458',
   },
 ];
@@ -166,7 +166,7 @@ function buildPricingSummaryHtml() {
   }).join('');
   return [
     '<div style="margin-bottom:12px;padding:10px 12px;border:1px solid #D1D5DB;border-radius:8px;background:#F8FAFC;font-size:13px;color:#334155;line-height:1.7;">',
-    '<div style="font-weight:600;color:#0F172A;margin-bottom:4px;">\u89e3\u9501\u65b9\u6848\uff08\u53c2\u8003\u7075\u8574\u6a21\u5f0f\uff09</div>',
+    '<div style="font-weight:600;color:#0F172A;margin-bottom:4px;">\u89e3\u9501\u65b9\u6848\uff08\u6d4b\u8bd5\u4ef7\u5747\u4e3a 0.01 \u5143\uff09</div>',
     rows,
     '</div>',
   ].join('');
