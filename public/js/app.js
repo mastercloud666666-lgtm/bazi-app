@@ -4,7 +4,7 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v7';
+const APP_BUILD = '20260314-grid-v8-stream-alltiers';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -980,7 +980,7 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
 
       if (order?.paid && !order?.analysis) {
         paidSeenCount += 1;
-        if (!streamFallbackTriggered && paidSeenCount >= 8 && resolvedBirthData && resolvedBazi && resolvedDaYunData && resolvedSpecialYears) {
+        if (!streamFallbackTriggered && paidSeenCount >= 1 && resolvedBirthData && resolvedBazi && resolvedDaYunData && resolvedSpecialYears) {
           streamFallbackTriggered = true;
           document.getElementById('analysis-loading').innerHTML = '<p class="price-desc">\u5df2\u786e\u8ba4\u652f\u4ed8\uff0c\u6b63\u5728\u76f4\u63a5\u751f\u6210\u5b8c\u6574\u62a5\u544a\uff0c\u8bf7\u7a0d\u5019\u2026</p>' + PAID_ONE_TIME_NOTICE_HTML;
           await fullAnalyze(resolvedBirthData, resolvedBazi, resolvedDaYunData, resolvedSpecialYears, {
@@ -1222,6 +1222,7 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext
     };
     if (paidContext?.tradeNo) payload.trade_no = paidContext.tradeNo;
     if (paidContext?.paymentOptionId) payload.payment_option_id = paidContext.paymentOptionId;
+    payload.stream = true;
 
     const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
       method: 'POST',

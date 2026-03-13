@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { trade_no, service = 'bazi', free_only, payment_option_id } = body;
+    const { trade_no, service = 'bazi', free_only, payment_option_id, stream } = body;
 
     let prompt = '';
     let maxTokens = free_only ? 1500 : 8192;
@@ -390,8 +390,8 @@ ${special_years_text}
 凡做判断，必须给出具体年龄段、干支名称、五行原因，不得用"可能""也许""不会太X""有一定概率"等虚词搪塞。`;
 
 
-    // 仅合盘走流式。付费八字改为非流式，确保可落库并被轮询拿到结果。
-    if (service === 'hepan') {
+    // 合盘默认流式；付费八字在显式请求 stream=true 时也走流式输出。
+    if (service === 'hepan' || (service === 'bazi' && !free_only && stream === true)) {
       const dsStream = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {
