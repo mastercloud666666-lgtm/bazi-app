@@ -4,7 +4,7 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v9-fix-paidnotice-init';
+const APP_BUILD = '20260314-grid-v10-mobile-payment-fallback';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -637,43 +637,85 @@ function renderBaziDetailGrid(bazi) {
 (async () => {
   if (document.getElementById('bazi-table-section')) {
   const p          = new URLSearchParams(location.search);
+  const hashParams = new URLSearchParams(location.hash.replace(/^#/, ''));
   let year, month, day, hour, inputHour, gender, birthplace, lon;
 
-  // 检查是否只传了 trade_no（从支付回调返回）
-  const tradeNo = p.get('trade_no');
+  // ??????? trade_no?????????
+  const tradeNo = p.get('trade_no')
+    || p.get('trade_order_id')
+    || hashParams.get('trade_no')
+    || hashParams.get('trade_order_id')
+    || localStorage.getItem(PENDING_TRADE_KEY);
   if (tradeNo && !p.get('year')) {
-    // 从数据库获取出生信息
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${tradeNo}&select=birth_input`,
-      { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` }}
-    );
-    const [order] = await res.json();
+    // ????????????????????????
+    let order = null;
+    for (let i = 0; i < 6; i++) {
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(tradeNo)}&select=birth_input`,
+          { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` }}
+        );
+        if (res.ok) {
+          const rows = await res.json();
+          if (Array.isArray(rows) && rows[0]) {
+            order = rows[0];
+            break;
+          }
+        }
+      } catch (err) {
+        console.warn('?????????????:', err);
+      }
+      if (i < 5) await new Promise((r) => setTimeout(r, 800));
+    }
+
     if (order && order.birth_input) {
-      const birth = JSON.parse(order.birth_input);
-      year       = birth.year;
-      month      = birth.month;
-      day        = birth.day;
-      hour       = birth.hour;
-      inputHour  = birth.hour;
-      gender     = birth.gender;
-      birthplace = birth.birthplace || '';
-      lon        = birth.lon || '';
-      const optionId = birth?.payment_option?.id;
-      if (optionId) localStorage.setItem(PENDING_PAYMENT_OPTION_KEY, optionId);
+      try {
+        const birth = JSON.parse(order.birth_input);
+        year       = Number(birth.year);
+        month      = Number(birth.month);
+        day        = Number(birth.day);
+        hour       = Number(birth.hour);
+        inputHour  = Number(birth.hour);
+        gender     = birth.gender;
+        birthplace = birth.birthplace || '';
+        lon        = birth.lon || '';
+        const optionId = birth?.payment_option?.id;
+        if (optionId) localStorage.setItem(PENDING_PAYMENT_OPTION_KEY, optionId);
+      } catch (err) {
+        console.warn('??????????:', err);
+      }
     }
   } else {
-    // 从 URL 参数获取
+    // ? URL ????
     year       = parseInt(p.get('year'));
     month      = parseInt(p.get('month'));
     day        = parseInt(p.get('day'));
-    hour       = parseInt(p.get('hour'));       // 真太阳时校正后
-    inputHour  = parseInt(p.get('inputHour')); // 原始输入
+    hour       = parseInt(p.get('hour'));       // ???????
+    inputHour  = parseInt(p.get('inputHour')); // ????
     gender     = p.get('gender');
     birthplace = p.get('birthplace') || '';
     lon        = p.get('lon') || '';
   }
 
-  // 渲染出生信息摘要
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day) || !Number.isFinite(hour) || !gender) {
+    const locked = document.getElementById('analysis-locked');
+    const payPrompt = document.getElementById('pay-prompt');
+    const content = document.getElementById('analysis-content');
+    const loading = document.getElementById('analysis-loading');
+    if (locked) locked.style.display = 'none';
+    if (payPrompt) payPrompt.style.display = 'none';
+    if (content) content.style.display = 'none';
+    if (loading) {
+      loading.style.display = 'block';
+      if (tradeNo) {
+        loading.innerHTML = `<p class="price-desc">????????????????????????</p><p style="margin-top:8px;color:#6B7280;font-size:13px;">????${tradeNo}</p>`;
+      } else {
+        loading.innerHTML = '<p class="price-desc">??????????????????</p>';
+      }
+    }
+    return;
+  }
+
   const hourLabels = {23:'子',1:'丑',3:'寅',5:'卯',7:'辰',9:'巳',11:'午',13:'未',15:'申',17:'酉',19:'戌',21:'亥'};
   const birthInfo = document.getElementById('birth-info');
   if (birthInfo) {
