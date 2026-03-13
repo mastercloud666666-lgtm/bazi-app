@@ -6,34 +6,45 @@
   <title>支付成功 · 云子命理</title>
   <meta name="robots" content="noindex">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #0A2540;
+      --accent: #0066CC;
+      --bg-white: #FFFFFF;
+      --bg-light: #F8F9FA;
+      --border: #DEE2E6;
+      --text-dark: #1A1A1A;
+      --text-gray: #6C757D;
+      --font-zh: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     }
 
     body {
-      font-family: 'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif;
-      background: linear-gradient(135deg, #0a0f1d 0%, #1a1f35 100%);
+      font-family: var(--font-zh);
+      background: var(--bg-light);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
-      color: #e6e9f0;
+      color: var(--text-dark);
     }
 
     .container {
       max-width: 400px;
       width: 100%;
       text-align: center;
+      background: var(--bg-white);
+      border-radius: 16px;
+      padding: 48px 32px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.08);
     }
 
     .icon {
-      width: 80px;
-      height: 80px;
+      width: 80px; height: 80px;
       margin: 0 auto 24px;
       background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       border-radius: 50%;
@@ -45,112 +56,91 @@
     }
 
     .icon svg {
-      width: 40px;
-      height: 40px;
-      stroke: white;
-      stroke-width: 3;
-      fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
+      width: 40px; height: 40px;
+      stroke: white; stroke-width: 3; fill: none;
+      stroke-linecap: round; stroke-linejoin: round;
       animation: drawCheck 0.6s ease-out 0.3s both;
     }
 
     @keyframes scaleIn {
-      from {
-        transform: scale(0);
-        opacity: 0;
-      }
-      to {
-        transform: scale(1);
-        opacity: 1;
-      }
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
     }
 
     @keyframes drawCheck {
-      from {
-        stroke-dasharray: 50;
-        stroke-dashoffset: 50;
-      }
-      to {
-        stroke-dashoffset: 0;
-      }
+      from { stroke-dasharray: 50; stroke-dashoffset: 50; }
+      to   { stroke-dashoffset: 0; }
     }
 
     h1 {
       font-size: 24px;
-      font-weight: 400;
+      font-weight: 600;
       margin-bottom: 16px;
-      letter-spacing: 2px;
+      color: var(--primary);
     }
 
     p {
       font-size: 14px;
-      color: #9ca3af;
+      color: var(--text-gray);
       line-height: 1.8;
       margin-bottom: 8px;
     }
 
     .loading {
       display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 2px solid #10b981;
-      border-top-color: transparent;
+      width: 20px; height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
       vertical-align: middle;
       margin-right: 8px;
     }
 
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     .btn {
       display: inline-block;
       padding: 12px 32px;
-      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      background: var(--accent);
       color: white;
       text-decoration: none;
       border-radius: 8px;
       font-size: 15px;
+      font-weight: 600;
       margin-top: 24px;
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
       border: none;
       cursor: pointer;
-      letter-spacing: 1px;
+      font-family: var(--font-zh);
     }
 
     .btn:hover {
+      background: #0052A3;
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
-    }
-
-    .btn:active {
-      transform: translateY(0);
+      box-shadow: 0 6px 20px rgba(0, 102, 204, 0.3);
     }
 
     .btn-secondary {
       background: transparent;
-      border: 1px solid #4b5563;
+      border: 2px solid var(--border);
+      color: var(--text-gray);
       margin-top: 12px;
     }
 
     .btn-secondary:hover {
-      background: rgba(75, 85, 99, 0.2);
+      border-color: var(--accent);
+      color: var(--accent);
+      background: transparent;
       box-shadow: none;
     }
 
-    .hidden {
-      display: none;
-    }
+    .hidden { display: none; }
 
     .countdown {
       font-size: 12px;
-      color: #6b7280;
-      margin-top: 16px;
+      color: var(--text-gray);
+      margin-top: 12px;
     }
   </style>
 </head>
@@ -187,27 +177,24 @@
 
     if (!tradeNo) {
       document.getElementById('loading').innerHTML = '<p>参数错误，请重新发起支付</p>';
-      document.getElementById('loading').querySelector('.loading')?.remove();
     } else {
-      // 自动跳转倒计时
       let countdown = 5;
       const countdownEl = document.getElementById('countdown');
-      
+
       const timer = setInterval(() => {
         countdown--;
-        if (countdownEl) {
-          countdownEl.textContent = countdown;
-        }
+        if (countdownEl) countdownEl.textContent = countdown;
         if (countdown <= 0) {
           clearInterval(timer);
           goToResult();
         }
       }, 1000);
 
-      // 立即跳转按钮
       function goToResult() {
         window.location.href = `result.html?trade_no=${tradeNo}`;
       }
+
+      window.goToResult = goToResult;
     }
   </script>
 </body>
