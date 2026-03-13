@@ -319,8 +319,8 @@ ${special_years_text}
 凡做判断，必须给出具体年龄段、干支名称、五行原因，不得用"可能""也许""不会太X""有一定概率"等虚词搪塞。`;
 
 
-    // 合盘和完整八字走流式传输
-    if ((service === 'bazi' && !free_only) || service === 'hepan') {
+    // 仅合盘走流式。付费八字改为非流式，确保可落库并被轮询拿到结果。
+    if (service === 'hepan') {
       const dsStream = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {

@@ -2,6 +2,130 @@
 
 const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
+const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
+const APP_BUILD = '20260313-pay-options-v2';
+const PAYMENT_OPTIONS = [
+  { id: 'basic', title: '标准版完整报告', subtitle: '完整命理解读 · 测试价 0.01 元', fee: '0.01' },
+  { id: 'pro', title: '进阶版完整报告', subtitle: '增加重点流年提醒 · 测试价 0.01 元', fee: '0.01' },
+  { id: 'vip', title: '尊享版完整报告', subtitle: '优先生成通道 · 测试价 0.01 元', fee: '0.01' },
+];
+const DEFAULT_PAYMENT_OPTION = PAYMENT_OPTIONS[0];
+window.__BAZI_APP_BUILD = APP_BUILD;
+window.__BAZI_PAYMENT_OPTION_IDS = PAYMENT_OPTIONS.map((x) => x.id);
+console.log('[bazi-app build]', APP_BUILD);
+
+function pickPaymentOption() {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = [
+      'position:fixed',
+      'inset:0',
+      'background:rgba(10,37,64,0.48)',
+      'display:flex',
+      'align-items:center',
+      'justify-content:center',
+      'z-index:9999',
+      'padding:20px',
+    ].join(';');
+
+    const card = document.createElement('div');
+    card.style.cssText = [
+      'width:min(92vw,420px)',
+      'background:#fff',
+      'border-radius:14px',
+      'border:1px solid #DEE2E6',
+      'box-shadow:0 16px 44px rgba(0,0,0,0.18)',
+      'padding:18px',
+      'font-family:inherit',
+    ].join(';');
+
+    const title = document.createElement('h3');
+    title.textContent = '请选择支付选项';
+    title.style.cssText = 'margin:0 0 6px;font-size:18px;color:#0A2540;';
+
+    const subtitle = document.createElement('p');
+    subtitle.textContent = '已准备好你的生辰信息，选择后将跳转支付。';
+    subtitle.style.cssText = 'margin:0 0 14px;font-size:13px;color:#6C757D;';
+
+    const list = document.createElement('div');
+    list.style.cssText = 'display:grid;gap:10px;';
+
+    PAYMENT_OPTIONS.forEach((opt) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = `${opt.title} · ${opt.subtitle}`;
+      btn.style.cssText = [
+        'text-align:left',
+        'padding:12px 14px',
+        'border-radius:10px',
+        'border:1px solid #DEE2E6',
+        'background:#F8F9FA',
+        'font-size:14px',
+        'color:#1A1A1A',
+        'cursor:pointer',
+      ].join(';');
+      btn.addEventListener('mouseenter', () => {
+        btn.style.borderColor = '#0066CC';
+        btn.style.background = '#EFF6FF';
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.style.borderColor = '#DEE2E6';
+        btn.style.background = '#F8F9FA';
+      });
+      btn.addEventListener('click', () => {
+        cleanup();
+        resolve(opt);
+      });
+      list.appendChild(btn);
+    });
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.textContent = '取消';
+    cancelBtn.style.cssText = [
+      'margin-top:12px',
+      'width:100%',
+      'padding:11px 12px',
+      'border-radius:10px',
+      'border:1px solid #DEE2E6',
+      'background:#fff',
+      'color:#6C757D',
+      'font-size:14px',
+      'cursor:pointer',
+    ].join(';');
+    cancelBtn.addEventListener('click', () => {
+      cleanup();
+      resolve(null);
+    });
+
+    function cleanup() {
+      document.removeEventListener('keydown', onEsc);
+      overlay.remove();
+    }
+
+    function onEsc(evt) {
+      if (evt.key === 'Escape') {
+        cleanup();
+        resolve(null);
+      }
+    }
+
+    overlay.addEventListener('click', (evt) => {
+      if (evt.target === overlay) {
+        cleanup();
+        resolve(null);
+      }
+    });
+
+    document.addEventListener('keydown', onEsc);
+    card.appendChild(title);
+    card.appendChild(subtitle);
+    card.appendChild(list);
+    card.appendChild(cancelBtn);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+  });
+}
 
 // ── 真太阳时计算 ──────────────────────────────────────────────────
 // 均时差（Spencer 公式），返回分钟数
@@ -123,9 +247,27 @@ if (form) {
     window.location.href = `result.html?${params}`;
   });
 
-  // 付费按钮点击事件
-  const paidBtn = document.getElementById('paid-btn');
+  // 付费按钮点击事件（兜底：旧版首页没有 paid-btn 时自动注入）
+  let paidBtn = document.getElementById('paid-btn');
+  if (!paidBtn) {
+    const submitBtn = form.querySelector('.form-submit');
+    if (submitBtn && submitBtn.parentElement) {
+      paidBtn = document.createElement('button');
+      paidBtn.type = 'button';
+      paidBtn.id = 'paid-btn';
+      paidBtn.className = 'form-submit';
+      paidBtn.textContent = '立即解锁完整命理报告';
+      paidBtn.dataset.defaultText = paidBtn.textContent;
+      paidBtn.style.marginTop = '12px';
+      paidBtn.style.background = '#0A2540';
+      submitBtn.insertAdjacentElement('afterend', paidBtn);
+    }
+  }
+
   if (paidBtn) {
+    if (!paidBtn.dataset.defaultText) {
+      paidBtn.dataset.defaultText = paidBtn.textContent.trim();
+    }
     paidBtn.addEventListener('click', async () => {
       // 验证表单
       const yearEl   = document.getElementById('year');
@@ -179,17 +321,20 @@ if (form) {
       // 计算八字数据
       const bazi = BaziCalc.calculateBazi(year, month, day, solarHour);
 
-      // 直接跳转支付
+      const selectedOption = await pickPaymentOption();
+      if (!selectedOption) return;
+
+      // 跳转支付
       paidBtn.disabled = true;
       paidBtn.textContent = '正在跳转...';
 
       try {
-        await startPayment({ year, month, day, hour: solarHour, gender, birthplace }, bazi);
+        await startPayment({ year, month, day, hour: solarHour, gender, birthplace }, bazi, selectedOption);
       } catch (err) {
         console.error('支付跳转失败:', err);
         alert('跳转支付失败，请刷新页面重试');
         paidBtn.disabled = false;
-        paidBtn.textContent = '付费深度解读';
+        paidBtn.textContent = paidBtn.dataset.defaultText || '立即解锁完整命理报告';
       }
     });
   }
@@ -320,10 +465,15 @@ if (form) {
   // 付款按钮（跳转虎皮椒支付）
   const payBtn = document.getElementById('pay-btn');
   if (payBtn) {
-    payBtn.addEventListener('click', () => {
+    if (!payBtn.dataset.defaultText) {
+      payBtn.dataset.defaultText = payBtn.textContent.trim();
+    }
+    payBtn.addEventListener('click', async () => {
+      const selectedOption = await pickPaymentOption();
+      if (!selectedOption) return;
       payBtn.disabled = true;
       payBtn.textContent = '正在跳转...';
-      startPayment({ year, month, day, hour, gender, birthplace }, bazi);
+      startPayment({ year, month, day, hour, gender, birthplace }, bazi, selectedOption);
     });
   }
 
@@ -341,8 +491,19 @@ if (form) {
   }
 })();
 // ── 支付 ──────────────────────────────────────────────────────────
-async function startPayment(birthData, bazi) {
-  console.log('开始支付流程...', birthData, bazi);
+async function startPayment(birthData, bazi, paymentOption) {
+  const chosenOption = paymentOption || DEFAULT_PAYMENT_OPTION;
+  console.log('开始支付流程...', birthData, bazi, chosenOption);
+
+  const resetPayButtons = () => {
+    const ids = ['pay-btn', 'paid-btn'];
+    ids.forEach((id) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      btn.disabled = false;
+      btn.textContent = btn.dataset.defaultText || '立即解锁完整命理报告';
+    });
+  };
 
   // 立即显示加载提示
   const payPrompt = document.getElementById('pay-prompt');
@@ -355,10 +516,11 @@ async function startPayment(birthData, bazi) {
   if (contentSection) contentSection.style.display = 'none';
   if (loadingSection) {
     loadingSection.style.display = 'block';
-    loadingSection.innerHTML = '<p class="price-desc">正在创建支付订单，请稍候…</p>';
+    loadingSection.innerHTML = `<p class="price-desc">正在创建${chosenOption.title}支付订单，请稍候…</p>`;
   }
 
   const tradeNo = 'bazi_' + Date.now();
+  localStorage.setItem(PENDING_TRADE_KEY, tradeNo);
   const baziStr = `${bazi.year.tg}${bazi.year.dz}年 ${bazi.month.tg}${bazi.month.dz}月 ${bazi.day.tg}${bazi.day.dz}日 ${bazi.hour.tg}${bazi.hour.dz}时`;
 
   console.log('订单号:', tradeNo);
@@ -372,14 +534,14 @@ async function startPayment(birthData, bazi) {
   const specialYears = BaziCalc.calcSpecialYears(bazi, daYunData.dayuns, birthData.year, lifeStartYear, lifeEndYear);
 
   // 格式化大运文本
-  const dayunText = daYunData.dayuns.map(d => `${d.tg}${d.dz} (${d.ageStart}-${d.ageEnd}岁)`).join('、');
+  const dayunText = daYunData.dayuns.map(d => `${d.gz}（${d.ageStart}岁起，${d.yearStart}年）`).join('、');
 
   // 格式化特殊年份文本
   let specialYearsText = '';
   if (specialYears && specialYears.length > 0) {
     specialYearsText = specialYears.map(s => {
-      const type = s.type === '天克地冲' ? '天克地冲' : '岁运并临';
-      return `${s.year}年：${type}（${s.desc}）`;
+      const phase = s.year < currentYear ? '已过' : s.year === currentYear ? '今年' : '未来';
+      return `${s.year}年${s.gz}（${phase}）：${s.reasons.join('；')}`;
     }).join('\n');
   } else {
     specialYearsText = '一生中无明显天克地冲或岁运并临年份';
@@ -408,6 +570,7 @@ async function startPayment(birthData, bazi) {
           dayun_text: dayunText,
           special_years_text: specialYearsText,
           start_age: daYunData.startAge,
+          payment_option: chosenOption,
         }),
       }),
     });
@@ -429,6 +592,9 @@ async function startPayment(birthData, bazi) {
       body: JSON.stringify({
         trade_no: tradeNo,
         birth_input: { ...birthData, bazi_str: baziStr },
+        payment_option_id: chosenOption.id,
+        payment_option_title: chosenOption.title,
+        total_fee: chosenOption.fee,
       }),
     });
 
@@ -443,22 +609,14 @@ async function startPayment(birthData, bazi) {
     } else {
       console.error('支付API错误:', result.errmsg);
       alert(`支付请求失败：${result.errmsg}`);
-      // 重置按钮状态
-      const btn = document.getElementById('paid-btn');
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = '付费深度解读';
-      }
+      localStorage.removeItem(PENDING_TRADE_KEY);
+      resetPayButtons();
     }
   } catch (err) {
     console.error('支付请求失败:', err);
     alert('支付请求失败，请稍后重试');
-    // 重置按钮状态
-    const btn = document.getElementById('paid-btn');
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = '付费深度解读';
-    }
+    localStorage.removeItem(PENDING_TRADE_KEY);
+    resetPayButtons();
   }
 }
 
@@ -482,6 +640,7 @@ async function pollForAnalysis(tradeNo, cacheKey) {
       if (order?.paid && order?.analysis) {
         // 保存到完整版缓存
         localStorage.setItem(fullCacheKey, order.analysis);
+        localStorage.removeItem(PENDING_TRADE_KEY);
         showAnalysis(order.analysis, true); // hidePay = true，隐藏付费提示
         return;
       }

@@ -6,6 +6,12 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 };
 
+const PAYMENT_OPTION_MAP: Record<string, { title: string; total_fee: string }> = {
+  basic: { title: '标准版完整报告', total_fee: '0.01' },
+  pro: { title: '进阶版完整报告', total_fee: '0.01' },
+  vip: { title: '尊享版完整报告', total_fee: '0.01' },
+};
+
 // 纯 JS MD5 实现（Web Crypto API 不支持 MD5）
 function md5(input: string): string {
   const str = unescape(encodeURIComponent(input));
@@ -148,7 +154,19 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { trade_no, birth_input } = body;
+    const { trade_no, birth_input, payment_option_id } = body;
+    if (!trade_no) {
+      return new Response(JSON.stringify({
+        error: 'Invalid request',
+        details: 'trade_no is required',
+      }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders,
+        },
+      });
+    }
 
     const appSecret = Deno.env.get('HUPI_APPSECRET');
     const appId = Deno.env.get('HUPI_APPID');
@@ -174,17 +192,31 @@ Deno.serve(async (req) => {
     }
 
     const nonceStr = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    const origin = req.headers.get('origin') || 'https://tengyunzi.com';
+    const fallbackOrigin = Deno.env.get('PAY_RETURN_ORIGIN') || 'https://tengyunzi.com';
+    const originHeader = req.headers.get('origin');
+    const refererHeader = req.headers.get('referer');
+    let returnOrigin = fallbackOrigin;
+    if (originHeader) {
+      returnOrigin = originHeader;
+    } else if (refererHeader) {
+      try {
+        returnOrigin = new URL(refererHeader).origin;
+      } catch {
+        returnOrigin = fallbackOrigin;
+      }
+    }
+
+    const optionConfig = PAYMENT_OPTION_MAP[payment_option_id] || PAYMENT_OPTION_MAP.basic;
 
     const payParams = {
       version: '1.1',
       appid: appId,
       trade_order_id: trade_no,
-      total_fee: '0.01',
-      title: '八字AI深度解读',
+      total_fee: optionConfig.total_fee,
+      title: optionConfig.title,
       time: Math.floor(Date.now() / 1000),
       notify_url: `${supabaseUrl}/functions/v1/payment-callback`,
-      return_url: `${origin}/payment-success.html`,
+      return_url: `${returnOrigin}/payment-success.html?trade_no=${encodeURIComponent(trade_no)}#trade_no=${encodeURIComponent(trade_no)}`,
       nonce_str: nonceStr,
     };
 
