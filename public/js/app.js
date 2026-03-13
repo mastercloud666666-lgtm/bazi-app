@@ -402,6 +402,7 @@ if (form) {
   document.getElementById('day-dz').textContent   = bazi.day.dz;
   document.getElementById('hour-tg').textContent  = bazi.hour.tg;
   document.getElementById('hour-dz').textContent  = bazi.hour.dz;
+  renderBaziDetailGrid(bazi);
 
   // 渲染五行
   const maxCount = Math.max(...Object.values(bazi.wuxing), 1);
@@ -742,6 +743,150 @@ function showAnalysis(text, hidePay = false) {
 }
 
 // ── 渲染命局干支关系 ───────────────────────────────────────────────
+const STEM_INDEX_MAP = {
+  '\u7532': 0, '\u4e59': 1, '\u4e19': 2, '\u4e01': 3, '\u620a': 4,
+  '\u5df1': 5, '\u5e9a': 6, '\u8f9b': 7, '\u58ec': 8, '\u7678': 9,
+};
+const STEM_ELEMENT_INDEX = {
+  '\u7532': 0, '\u4e59': 0, '\u4e19': 1, '\u4e01': 1, '\u620a': 2,
+  '\u5df1': 2, '\u5e9a': 3, '\u8f9b': 3, '\u58ec': 4, '\u7678': 4,
+};
+const BRANCH_ELEMENT_INDEX = {
+  '\u5b50': 4, '\u4e11': 2, '\u5bc5': 0, '\u536f': 0, '\u8fb0': 2, '\u5df3': 1,
+  '\u5348': 1, '\u672a': 2, '\u7533': 3, '\u9149': 3, '\u620c': 2, '\u4ea5': 4,
+};
+const HIDDEN_STEMS_MAP = {
+  '\u5b50': ['\u7678'],
+  '\u4e11': ['\u5df1', '\u7678', '\u8f9b'],
+  '\u5bc5': ['\u7532', '\u4e19', '\u620a'],
+  '\u536f': ['\u4e59'],
+  '\u8fb0': ['\u620a', '\u4e59', '\u7678'],
+  '\u5df3': ['\u4e19', '\u620a', '\u5e9a'],
+  '\u5348': ['\u4e01', '\u5df1'],
+  '\u672a': ['\u5df1', '\u4e01', '\u4e59'],
+  '\u7533': ['\u5e9a', '\u58ec', '\u620a'],
+  '\u9149': ['\u8f9b'],
+  '\u620c': ['\u620a', '\u8f9b', '\u4e01'],
+  '\u4ea5': ['\u58ec', '\u7532'],
+};
+const ELEMENT_LABELS = ['\u6728', '\u706b', '\u571f', '\u91d1', '\u6c34'];
+const ELEMENT_CLASSES = ['wx-wood', 'wx-fire', 'wx-earth', 'wx-metal', 'wx-water'];
+const TEN_GOD_SAME = ['\u6bd4\u80a9', '\u98df\u795e', '\u504f\u8d22', '\u4e03\u6740', '\u504f\u5370'];
+const TEN_GOD_DIFF = ['\u52ab\u8d22', '\u4f24\u5b98', '\u6b63\u8d22', '\u6b63\u5b98', '\u6b63\u5370'];
+const GRID_PILLARS = [
+  { key: 'year', label: '\u5e74\u67f1' },
+  { key: 'month', label: '\u6708\u67f1' },
+  { key: 'day', label: '\u65e5\u67f1' },
+  { key: 'hour', label: '\u65f6\u67f1' },
+];
+
+function escapeHtml(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function getTenGod(dayStem, otherStem) {
+  const dayElement = STEM_ELEMENT_INDEX[dayStem];
+  const otherElement = STEM_ELEMENT_INDEX[otherStem];
+  const dayIdx = STEM_INDEX_MAP[dayStem];
+  const otherIdx = STEM_INDEX_MAP[otherStem];
+  if (dayElement === undefined || otherElement === undefined || dayIdx === undefined || otherIdx === undefined) {
+    return '--';
+  }
+
+  let relationIdx = 0;
+  if (otherElement === dayElement) relationIdx = 0;
+  else if (otherElement === (dayElement + 1) % 5) relationIdx = 1;
+  else if (otherElement === (dayElement + 2) % 5) relationIdx = 2;
+  else if (otherElement === (dayElement + 3) % 5) relationIdx = 3;
+  else relationIdx = 4;
+
+  const samePolarity = (dayIdx % 2) === (otherIdx % 2);
+  return samePolarity ? TEN_GOD_SAME[relationIdx] : TEN_GOD_DIFF[relationIdx];
+}
+
+function renderColorToken(char, classSuffix = '') {
+  const elementIdx = STEM_ELEMENT_INDEX[char] !== undefined
+    ? STEM_ELEMENT_INDEX[char]
+    : BRANCH_ELEMENT_INDEX[char];
+  const cls = elementIdx !== undefined ? ELEMENT_CLASSES[elementIdx] : '';
+  return `<span class="bzg-token ${classSuffix} ${cls}">${escapeHtml(char)}</span>`;
+}
+
+function renderStackLines(items, mapFn) {
+  if (!items || !items.length) return '--';
+  return `<div class="bzg-stack">${items.map((item) => `<span>${mapFn(item)}</span>`).join('')}</div>`;
+}
+
+function renderBaziDetailGrid(bazi) {
+  const titleEl = document.getElementById('bazi-detail-title');
+  if (titleEl) titleEl.textContent = '\u547d\u5c40\u7ec6\u76d8\uff08\u8868\u683c\u7248\uff09';
+
+  const gridEl = document.getElementById('bazi-detail-grid');
+  if (!gridEl || !bazi) return;
+
+  const columns = GRID_PILLARS.map((item) => bazi[item.key]);
+  const dayStem = bazi.day.tg;
+  const hiddenStemsColumns = columns.map((pillar) => HIDDEN_STEMS_MAP[pillar.dz] || []);
+
+  const rows = [
+    {
+      label: '\u4e3b\u661f',
+      cells: columns.map((pillar, idx) => idx === 2 ? '\u65e5\u4e3b' : getTenGod(dayStem, pillar.tg)),
+    },
+    {
+      label: '\u5929\u5e72',
+      cells: columns.map((pillar) => renderColorToken(pillar.tg)),
+    },
+    {
+      label: '\u5730\u652f',
+      cells: columns.map((pillar) => renderColorToken(pillar.dz, 'bzg-branch')),
+    },
+    {
+      label: '\u85cf\u5e72',
+      cells: hiddenStemsColumns.map((stems) => renderStackLines(stems, (s) => renderColorToken(s, 'bzg-sub'))),
+    },
+    {
+      label: '\u526f\u661f',
+      cells: hiddenStemsColumns.map((stems, idx) =>
+        renderStackLines(stems, (s) => {
+          const tg = idx === 2 && s === dayStem ? '\u6bd4\u80a9' : getTenGod(dayStem, s);
+          return `<span class="bzg-sub-label">${escapeHtml(tg)}</span>`;
+        })
+      ),
+    },
+    {
+      label: '\u4e94\u884c',
+      cells: columns.map((pillar) => {
+        const tgWx = ELEMENT_LABELS[STEM_ELEMENT_INDEX[pillar.tg]] || '--';
+        const dzWx = ELEMENT_LABELS[BRANCH_ELEMENT_INDEX[pillar.dz]] || '--';
+        return `${tgWx} / ${dzWx}`;
+      }),
+    },
+  ];
+
+  let html = '<table class="bzg-table"><thead><tr><th>\u9879\u76ee</th>';
+  GRID_PILLARS.forEach((item) => {
+    html += `<th>${escapeHtml(item.label)}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  rows.forEach((row) => {
+    html += `<tr><th>${escapeHtml(row.label)}</th>`;
+    row.cells.forEach((cell) => {
+      html += `<td>${cell}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  gridEl.innerHTML = html;
+}
+
 function renderPillarRelations(bazi) {
   const el = document.getElementById('pillar-relations');
   if (!el) return;

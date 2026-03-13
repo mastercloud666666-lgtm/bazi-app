@@ -77,9 +77,114 @@
     #dayun-section {
       overflow-x: auto;
     }
+    .bazi-detail-grid {
+      overflow-x: auto;
+    }
+    .bzg-table {
+      width: 100%;
+      min-width: 640px;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .bzg-table th,
+    .bzg-table td {
+      padding: 10px 8px;
+      text-align: center;
+      vertical-align: middle;
+      border-right: 1px solid #e8edf3;
+      border-bottom: 1px solid #e8edf3;
+      font-size: 14px;
+      color: var(--text-dark);
+      background: #fff;
+    }
+    .bzg-table th:last-child,
+    .bzg-table td:last-child {
+      border-right: none;
+    }
+    .bzg-table tr:last-child th,
+    .bzg-table tr:last-child td {
+      border-bottom: none;
+    }
+    .bzg-table thead th {
+      font-weight: 600;
+      background: #f6f8fb;
+      color: var(--primary);
+    }
+    .bzg-table tbody th {
+      width: 72px;
+      font-weight: 600;
+      color: var(--text-gray);
+      background: #f9fbfd;
+      white-space: nowrap;
+    }
+    .bzg-table tbody tr:nth-child(even) td {
+      background: #fcfdff;
+    }
+    .bzg-token {
+      display: inline-block;
+      font-size: 38px;
+      font-weight: 700;
+      line-height: 1;
+      font-family: var(--font-serif);
+    }
+    .bzg-token.bzg-branch {
+      font-size: 34px;
+    }
+    .bzg-token.bzg-sub {
+      font-size: 20px;
+      font-weight: 600;
+      font-family: var(--font-serif);
+    }
+    .bzg-stack {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      line-height: 1.35;
+    }
+    .bzg-sub-label {
+      font-size: 13px;
+      color: var(--text-dark);
+    }
+    .wx-wood {
+      color: #22a447;
+    }
+    .wx-fire {
+      color: #de2c2c;
+    }
+    .wx-earth {
+      color: #9a7538;
+    }
+    .wx-metal {
+      color: #d58b09;
+    }
+    .wx-water {
+      color: #3270d8;
+    }
     @media (max-width: 768px) {
       .bazi-table {
         grid-template-columns: repeat(2, 1fr);
+      }
+      .bzg-table th,
+      .bzg-table td {
+        padding: 8px 6px;
+        font-size: 13px;
+      }
+      .bzg-table {
+        min-width: 560px;
+      }
+      .bzg-token {
+        font-size: 32px;
+      }
+      .bzg-token.bzg-branch {
+        font-size: 30px;
+      }
+      .bzg-token.bzg-sub {
+        font-size: 18px;
       }
     }
   </style>
@@ -159,6 +264,16 @@
               <div class="dizhi" id="year-dz"></div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div class="mk-card" id="bazi-detail-section">
+        <div class="mk-card-header">
+          <div class="mk-card-dot"></div>
+          <span class="mk-card-title" id="bazi-detail-title">命局细盘（表格版）</span>
+        </div>
+        <div class="mk-card-body">
+          <div id="bazi-detail-grid" class="bazi-detail-grid"></div>
         </div>
       </div>
 
@@ -250,7 +365,7 @@
 
   <script src="js/bazi.js"></script>
   <script src="js/config.js"></script>
-  <script src="js/app.js?v=20260313payv3"></script>
+  <script src="js/app.js?v=20260314gridv1"></script>
   <script>
     window.addEventListener('scroll', () => {
       document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
