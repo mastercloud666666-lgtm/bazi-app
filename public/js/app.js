@@ -3,32 +3,32 @@
 const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
-const APP_BUILD = '20260314-points-unlock-v1';
+const APP_BUILD = '20260314-subscription-faq-v1';
 const PAYMENT_OPTIONS = [
   {
     id: 'basic',
-    title: '\u5355\u6b21\u6df1\u5ea6\u89e3\u8bfb',
-    subtitle: '\u9002\u5408\u9996\u6b21\u4f53\u9a8c \u00b7 \u6d4b\u8bd5\u4ef7 0.01 \u5143',
-    description: '\u542b 1 \u6b21\u5b8c\u6574\u62a5\u544a\u00b7\u547d\u5c40\u5168\u89e3',
+    title: '体验积分包',
+    subtitle: '适合首次体验 · 测试价 0.01 元',
+    description: '即买即用，当前测试阶段用于验证支付链路',
     fee: '0.01',
-    tag: '\u4f53\u9a8c',
+    tag: '体验',
   },
   {
     id: 'pro',
-    title: '\u4e09\u6b21\u89e3\u8bfb\u5957\u9910',
-    subtitle: '\u4e3b\u63a8\u9009\u62e9 \u00b7 \u6d4b\u8bd5\u4ef7 0.01 \u5143',
-    description: '\u542b 3 \u6b21\u89e3\u8bfb\u6743\u76ca\u00b7\u5f53\u524d\u6d4b\u8bd5\u7edf\u4e00 0.01 \u5143',
+    title: '月度订阅',
+    subtitle: '最受欢迎 · 测试价 0.01 元',
+    description: '高频用户首选，当前测试阶段权益先统一',
     fee: '0.01',
-    tag: '\u63a8\u8350',
+    tag: '热门',
     recommended: true,
   },
   {
     id: 'vip',
-    title: '\u6708\u5ea6\u4f1a\u5458',
-    subtitle: '\u9002\u5408\u957f\u671f\u8ddf\u8e2a\u8fd0\u52bf \u00b7 \u6d4b\u8bd5\u4ef7 0.01 \u5143',
-    description: '\u542b 30 \u5929\u4f1a\u5458\u6743\u76ca\u00b7\u5f53\u524d\u6d4b\u8bd5\u7edf\u4e00 0.01 \u5143',
+    title: '年度订阅',
+    subtitle: '长期跟踪更划算 · 测试价 0.01 元',
+    description: '年度方案标签展示，当前测试阶段先验证支付',
     fee: '0.01',
-    tag: '\u4f1a\u5458',
+    tag: '超值',
   },
 ];
 const DEFAULT_PAYMENT_OPTION = PAYMENT_OPTIONS[0];
@@ -70,7 +70,7 @@ function pickPaymentOption() {
     title.style.cssText = 'margin:0 0 6px;font-size:18px;color:#0A2540;';
 
     const subtitle = document.createElement('p');
-    subtitle.textContent = '\u53c2\u8003\u7075\u8574\u6a21\u5f0f\uff1a\u5355\u6b21\u4f53\u9a8c + \u5957\u9910 + \u4f1a\u5458\uff0c\u9009\u62e9\u540e\u8df3\u8f6c\u652f\u4ed8\u3002';
+    subtitle.textContent = '\u53c2\u8003\u8ba2\u9605\u6a21\u5f0f\uff1a\u4f53\u9a8c\u79ef\u5206\u5305 + \u6708\u5ea6\u8ba2\u9605 + \u5e74\u5ea6\u8ba2\u9605\uff0c\u9009\u62e9\u540e\u8df3\u8f6c\u652f\u4ed8\u3002';
     subtitle.style.cssText = 'margin:0 0 14px;font-size:13px;color:#6C757D;';
 
     const list = document.createElement('div');
@@ -165,12 +165,12 @@ function pickPaymentOption() {
 
 function buildPricingSummaryHtml() {
   const rows = PAYMENT_OPTIONS.map((opt) => {
-    const marker = opt.recommended ? '\u3010\u4e3b\u63a8\u3011' : '';
+    const marker = opt.recommended ? '\u3010\u70ed\u95e8\u3011' : (opt.tag ? `\u3010${opt.tag}\u3011` : '');
     return '<div style="display:flex;justify-content:space-between;gap:8px;"><span>' + marker + opt.title + '</span><strong>\u00a5' + opt.fee + '</strong></div>';
   }).join('');
   return [
     '<div style="margin-bottom:12px;padding:10px 12px;border:1px solid #D1D5DB;border-radius:8px;background:#F8FAFC;font-size:13px;color:#334155;line-height:1.7;">',
-    '<div style="font-weight:600;color:#0F172A;margin-bottom:4px;">\u89e3\u9501\u65b9\u6848\uff08\u6d4b\u8bd5\u4ef7\u5747\u4e3a 0.01 \u5143\uff09</div>',
+    '<div style="font-weight:600;color:#0F172A;margin-bottom:4px;">\u4ed8\u8d39\u8ba2\u9605\u65b9\u6848\uff08\u6d4b\u8bd5\u4ef7\u5747\u4e3a 0.01 \u5143\uff09</div>',
     rows,
     '</div>',
   ].join('');
