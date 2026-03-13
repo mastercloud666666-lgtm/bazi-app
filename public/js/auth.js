@@ -1,5 +1,5 @@
 // js/auth.js
-// Email auth using OTP code (register/login).
+// Email auth using OTP code (register/login) with link fallback verification.
 (function initBaziEmailAuth() {
   if (window.__BAZI_AUTH_READY) return;
   window.__BAZI_AUTH_READY = true;
@@ -7,7 +7,8 @@
   const SUPABASE_URL = 'https://rcyssrsnalefzhzsvswm.supabase.co';
   const SUPABASE_ANON =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
-  const OTP_COOLDOWN_MS = 60 * 1000;
+  const OTP_COOLDOWN_MS = 90 * 1000;
+  const OTP_COOLDOWN_KEY = 'bazi_auth_last_otp_sent_at';
 
   let client = null;
   let authUser = null;
@@ -42,6 +43,22 @@
 
   function isLikelyEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  function getLastOtpSentAt() {
+    try {
+      const v = Number(localStorage.getItem(OTP_COOLDOWN_KEY) || '0');
+      return Number.isFinite(v) ? v : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  function markOtpSentNow() {
+    lastOtpSentAt = Date.now();
+    try {
+      localStorage.setItem(OTP_COOLDOWN_KEY, String(lastOtpSentAt));
+    } catch {}
   }
 
   function dispatchAuthState() {
@@ -108,7 +125,7 @@
       title.style.cssText = 'margin:0 0 6px;color:#0A2540;font-size:19px;';
 
       const desc = document.createElement('p');
-      desc.textContent = '\u9996\u6b21\u4f7f\u7528\u53ef\u9009\u62e9\u201c\u6ce8\u518c\u5e76\u53d1\u9001\u7801\u201d\uff0c\u7cfb\u7edf\u4f1a\u53d1\u90ae\u7bb1\u9a8c\u8bc1\u7801\u3002';
+      desc.textContent = '\u5148\u53d1\u9001\u9a8c\u8bc1\u7801\uff0c\u7136\u540e\u8f93\u51656\u4f4d\u7801\uff1b\u5982\u679c\u90ae\u4ef6\u53ea\u6709\u94fe\u63a5\uff0c\u53ef\u76f4\u63a5\u7c98\u8d34\u94fe\u63a5\u5b8c\u6210\u9a8c\u8bc1\u3002';
       desc.style.cssText = 'margin:0 0 12px;color:#64748B;font-size:13px;line-height:1.6;';
 
       const input = document.createElement('input');
@@ -195,34 +212,81 @@
   }
 
   function openOtpCodePrompt(email) {
-    const codeRaw = prompt(`\u9a8c\u8bc1\u7801\u5df2\u53d1\u9001\u5230 ${email}\n\u8bf7\u8f93\u51656\u4f4d\u6570\u5b57\u9a8c\u8bc1\u7801\uff1a`);
-    const token = (codeRaw || '').trim();
-    if (!token) return null;
-    if (!/^\d{6}$/.test(token)) {
-      alert('\u9a8c\u8bc1\u7801\u683c\u5f0f\u4e0d\u6b63\u786e\uff0c\u8bf7\u8f93\u51656\u4f4d\u6570\u5b57\u3002');
-      return null;
+    const raw = prompt(
+      `\u9a8c\u8bc1\u7801\u5df2\u53d1\u9001\u5230 ${email}\n\u8bf7\u8f93\u51656\u4f4d\u9a8c\u8bc1\u7801\uff0c\u6216\u7c98\u8d34\u90ae\u4ef6\u4e2d\u7684\u5b8c\u6574\u94fe\u63a5\uff1a`
+    );
+    const value = (raw || '').trim();
+    if (!value) return null;
+
+    if (/^\d{6}$/.test(value)) {
+      return { token: value };
     }
-    return token;
+
+    if (/^https?:\/\//i.test(value)) {
+      try {
+        const u = new URL(value);
+        const tokenHash = u.searchParams.get('token_hash') || u.searchParams.get('token');
+        const typeFromLink = u.searchParams.get('type') || '';
+        if (tokenHash) {
+          return { token_hash: tokenHash, typeFromLink };
+        }
+      } catch {}
+    }
+
+    alert('\u8f93\u5165\u683c\u5f0f\u4e0d\u6b63\u786e\uff0c\u8bf7\u8f93\u51656\u4f4d\u7801\u6216\u5b8c\u6574\u94fe\u63a5\u3002');
+    return null;
   }
 
-  async function verifyOtpCode(email, token, mode) {
+  async function verifyOtpCode(email, otpInput, mode) {
     const supabaseClient = ensureClient();
     if (!supabaseClient) return null;
 
-    const tryTypes = mode === 'register' ? ['signup', 'email'] : ['email', 'magiclink'];
-    for (const type of tryTypes) {
-      const { data, error } = await supabaseClient.auth.verifyOtp({
-        email,
-        token,
-        type,
-      });
-      if (!error && (data?.user || data?.session?.user)) {
+    const commitUser = (data) => {
+      if (data?.user || data?.session?.user) {
         authUser = data.user || data.session.user;
         renderAuthState();
         dispatchAuthState();
         return authUser;
       }
+      return null;
+    };
+
+    if (otpInput?.token) {
+      const tryTypes = mode === 'register' ? ['signup', 'email'] : ['email', 'magiclink'];
+      for (const type of tryTypes) {
+        const { data, error } = await supabaseClient.auth.verifyOtp({
+          email,
+          token: otpInput.token,
+          type,
+        });
+        if (!error) {
+          const user = commitUser(data);
+          if (user) return user;
+        }
+      }
     }
+
+    if (otpInput?.token_hash) {
+      const types = [];
+      if (otpInput.typeFromLink) types.push(otpInput.typeFromLink);
+      if (mode === 'register') {
+        types.push('signup', 'email', 'magiclink');
+      } else {
+        types.push('email', 'magiclink', 'signup');
+      }
+      const uniqueTypes = [...new Set(types)];
+      for (const type of uniqueTypes) {
+        const { data, error } = await supabaseClient.auth.verifyOtp({
+          token_hash: otpInput.token_hash,
+          type,
+        });
+        if (!error) {
+          const user = commitUser(data);
+          if (user) return user;
+        }
+      }
+    }
+
     return null;
   }
 
@@ -235,7 +299,7 @@
       return '\u90ae\u7bb1\u683c\u5f0f\u65e0\u6548\uff0c\u8bf7\u4f7f\u7528\u5e38\u89c1\u90ae\u7bb1\u5730\u5740\uff08\u5148\u4e0d\u8981\u7528\u5e26 + \u522b\u540d\u7684\u5730\u5740\uff09\u3002';
     }
     if (/Database error saving new user|500/i.test(message)) {
-      return '\u6ce8\u518c\u9636\u6bb5\u670d\u52a1\u7aef\u51fa\u9519\uff08500\uff09\uff0c\u5efa\u8bae\u5148\u7528\u201c\u767b\u5f55\u5e76\u53d1\u9001\u7801\u201d\u6216\u7a0d\u540e\u91cd\u8bd5\u3002';
+      return '\u6ce8\u518c\u9636\u6bb5\u670d\u52a1\u7aef\u51fa\u9519\uff08500\uff09\uff0c\u8bf7\u7a0d\u540e\u91cd\u8bd5\u3002';
     }
     return message;
   }
@@ -251,8 +315,9 @@
     if (!authRequest) return null;
 
     const now = Date.now();
-    if (now - lastOtpSentAt < OTP_COOLDOWN_MS) {
-      const waitSec = Math.ceil((OTP_COOLDOWN_MS - (now - lastOtpSentAt)) / 1000);
+    const recentSentAt = Math.max(lastOtpSentAt, getLastOtpSentAt());
+    if (now - recentSentAt < OTP_COOLDOWN_MS) {
+      const waitSec = Math.ceil((OTP_COOLDOWN_MS - (now - recentSentAt)) / 1000);
       alert(`\u8bf7 ${waitSec} \u79d2\u540e\u518d\u53d1\u9001\u9a8c\u8bc1\u7801\u3002`);
       return null;
     }
@@ -266,6 +331,9 @@
     });
 
     if (error) {
+      if (/429|rate limit|too many/i.test(error?.message || '')) {
+        markOtpSentNow();
+      }
       const msg = parseAuthErrorMessage(error);
       if (!shouldCreateUser) {
         alert(`\u767b\u5f55\u53d1\u9001\u9a8c\u8bc1\u7801\u5931\u8d25\uff1a${msg}\n\n\u82e5\u672a\u6ce8\u518c\uff0c\u8bf7\u9009\u62e9\u201c\u6ce8\u518c\u5e76\u53d1\u9001\u7801\u201d\u3002`);
@@ -275,13 +343,13 @@
       return null;
     }
 
-    lastOtpSentAt = Date.now();
-    const token = openOtpCodePrompt(authRequest.email);
-    if (!token) return null;
+    markOtpSentNow();
+    const otpInput = openOtpCodePrompt(authRequest.email);
+    if (!otpInput) return null;
 
-    const user = await verifyOtpCode(authRequest.email, token, authRequest.mode);
+    const user = await verifyOtpCode(authRequest.email, otpInput, authRequest.mode);
     if (!user) {
-      alert('\u9a8c\u8bc1\u7801\u6821\u9a8c\u5931\u8d25\uff0c\u8bf7\u786e\u8ba4\u9a8c\u8bc1\u7801\u65e0\u8bef\u540e\u518d\u8bd5\u3002');
+      alert('\u9a8c\u8bc1\u5931\u8d25\uff0c\u8bf7\u68c0\u67e5\u9a8c\u8bc1\u7801\uff0c\u6216\u5c06\u90ae\u4ef6\u94fe\u63a5\u5b8c\u6574\u7c98\u8d34\u518d\u8bd5\u3002');
       return null;
     }
 
