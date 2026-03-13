@@ -4,11 +4,11 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v6';
+const APP_BUILD = '20260314-grid-v7';
 const PAYMENT_OPTIONS = [
-  { id: 'basic', title: '标准版完整报告', subtitle: '完整命理解读 · 测试价 0.01 元', fee: '0.01' },
-  { id: 'pro', title: '进阶版完整报告', subtitle: '增加重点流年提醒 · 测试价 0.01 元', fee: '0.01' },
-  { id: 'vip', title: '尊享版完整报告', subtitle: '优先生成通道 · 测试价 0.01 元', fee: '0.01' },
+  { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
+  { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
+  { id: 'vip', title: '尊享完整版：15大项全解', subtitle: '最全面 5000 字：命局 + 大运 + 流年 + 婚恋 + 健康一次看透｜正式价 199 元｜测试价 0.01 元', fee: '0.01' },
 ];
 const DEFAULT_PAYMENT_OPTION = PAYMENT_OPTIONS[0];
 window.__BAZI_APP_BUILD = APP_BUILD;

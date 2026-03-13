@@ -322,8 +322,8 @@ ${special_years_text}
     if (service === 'bazi' && !free_only) {
       const isVipFullReport = resolvedPaymentOptionId === 'vip';
       if (isVipFullReport) {
-        maxTokens = Math.min(maxTokens, 7600);
-        prompt += `\n\n补充要求：这是尊享版完整版报告，必须完整输出第1段到第15段，任何一段都不能缺失或截断。每一段都必须以“第X段：”开头，并且15段都要单独起一行。每段建议180-260字，总字数控制在3600-4500字。即使临近 token 上限，也要优先压缩措辞并确保第十五段有完整结尾。`;
+        maxTokens = Math.min(maxTokens, 8192);
+        prompt += `\n\n补充要求：这是尊享版完整版报告，必须完整输出第1段到第15段，任何一段都不能缺失或截断。每一段都必须以“第X段：”开头，并且15段都要单独起一行。每段建议260-360字，总字数目标约5000字（允许区间4800-5200字）。即使临近 token 上限，也要优先压缩措辞并确保第十五段有完整结尾。`;
       } else {
         maxTokens = Math.min(maxTokens, 5200);
         prompt += `\n\n补充要求：必须保留全部十五段结构，每段控制在120-180字，总字数控制在2600字以内，优先给结论和可执行建议。`;
