@@ -4,7 +4,7 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v5';
+const APP_BUILD = '20260314-grid-v6';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '标准版完整报告', subtitle: '完整命理解读 · 测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版完整报告', subtitle: '增加重点流年提醒 · 测试价 0.01 元', fee: '0.01' },
@@ -571,16 +571,6 @@ function renderBaziDetailGrid(bazi) {
 
   const columns = GRID_PILLARS.map((item) => bazi[item.key]);
   const dayStem = bazi.day.tg;
-  const shenShaContext = {
-    refs: [
-      { label: '\u5e74\u67f1', stem: bazi.year.tg, branch: bazi.year.dz },
-      { label: '\u6708\u67f1', stem: bazi.month.tg, branch: bazi.month.dz },
-      { label: '\u65e5\u67f1', stem: bazi.day.tg, branch: bazi.day.dz },
-      { label: '\u65f6\u67f1', stem: bazi.hour.tg, branch: bazi.hour.dz },
-    ],
-    yearBranch: bazi.year.dz,
-    monthBranch: bazi.month.dz,
-  };
   const hiddenStemsColumns = columns.map((pillar) => HIDDEN_STEMS_MAP[pillar.dz] || []);
 
   const rows = [
@@ -620,12 +610,6 @@ function renderBaziDetailGrid(bazi) {
     {
       label: '\u7a7a\u4ea1',
       cells: columns.map((pillar) => getKongWangByPillar(pillar)),
-    },
-    {
-      label: '\u795e\u715e',
-      cells: columns.map((pillar) =>
-        renderStackLines(getShenShaList(pillar, shenShaContext), (s) => `<span class="bzg-shensha">${escapeHtml(s)}</span>`)
-      ),
     },
   ];
 
