@@ -3,7 +3,7 @@
 const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
-const APP_BUILD = '20260314-pricing-auth-testv2';
+const APP_BUILD = '20260314-points-unlock-v1';
 const PAYMENT_OPTIONS = [
   {
     id: 'basic',
@@ -32,8 +32,12 @@ const PAYMENT_OPTIONS = [
   },
 ];
 const DEFAULT_PAYMENT_OPTION = PAYMENT_OPTIONS[0];
+const FREE_ANALYSIS_UNLOCK_POINTS = 50;
+const FREE_ANALYSIS_UNLOCK_KEY_PREFIX = 'bazi_free_half_unlocked_';
+let lastFreeAnalysisPayload = null;
 window.__BAZI_APP_BUILD = APP_BUILD;
 window.__BAZI_PAYMENT_OPTION_IDS = PAYMENT_OPTIONS.map((x) => x.id);
+window.__BAZI_FREE_ANALYSIS_UNLOCK_POINTS = FREE_ANALYSIS_UNLOCK_POINTS;
 console.log('[bazi-app build]', APP_BUILD);
 
 function pickPaymentOption() {
@@ -498,16 +502,17 @@ if (form) {
   const fullCacheKey = `bazi_full_${year}_${month}_${day}_${hour}_${gender}`;
   const cachedFull   = localStorage.getItem(fullCacheKey);
   const cached       = localStorage.getItem(cacheKey);
+  window.__baziCurrentFreeCacheKey = cacheKey;
 
   // 优先显示完整版缓存
   if (cachedFull) {
-    showAnalysis(cachedFull, true);
+    showAnalysis(cachedFull, true, { cacheKey: fullCacheKey });
   } else if (cached && !tradeNo) {
     // 如果有免费版缓存且不是支付回调，显示免费版
-    showAnalysis(cached);
+    showAnalysis(cached, false, { cacheKey });
   } else if (!isPaidMode && !tradeNo) {
     // 非付费模式且不是支付回调：自动触发分析（免费模式）
-    autoAnalyze({ year, month, day, hour, gender, birthplace }, bazi, daYunData, specialYears);
+    autoAnalyze({ year, month, day, hour, gender, birthplace }, bazi, daYunData, specialYears, cacheKey);
   } else if (isPaidMode) {
     // 付费模式：显示付费提示
     const locked = document.getElementById('analysis-locked');
@@ -725,7 +730,7 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
         // 保存到完整版缓存
         localStorage.setItem(fullCacheKey, order.analysis);
         localStorage.removeItem(PENDING_TRADE_KEY);
-        showAnalysis(order.analysis, true); // hidePay = true，隐藏付费提示
+        showAnalysis(order.analysis, true, { cacheKey: fullCacheKey }); // hidePay = true，隐藏付费提示
         return;
       }
 
@@ -795,12 +800,216 @@ function togglePaidOneTimeNotice(visible) {
   if (notice) notice.style.display = visible ? 'block' : 'none';
 }
 
-function showAnalysis(text, hidePay = false) {
+function removeFreeHalfUnlockCard() {
+  const card = document.getElementById('free-half-unlock-card');
+  if (card) card.remove();
+}
+
+function splitFreeAnalysisText(text) {
+  const normalized = String(text || '').trim();
+  if (!normalized) return { head: '', tail: '' };
+
+  const blocks = normalized
+    .split(/\n{2,}/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  if (blocks.length >= 4) {
+    const mid = Math.ceil(blocks.length / 2);
+    return {
+      head: blocks.slice(0, mid).join('\n\n'),
+      tail: blocks.slice(mid).join('\n\n'),
+    };
+  }
+
+  const cut = Math.max(120, Math.floor(normalized.length * 0.55));
+  return {
+    head: normalized.slice(0, cut).trim(),
+    tail: normalized.slice(cut).trim(),
+  };
+}
+
+function getCurrentFreeUnlockUserTag() {
+  const user = typeof window.getAuthUser === 'function' ? window.getAuthUser() : null;
+  return user?.id || user?.email || 'guest';
+}
+
+function getFreeUnlockStorageKey(cacheKey) {
+  const safeCacheKey = cacheKey || window.__baziCurrentFreeCacheKey || 'default';
+  return `${FREE_ANALYSIS_UNLOCK_KEY_PREFIX}${safeCacheKey}_${getCurrentFreeUnlockUserTag()}`;
+}
+
+function hasUnlockedFreeTail(cacheKey) {
+  try {
+    return localStorage.getItem(getFreeUnlockStorageKey(cacheKey)) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function markUnlockedFreeTail(cacheKey) {
+  try {
+    localStorage.setItem(getFreeUnlockStorageKey(cacheKey), '1');
+  } catch {}
+}
+
+async function getCurrentUserPointsSafe() {
+  if (typeof window.getUserPointsAsync === 'function') {
+    try {
+      return Number(await window.getUserPointsAsync()) || 0;
+    } catch {}
+  }
+  if (typeof window.getUserPoints === 'function') {
+    return Number(window.getUserPoints()) || 0;
+  }
+  return 0;
+}
+
+async function renderFreeAnalysisWithPointsUnlock(fullText, cacheKey) {
+  const content = document.getElementById('analysis-content');
+  const analysisText = document.getElementById('analysis-text');
+  if (!content || !analysisText) return;
+
+  removeFreeHalfUnlockCard();
+  const resolvedCacheKey = cacheKey || window.__baziCurrentFreeCacheKey || 'default';
+  const parts = splitFreeAnalysisText(fullText);
+  const canSplit = parts.tail && parts.tail.length >= 80;
+  const unlocked = hasUnlockedFreeTail(resolvedCacheKey);
+
+  if (!canSplit || unlocked) {
+    analysisText.textContent = fullText + DISCLAIMER;
+    return;
+  }
+
+  analysisText.textContent =
+    parts.head + '\n\n—— 以下为后半部分内容，使用 50 积分可解锁完整免费解读 ——';
+
+  const card = document.createElement('div');
+  card.id = 'free-half-unlock-card';
+  card.style.cssText = [
+    'margin-top:14px',
+    'padding:14px',
+    'border:1px dashed #CBD5E1',
+    'border-radius:10px',
+    'background:#F8FAFC',
+  ].join(';');
+  card.innerHTML = `
+    <div style="font-size:14px;font-weight:700;color:#0F172A;margin-bottom:6px;">免费解读后半部分已锁定</div>
+    <div style="font-size:13px;color:#475569;line-height:1.7;margin-bottom:10px;">
+      首次登录赠送 50 积分。当前报告可使用 <strong>${FREE_ANALYSIS_UNLOCK_POINTS} 积分</strong>解锁后半部分内容。
+    </div>
+    <div id="free-half-points-hint" style="font-size:12px;color:#64748B;margin-bottom:10px;"></div>
+    <button id="free-half-unlock-btn" type="button" style="padding:10px 14px;border:none;border-radius:8px;background:#2563EB;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">
+      ${FREE_ANALYSIS_UNLOCK_POINTS} 积分解锁后半部分
+    </button>
+  `;
+  content.appendChild(card);
+
+  const hintEl = card.querySelector('#free-half-points-hint');
+  const unlockBtn = card.querySelector('#free-half-unlock-btn');
+
+  const refreshCardState = async () => {
+    const user = typeof window.getAuthUser === 'function' ? window.getAuthUser() : null;
+    if (!user) {
+      const welcome = Number(window.BAZI_WELCOME_POINTS) || 50;
+      hintEl.textContent = `登录后可领取 ${welcome} 积分，解锁本报告后半部分。`;
+      unlockBtn.textContent = `登录并用 ${FREE_ANALYSIS_UNLOCK_POINTS} 积分解锁`;
+      unlockBtn.disabled = false;
+      return;
+    }
+
+    const points = await getCurrentUserPointsSafe();
+    hintEl.textContent = `当前积分：${points}`;
+    unlockBtn.textContent = `${FREE_ANALYSIS_UNLOCK_POINTS} 积分解锁后半部分`;
+    unlockBtn.disabled = false;
+  };
+
+  unlockBtn.addEventListener('click', async () => {
+    unlockBtn.disabled = true;
+    const baseText = unlockBtn.textContent;
+    unlockBtn.textContent = '处理中...';
+    try {
+      let user = typeof window.getAuthUser === 'function' ? window.getAuthUser() : null;
+      if (!user && typeof window.requireEmailLogin === 'function') {
+        user = await window.requireEmailLogin();
+      }
+      if (!user) {
+        alert('请先登录后再解锁。');
+        return;
+      }
+
+      if (typeof window.ensureWelcomePoints === 'function') {
+        await window.ensureWelcomePoints();
+      }
+      const points = await getCurrentUserPointsSafe();
+      if (points < FREE_ANALYSIS_UNLOCK_POINTS) {
+        alert(`积分不足，当前仅 ${points} 积分，需要 ${FREE_ANALYSIS_UNLOCK_POINTS} 积分。`);
+        return;
+      }
+      if (typeof window.consumeUserPoints !== 'function') {
+        alert('积分服务暂不可用，请刷新后重试。');
+        return;
+      }
+
+      const result = await window.consumeUserPoints(
+        FREE_ANALYSIS_UNLOCK_POINTS,
+        'unlock_free_analysis_tail'
+      );
+      if (!result?.ok) {
+        if (result?.reason === 'insufficient') {
+          alert(result.message || '积分不足，暂时无法解锁。');
+        } else {
+          alert(result?.message || '积分扣除失败，请稍后重试。');
+        }
+        return;
+      }
+
+      markUnlockedFreeTail(resolvedCacheKey);
+      removeFreeHalfUnlockCard();
+      analysisText.textContent = fullText + DISCLAIMER;
+      lastFreeAnalysisPayload = null;
+      alert(`已解锁成功，剩余积分：${result.points}`);
+    } catch (err) {
+      alert(`解锁失败：${err?.message || err}`);
+    } finally {
+      if (unlockBtn.isConnected) {
+        unlockBtn.disabled = false;
+        unlockBtn.textContent = baseText;
+        await refreshCardState();
+      }
+    }
+  });
+
+  await refreshCardState();
+}
+
+if (!window.__baziFreeUnlockAuthListenerBound) {
+  window.__baziFreeUnlockAuthListenerBound = true;
+  window.addEventListener('bazi-auth-state', () => {
+    if (!lastFreeAnalysisPayload) return;
+    const content = document.getElementById('analysis-content');
+    if (!content || content.style.display !== 'block') return;
+    renderFreeAnalysisWithPointsUnlock(
+      lastFreeAnalysisPayload.text,
+      lastFreeAnalysisPayload.cacheKey
+    );
+  });
+}
+
+function showAnalysis(text, hidePay = false, options = {}) {
   document.getElementById('analysis-locked').style.display  = 'none';
   document.getElementById('analysis-loading').style.display = 'none';
   document.getElementById('analysis-content').style.display = 'block';
   togglePaidOneTimeNotice(Boolean(hidePay));
-  document.getElementById('analysis-text').textContent = text + DISCLAIMER;
+  const resolvedCacheKey = options?.cacheKey || window.__baziCurrentFreeCacheKey || '';
+  if (hidePay) {
+    lastFreeAnalysisPayload = null;
+    removeFreeHalfUnlockCard();
+    document.getElementById('analysis-text').textContent = text + DISCLAIMER;
+  } else {
+    lastFreeAnalysisPayload = { text, cacheKey: resolvedCacheKey };
+    renderFreeAnalysisWithPointsUnlock(text, resolvedCacheKey);
+  }
   const payPrompt = document.getElementById('pay-prompt');
   if (payPrompt) payPrompt.style.display = hidePay ? 'none' : 'block';
 }
@@ -1002,7 +1211,7 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears) {
         .replace(/^\s*[-–—>]\s*/gm, '').replace(/由\s*DeepSeek\s*生成.*$/gis, '')
         .replace(/Powered by DeepSeek.*$/gis, '').replace(/\n{3,}/g, '\n\n').trim();
       localStorage.setItem(fullCacheKey, cleaned);
-      showAnalysis(cleaned, true);
+      showAnalysis(cleaned, true, { cacheKey: fullCacheKey });
     } else {
       if (loading) { loading.style.display = 'block'; loading.innerHTML = '<p>解读获取失败，请刷新重试</p>'; }
       if (content) content.style.display = 'none';
@@ -1013,7 +1222,7 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears) {
 }
 
 // ── 免费自动分析 ───────────────────────────────────────────────────
-async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
+async function autoAnalyze(birthData, bazi, daYunData, specialYears, cacheKeyOverride = '') {
   const currentYear = new Date().getFullYear();
   const locked  = document.getElementById('analysis-locked');
   const loading = document.getElementById('analysis-loading');
@@ -1021,7 +1230,8 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
   if (loading) loading.style.display = 'block';
 
   const baziStr = `${bazi.year.tg}${bazi.year.dz}年 ${bazi.month.tg}${bazi.month.dz}月 ${bazi.day.tg}${bazi.day.dz}日 ${bazi.hour.tg}${bazi.hour.dz}时`;
-  const cacheKey = `bazi_${birthData.year}_${birthData.month}_${birthData.day}_${birthData.hour}_${birthData.gender}`;
+  const cacheKey = cacheKeyOverride || `bazi_${birthData.year}_${birthData.month}_${birthData.day}_${birthData.hour}_${birthData.gender}`;
+  window.__baziCurrentFreeCacheKey = cacheKey;
 
   try {
     // 格式化大运文字
@@ -1063,7 +1273,7 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
         .replace(/\n{3,}/g, '\n\n')
         .trim();
       localStorage.setItem(cacheKey, cleaned);
-      showAnalysis(cleaned);
+      showAnalysis(cleaned, false, { cacheKey });
     } else {
       if (loading) loading.innerHTML = '<p>解读获取失败，请刷新重试</p>';
     }
