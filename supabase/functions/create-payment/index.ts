@@ -7,9 +7,9 @@ const corsHeaders = {
 };
 
 const PAYMENT_OPTION_MAP: Record<string, { title: string; total_fee: string }> = {
-  basic: { title: '标准版完整报告', total_fee: '0.01' },
-  pro: { title: '进阶版完整报告', total_fee: '0.01' },
-  vip: { title: '尊享版完整报告', total_fee: '0.01' },
+  basic: { title: '\u5355\u6b21\u6df1\u5ea6\u89e3\u8bfb', total_fee: '29.00' },
+  pro: { title: '\u4e09\u6b21\u89e3\u8bfb\u5957\u9910', total_fee: '59.00' },
+  vip: { title: '\u6708\u5ea6\u4f1a\u5458', total_fee: '99.00' },
 };
 
 // 纯 JS MD5 实现（Web Crypto API 不支持 MD5）

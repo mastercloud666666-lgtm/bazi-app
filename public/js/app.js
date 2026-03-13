@@ -3,11 +3,33 @@
 const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
-const APP_BUILD = '20260313-pay-options-v2';
+const APP_BUILD = '20260314-pricing-auth-v1';
 const PAYMENT_OPTIONS = [
-  { id: 'basic', title: '标准版完整报告', subtitle: '完整命理解读 · 测试价 0.01 元', fee: '0.01' },
-  { id: 'pro', title: '进阶版完整报告', subtitle: '增加重点流年提醒 · 测试价 0.01 元', fee: '0.01' },
-  { id: 'vip', title: '尊享版完整报告', subtitle: '优先生成通道 · 测试价 0.01 元', fee: '0.01' },
+  {
+    id: 'basic',
+    title: '\u5355\u6b21\u6df1\u5ea6\u89e3\u8bfb',
+    subtitle: '\u9002\u5408\u9996\u6b21\u4f53\u9a8c',
+    description: '\u542b 1 \u6b21\u5b8c\u6574\u62a5\u544a\u00b7\u547d\u5c40\u5168\u89e3',
+    fee: '29.00',
+    tag: '\u4f53\u9a8c',
+  },
+  {
+    id: 'pro',
+    title: '\u4e09\u6b21\u89e3\u8bfb\u5957\u9910',
+    subtitle: '\u4e3b\u63a8\u9009\u62e9\uff0c\u6027\u4ef7\u6bd4\u6700\u9ad8',
+    description: '\u542b 3 \u6b21\u5b8c\u6574\u62a5\u544a\u00b7\u6bcf\u6b21\u4f4e\u81f3 19.7 \u5143',
+    fee: '59.00',
+    tag: '\u63a8\u8350',
+    recommended: true,
+  },
+  {
+    id: 'vip',
+    title: '\u6708\u5ea6\u4f1a\u5458',
+    subtitle: '\u9002\u5408\u957f\u671f\u8ddf\u8e2a\u8fd0\u52bf',
+    description: '\u542b 30 \u5929 6 \u6b21\u6df1\u5ea6\u89e3\u8bfb\u00b7\u4f18\u5148\u751f\u6210',
+    fee: '99.00',
+    tag: '\u4f1a\u5458',
+  },
 ];
 const DEFAULT_PAYMENT_OPTION = PAYMENT_OPTIONS[0];
 window.__BAZI_APP_BUILD = APP_BUILD;
@@ -40,11 +62,11 @@ function pickPaymentOption() {
     ].join(';');
 
     const title = document.createElement('h3');
-    title.textContent = '请选择支付选项';
+    title.textContent = '\u9009\u62e9\u89e3\u9501\u65b9\u6848';
     title.style.cssText = 'margin:0 0 6px;font-size:18px;color:#0A2540;';
 
     const subtitle = document.createElement('p');
-    subtitle.textContent = '已准备好你的生辰信息，选择后将跳转支付。';
+    subtitle.textContent = '\u53c2\u8003\u7075\u8574\u6a21\u5f0f\uff1a\u5355\u6b21\u4f53\u9a8c + \u5957\u9910 + \u4f1a\u5458\uff0c\u9009\u62e9\u540e\u8df3\u8f6c\u652f\u4ed8\u3002';
     subtitle.style.cssText = 'margin:0 0 14px;font-size:13px;color:#6C757D;';
 
     const list = document.createElement('div');
@@ -53,13 +75,23 @@ function pickPaymentOption() {
     PAYMENT_OPTIONS.forEach((opt) => {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.textContent = `${opt.title} · ${opt.subtitle}`;
+      btn.innerHTML =
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">' +
+          '<strong style="font-size:15px;color:#0A2540;">' + opt.title + '</strong>' +
+          '<span style="padding:2px 8px;border-radius:999px;font-size:12px;background:' + (opt.recommended ? '#DBEAFE' : '#EEF2FF') + ';color:' + (opt.recommended ? '#1D4ED8' : '#475569') + ';">' + (opt.tag || '') + '</span>' +
+        '</div>' +
+        '<div style="margin-top:4px;font-size:20px;font-weight:700;color:#111827;">\u00a5' + opt.fee + '</div>' +
+        '<div style="margin-top:2px;font-size:13px;color:#334155;">' + opt.subtitle + '</div>' +
+        '<div style="margin-top:3px;font-size:12px;color:#64748B;">' + (opt.description || '') + '</div>';
+
+      const baseBg = opt.recommended ? '#EFF6FF' : '#F8F9FA';
+      const baseBorder = opt.recommended ? '#93C5FD' : '#DEE2E6';
       btn.style.cssText = [
         'text-align:left',
         'padding:12px 14px',
         'border-radius:10px',
-        'border:1px solid #DEE2E6',
-        'background:#F8F9FA',
+        'border:1px solid ' + baseBorder,
+        'background:' + baseBg,
         'font-size:14px',
         'color:#1A1A1A',
         'cursor:pointer',
@@ -69,8 +101,8 @@ function pickPaymentOption() {
         btn.style.background = '#EFF6FF';
       });
       btn.addEventListener('mouseleave', () => {
-        btn.style.borderColor = '#DEE2E6';
-        btn.style.background = '#F8F9FA';
+        btn.style.borderColor = baseBorder;
+        btn.style.background = baseBg;
       });
       btn.addEventListener('click', () => {
         cleanup();
@@ -81,7 +113,7 @@ function pickPaymentOption() {
 
     const cancelBtn = document.createElement('button');
     cancelBtn.type = 'button';
-    cancelBtn.textContent = '取消';
+    cancelBtn.textContent = '\u53d6\u6d88';
     cancelBtn.style.cssText = [
       'margin-top:12px',
       'width:100%',
@@ -127,8 +159,28 @@ function pickPaymentOption() {
   });
 }
 
-// ── 真太阳时计算 ──────────────────────────────────────────────────
-// 均时差（Spencer 公式），返回分钟数
+function buildPricingSummaryHtml() {
+  const rows = PAYMENT_OPTIONS.map((opt) => {
+    const marker = opt.recommended ? '\u3010\u4e3b\u63a8\u3011' : '';
+    return '<div style="display:flex;justify-content:space-between;gap:8px;"><span>' + marker + opt.title + '</span><strong>\u00a5' + opt.fee + '</strong></div>';
+  }).join('');
+  return [
+    '<div style="margin-bottom:12px;padding:10px 12px;border:1px solid #D1D5DB;border-radius:8px;background:#F8FAFC;font-size:13px;color:#334155;line-height:1.7;">',
+    '<div style="font-weight:600;color:#0F172A;margin-bottom:4px;">\u89e3\u9501\u65b9\u6848\uff08\u53c2\u8003\u7075\u8574\u6a21\u5f0f\uff09</div>',
+    rows,
+    '</div>',
+  ].join('');
+}
+
+function mountPricingSummary(buttonId) {
+  const payButton = document.getElementById(buttonId);
+  if (!payButton || payButton.dataset.pricingMounted === '1') return;
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = buildPricingSummaryHtml();
+  payButton.parentNode.insertBefore(wrapper.firstElementChild, payButton);
+  payButton.dataset.pricingMounted = '1';
+}
+
 function equationOfTime(year, month, day) {
   const start = new Date(year, 0, 0);
   const now   = new Date(year, month - 1, day);
@@ -267,6 +319,7 @@ if (form) {
     if (!paidBtn.dataset.defaultText) {
       paidBtn.dataset.defaultText = paidBtn.textContent.trim();
     }
+    mountPricingSummary('paid-btn');
     paidBtn.addEventListener('click', async () => {
       // 验证表单
       const yearEl   = document.getElementById('year');
@@ -467,6 +520,7 @@ if (form) {
     if (!payBtn.dataset.defaultText) {
       payBtn.dataset.defaultText = payBtn.textContent.trim();
     }
+    mountPricingSummary('pay-btn');
     payBtn.addEventListener('click', async () => {
       const selectedOption = await pickPaymentOption();
       if (!selectedOption) return;
@@ -512,6 +566,16 @@ async function startPayment(birthData, bazi, paymentOption) {
   };
 
   // 立即显示加载提示
+  let authUser = typeof window.getAuthUser === 'function' ? window.getAuthUser() : null;
+  if (typeof window.requireEmailLogin === 'function' && !authUser) {
+    const loginUser = await window.requireEmailLogin();
+    if (!loginUser) {
+      resetPayButtons();
+      return;
+    }
+    authUser = loginUser;
+  }
+
   const payPrompt = document.getElementById('pay-prompt');
   const lockedSection = document.getElementById('analysis-locked');
   const loadingSection = document.getElementById('analysis-loading');
@@ -597,7 +661,7 @@ async function startPayment(birthData, bazi, paymentOption) {
       },
       body: JSON.stringify({
         trade_no: tradeNo,
-        birth_input: { ...birthData, bazi_str: baziStr },
+        birth_input: { ...birthData, bazi_str: baziStr, auth_user_email: authUser?.email || '', auth_user_id: authUser?.id || '' },
         payment_option_id: chosenOption.id,
         payment_option_title: chosenOption.title,
         total_fee: chosenOption.fee,
