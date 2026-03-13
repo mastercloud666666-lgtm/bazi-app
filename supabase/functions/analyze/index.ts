@@ -216,6 +216,44 @@ ${special_years_text}
 不写诗，不引用古文，不写标题符号，直接从第一部分开始，说完就结束。`;
       } else {
       const nextFiveYears = Array.from({length: 5}, (_, i) => currentYear + i).join('、') + '年';
+      const paidTier = resolvedPaymentOptionId || 'basic';
+
+      if (paidTier === 'basic') {
+        prompt = `客户生辰：${year}年${month}月${day}日${hour}时，${gender}命，八字：${bazi_str}，当前年份：${currentYear}年。
+
+起运年龄：${start_age}岁
+大运排列：${dayun_text}
+特殊流年：${special_years_text}
+
+这是【入门版三大核心解读】。请严格只输出三段内容，每段单独起一行，使用“第1段：/第2段：/第3段：”格式，不要输出第4段及以后内容：
+
+第1段：性格底盘定位。简明说清日主强弱、格局倾向、主要优势和短板，告诉客户“你最像什么类型的人”。
+
+第2段：近期机会窗口。重点看未来12个月在事业/财务上的机会与风险，明确“该主动做什么、暂缓什么”。
+
+第3段：情感关系方向。说明感情推进节奏、沟通雷区、可执行改善动作（至少3条）。
+
+要求：口语化、实操导向、不要写诗和古文，不要使用Markdown，全文约1000-1400字。第一句必须写“本次为入门版三项解读”。`;
+      } else if (paidTier === 'pro') {
+        prompt = `客户生辰：${year}年${month}月${day}日${hour}时，${gender}命，八字：${bazi_str}，当前年份：${currentYear}年。
+
+起运年龄：${start_age}岁
+大运排列：${dayun_text}
+特殊流年：${special_years_text}
+
+这是【进阶版八大维度深析】。请严格只输出八段内容，每段单独起一行，使用“第1段：...第8段：”格式，不要输出第9段及以后内容：
+
+第1段：日主强弱与格局判断
+第2段：用神喜忌与五行平衡
+第3段：事业方向与工作策略
+第4段：财运节奏与投资风险提示
+第5段：感情婚姻走势与相处建议
+第6段：健康薄弱点与调理方向
+第7段：当前大运与下两步大运节奏
+第8段：关键年份提醒与行动清单（至少5条）
+
+要求：口语化、结论先行、每段有“判断+原因+建议”，不要写诗和古文，不要Markdown，全文约2400-3200字。第一句必须写“本次为进阶版八项深析”。`;
+      } else {
       prompt = `客户生辰：${year}年${month}月${day}日${hour}时，${gender}命，八字：${bazi_str}，当前年份：${currentYear}年。
 
 以下大运和特殊年份数据已由专业软件算好，请直接用这些数据分析，不要自己重新推算：
@@ -315,18 +353,22 @@ ${special_years_text}
 
 绝对禁止：任何位置写诗或引用古文、使用Markdown符号（#*_等）、写祝福语收尾、自己重新推算大运流年（用提供的数据）。
 直接从分析内容开始，说完第十五段就结束。每一段宁可说得精炼一些，也要保证把十五段全部说完，不能在中途截断。`;
+      }
       } // end if free_only else
     } // end else bazi
 
     // 付费八字保持结构完整，同时压缩单段长度，减少生成耗时。
     if (service === 'bazi' && !free_only) {
-      const isVipFullReport = resolvedPaymentOptionId === 'vip';
-      if (isVipFullReport) {
+      const paidTier = resolvedPaymentOptionId || 'basic';
+      if (paidTier === 'vip') {
         maxTokens = Math.min(maxTokens, 8192);
-        prompt += `\n\n补充要求：这是尊享版完整版报告，必须完整输出第1段到第15段，任何一段都不能缺失或截断。每一段都必须以“第X段：”开头，并且15段都要单独起一行。每段建议260-360字，总字数目标约5000字（允许区间4800-5200字）。即使临近 token 上限，也要优先压缩措辞并确保第十五段有完整结尾。`;
+        prompt += `\n\n补充要求：这是尊享版完整版报告，必须完整输出第1段到第15段，任何一段都不能缺失或截断。每一段都必须以“第X段：”开头，并且15段都要单独起一行。每段建议260-360字，总字数目标约5000字（允许区间4800-5200字）。第一句必须写“本次为尊享完整版15大项全解”。即使临近 token 上限，也要优先压缩措辞并确保第十五段有完整结尾。`;
+      } else if (paidTier === 'pro') {
+        maxTokens = Math.min(maxTokens, 5600);
+        prompt += `\n\n补充要求：这是进阶版，只允许输出第1段到第8段，不得出现第9段及以后。总字数控制在2400-3200字。`;
       } else {
-        maxTokens = Math.min(maxTokens, 5200);
-        prompt += `\n\n补充要求：必须保留全部十五段结构，每段控制在120-180字，总字数控制在2600字以内，优先给结论和可执行建议。`;
+        maxTokens = Math.min(maxTokens, 3200);
+        prompt += `\n\n补充要求：这是入门版，只允许输出第1段到第3段，不得出现第4段及以后。总字数控制在1000-1400字。`;
       }
     }
 
