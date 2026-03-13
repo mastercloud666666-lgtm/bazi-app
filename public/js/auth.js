@@ -1,5 +1,5 @@
 // js/auth.js
-// Lightweight email auth powered by Supabase Auth (OTP / magic-link).
+// Email auth using OTP code (register/login).
 (function initBaziEmailAuth() {
   if (window.__BAZI_AUTH_READY) return;
   window.__BAZI_AUTH_READY = true;
@@ -7,11 +7,13 @@
   const SUPABASE_URL = 'https://rcyssrsnalefzhzsvswm.supabase.co';
   const SUPABASE_ANON =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
+  const OTP_COOLDOWN_MS = 60 * 1000;
 
   let client = null;
   let authUser = null;
   let statusEl = null;
   let actionBtn = null;
+  let lastOtpSentAt = 0;
 
   function ensureClient() {
     if (client) return client;
@@ -27,6 +29,27 @@
       },
     });
     return client;
+  }
+
+  function normalizeEmailInput(raw) {
+    return (raw || '')
+      .trim()
+      .replace(/\s+/g, '')
+      .replace(/＠/g, '@')
+      .replace(/[。｡]/g, '.')
+      .toLowerCase();
+  }
+
+  function isLikelyEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  function dispatchAuthState() {
+    window.dispatchEvent(
+      new CustomEvent('bazi-auth-state', {
+        detail: { user: authUser || null },
+      })
+    );
   }
 
   function renderAuthState() {
@@ -46,14 +69,6 @@
     }
   }
 
-  function dispatchAuthState() {
-    window.dispatchEvent(
-      new CustomEvent('bazi-auth-state', {
-        detail: { user: authUser || null },
-      })
-    );
-  }
-
   async function refreshUser() {
     const supabaseClient = ensureClient();
     if (!supabaseClient) return null;
@@ -62,19 +77,6 @@
     renderAuthState();
     dispatchAuthState();
     return authUser;
-  }
-
-  function normalizeEmailInput(raw) {
-    return (raw || '')
-      .trim()
-      .replace(/\s+/g, '')
-      .replace(/＠/g, '@')
-      .replace(/[。｡]/g, '.')
-      .toLowerCase();
-  }
-
-  function isLikelyEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
   function openEmailAuthModal() {
@@ -102,12 +104,12 @@
       ].join(';');
 
       const title = document.createElement('h3');
-      title.textContent = '\u90ae\u7bb1\u8d26\u53f7';
+      title.textContent = '\u90ae\u7bb1\u9a8c\u8bc1\u7801\u767b\u5f55';
       title.style.cssText = 'margin:0 0 6px;color:#0A2540;font-size:19px;';
 
       const desc = document.createElement('p');
-      desc.textContent = '\u9996\u6b21\u4f7f\u7528\u8bf7\u5148\u6ce8\u518c\uff0c\u5df2\u6709\u8d26\u53f7\u9009\u62e9\u767b\u5f55\u3002';
-      desc.style.cssText = 'margin:0 0 12px;color:#64748B;font-size:13px;';
+      desc.textContent = '\u9996\u6b21\u4f7f\u7528\u53ef\u9009\u62e9\u201c\u6ce8\u518c\u5e76\u53d1\u9001\u7801\u201d\uff0c\u7cfb\u7edf\u4f1a\u53d1\u90ae\u7bb1\u9a8c\u8bc1\u7801\u3002';
+      desc.style.cssText = 'margin:0 0 12px;color:#64748B;font-size:13px;line-height:1.6;';
 
       const input = document.createElement('input');
       input.type = 'email';
@@ -131,18 +133,21 @@
 
       const loginBtn = document.createElement('button');
       loginBtn.type = 'button';
-      loginBtn.textContent = '\u53d1\u9001\u767b\u5f55\u94fe\u63a5';
-      loginBtn.style.cssText = 'padding:10px 8px;border-radius:10px;border:1px solid #BFDBFE;background:#EFF6FF;color:#1D4ED8;font-size:13px;font-weight:600;cursor:pointer;';
+      loginBtn.textContent = '\u767b\u5f55\u5e76\u53d1\u9001\u7801';
+      loginBtn.style.cssText =
+        'padding:10px 8px;border-radius:10px;border:1px solid #BFDBFE;background:#EFF6FF;color:#1D4ED8;font-size:13px;font-weight:600;cursor:pointer;';
 
       const registerBtn = document.createElement('button');
       registerBtn.type = 'button';
-      registerBtn.textContent = '\u6ce8\u518c\u5e76\u767b\u5f55';
-      registerBtn.style.cssText = 'padding:10px 8px;border-radius:10px;border:1px solid #BBF7D0;background:#F0FDF4;color:#15803D;font-size:13px;font-weight:600;cursor:pointer;';
+      registerBtn.textContent = '\u6ce8\u518c\u5e76\u53d1\u9001\u7801';
+      registerBtn.style.cssText =
+        'padding:10px 8px;border-radius:10px;border:1px solid #BBF7D0;background:#F0FDF4;color:#15803D;font-size:13px;font-weight:600;cursor:pointer;';
 
       const cancelBtn = document.createElement('button');
       cancelBtn.type = 'button';
       cancelBtn.textContent = '\u53d6\u6d88';
-      cancelBtn.style.cssText = 'margin-top:10px;width:100%;padding:10px 8px;border-radius:10px;border:1px solid #E2E8F0;background:#fff;color:#64748B;font-size:13px;cursor:pointer;';
+      cancelBtn.style.cssText =
+        'margin-top:10px;width:100%;padding:10px 8px;border-radius:10px;border:1px solid #E2E8F0;background:#fff;color:#64748B;font-size:13px;cursor:pointer;';
 
       const close = (result) => {
         document.removeEventListener('keydown', onEsc);
@@ -189,7 +194,53 @@
     });
   }
 
-  async function sendLoginEmail() {
+  function openOtpCodePrompt(email) {
+    const codeRaw = prompt(`\u9a8c\u8bc1\u7801\u5df2\u53d1\u9001\u5230 ${email}\n\u8bf7\u8f93\u51656\u4f4d\u6570\u5b57\u9a8c\u8bc1\u7801\uff1a`);
+    const token = (codeRaw || '').trim();
+    if (!token) return null;
+    if (!/^\d{6}$/.test(token)) {
+      alert('\u9a8c\u8bc1\u7801\u683c\u5f0f\u4e0d\u6b63\u786e\uff0c\u8bf7\u8f93\u51656\u4f4d\u6570\u5b57\u3002');
+      return null;
+    }
+    return token;
+  }
+
+  async function verifyOtpCode(email, token, mode) {
+    const supabaseClient = ensureClient();
+    if (!supabaseClient) return null;
+
+    const tryTypes = mode === 'register' ? ['signup', 'email'] : ['email', 'magiclink'];
+    for (const type of tryTypes) {
+      const { data, error } = await supabaseClient.auth.verifyOtp({
+        email,
+        token,
+        type,
+      });
+      if (!error && (data?.user || data?.session?.user)) {
+        authUser = data.user || data.session.user;
+        renderAuthState();
+        dispatchAuthState();
+        return authUser;
+      }
+    }
+    return null;
+  }
+
+  function parseAuthErrorMessage(error) {
+    const message = error?.message || '\u672a\u77e5\u9519\u8bef';
+    if (/429|rate limit|too many/i.test(message)) {
+      return '\u9a8c\u8bc1\u7801\u53d1\u9001\u8fc7\u4e8e\u9891\u7e41\uff0c\u8bf7 1 \u5206\u949f\u540e\u518d\u8bd5\u3002';
+    }
+    if (/email_address_invalid/i.test(message)) {
+      return '\u90ae\u7bb1\u683c\u5f0f\u65e0\u6548\uff0c\u8bf7\u4f7f\u7528\u5e38\u89c1\u90ae\u7bb1\u5730\u5740\uff08\u5148\u4e0d\u8981\u7528\u5e26 + \u522b\u540d\u7684\u5730\u5740\uff09\u3002';
+    }
+    if (/Database error saving new user|500/i.test(message)) {
+      return '\u6ce8\u518c\u9636\u6bb5\u670d\u52a1\u7aef\u51fa\u9519\uff08500\uff09\uff0c\u5efa\u8bae\u5148\u7528\u201c\u767b\u5f55\u5e76\u53d1\u9001\u7801\u201d\u6216\u7a0d\u540e\u91cd\u8bd5\u3002';
+    }
+    return message;
+  }
+
+  async function sendOtpAndLogin() {
     const supabaseClient = ensureClient();
     if (!supabaseClient) {
       alert('\u767b\u5f55\u7ec4\u4ef6\u52a0\u8f7d\u5931\u8d25\uff0c\u8bf7\u5237\u65b0\u91cd\u8bd5');
@@ -199,29 +250,43 @@
     const authRequest = await openEmailAuthModal();
     if (!authRequest) return null;
 
-    const redirectTo = `${location.origin}${location.pathname}${location.search}`;
+    const now = Date.now();
+    if (now - lastOtpSentAt < OTP_COOLDOWN_MS) {
+      const waitSec = Math.ceil((OTP_COOLDOWN_MS - (now - lastOtpSentAt)) / 1000);
+      alert(`\u8bf7 ${waitSec} \u79d2\u540e\u518d\u53d1\u9001\u9a8c\u8bc1\u7801\u3002`);
+      return null;
+    }
+
     const shouldCreateUser = authRequest.mode === 'register';
     const { error } = await supabaseClient.auth.signInWithOtp({
       email: authRequest.email,
       options: {
         shouldCreateUser,
-        emailRedirectTo: redirectTo,
       },
     });
+
     if (error) {
+      const msg = parseAuthErrorMessage(error);
       if (!shouldCreateUser) {
-        alert(`\u767b\u5f55\u5931\u8d25\uff1a${error.message}\n\n\u82e5\u672a\u6ce8\u518c\uff0c\u8bf7\u9009\u62e9\u201c\u6ce8\u518c\u5e76\u767b\u5f55\u201d\u3002`);
+        alert(`\u767b\u5f55\u53d1\u9001\u9a8c\u8bc1\u7801\u5931\u8d25\uff1a${msg}\n\n\u82e5\u672a\u6ce8\u518c\uff0c\u8bf7\u9009\u62e9\u201c\u6ce8\u518c\u5e76\u53d1\u9001\u7801\u201d\u3002`);
       } else {
-        alert(`\u6ce8\u518c\u5931\u8d25\uff1a${error.message}`);
+        alert(`\u6ce8\u518c\u53d1\u9001\u9a8c\u8bc1\u7801\u5931\u8d25\uff1a${msg}`);
       }
       return null;
     }
 
-    const msg = shouldCreateUser
-      ? '\u6ce8\u518c\u94fe\u63a5\u5df2\u53d1\u9001\uff0c\u8bf7\u5230\u90ae\u7bb1\u70b9\u51fb\u540e\u8fd4\u56de\u672c\u9875\u9762\u3002'
-      : '\u767b\u5f55\u94fe\u63a5\u5df2\u53d1\u9001\uff0c\u8bf7\u5230\u90ae\u7bb1\u70b9\u51fb\u540e\u8fd4\u56de\u672c\u9875\u9762\u3002';
-    alert(msg);
-    return null;
+    lastOtpSentAt = Date.now();
+    const token = openOtpCodePrompt(authRequest.email);
+    if (!token) return null;
+
+    const user = await verifyOtpCode(authRequest.email, token, authRequest.mode);
+    if (!user) {
+      alert('\u9a8c\u8bc1\u7801\u6821\u9a8c\u5931\u8d25\uff0c\u8bf7\u786e\u8ba4\u9a8c\u8bc1\u7801\u65e0\u8bef\u540e\u518d\u8bd5\u3002');
+      return null;
+    }
+
+    alert('\u9a8c\u8bc1\u6210\u529f\uff0c\u5df2\u767b\u5f55\u3002');
+    return user;
   }
 
   async function signOut() {
@@ -247,7 +312,8 @@
 
     statusEl = document.createElement('span');
     statusEl.id = 'auth-status-text';
-    statusEl.style.cssText = 'font-size:12px;color:#64748B;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+    statusEl.style.cssText =
+      'font-size:12px;color:#64748B;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
 
     actionBtn = document.createElement('button');
     actionBtn.id = 'auth-action-btn';
@@ -266,7 +332,7 @@
         await signOut();
         return;
       }
-      await sendLoginEmail();
+      await sendOtpAndLogin();
     });
 
     wrap.appendChild(statusEl);
@@ -281,8 +347,7 @@
 
   window.requireEmailLogin = async function requireEmailLogin() {
     if (authUser) return authUser;
-    await sendLoginEmail();
-    return null;
+    return await sendOtpAndLogin();
   };
 
   document.addEventListener('DOMContentLoaded', async () => {
