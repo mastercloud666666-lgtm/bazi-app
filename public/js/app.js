@@ -3,7 +3,7 @@
 const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
-const APP_BUILD = '20260314-grid-v2';
+const APP_BUILD = '20260314-grid-v3';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '标准版完整报告', subtitle: '完整命理解读 · 测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版完整报告', subtitle: '增加重点流年提醒 · 测试价 0.01 元', fee: '0.01' },
@@ -376,6 +376,24 @@ const GRID_PILLARS = [
   { key: 'day', label: '\u65e5\u67f1' },
   { key: 'hour', label: '\u65f6\u67f1' },
 ];
+const KONG_WANG_BY_XUN = ['\u620c\u4ea5', '\u7533\u9149', '\u5348\u672a', '\u8fb0\u5df3', '\u5bc5\u536f', '\u5b50\u4e11'];
+const TIAN_YI_BRANCHES = {
+  '\u7532': ['\u4e11', '\u672a'], '\u620a': ['\u4e11', '\u672a'], '\u5e9a': ['\u4e11', '\u672a'],
+  '\u4e59': ['\u5b50', '\u7533'], '\u5df1': ['\u5b50', '\u7533'],
+  '\u4e19': ['\u4ea5', '\u9149'], '\u4e01': ['\u4ea5', '\u9149'],
+  '\u58ec': ['\u536f', '\u5df3'], '\u7678': ['\u536f', '\u5df3'],
+  '\u8f9b': ['\u5bc5', '\u5348'],
+};
+const WEN_CHANG_BRANCH = {
+  '\u7532': '\u5df3', '\u4e59': '\u5348', '\u4e19': '\u7533', '\u4e01': '\u9149', '\u620a': '\u7533',
+  '\u5df1': '\u9149', '\u5e9a': '\u4ea5', '\u8f9b': '\u5b50', '\u58ec': '\u5bc5', '\u7678': '\u536f',
+};
+const BRANCH_GROUPS = [
+  { branches: ['\u7533', '\u5b50', '\u8fb0'], peach: '\u9149', yima: '\u5bc5', huagai: '\u8fb0', jiangxing: '\u5b50' },
+  { branches: ['\u5bc5', '\u5348', '\u620c'], peach: '\u536f', yima: '\u7533', huagai: '\u620c', jiangxing: '\u5348' },
+  { branches: ['\u4ea5', '\u536f', '\u672a'], peach: '\u5b50', yima: '\u5df3', huagai: '\u672a', jiangxing: '\u536f' },
+  { branches: ['\u5df3', '\u9149', '\u4e11'], peach: '\u5348', yima: '\u4ea5', huagai: '\u4e11', jiangxing: '\u9149' },
+];
 
 function escapeHtml(text) {
   return String(text || '')
@@ -419,6 +437,54 @@ function renderStackLines(items, mapFn) {
   return `<div class="bzg-stack">${items.map((item) => `<span>${mapFn(item)}</span>`).join('')}</div>`;
 }
 
+function getSexagenaryIndex(tg, dz) {
+  const tgIdx = STEM_INDEX_MAP[tg];
+  const dzIdx = (window.BaziCalc?.DIZHI || []).indexOf(dz);
+  if (tgIdx === undefined || dzIdx < 0) return -1;
+  for (let i = 0; i < 60; i++) {
+    if (i % 10 === tgIdx && i % 12 === dzIdx) return i;
+  }
+  return -1;
+}
+
+function getKongWangByPillar(pillar) {
+  const idx = getSexagenaryIndex(pillar.tg, pillar.dz);
+  if (idx < 0) return '--';
+  return KONG_WANG_BY_XUN[Math.floor(idx / 10)] || '--';
+}
+
+function resolveBranchGroup(branch) {
+  return BRANCH_GROUPS.find((group) => group.branches.includes(branch)) || null;
+}
+
+function collectShenShaForBranch(targetBranch, refStem, refBranch) {
+  const marks = [];
+
+  const tianYi = TIAN_YI_BRANCHES[refStem] || [];
+  if (tianYi.includes(targetBranch)) marks.push('\u5929\u4e59\u8d35\u4eba');
+
+  if (WEN_CHANG_BRANCH[refStem] === targetBranch) marks.push('\u6587\u660c\u8d35\u4eba');
+
+  const group = resolveBranchGroup(refBranch);
+  if (group) {
+    if (group.peach === targetBranch) marks.push('\u6843\u82b1');
+    if (group.yima === targetBranch) marks.push('\u9a7f\u9a6c');
+    if (group.huagai === targetBranch) marks.push('\u534e\u76d6');
+    if (group.jiangxing === targetBranch) marks.push('\u5c06\u661f');
+  }
+  return marks;
+}
+
+function getShenShaList(targetBranch, refs) {
+  const all = [];
+  refs.forEach((ref) => {
+    collectShenShaForBranch(targetBranch, ref.stem, ref.branch).forEach((name) => {
+      if (!all.includes(name)) all.push(name);
+    });
+  });
+  return all;
+}
+
 function renderBaziDetailGrid(bazi) {
   const titleEl = document.getElementById('bazi-detail-title');
   if (titleEl) titleEl.textContent = '\u547d\u5c40\u7ec6\u76d8\uff08\u8868\u683c\u7248\uff09';
@@ -428,6 +494,10 @@ function renderBaziDetailGrid(bazi) {
 
   const columns = GRID_PILLARS.map((item) => bazi[item.key]);
   const dayStem = bazi.day.tg;
+  const refsForShenSha = [
+    { stem: bazi.day.tg, branch: bazi.day.dz },
+    { stem: bazi.year.tg, branch: bazi.year.dz },
+  ];
   const hiddenStemsColumns = columns.map((pillar) => HIDDEN_STEMS_MAP[pillar.dz] || []);
 
   const rows = [
@@ -463,6 +533,16 @@ function renderBaziDetailGrid(bazi) {
         const dzWx = ELEMENT_LABELS[BRANCH_ELEMENT_INDEX[pillar.dz]] || '--';
         return `${tgWx} / ${dzWx}`;
       }),
+    },
+    {
+      label: '\u7a7a\u4ea1',
+      cells: columns.map((pillar) => getKongWangByPillar(pillar)),
+    },
+    {
+      label: '\u795e\u715e',
+      cells: columns.map((pillar) =>
+        renderStackLines(getShenShaList(pillar.dz, refsForShenSha), (s) => `<span class="bzg-shensha">${escapeHtml(s)}</span>`)
+      ),
     },
   ];
 
