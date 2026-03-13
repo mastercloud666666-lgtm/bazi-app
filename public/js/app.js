@@ -4,7 +4,7 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v4';
+const APP_BUILD = '20260314-grid-v5';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '标准版完整报告', subtitle: '完整命理解读 · 测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版完整报告', subtitle: '增加重点流年提醒 · 测试价 0.01 元', fee: '0.01' },
@@ -411,11 +411,23 @@ const GU_CHEN_GUA_SU_GROUPS = [
   { branches: ['\u5df3', '\u5348', '\u672a'], gu: '\u7533', gua: '\u8fb0' },
   { branches: ['\u7533', '\u9149', '\u620c'], gu: '\u4ea5', gua: '\u672a' },
 ];
+const TAI_JI_BRANCHES_BY_STEM = {
+  '\u7532': ['\u5b50', '\u5348'], '\u4e59': ['\u5b50', '\u5348'],
+  '\u4e19': ['\u536f', '\u9149'], '\u4e01': ['\u536f', '\u9149'],
+  '\u620a': ['\u8fb0', '\u620c', '\u4e11', '\u672a'], '\u5df1': ['\u8fb0', '\u620c', '\u4e11', '\u672a'],
+  '\u5e9a': ['\u5bc5', '\u4ea5'], '\u8f9b': ['\u5bc5', '\u4ea5'],
+  '\u58ec': ['\u5df3', '\u7533'], '\u7678': ['\u5df3', '\u7533'],
+};
+const TIAN_DE_STEM_BY_MONTH_BRANCH = {
+  '\u5bc5': '\u4e01', '\u536f': '\u7533', '\u8fb0': '\u58ec', '\u5df3': '\u8f9b',
+  '\u5348': '\u4ea5', '\u672a': '\u7532', '\u7533': '\u7678', '\u9149': '\u5bc5',
+  '\u620c': '\u4e19', '\u4ea5': '\u4e59', '\u5b50': '\u5df3', '\u4e11': '\u5e9a',
+};
 const BRANCH_GROUPS = [
-  { branches: ['\u7533', '\u5b50', '\u8fb0'], peach: '\u9149', yima: '\u5bc5', huagai: '\u8fb0', jiangxing: '\u5b50' },
-  { branches: ['\u5bc5', '\u5348', '\u620c'], peach: '\u536f', yima: '\u7533', huagai: '\u620c', jiangxing: '\u5348' },
-  { branches: ['\u4ea5', '\u536f', '\u672a'], peach: '\u5b50', yima: '\u5df3', huagai: '\u672a', jiangxing: '\u536f' },
-  { branches: ['\u5df3', '\u9149', '\u4e11'], peach: '\u5348', yima: '\u4ea5', huagai: '\u4e11', jiangxing: '\u9149' },
+  { branches: ['\u7533', '\u5b50', '\u8fb0'], peach: '\u9149', yima: '\u5bc5', huagai: '\u8fb0', jiangxing: '\u5b50', jiesha: '\u5df3', zhaisha: '\u5348', wangshen: '\u4ea5' },
+  { branches: ['\u5bc5', '\u5348', '\u620c'], peach: '\u536f', yima: '\u7533', huagai: '\u620c', jiangxing: '\u5348', jiesha: '\u4ea5', zhaisha: '\u5b50', wangshen: '\u5df3' },
+  { branches: ['\u4ea5', '\u536f', '\u672a'], peach: '\u5b50', yima: '\u5df3', huagai: '\u672a', jiangxing: '\u536f', jiesha: '\u7533', zhaisha: '\u9149', wangshen: '\u5bc5' },
+  { branches: ['\u5df3', '\u9149', '\u4e11'], peach: '\u5348', yima: '\u4ea5', huagai: '\u4e11', jiangxing: '\u9149', jiesha: '\u5bc5', zhaisha: '\u536f', wangshen: '\u7533' },
 ];
 
 function escapeHtml(text) {
@@ -484,40 +496,68 @@ function resolveGuChenGroup(branch) {
   return GU_CHEN_GUA_SU_GROUPS.find((group) => group.branches.includes(branch)) || null;
 }
 
-function collectShenShaForBranch(targetBranch, refStem, refBranch) {
+function getYueDeStemByMonthBranch(monthBranch) {
+  const group = resolveBranchGroup(monthBranch);
+  if (!group) return '';
+  if (group.branches.includes('\u5bc5')) return '\u4e19';
+  if (group.branches.includes('\u7533')) return '\u58ec';
+  if (group.branches.includes('\u4ea5')) return '\u7532';
+  return '\u5e9a';
+}
+
+function pushMark(marks, name, source) {
+  marks.push(`${name}(${source})`);
+}
+
+function collectShenShaForPillar(targetPillar, ctx) {
   const marks = [];
+  const targetBranch = targetPillar.dz;
+  const targetStem = targetPillar.tg;
 
-  const tianYi = TIAN_YI_BRANCHES[refStem] || [];
-  if (tianYi.includes(targetBranch)) marks.push('\u5929\u4e59\u8d35\u4eba');
+  ctx.refs.forEach((ref) => {
+    const tianYi = TIAN_YI_BRANCHES[ref.stem] || [];
+    if (tianYi.includes(targetBranch)) pushMark(marks, '\u5929\u4e59\u8d35\u4eba', ref.label);
 
-  if (WEN_CHANG_BRANCH[refStem] === targetBranch) marks.push('\u6587\u660c\u8d35\u4eba');
-  if (LU_SHEN_BRANCH[refStem] === targetBranch) marks.push('\u7984\u795e');
-  if (YANG_REN_BRANCH[refStem] === targetBranch) marks.push('\u7f8a\u5203');
-  if (HONG_LUAN_BY_BRANCH[refBranch] === targetBranch) marks.push('\u7ea2\u9e3e');
-  if (TIAN_XI_BY_BRANCH[refBranch] === targetBranch) marks.push('\u5929\u559c');
+    if (WEN_CHANG_BRANCH[ref.stem] === targetBranch) pushMark(marks, '\u6587\u660c\u8d35\u4eba', ref.label);
+    if (LU_SHEN_BRANCH[ref.stem] === targetBranch) pushMark(marks, '\u7984\u795e', ref.label);
+    if (YANG_REN_BRANCH[ref.stem] === targetBranch) pushMark(marks, '\u7f8a\u5203', ref.label);
 
-  const group = resolveBranchGroup(refBranch);
-  if (group) {
-    if (group.peach === targetBranch) marks.push('\u6843\u82b1');
-    if (group.yima === targetBranch) marks.push('\u9a7f\u9a6c');
-    if (group.huagai === targetBranch) marks.push('\u534e\u76d6');
-    if (group.jiangxing === targetBranch) marks.push('\u5c06\u661f');
-  }
+    const taiJiBranches = TAI_JI_BRANCHES_BY_STEM[ref.stem] || [];
+    if (taiJiBranches.includes(targetBranch)) pushMark(marks, '\u592a\u6781\u8d35\u4eba', ref.label);
 
-  const guChenGroup = resolveGuChenGroup(refBranch);
+    const group = resolveBranchGroup(ref.branch);
+    if (group) {
+      if (group.peach === targetBranch) pushMark(marks, '\u6843\u82b1', ref.label);
+      if (group.yima === targetBranch) pushMark(marks, '\u9a7f\u9a6c', ref.label);
+      if (group.huagai === targetBranch) pushMark(marks, '\u534e\u76d6', ref.label);
+      if (group.jiangxing === targetBranch) pushMark(marks, '\u5c06\u661f', ref.label);
+      if (group.jiesha === targetBranch) pushMark(marks, '\u52ab\u715e', ref.label);
+      if (group.zhaisha === targetBranch) pushMark(marks, '\u707e\u715e', ref.label);
+      if (group.wangshen === targetBranch) pushMark(marks, '\u4ea1\u795e', ref.label);
+    }
+  });
+
+  if (HONG_LUAN_BY_BRANCH[ctx.yearBranch] === targetBranch) pushMark(marks, '\u7ea2\u9e3e', '\u5e74\u652f');
+  if (TIAN_XI_BY_BRANCH[ctx.yearBranch] === targetBranch) pushMark(marks, '\u5929\u559c', '\u5e74\u652f');
+
+  const guChenGroup = resolveGuChenGroup(ctx.yearBranch);
   if (guChenGroup) {
-    if (guChenGroup.gu === targetBranch) marks.push('\u5b64\u8fb0');
-    if (guChenGroup.gua === targetBranch) marks.push('\u5be1\u5bbf');
+    if (guChenGroup.gu === targetBranch) pushMark(marks, '\u5b64\u8fb0', '\u5e74\u652f');
+    if (guChenGroup.gua === targetBranch) pushMark(marks, '\u5be1\u5bbf', '\u5e74\u652f');
   }
+
+  const tianDeStem = TIAN_DE_STEM_BY_MONTH_BRANCH[ctx.monthBranch];
+  const yueDeStem = getYueDeStemByMonthBranch(ctx.monthBranch);
+  if (tianDeStem && tianDeStem === targetStem) pushMark(marks, '\u5929\u5fb7\u8d35\u4eba', '\u6708\u4ee4');
+  if (yueDeStem && yueDeStem === targetStem) pushMark(marks, '\u6708\u5fb7\u8d35\u4eba', '\u6708\u4ee4');
+
   return marks;
 }
 
-function getShenShaList(targetBranch, refs) {
+function getShenShaList(targetPillar, ctx) {
   const all = [];
-  refs.forEach((ref) => {
-    collectShenShaForBranch(targetBranch, ref.stem, ref.branch).forEach((name) => {
-      if (!all.includes(name)) all.push(name);
-    });
+  collectShenShaForPillar(targetPillar, ctx).forEach((name) => {
+    if (!all.includes(name)) all.push(name);
   });
   return all;
 }
@@ -531,7 +571,16 @@ function renderBaziDetailGrid(bazi) {
 
   const columns = GRID_PILLARS.map((item) => bazi[item.key]);
   const dayStem = bazi.day.tg;
-  const refsForShenSha = columns.map((pillar) => ({ stem: pillar.tg, branch: pillar.dz }));
+  const shenShaContext = {
+    refs: [
+      { label: '\u5e74\u67f1', stem: bazi.year.tg, branch: bazi.year.dz },
+      { label: '\u6708\u67f1', stem: bazi.month.tg, branch: bazi.month.dz },
+      { label: '\u65e5\u67f1', stem: bazi.day.tg, branch: bazi.day.dz },
+      { label: '\u65f6\u67f1', stem: bazi.hour.tg, branch: bazi.hour.dz },
+    ],
+    yearBranch: bazi.year.dz,
+    monthBranch: bazi.month.dz,
+  };
   const hiddenStemsColumns = columns.map((pillar) => HIDDEN_STEMS_MAP[pillar.dz] || []);
 
   const rows = [
@@ -575,7 +624,7 @@ function renderBaziDetailGrid(bazi) {
     {
       label: '\u795e\u715e',
       cells: columns.map((pillar) =>
-        renderStackLines(getShenShaList(pillar.dz, refsForShenSha), (s) => `<span class="bzg-shensha">${escapeHtml(s)}</span>`)
+        renderStackLines(getShenShaList(pillar, shenShaContext), (s) => `<span class="bzg-shensha">${escapeHtml(s)}</span>`)
       ),
     },
   ];
