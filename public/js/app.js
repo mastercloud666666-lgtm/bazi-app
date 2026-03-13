@@ -483,9 +483,16 @@ if (form) {
     document.getElementById('pay-prompt').style.display = 'none';
     document.getElementById('analysis-content').style.display = 'none';
     document.getElementById('analysis-loading').style.display = 'block';
-    document.getElementById('analysis-loading').innerHTML = '<p class="price-desc">支付成功，正在生成深度命理报告，请稍候…</p>';
+    document.getElementById('analysis-loading').innerHTML = '<p class="price-desc">\u652f\u4ed8\u6210\u529f\uff0c\u6b63\u5728\u751f\u6210\u6df1\u5ea6\u547d\u7406\u62a5\u544a\uff0c\u8bf7\u7a0d\u5019\u2026</p>' + PAID_ONE_TIME_NOTICE_HTML;
     
-    pollForAnalysis(tradeNo, cacheKey);
+    pollForAnalysis(
+      tradeNo,
+      cacheKey,
+      { year, month, day, hour, gender, birthplace },
+      bazi,
+      daYunData,
+      specialYears
+    );
   }
   }
 })();
@@ -620,11 +627,22 @@ async function startPayment(birthData, bazi, paymentOption) {
 }
 
 // ── 轮询等待分析结果 ──────────────────────────────────────────────
-async function pollForAnalysis(tradeNo, cacheKey) {
+async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, specialYears) {
   // 使用完整版缓存键
   const fullCacheKey = cacheKey.replace('bazi_', 'bazi_full_');
   const pollIntervalMs = 1000;
   const maxAttempts = 90; // 最长约 90 秒
+  let paidSeenCount = 0;
+  let streamFallbackTriggered = false;
+
+  if (birthData && bazi && daYunData && specialYears) {
+    window.__lastPaidPollContext = { birthData, bazi, daYunData, specialYears };
+  }
+  const pollContext = window.__lastPaidPollContext || {};
+  const resolvedBirthData = birthData || pollContext.birthData;
+  const resolvedBazi = bazi || pollContext.bazi;
+  const resolvedDaYunData = daYunData || pollContext.daYunData;
+  const resolvedSpecialYears = specialYears || pollContext.specialYears;
 
   // 轮询等待生成完成
   for (let i = 0; i < maxAttempts; i++) {
@@ -645,11 +663,21 @@ async function pollForAnalysis(tradeNo, cacheKey) {
         showAnalysis(order.analysis, true); // hidePay = true，隐藏付费提示
         return;
       }
+
+      if (order?.paid && !order?.analysis) {
+        paidSeenCount += 1;
+        if (!streamFallbackTriggered && paidSeenCount >= 8 && resolvedBirthData && resolvedBazi && resolvedDaYunData && resolvedSpecialYears) {
+          streamFallbackTriggered = true;
+          document.getElementById('analysis-loading').innerHTML = '<p class="price-desc">\u5df2\u786e\u8ba4\u652f\u4ed8\uff0c\u6b63\u5728\u76f4\u63a5\u751f\u6210\u5b8c\u6574\u62a5\u544a\uff0c\u8bf7\u7a0d\u5019\u2026</p>' + PAID_ONE_TIME_NOTICE_HTML;
+          await fullAnalyze(resolvedBirthData, resolvedBazi, resolvedDaYunData, resolvedSpecialYears);
+          return;
+        }
+      }
       
       // 更新加载提示（每 8 次更新一次）
       if (i % 8 === 0 && i > 0) {
         const seconds = Math.ceil(((i + 1) * pollIntervalMs) / 1000);
-        document.getElementById('analysis-loading').innerHTML = `<p class="price-desc">正在生成深度命理报告（已等待 ${seconds} 秒，通常 30-90 秒完成）</p>`;
+        document.getElementById('analysis-loading').innerHTML = `<p class="price-desc">\u6b63\u5728\u751f\u6210\u6df1\u5ea6\u547d\u7406\u62a5\u544a\uff08\u5df2\u7b49\u5f85 ${seconds} \u79d2\uff0c\u901a\u5e38 30-90 \u79d2\u5b8c\u6210\uff09</p>` + PAID_ONE_TIME_NOTICE_HTML;
       }
     } catch (err) {
       console.error('轮询查询失败:', err);
@@ -668,10 +696,35 @@ async function pollForAnalysis(tradeNo, cacheKey) {
 
 const DISCLAIMER = '\n\n以上内容为传统文化推演，仅供参考，请理性看待，切勿迷信。';
 
+const ONE_TIME_PAID_NOTICE = '\u672c\u6b21\u62a5\u544a\u662f\u4e00\u6b21\u6027\u670d\u52a1\uff0c\u8bf7\u81ea\u884c\u622a\u56fe\u4fdd\u5b58\uff0c\u9875\u9762\u5173\u95ed\u540e\u4e0d\u53ef\u518d\u6b21\u67e5\u770b\u3002';
+const PAID_ONE_TIME_NOTICE_HTML = '<p style="margin-top:10px;color:#dc2626;font-weight:700;">' + ONE_TIME_PAID_NOTICE + '</p>';
+
+function togglePaidOneTimeNotice(visible) {
+  const content = document.getElementById('analysis-content');
+  if (!content) return;
+
+  let notice = document.getElementById('paid-onetime-notice');
+  if (!notice && visible) {
+    notice = document.createElement('div');
+    notice.id = 'paid-onetime-notice';
+    notice.style.cssText = 'margin:0 0 14px;padding:10px 12px;border:1px solid #ef4444;border-radius:8px;background:#fff1f2;color:#dc2626;font-size:14px;font-weight:700;line-height:1.6;';
+    notice.textContent = ONE_TIME_PAID_NOTICE;
+    const analysisText = document.getElementById('analysis-text');
+    if (analysisText && analysisText.parentNode === content) {
+      content.insertBefore(notice, analysisText);
+    } else {
+      content.prepend(notice);
+    }
+  }
+
+  if (notice) notice.style.display = visible ? 'block' : 'none';
+}
+
 function showAnalysis(text, hidePay = false) {
   document.getElementById('analysis-locked').style.display  = 'none';
   document.getElementById('analysis-loading').style.display = 'none';
   document.getElementById('analysis-content').style.display = 'block';
+  togglePaidOneTimeNotice(Boolean(hidePay));
   document.getElementById('analysis-text').textContent = text + DISCLAIMER;
   const payPrompt = document.getElementById('pay-prompt');
   if (payPrompt) payPrompt.style.display = hidePay ? 'none' : 'block';
@@ -840,6 +893,7 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears) {
     // 切换到流式显示
     if (loading) loading.style.display = 'none';
     if (content) content.style.display = 'block';
+    togglePaidOneTimeNotice(true);
     if (analysisText) analysisText.textContent = '';
 
     const reader = res.body.getReader();
