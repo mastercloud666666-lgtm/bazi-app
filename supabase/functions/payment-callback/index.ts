@@ -144,6 +144,7 @@ Deno.serve(async (req) => {
       trade_no: trade_order_id,
       service: 'bazi',
       free_only: false,
+      payment_option_id: birth?.payment_option?.id || 'basic',
       year: birth.year,
       month: birth.month,
       day: birth.day,

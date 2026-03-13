@@ -3,7 +3,8 @@
 const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
-const APP_BUILD = '20260314-grid-v3';
+const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
+const APP_BUILD = '20260314-grid-v4';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '标准版完整报告', subtitle: '完整命理解读 · 测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版完整报告', subtitle: '增加重点流年提醒 · 测试价 0.01 元', fee: '0.01' },
@@ -388,6 +389,28 @@ const WEN_CHANG_BRANCH = {
   '\u7532': '\u5df3', '\u4e59': '\u5348', '\u4e19': '\u7533', '\u4e01': '\u9149', '\u620a': '\u7533',
   '\u5df1': '\u9149', '\u5e9a': '\u4ea5', '\u8f9b': '\u5b50', '\u58ec': '\u5bc5', '\u7678': '\u536f',
 };
+const LU_SHEN_BRANCH = {
+  '\u7532': '\u5bc5', '\u4e59': '\u536f', '\u4e19': '\u5df3', '\u4e01': '\u5348', '\u620a': '\u5df3',
+  '\u5df1': '\u5348', '\u5e9a': '\u7533', '\u8f9b': '\u9149', '\u58ec': '\u4ea5', '\u7678': '\u5b50',
+};
+const YANG_REN_BRANCH = {
+  '\u7532': '\u536f', '\u4e59': '\u8fb0', '\u4e19': '\u5348', '\u4e01': '\u672a', '\u620a': '\u5348',
+  '\u5df1': '\u672a', '\u5e9a': '\u9149', '\u8f9b': '\u620c', '\u58ec': '\u5b50', '\u7678': '\u4e11',
+};
+const HONG_LUAN_BY_BRANCH = {
+  '\u5b50': '\u536f', '\u4e11': '\u5bc5', '\u5bc5': '\u4e11', '\u536f': '\u5b50', '\u8fb0': '\u4ea5', '\u5df3': '\u620c',
+  '\u5348': '\u9149', '\u672a': '\u7533', '\u7533': '\u672a', '\u9149': '\u5348', '\u620c': '\u5df3', '\u4ea5': '\u8fb0',
+};
+const TIAN_XI_BY_BRANCH = {
+  '\u5b50': '\u9149', '\u4e11': '\u7533', '\u5bc5': '\u672a', '\u536f': '\u5348', '\u8fb0': '\u5df3', '\u5df3': '\u8fb0',
+  '\u5348': '\u536f', '\u672a': '\u5bc5', '\u7533': '\u4e11', '\u9149': '\u5b50', '\u620c': '\u4ea5', '\u4ea5': '\u620c',
+};
+const GU_CHEN_GUA_SU_GROUPS = [
+  { branches: ['\u4ea5', '\u5b50', '\u4e11'], gu: '\u5bc5', gua: '\u620c' },
+  { branches: ['\u5bc5', '\u536f', '\u8fb0'], gu: '\u5df3', gua: '\u4e11' },
+  { branches: ['\u5df3', '\u5348', '\u672a'], gu: '\u7533', gua: '\u8fb0' },
+  { branches: ['\u7533', '\u9149', '\u620c'], gu: '\u4ea5', gua: '\u672a' },
+];
 const BRANCH_GROUPS = [
   { branches: ['\u7533', '\u5b50', '\u8fb0'], peach: '\u9149', yima: '\u5bc5', huagai: '\u8fb0', jiangxing: '\u5b50' },
   { branches: ['\u5bc5', '\u5348', '\u620c'], peach: '\u536f', yima: '\u7533', huagai: '\u620c', jiangxing: '\u5348' },
@@ -457,6 +480,10 @@ function resolveBranchGroup(branch) {
   return BRANCH_GROUPS.find((group) => group.branches.includes(branch)) || null;
 }
 
+function resolveGuChenGroup(branch) {
+  return GU_CHEN_GUA_SU_GROUPS.find((group) => group.branches.includes(branch)) || null;
+}
+
 function collectShenShaForBranch(targetBranch, refStem, refBranch) {
   const marks = [];
 
@@ -464,6 +491,10 @@ function collectShenShaForBranch(targetBranch, refStem, refBranch) {
   if (tianYi.includes(targetBranch)) marks.push('\u5929\u4e59\u8d35\u4eba');
 
   if (WEN_CHANG_BRANCH[refStem] === targetBranch) marks.push('\u6587\u660c\u8d35\u4eba');
+  if (LU_SHEN_BRANCH[refStem] === targetBranch) marks.push('\u7984\u795e');
+  if (YANG_REN_BRANCH[refStem] === targetBranch) marks.push('\u7f8a\u5203');
+  if (HONG_LUAN_BY_BRANCH[refBranch] === targetBranch) marks.push('\u7ea2\u9e3e');
+  if (TIAN_XI_BY_BRANCH[refBranch] === targetBranch) marks.push('\u5929\u559c');
 
   const group = resolveBranchGroup(refBranch);
   if (group) {
@@ -471,6 +502,12 @@ function collectShenShaForBranch(targetBranch, refStem, refBranch) {
     if (group.yima === targetBranch) marks.push('\u9a7f\u9a6c');
     if (group.huagai === targetBranch) marks.push('\u534e\u76d6');
     if (group.jiangxing === targetBranch) marks.push('\u5c06\u661f');
+  }
+
+  const guChenGroup = resolveGuChenGroup(refBranch);
+  if (guChenGroup) {
+    if (guChenGroup.gu === targetBranch) marks.push('\u5b64\u8fb0');
+    if (guChenGroup.gua === targetBranch) marks.push('\u5be1\u5bbf');
   }
   return marks;
 }
@@ -494,10 +531,7 @@ function renderBaziDetailGrid(bazi) {
 
   const columns = GRID_PILLARS.map((item) => bazi[item.key]);
   const dayStem = bazi.day.tg;
-  const refsForShenSha = [
-    { stem: bazi.day.tg, branch: bazi.day.dz },
-    { stem: bazi.year.tg, branch: bazi.year.dz },
-  ];
+  const refsForShenSha = columns.map((pillar) => ({ stem: pillar.tg, branch: pillar.dz }));
   const hiddenStemsColumns = columns.map((pillar) => HIDDEN_STEMS_MAP[pillar.dz] || []);
 
   const rows = [
@@ -589,6 +623,8 @@ function renderBaziDetailGrid(bazi) {
       gender     = birth.gender;
       birthplace = birth.birthplace || '';
       lon        = birth.lon || '';
+      const optionId = birth?.payment_option?.id;
+      if (optionId) localStorage.setItem(PENDING_PAYMENT_OPTION_KEY, optionId);
     }
   } else {
     // 从 URL 参数获取
@@ -674,6 +710,7 @@ function renderBaziDetailGrid(bazi) {
 
   // 优先显示完整版缓存
   if (cachedFull) {
+    localStorage.removeItem(PENDING_PAYMENT_OPTION_KEY);
     showAnalysis(cachedFull, true);
   } else if (cached && !tradeNo) {
     // 如果有免费版缓存且不是支付回调，显示免费版
@@ -753,6 +790,7 @@ async function startPayment(birthData, bazi, paymentOption) {
 
   const tradeNo = 'bazi_' + Date.now();
   localStorage.setItem(PENDING_TRADE_KEY, tradeNo);
+  localStorage.setItem(PENDING_PAYMENT_OPTION_KEY, chosenOption.id);
   const baziStr = `${bazi.year.tg}${bazi.year.dz}年 ${bazi.month.tg}${bazi.month.dz}月 ${bazi.day.tg}${bazi.day.dz}日 ${bazi.hour.tg}${bazi.hour.dz}时`;
 
   console.log('订单号:', tradeNo);
@@ -842,12 +880,14 @@ async function startPayment(birthData, bazi, paymentOption) {
       console.error('支付API错误:', result.errmsg);
       alert(`支付请求失败：${result.errmsg}`);
       localStorage.removeItem(PENDING_TRADE_KEY);
+      localStorage.removeItem(PENDING_PAYMENT_OPTION_KEY);
       resetPayButtons();
     }
   } catch (err) {
     console.error('支付请求失败:', err);
     alert('支付请求失败，请稍后重试');
     localStorage.removeItem(PENDING_TRADE_KEY);
+    localStorage.removeItem(PENDING_PAYMENT_OPTION_KEY);
     resetPayButtons();
   }
 }
@@ -861,15 +901,19 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
   let paidSeenCount = 0;
   let unpaidOrUnknownCount = 0;
   let streamFallbackTriggered = false;
+  let resolvedPaymentOptionId = localStorage.getItem(PENDING_PAYMENT_OPTION_KEY) || '';
 
   if (birthData && bazi && daYunData && specialYears) {
-    window.__lastPaidPollContext = { birthData, bazi, daYunData, specialYears };
+    window.__lastPaidPollContext = { birthData, bazi, daYunData, specialYears, paymentOptionId: resolvedPaymentOptionId };
   }
   const pollContext = window.__lastPaidPollContext || {};
   const resolvedBirthData = birthData || pollContext.birthData;
   const resolvedBazi = bazi || pollContext.bazi;
   const resolvedDaYunData = daYunData || pollContext.daYunData;
   const resolvedSpecialYears = specialYears || pollContext.specialYears;
+  if (!resolvedPaymentOptionId && pollContext.paymentOptionId) {
+    resolvedPaymentOptionId = pollContext.paymentOptionId;
+  }
 
   // 轮询等待生成完成
   for (let i = 0; i < maxAttempts; i++) {
@@ -877,16 +921,26 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
       await new Promise(r => setTimeout(r, pollIntervalMs));
       
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${tradeNo}&select=paid,analysis`,
+        `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${tradeNo}&select=paid,analysis,birth_input`,
         { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` }}
       );
       
       const [order] = await res.json();
+      if (!resolvedPaymentOptionId && order?.birth_input) {
+        try {
+          const birth = JSON.parse(order.birth_input);
+          resolvedPaymentOptionId = birth?.payment_option?.id || '';
+          if (resolvedPaymentOptionId) {
+            localStorage.setItem(PENDING_PAYMENT_OPTION_KEY, resolvedPaymentOptionId);
+          }
+        } catch {}
+      }
       
       if (order?.paid && order?.analysis) {
         // 保存到完整版缓存
         localStorage.setItem(fullCacheKey, order.analysis);
         localStorage.removeItem(PENDING_TRADE_KEY);
+        localStorage.removeItem(PENDING_PAYMENT_OPTION_KEY);
         showAnalysis(order.analysis, true); // hidePay = true，隐藏付费提示
         return;
       }
@@ -896,7 +950,10 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
         if (!streamFallbackTriggered && paidSeenCount >= 8 && resolvedBirthData && resolvedBazi && resolvedDaYunData && resolvedSpecialYears) {
           streamFallbackTriggered = true;
           document.getElementById('analysis-loading').innerHTML = '<p class="price-desc">\u5df2\u786e\u8ba4\u652f\u4ed8\uff0c\u6b63\u5728\u76f4\u63a5\u751f\u6210\u5b8c\u6574\u62a5\u544a\uff0c\u8bf7\u7a0d\u5019\u2026</p>' + PAID_ONE_TIME_NOTICE_HTML;
-          await fullAnalyze(resolvedBirthData, resolvedBazi, resolvedDaYunData, resolvedSpecialYears);
+          await fullAnalyze(resolvedBirthData, resolvedBazi, resolvedDaYunData, resolvedSpecialYears, {
+            tradeNo,
+            paymentOptionId: resolvedPaymentOptionId,
+          });
           return;
         }
       }
@@ -906,7 +963,10 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
         if (!streamFallbackTriggered && unpaidOrUnknownCount >= 20 && resolvedBirthData && resolvedBazi && resolvedDaYunData && resolvedSpecialYears) {
           streamFallbackTriggered = true;
           document.getElementById('analysis-loading').innerHTML = '<p class="price-desc">\u652f\u4ed8\u72b6\u6001\u786e\u8ba4\u8f83\u6162\uff0c\u6b63\u5728\u5148\u4e3a\u60a8\u751f\u6210\u5b8c\u6574\u62a5\u544a\uff0c\u8bf7\u7a0d\u5019\u2026</p>' + PAID_ONE_TIME_NOTICE_HTML;
-          await fullAnalyze(resolvedBirthData, resolvedBazi, resolvedDaYunData, resolvedSpecialYears);
+          await fullAnalyze(resolvedBirthData, resolvedBazi, resolvedDaYunData, resolvedSpecialYears, {
+            tradeNo,
+            paymentOptionId: resolvedPaymentOptionId,
+          });
           return;
         }
       }
@@ -936,6 +996,16 @@ const DISCLAIMER = '\n\n以上内容为传统文化推演，仅供参考，请�
 const ONE_TIME_PAID_NOTICE = '\u672c\u6b21\u62a5\u544a\u662f\u4e00\u6b21\u6027\u670d\u52a1\uff0c\u8bf7\u81ea\u884c\u622a\u56fe\u4fdd\u5b58\uff0c\u9875\u9762\u5173\u95ed\u540e\u4e0d\u53ef\u518d\u6b21\u67e5\u770b\u3002';
 const PAID_ONE_TIME_NOTICE_HTML = '<p style="margin-top:10px;color:#dc2626;font-weight:700;">' + ONE_TIME_PAID_NOTICE + '</p>';
 
+function normalizeReportLines(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/\r\n?/g, '\n')
+    .replace(/第([一二三四五六七八九十百零\d]{1,3})段[：:]/g, '\n第$1段：')
+    .replace(/^\n+/, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 function togglePaidOneTimeNotice(visible) {
   const content = document.getElementById('analysis-content');
   if (!content) return;
@@ -962,7 +1032,7 @@ function showAnalysis(text, hidePay = false) {
   document.getElementById('analysis-loading').style.display = 'none';
   document.getElementById('analysis-content').style.display = 'block';
   togglePaidOneTimeNotice(Boolean(hidePay));
-  document.getElementById('analysis-text').textContent = text + DISCLAIMER;
+  document.getElementById('analysis-text').textContent = normalizeReportLines(text) + DISCLAIMER;
   const payPrompt = document.getElementById('pay-prompt');
   if (payPrompt) payPrompt.style.display = hidePay ? 'none' : 'block';
 }
@@ -1092,7 +1162,7 @@ function renderSpecialYears(specialYears, currentYear) {
 }
 
 // ── 完整分析（测试/付费解锁后调用）─────────────────────────────────
-async function fullAnalyze(birthData, bazi, daYunData, specialYears) {
+async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext = {}) {
   const currentYear = new Date().getFullYear();
   const loading = document.getElementById('analysis-loading');
   const content = document.getElementById('analysis-content');
@@ -1111,15 +1181,19 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears) {
   const analysisText = document.getElementById('analysis-text');
 
   try {
+    const payload = {
+      year: birthData.year, month: birthData.month, day: birthData.day, hour: birthData.hour,
+      gender: birthData.gender, birthplace: birthData.birthplace || '',
+      bazi_str: baziStr, dayun_text: dayunText, special_years_text: specialText,
+      start_age: daYunData.startAge,
+    };
+    if (paidContext?.tradeNo) payload.trade_no = paidContext.tradeNo;
+    if (paidContext?.paymentOptionId) payload.payment_option_id = paidContext.paymentOptionId;
+
     const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON}` },
-      body: JSON.stringify({
-        year: birthData.year, month: birthData.month, day: birthData.day, hour: birthData.hour,
-        gender: birthData.gender, birthplace: birthData.birthplace || '',
-        bazi_str: baziStr, dayun_text: dayunText, special_years_text: specialText,
-        start_age: daYunData.startAge,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok || !res.body) {
@@ -1164,6 +1238,7 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears) {
         .replace(/^\s*[-–—>]\s*/gm, '').replace(/由\s*DeepSeek\s*生成.*$/gis, '')
         .replace(/Powered by DeepSeek.*$/gis, '').replace(/\n{3,}/g, '\n\n').trim();
       localStorage.setItem(fullCacheKey, cleaned);
+      localStorage.removeItem(PENDING_PAYMENT_OPTION_KEY);
       showAnalysis(cleaned, true);
     } else {
       if (loading) { loading.style.display = 'block'; loading.innerHTML = '<p>解读获取失败，请刷新重试</p>'; }

@@ -19,10 +19,27 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { trade_no, service = 'bazi', free_only } = body;
+    const { trade_no, service = 'bazi', free_only, payment_option_id } = body;
 
     let prompt = '';
     let maxTokens = free_only ? 1500 : 8192;
+    let resolvedPaymentOptionId = typeof payment_option_id === 'string' ? payment_option_id : '';
+
+    if (!resolvedPaymentOptionId && trade_no) {
+      const { data: tradeOrder } = await supabase
+        .from('orders')
+        .select('birth_input')
+        .eq('trade_no', trade_no)
+        .maybeSingle();
+      if (tradeOrder?.birth_input) {
+        try {
+          const birth = JSON.parse(tradeOrder.birth_input);
+          resolvedPaymentOptionId = birth?.payment_option?.id || '';
+        } catch (_) {
+          // ignore parse errors and fallback to non-vip defaults
+        }
+      }
+    }
 
     if (service === 'qiming') {
       const { surname, birth_year, birth_month, birth_day, gender, wuxing_short, hope } = body;
@@ -303,8 +320,14 @@ ${special_years_text}
 
     // 付费八字保持结构完整，同时压缩单段长度，减少生成耗时。
     if (service === 'bazi' && !free_only) {
-      maxTokens = Math.min(maxTokens, 5200);
-      prompt += `\n\n补充要求：必须保留全部十五段结构，每段控制在120-180字，总字数控制在2600字以内，优先给结论和可执行建议。`;
+      const isVipFullReport = resolvedPaymentOptionId === 'vip';
+      if (isVipFullReport) {
+        maxTokens = Math.min(maxTokens, 7600);
+        prompt += `\n\n补充要求：这是尊享版完整版报告，必须完整输出第1段到第15段，任何一段都不能缺失或截断。每一段都必须以“第X段：”开头，并且15段都要单独起一行。每段建议180-260字，总字数控制在3600-4500字。即使临近 token 上限，也要优先压缩措辞并确保第十五段有完整结尾。`;
+      } else {
+        maxTokens = Math.min(maxTokens, 5200);
+        prompt += `\n\n补充要求：必须保留全部十五段结构，每段控制在120-180字，总字数控制在2600字以内，优先给结论和可执行建议。`;
+      }
     }
 
     const SYSTEM_MSG = `你是一位经验丰富的民间命理师。只输出纯文字，不用任何Markdown格式，不写诗，不引用古文，不说套话，直接用口语和"你"称呼对方说结论。

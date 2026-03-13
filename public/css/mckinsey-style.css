@@ -610,6 +610,7 @@ body {
   font-size: 15px;
   line-height: 1.9;
   color: var(--text-dark);
+  white-space: pre-wrap;
 }
 
 .analysis-text h2,
