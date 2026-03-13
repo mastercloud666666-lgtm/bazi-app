@@ -10,110 +10,156 @@
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://www.tengyunzi.com/fengshui.html">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Jura:wght@300;400&family=Crimson+Pro:ital@1&family=IBM+Plex+Mono:wght@300;400&family=Noto+Serif+SC:wght@200;300;400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/mckinsey-style.css">
+  <style>
+    .upload-area {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--bg-light);
+    }
+    .upload-area:hover, .upload-area.drag-over {
+      border-color: var(--accent);
+      background: #EFF6FF;
+    }
+    .upload-icon { font-size: 36px; margin-bottom: 8px; }
+    .upload-placeholder p {
+      font-size: 14px;
+      color: var(--text-gray);
+      margin-bottom: 4px;
+    }
+    .upload-hint {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+  </style>
 </head>
 <body>
-  <div class="page">
-
-    <!-- Nav -->
-    <nav class="nav-bar">
-      <a href="index.html">八字</a>
-      <a href="hepan.html">合盘</a>
-      <a href="qiming.html">起名</a>
-      <a href="zhanbu.html">占卜</a>
-      <a href="fengshui.html" class="active">风水</a>
-    </nav>
-
-    <!-- Header -->
-    <header>
-      <div class="icon-wrap">方</div>
-      <h1>風　水</h1>
-      <p class="subtitle">住宅 · 办公，趋吉避凶</p>
-      <div class="gold-rule"></div>
-    </header>
-
-    <main>
-
-      <!-- Form card -->
-      <form id="fengshui-form" class="card form-card">
-        <div class="form-top-bar"></div>
-        <div class="card-inner">
-
-          <div class="section-head" style="margin-bottom:14px;">
-            <div class="section-dot"></div>
-            <span>填 写 空 间 信 息</span>
-          </div>
-
-          <div class="form-group">
-            <label>地点类型</label>
-            <div class="radio-group">
-              <label><input type="radio" name="loctype" value="住宅" checked> 住宅</label>
-              <label><input type="radio" name="loctype" value="办公室"> 办公室</label>
-              <label><input type="radio" name="loctype" value="店铺"> 店铺</label>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>主要关切</label>
-            <div class="radio-group">
-              <label><input type="radio" name="concern" value="财运" checked> 财运</label>
-              <label><input type="radio" name="concern" value="健康"> 健康</label>
-              <label><input type="radio" name="concern" value="感情"> 感情</label>
-              <label><input type="radio" name="concern" value="事业"> 事业</label>
-              <label><input type="radio" name="concern" value="整体运势"> 整体运势</label>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>描述你的空间情况</label>
-            <textarea id="description" rows="5"
-              placeholder="例：我家是东南朝向，门对着厕所，客厅正中有柱子，卧室在西北角，入门见到的是餐桌…请尽量详细描述" required></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>户型图 <span class="label-hint">· 可选，上传平面图辅助分析</span></label>
-            <div class="upload-area" id="upload-area">
-              <input type="file" id="floor-plan" accept="image/*" style="display:none">
-              <div id="upload-placeholder" class="upload-placeholder">
-                <div class="upload-icon">🏠</div>
-                <div>点击上传户型图</div>
-                <div class="upload-hint">支持 JPG、PNG、GIF，建议 10 MB 以内</div>
-              </div>
-              <img id="floor-plan-preview" style="display:none; max-width:100%; border-radius:8px;">
-            </div>
-          </div>
-
-          <button type="submit" class="btn-primary">获取风水建议</button>
-
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-brand">
+        <div class="navbar-brand-logo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
         </div>
+        <div class="navbar-brand-text">
+          <span class="navbar-brand-name">云子命理</span>
+          <span class="navbar-brand-en">Yunzi</span>
+        </div>
+      </a>
+      <div class="navbar-nav">
+        <a href="index.html">八字排盘</a>
+        <a href="hepan.html">合盘分析</a>
+        <a href="qiming.html">起名服务</a>
+        <a href="zhanbu.html">占卜咨询</a>
+        <a href="fengshui.html" class="active">风水调理</a>
+      </div>
+      <div class="navbar-right"><span class="navbar-lang">EN</span></div>
+    </div>
+  </nav>
+
+  <div class="page-wrapper">
+    <div class="page-inner">
+
+      <div class="page-header">
+        <span class="page-tag">Feng Shui</span>
+        <h1 class="page-title">風 水</h1>
+        <p class="page-subtitle">住宅 · 办公，趋吉避凶</p>
+      </div>
+
+      <form id="fengshui-form" class="form-card">
+
+        <div class="form-group">
+          <label class="form-label">地点类型</label>
+          <div class="form-gender">
+            <label class="form-gender-label">
+              <input type="radio" name="loctype" value="住宅" checked class="form-gender-input"> 住宅
+            </label>
+            <label class="form-gender-label">
+              <input type="radio" name="loctype" value="办公室" class="form-gender-input"> 办公室
+            </label>
+            <label class="form-gender-label">
+              <input type="radio" name="loctype" value="店铺" class="form-gender-input"> 店铺
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">主要关切</label>
+          <div class="form-gender" style="flex-wrap:wrap; gap:12px;">
+            <label class="form-gender-label">
+              <input type="radio" name="concern" value="财运" checked class="form-gender-input"> 财运
+            </label>
+            <label class="form-gender-label">
+              <input type="radio" name="concern" value="健康" class="form-gender-input"> 健康
+            </label>
+            <label class="form-gender-label">
+              <input type="radio" name="concern" value="感情" class="form-gender-input"> 感情
+            </label>
+            <label class="form-gender-label">
+              <input type="radio" name="concern" value="事业" class="form-gender-input"> 事业
+            </label>
+            <label class="form-gender-label">
+              <input type="radio" name="concern" value="整体运势" class="form-gender-input"> 整体运势
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">描述你的空间情况</label>
+          <textarea id="description" class="form-textarea" rows="5"
+            placeholder="例：我家是东南朝向，门对着厕所，客厅正中有柱子，卧室在西北角，入门见到的是餐桌…请尽量详细描述" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">户型图 <span class="label-hint">· 可选，上传平面图辅助分析</span></label>
+          <div class="upload-area" id="upload-area">
+            <input type="file" id="floor-plan" accept="image/*" style="display:none">
+            <div id="upload-placeholder" class="upload-placeholder">
+              <div class="upload-icon">🏠</div>
+              <p>点击上传户型图</p>
+              <p class="upload-hint">支持 JPG、PNG、GIF，建议 10 MB 以内</p>
+            </div>
+            <img id="floor-plan-preview" style="display:none; max-width:100%; border-radius:8px;">
+          </div>
+        </div>
+
+        <button type="submit" class="form-submit">获取风水建议</button>
       </form>
 
-      <!-- Loading -->
-      <div id="result-loading" style="display:none" class="card">
-        <div class="card-inner">
-          <p class="price-desc">风水师正在为你分析格局，请稍候…</p>
-        </div>
+      <div id="result-loading" class="loading-card" style="margin-top:24px;">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">风水师正在为你分析格局，请稍候…</p>
       </div>
 
-      <!-- Result -->
-      <div id="result-section" style="display:none" class="card card-premium">
-        <div class="form-top-bar"></div>
-        <div class="card-inner">
-          <div class="section-head">
-            <div class="section-dot"></div>
-            <span>风 水 分 析</span>
+      <div id="result-section" style="display:none; margin-top:24px;">
+        <div class="mk-card">
+          <div class="mk-card-header">
+            <div class="mk-card-dot"></div>
+            <span class="mk-card-title">风 水 分 析</span>
           </div>
-          <div id="result-text" class="analysis-text"></div>
+          <div class="mk-card-body">
+            <div id="result-text" class="analysis-text"></div>
+          </div>
         </div>
       </div>
 
-    </main>
+    </div>
   </div>
 
   <script src="js/services.js"></script>
   <script>
-    // 图片上传交互
+    window.addEventListener('scroll', () => {
+      document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
+    });
+
     const uploadArea  = document.getElementById('upload-area');
     const fileInput   = document.getElementById('floor-plan');
     const preview     = document.getElementById('floor-plan-preview');
@@ -136,7 +182,6 @@
       reader.onload = ev => {
         const img = new Image();
         img.onload = () => {
-          // 压缩到最长边 1024px，JPEG 品质 0.75
           const MAX = 1024;
           let w = img.width, h = img.height;
           if (w > MAX || h > MAX) {
