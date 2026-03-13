@@ -259,7 +259,6 @@ if (form) {
       paidBtn.textContent = '立即解锁完整命理报告';
       paidBtn.dataset.defaultText = paidBtn.textContent;
       paidBtn.style.marginTop = '12px';
-      paidBtn.style.background = '#0A2540';
       submitBtn.insertAdjacentElement('afterend', paidBtn);
     }
   }
@@ -624,11 +623,13 @@ async function startPayment(birthData, bazi, paymentOption) {
 async function pollForAnalysis(tradeNo, cacheKey) {
   // 使用完整版缓存键
   const fullCacheKey = cacheKey.replace('bazi_', 'bazi_full_');
+  const pollIntervalMs = 1000;
+  const maxAttempts = 90; // 最长约 90 秒
 
-  // 减少轮询间隔到 1.5 秒，最大尝试 40 次（60 秒）
-  for (let i = 0; i < 40; i++) {
+  // 轮询等待生成完成
+  for (let i = 0; i < maxAttempts; i++) {
     try {
-      await new Promise(r => setTimeout(r, 1500));
+      await new Promise(r => setTimeout(r, pollIntervalMs));
       
       const res = await fetch(
         `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${tradeNo}&select=paid,analysis`,
@@ -645,10 +646,10 @@ async function pollForAnalysis(tradeNo, cacheKey) {
         return;
       }
       
-      // 更新加载提示（每 5 次更新一次）
-      if (i % 5 === 0 && i > 0) {
-        const seconds = Math.ceil((i + 1) * 1.5);
-        document.getElementById('analysis-loading').innerHTML = `<p class="price-desc">正在生成深度命理报告（已等待 ${seconds} 秒），请稍候…</p>`;
+      // 更新加载提示（每 8 次更新一次）
+      if (i % 8 === 0 && i > 0) {
+        const seconds = Math.ceil(((i + 1) * pollIntervalMs) / 1000);
+        document.getElementById('analysis-loading').innerHTML = `<p class="price-desc">正在生成深度命理报告（已等待 ${seconds} 秒，通常 30-90 秒完成）</p>`;
       }
     } catch (err) {
       console.error('轮询查询失败:', err);

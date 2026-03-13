@@ -301,6 +301,12 @@ ${special_years_text}
       } // end if free_only else
     } // end else bazi
 
+    // 付费八字保持结构完整，同时压缩单段长度，减少生成耗时。
+    if (service === 'bazi' && !free_only) {
+      maxTokens = Math.min(maxTokens, 5200);
+      prompt += `\n\n补充要求：必须保留全部十五段结构，每段控制在120-180字，总字数控制在2600字以内，优先给结论和可执行建议。`;
+    }
+
     const SYSTEM_MSG = `你是一位经验丰富的民间命理师。只输出纯文字，不用任何Markdown格式，不写诗，不引用古文，不说套话，直接用口语和"你"称呼对方说结论。
 
 【十神对应速查——必须严格遵守，不得搞错】
