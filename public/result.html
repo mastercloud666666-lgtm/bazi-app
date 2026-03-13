@@ -77,79 +77,6 @@
     #dayun-section {
       overflow-x: auto;
     }
-    .subscription-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 12px 0 14px;
-    }
-    .subscription-tag {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid #dbeafe;
-      background: #eff6ff;
-      color: #1d4ed8;
-      font-size: 12px;
-      font-weight: 600;
-      line-height: 1;
-    }
-    .subscription-tag.hot {
-      border-color: #fecaca;
-      background: #fef2f2;
-      color: #b91c1c;
-    }
-    .subscription-tag.save {
-      border-color: #bbf7d0;
-      background: #f0fdf4;
-      color: #15803d;
-    }
-    .pricing-faq {
-      margin-top: 14px;
-      border-top: 1px solid var(--border);
-      padding-top: 12px;
-    }
-    .pricing-faq-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 8px;
-    }
-    .pricing-faq details {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: white;
-      padding: 10px 12px;
-      margin-top: 8px;
-    }
-    .pricing-faq summary {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--primary);
-      cursor: pointer;
-      list-style: none;
-    }
-    .pricing-faq summary::-webkit-details-marker {
-      display: none;
-    }
-    .pricing-faq summary::after {
-      content: "+";
-      float: right;
-      color: var(--accent);
-      font-size: 16px;
-      font-weight: 700;
-      line-height: 1;
-    }
-    .pricing-faq details[open] summary::after {
-      content: "-";
-    }
-    .pricing-faq p {
-      margin-top: 8px;
-      font-size: 12px;
-      color: var(--text-gray);
-      line-height: 1.8;
-    }
     @media (max-width: 768px) {
       .bazi-table {
         grid-template-columns: repeat(2, 1fr);
@@ -296,11 +223,6 @@
             <div class="pay-card">
               <p class="pay-card-title">解锁深度命理报告</p>
               <p class="pay-card-sub">以上仅为入门性格预览，完整报告涵盖 15 大维度 · 深度解析约 5000 字</p>
-              <div class="subscription-tags" aria-label="??????">
-                <span class="subscription-tag">?????</span>
-                <span class="subscription-tag hot">???? ? ??</span>
-                <span class="subscription-tag save">???? ? ???</span>
-              </div>
               <div class="pay-features">
                 <span>▸ 用神喜忌 · 五行扶抑精解</span>
                 <span>▸ 事业财运 · 适合行业与黄金期</span>
@@ -317,26 +239,6 @@
                 <span class="span-full">▸ 后五年逐年流年 · 事业财运 × 感情健康 × 家宅运势，精准到年</span>
               </div>
               <button id="pay-btn" class="pay-btn">立即解锁完整命理报告</button>
-              <div class="pricing-faq" id="pricing-faq">
-                <p class="pricing-faq-title">??????</p>
-                <details open>
-                  <summary>???????</summary>
-                  <p>?????????? 50 ????????????? 50 ???</p>
-                </details>
-                <details>
-                  <summary>????????????</summary>
-                  <p>??????????????????????????????????????????????? 0.01 ??????????</p>
-                </details>
-                <details>
-                  <summary>?????? 0.01 ??</summary>
-                  <p>??????????????????? 0.01 ????????????????????</p>
-                </details>
-                <details>
-                  <summary>????????????</summary>
-                  <p>?? 30-90 ?????????????????????????</p>
-                </details>
-              </div>
-
             </div>
           </div>
 
@@ -348,9 +250,7 @@
 
   <script src="js/bazi.js"></script>
   <script src="js/config.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/auth.js?v=20260314authv6"></script>
-  <script src="js/app.js?v=20260314subscriptionv1"></script>
+  <script src="js/app.js?v=20260313payv3"></script>
   <script>
     window.addEventListener('scroll', () => {
       document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);

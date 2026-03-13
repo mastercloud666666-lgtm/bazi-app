@@ -3,41 +3,15 @@
 const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
-const APP_BUILD = '20260314-subscription-faq-v1';
+const APP_BUILD = '20260313-pay-options-v2';
 const PAYMENT_OPTIONS = [
-  {
-    id: 'basic',
-    title: '体验积分包',
-    subtitle: '适合首次体验 · 测试价 0.01 元',
-    description: '即买即用，当前测试阶段用于验证支付链路',
-    fee: '0.01',
-    tag: '体验',
-  },
-  {
-    id: 'pro',
-    title: '月度订阅',
-    subtitle: '最受欢迎 · 测试价 0.01 元',
-    description: '高频用户首选，当前测试阶段权益先统一',
-    fee: '0.01',
-    tag: '热门',
-    recommended: true,
-  },
-  {
-    id: 'vip',
-    title: '年度订阅',
-    subtitle: '长期跟踪更划算 · 测试价 0.01 元',
-    description: '年度方案标签展示，当前测试阶段先验证支付',
-    fee: '0.01',
-    tag: '超值',
-  },
+  { id: 'basic', title: '标准版完整报告', subtitle: '完整命理解读 · 测试价 0.01 元', fee: '0.01' },
+  { id: 'pro', title: '进阶版完整报告', subtitle: '增加重点流年提醒 · 测试价 0.01 元', fee: '0.01' },
+  { id: 'vip', title: '尊享版完整报告', subtitle: '优先生成通道 · 测试价 0.01 元', fee: '0.01' },
 ];
 const DEFAULT_PAYMENT_OPTION = PAYMENT_OPTIONS[0];
-const FREE_ANALYSIS_UNLOCK_POINTS = 50;
-const FREE_ANALYSIS_UNLOCK_KEY_PREFIX = 'bazi_free_half_unlocked_';
-let lastFreeAnalysisPayload = null;
 window.__BAZI_APP_BUILD = APP_BUILD;
 window.__BAZI_PAYMENT_OPTION_IDS = PAYMENT_OPTIONS.map((x) => x.id);
-window.__BAZI_FREE_ANALYSIS_UNLOCK_POINTS = FREE_ANALYSIS_UNLOCK_POINTS;
 console.log('[bazi-app build]', APP_BUILD);
 
 function pickPaymentOption() {
@@ -66,11 +40,11 @@ function pickPaymentOption() {
     ].join(';');
 
     const title = document.createElement('h3');
-    title.textContent = '\u9009\u62e9\u89e3\u9501\u65b9\u6848';
+    title.textContent = '请选择支付选项';
     title.style.cssText = 'margin:0 0 6px;font-size:18px;color:#0A2540;';
 
     const subtitle = document.createElement('p');
-    subtitle.textContent = '\u53c2\u8003\u8ba2\u9605\u6a21\u5f0f\uff1a\u4f53\u9a8c\u79ef\u5206\u5305 + \u6708\u5ea6\u8ba2\u9605 + \u5e74\u5ea6\u8ba2\u9605\uff0c\u9009\u62e9\u540e\u8df3\u8f6c\u652f\u4ed8\u3002';
+    subtitle.textContent = '已准备好你的生辰信息，选择后将跳转支付。';
     subtitle.style.cssText = 'margin:0 0 14px;font-size:13px;color:#6C757D;';
 
     const list = document.createElement('div');
@@ -79,23 +53,13 @@ function pickPaymentOption() {
     PAYMENT_OPTIONS.forEach((opt) => {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.innerHTML =
-        '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">' +
-          '<strong style="font-size:15px;color:#0A2540;">' + opt.title + '</strong>' +
-          '<span style="padding:2px 8px;border-radius:999px;font-size:12px;background:' + (opt.recommended ? '#DBEAFE' : '#EEF2FF') + ';color:' + (opt.recommended ? '#1D4ED8' : '#475569') + ';">' + (opt.tag || '') + '</span>' +
-        '</div>' +
-        '<div style="margin-top:4px;font-size:20px;font-weight:700;color:#111827;">\u00a5' + opt.fee + '</div>' +
-        '<div style="margin-top:2px;font-size:13px;color:#334155;">' + opt.subtitle + '</div>' +
-        '<div style="margin-top:3px;font-size:12px;color:#64748B;">' + (opt.description || '') + '</div>';
-
-      const baseBg = opt.recommended ? '#EFF6FF' : '#F8F9FA';
-      const baseBorder = opt.recommended ? '#93C5FD' : '#DEE2E6';
+      btn.textContent = `${opt.title} · ${opt.subtitle}`;
       btn.style.cssText = [
         'text-align:left',
         'padding:12px 14px',
         'border-radius:10px',
-        'border:1px solid ' + baseBorder,
-        'background:' + baseBg,
+        'border:1px solid #DEE2E6',
+        'background:#F8F9FA',
         'font-size:14px',
         'color:#1A1A1A',
         'cursor:pointer',
@@ -105,8 +69,8 @@ function pickPaymentOption() {
         btn.style.background = '#EFF6FF';
       });
       btn.addEventListener('mouseleave', () => {
-        btn.style.borderColor = baseBorder;
-        btn.style.background = baseBg;
+        btn.style.borderColor = '#DEE2E6';
+        btn.style.background = '#F8F9FA';
       });
       btn.addEventListener('click', () => {
         cleanup();
@@ -117,7 +81,7 @@ function pickPaymentOption() {
 
     const cancelBtn = document.createElement('button');
     cancelBtn.type = 'button';
-    cancelBtn.textContent = '\u53d6\u6d88';
+    cancelBtn.textContent = '取消';
     cancelBtn.style.cssText = [
       'margin-top:12px',
       'width:100%',
@@ -163,28 +127,8 @@ function pickPaymentOption() {
   });
 }
 
-function buildPricingSummaryHtml() {
-  const rows = PAYMENT_OPTIONS.map((opt) => {
-    const marker = opt.recommended ? '\u3010\u70ed\u95e8\u3011' : (opt.tag ? `\u3010${opt.tag}\u3011` : '');
-    return '<div style="display:flex;justify-content:space-between;gap:8px;"><span>' + marker + opt.title + '</span><strong>\u00a5' + opt.fee + '</strong></div>';
-  }).join('');
-  return [
-    '<div style="margin-bottom:12px;padding:10px 12px;border:1px solid #D1D5DB;border-radius:8px;background:#F8FAFC;font-size:13px;color:#334155;line-height:1.7;">',
-    '<div style="font-weight:600;color:#0F172A;margin-bottom:4px;">\u4ed8\u8d39\u8ba2\u9605\u65b9\u6848\uff08\u6d4b\u8bd5\u4ef7\u5747\u4e3a 0.01 \u5143\uff09</div>',
-    rows,
-    '</div>',
-  ].join('');
-}
-
-function mountPricingSummary(buttonId) {
-  const payButton = document.getElementById(buttonId);
-  if (!payButton || payButton.dataset.pricingMounted === '1') return;
-  const wrapper = document.createElement('div');
-  wrapper.innerHTML = buildPricingSummaryHtml();
-  payButton.parentNode.insertBefore(wrapper.firstElementChild, payButton);
-  payButton.dataset.pricingMounted = '1';
-}
-
+// ── 真太阳时计算 ──────────────────────────────────────────────────
+// 均时差（Spencer 公式），返回分钟数
 function equationOfTime(year, month, day) {
   const start = new Date(year, 0, 0);
   const now   = new Date(year, month - 1, day);
@@ -323,7 +267,6 @@ if (form) {
     if (!paidBtn.dataset.defaultText) {
       paidBtn.dataset.defaultText = paidBtn.textContent.trim();
     }
-    mountPricingSummary('paid-btn');
     paidBtn.addEventListener('click', async () => {
       // 验证表单
       const yearEl   = document.getElementById('year');
@@ -502,17 +445,16 @@ if (form) {
   const fullCacheKey = `bazi_full_${year}_${month}_${day}_${hour}_${gender}`;
   const cachedFull   = localStorage.getItem(fullCacheKey);
   const cached       = localStorage.getItem(cacheKey);
-  window.__baziCurrentFreeCacheKey = cacheKey;
 
   // 优先显示完整版缓存
   if (cachedFull) {
-    showAnalysis(cachedFull, true, { cacheKey: fullCacheKey });
+    showAnalysis(cachedFull, true);
   } else if (cached && !tradeNo) {
     // 如果有免费版缓存且不是支付回调，显示免费版
-    showAnalysis(cached, false, { cacheKey });
+    showAnalysis(cached);
   } else if (!isPaidMode && !tradeNo) {
     // 非付费模式且不是支付回调：自动触发分析（免费模式）
-    autoAnalyze({ year, month, day, hour, gender, birthplace }, bazi, daYunData, specialYears, cacheKey);
+    autoAnalyze({ year, month, day, hour, gender, birthplace }, bazi, daYunData, specialYears);
   } else if (isPaidMode) {
     // 付费模式：显示付费提示
     const locked = document.getElementById('analysis-locked');
@@ -525,7 +467,6 @@ if (form) {
     if (!payBtn.dataset.defaultText) {
       payBtn.dataset.defaultText = payBtn.textContent.trim();
     }
-    mountPricingSummary('pay-btn');
     payBtn.addEventListener('click', async () => {
       const selectedOption = await pickPaymentOption();
       if (!selectedOption) return;
@@ -571,16 +512,6 @@ async function startPayment(birthData, bazi, paymentOption) {
   };
 
   // 立即显示加载提示
-  let authUser = typeof window.getAuthUser === 'function' ? window.getAuthUser() : null;
-  if (typeof window.requireEmailLogin === 'function' && !authUser) {
-    const loginUser = await window.requireEmailLogin();
-    if (!loginUser) {
-      resetPayButtons();
-      return;
-    }
-    authUser = loginUser;
-  }
-
   const payPrompt = document.getElementById('pay-prompt');
   const lockedSection = document.getElementById('analysis-locked');
   const loadingSection = document.getElementById('analysis-loading');
@@ -666,7 +597,7 @@ async function startPayment(birthData, bazi, paymentOption) {
       },
       body: JSON.stringify({
         trade_no: tradeNo,
-        birth_input: { ...birthData, bazi_str: baziStr, auth_user_email: authUser?.email || '', auth_user_id: authUser?.id || '' },
+        birth_input: { ...birthData, bazi_str: baziStr },
         payment_option_id: chosenOption.id,
         payment_option_title: chosenOption.title,
         total_fee: chosenOption.fee,
@@ -730,7 +661,7 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
         // 保存到完整版缓存
         localStorage.setItem(fullCacheKey, order.analysis);
         localStorage.removeItem(PENDING_TRADE_KEY);
-        showAnalysis(order.analysis, true, { cacheKey: fullCacheKey }); // hidePay = true，隐藏付费提示
+        showAnalysis(order.analysis, true); // hidePay = true，隐藏付费提示
         return;
       }
 
@@ -800,216 +731,12 @@ function togglePaidOneTimeNotice(visible) {
   if (notice) notice.style.display = visible ? 'block' : 'none';
 }
 
-function removeFreeHalfUnlockCard() {
-  const card = document.getElementById('free-half-unlock-card');
-  if (card) card.remove();
-}
-
-function splitFreeAnalysisText(text) {
-  const normalized = String(text || '').trim();
-  if (!normalized) return { head: '', tail: '' };
-
-  const blocks = normalized
-    .split(/\n{2,}/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  if (blocks.length >= 4) {
-    const mid = Math.ceil(blocks.length / 2);
-    return {
-      head: blocks.slice(0, mid).join('\n\n'),
-      tail: blocks.slice(mid).join('\n\n'),
-    };
-  }
-
-  const cut = Math.max(120, Math.floor(normalized.length * 0.55));
-  return {
-    head: normalized.slice(0, cut).trim(),
-    tail: normalized.slice(cut).trim(),
-  };
-}
-
-function getCurrentFreeUnlockUserTag() {
-  const user = typeof window.getAuthUser === 'function' ? window.getAuthUser() : null;
-  return user?.id || user?.email || 'guest';
-}
-
-function getFreeUnlockStorageKey(cacheKey) {
-  const safeCacheKey = cacheKey || window.__baziCurrentFreeCacheKey || 'default';
-  return `${FREE_ANALYSIS_UNLOCK_KEY_PREFIX}${safeCacheKey}_${getCurrentFreeUnlockUserTag()}`;
-}
-
-function hasUnlockedFreeTail(cacheKey) {
-  try {
-    return localStorage.getItem(getFreeUnlockStorageKey(cacheKey)) === '1';
-  } catch {
-    return false;
-  }
-}
-
-function markUnlockedFreeTail(cacheKey) {
-  try {
-    localStorage.setItem(getFreeUnlockStorageKey(cacheKey), '1');
-  } catch {}
-}
-
-async function getCurrentUserPointsSafe() {
-  if (typeof window.getUserPointsAsync === 'function') {
-    try {
-      return Number(await window.getUserPointsAsync()) || 0;
-    } catch {}
-  }
-  if (typeof window.getUserPoints === 'function') {
-    return Number(window.getUserPoints()) || 0;
-  }
-  return 0;
-}
-
-async function renderFreeAnalysisWithPointsUnlock(fullText, cacheKey) {
-  const content = document.getElementById('analysis-content');
-  const analysisText = document.getElementById('analysis-text');
-  if (!content || !analysisText) return;
-
-  removeFreeHalfUnlockCard();
-  const resolvedCacheKey = cacheKey || window.__baziCurrentFreeCacheKey || 'default';
-  const parts = splitFreeAnalysisText(fullText);
-  const canSplit = parts.tail && parts.tail.length >= 80;
-  const unlocked = hasUnlockedFreeTail(resolvedCacheKey);
-
-  if (!canSplit || unlocked) {
-    analysisText.textContent = fullText + DISCLAIMER;
-    return;
-  }
-
-  analysisText.textContent =
-    parts.head + '\n\n—— 以下为后半部分内容，使用 50 积分可解锁完整免费解读 ——';
-
-  const card = document.createElement('div');
-  card.id = 'free-half-unlock-card';
-  card.style.cssText = [
-    'margin-top:14px',
-    'padding:14px',
-    'border:1px dashed #CBD5E1',
-    'border-radius:10px',
-    'background:#F8FAFC',
-  ].join(';');
-  card.innerHTML = `
-    <div style="font-size:14px;font-weight:700;color:#0F172A;margin-bottom:6px;">免费解读后半部分已锁定</div>
-    <div style="font-size:13px;color:#475569;line-height:1.7;margin-bottom:10px;">
-      首次登录赠送 50 积分。当前报告可使用 <strong>${FREE_ANALYSIS_UNLOCK_POINTS} 积分</strong>解锁后半部分内容。
-    </div>
-    <div id="free-half-points-hint" style="font-size:12px;color:#64748B;margin-bottom:10px;"></div>
-    <button id="free-half-unlock-btn" type="button" style="padding:10px 14px;border:none;border-radius:8px;background:#2563EB;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">
-      ${FREE_ANALYSIS_UNLOCK_POINTS} 积分解锁后半部分
-    </button>
-  `;
-  content.appendChild(card);
-
-  const hintEl = card.querySelector('#free-half-points-hint');
-  const unlockBtn = card.querySelector('#free-half-unlock-btn');
-
-  const refreshCardState = async () => {
-    const user = typeof window.getAuthUser === 'function' ? window.getAuthUser() : null;
-    if (!user) {
-      const welcome = Number(window.BAZI_WELCOME_POINTS) || 50;
-      hintEl.textContent = `登录后可领取 ${welcome} 积分，解锁本报告后半部分。`;
-      unlockBtn.textContent = `登录并用 ${FREE_ANALYSIS_UNLOCK_POINTS} 积分解锁`;
-      unlockBtn.disabled = false;
-      return;
-    }
-
-    const points = await getCurrentUserPointsSafe();
-    hintEl.textContent = `当前积分：${points}`;
-    unlockBtn.textContent = `${FREE_ANALYSIS_UNLOCK_POINTS} 积分解锁后半部分`;
-    unlockBtn.disabled = false;
-  };
-
-  unlockBtn.addEventListener('click', async () => {
-    unlockBtn.disabled = true;
-    const baseText = unlockBtn.textContent;
-    unlockBtn.textContent = '处理中...';
-    try {
-      let user = typeof window.getAuthUser === 'function' ? window.getAuthUser() : null;
-      if (!user && typeof window.requireEmailLogin === 'function') {
-        user = await window.requireEmailLogin();
-      }
-      if (!user) {
-        alert('请先登录后再解锁。');
-        return;
-      }
-
-      if (typeof window.ensureWelcomePoints === 'function') {
-        await window.ensureWelcomePoints();
-      }
-      const points = await getCurrentUserPointsSafe();
-      if (points < FREE_ANALYSIS_UNLOCK_POINTS) {
-        alert(`积分不足，当前仅 ${points} 积分，需要 ${FREE_ANALYSIS_UNLOCK_POINTS} 积分。`);
-        return;
-      }
-      if (typeof window.consumeUserPoints !== 'function') {
-        alert('积分服务暂不可用，请刷新后重试。');
-        return;
-      }
-
-      const result = await window.consumeUserPoints(
-        FREE_ANALYSIS_UNLOCK_POINTS,
-        'unlock_free_analysis_tail'
-      );
-      if (!result?.ok) {
-        if (result?.reason === 'insufficient') {
-          alert(result.message || '积分不足，暂时无法解锁。');
-        } else {
-          alert(result?.message || '积分扣除失败，请稍后重试。');
-        }
-        return;
-      }
-
-      markUnlockedFreeTail(resolvedCacheKey);
-      removeFreeHalfUnlockCard();
-      analysisText.textContent = fullText + DISCLAIMER;
-      lastFreeAnalysisPayload = null;
-      alert(`已解锁成功，剩余积分：${result.points}`);
-    } catch (err) {
-      alert(`解锁失败：${err?.message || err}`);
-    } finally {
-      if (unlockBtn.isConnected) {
-        unlockBtn.disabled = false;
-        unlockBtn.textContent = baseText;
-        await refreshCardState();
-      }
-    }
-  });
-
-  await refreshCardState();
-}
-
-if (!window.__baziFreeUnlockAuthListenerBound) {
-  window.__baziFreeUnlockAuthListenerBound = true;
-  window.addEventListener('bazi-auth-state', () => {
-    if (!lastFreeAnalysisPayload) return;
-    const content = document.getElementById('analysis-content');
-    if (!content || content.style.display !== 'block') return;
-    renderFreeAnalysisWithPointsUnlock(
-      lastFreeAnalysisPayload.text,
-      lastFreeAnalysisPayload.cacheKey
-    );
-  });
-}
-
-function showAnalysis(text, hidePay = false, options = {}) {
+function showAnalysis(text, hidePay = false) {
   document.getElementById('analysis-locked').style.display  = 'none';
   document.getElementById('analysis-loading').style.display = 'none';
   document.getElementById('analysis-content').style.display = 'block';
   togglePaidOneTimeNotice(Boolean(hidePay));
-  const resolvedCacheKey = options?.cacheKey || window.__baziCurrentFreeCacheKey || '';
-  if (hidePay) {
-    lastFreeAnalysisPayload = null;
-    removeFreeHalfUnlockCard();
-    document.getElementById('analysis-text').textContent = text + DISCLAIMER;
-  } else {
-    lastFreeAnalysisPayload = { text, cacheKey: resolvedCacheKey };
-    renderFreeAnalysisWithPointsUnlock(text, resolvedCacheKey);
-  }
+  document.getElementById('analysis-text').textContent = text + DISCLAIMER;
   const payPrompt = document.getElementById('pay-prompt');
   if (payPrompt) payPrompt.style.display = hidePay ? 'none' : 'block';
 }
@@ -1211,7 +938,7 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears) {
         .replace(/^\s*[-–—>]\s*/gm, '').replace(/由\s*DeepSeek\s*生成.*$/gis, '')
         .replace(/Powered by DeepSeek.*$/gis, '').replace(/\n{3,}/g, '\n\n').trim();
       localStorage.setItem(fullCacheKey, cleaned);
-      showAnalysis(cleaned, true, { cacheKey: fullCacheKey });
+      showAnalysis(cleaned, true);
     } else {
       if (loading) { loading.style.display = 'block'; loading.innerHTML = '<p>解读获取失败，请刷新重试</p>'; }
       if (content) content.style.display = 'none';
@@ -1222,7 +949,7 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears) {
 }
 
 // ── 免费自动分析 ───────────────────────────────────────────────────
-async function autoAnalyze(birthData, bazi, daYunData, specialYears, cacheKeyOverride = '') {
+async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
   const currentYear = new Date().getFullYear();
   const locked  = document.getElementById('analysis-locked');
   const loading = document.getElementById('analysis-loading');
@@ -1230,8 +957,7 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears, cacheKeyOve
   if (loading) loading.style.display = 'block';
 
   const baziStr = `${bazi.year.tg}${bazi.year.dz}年 ${bazi.month.tg}${bazi.month.dz}月 ${bazi.day.tg}${bazi.day.dz}日 ${bazi.hour.tg}${bazi.hour.dz}时`;
-  const cacheKey = cacheKeyOverride || `bazi_${birthData.year}_${birthData.month}_${birthData.day}_${birthData.hour}_${birthData.gender}`;
-  window.__baziCurrentFreeCacheKey = cacheKey;
+  const cacheKey = `bazi_${birthData.year}_${birthData.month}_${birthData.day}_${birthData.hour}_${birthData.gender}`;
 
   try {
     // 格式化大运文字
@@ -1273,7 +999,7 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears, cacheKeyOve
         .replace(/\n{3,}/g, '\n\n')
         .trim();
       localStorage.setItem(cacheKey, cleaned);
-      showAnalysis(cleaned, false, { cacheKey });
+      showAnalysis(cleaned);
     } else {
       if (loading) loading.innerHTML = '<p>解读获取失败，请刷新重试</p>';
     }
