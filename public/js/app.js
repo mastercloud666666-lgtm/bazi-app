@@ -633,6 +633,7 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
   const pollIntervalMs = 1000;
   const maxAttempts = 90; // 最长约 90 秒
   let paidSeenCount = 0;
+  let unpaidOrUnknownCount = 0;
   let streamFallbackTriggered = false;
 
   if (birthData && bazi && daYunData && specialYears) {
@@ -669,6 +670,16 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
         if (!streamFallbackTriggered && paidSeenCount >= 8 && resolvedBirthData && resolvedBazi && resolvedDaYunData && resolvedSpecialYears) {
           streamFallbackTriggered = true;
           document.getElementById('analysis-loading').innerHTML = '<p class="price-desc">\u5df2\u786e\u8ba4\u652f\u4ed8\uff0c\u6b63\u5728\u76f4\u63a5\u751f\u6210\u5b8c\u6574\u62a5\u544a\uff0c\u8bf7\u7a0d\u5019\u2026</p>' + PAID_ONE_TIME_NOTICE_HTML;
+          await fullAnalyze(resolvedBirthData, resolvedBazi, resolvedDaYunData, resolvedSpecialYears);
+          return;
+        }
+      }
+
+      if (!order?.analysis) {
+        unpaidOrUnknownCount += 1;
+        if (!streamFallbackTriggered && unpaidOrUnknownCount >= 20 && resolvedBirthData && resolvedBazi && resolvedDaYunData && resolvedSpecialYears) {
+          streamFallbackTriggered = true;
+          document.getElementById('analysis-loading').innerHTML = '<p class="price-desc">\u652f\u4ed8\u72b6\u6001\u786e\u8ba4\u8f83\u6162\uff0c\u6b63\u5728\u5148\u4e3a\u60a8\u751f\u6210\u5b8c\u6574\u62a5\u544a\uff0c\u8bf7\u7a0d\u5019\u2026</p>' + PAID_ONE_TIME_NOTICE_HTML;
           await fullAnalyze(resolvedBirthData, resolvedBazi, resolvedDaYunData, resolvedSpecialYears);
           return;
         }
