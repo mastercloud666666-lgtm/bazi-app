@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>客服核单台</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --line: #dbe3ef;
+      --text: #0f172a;
+      --muted: #64748b;
+      --ok: #0f9d58;
+      --warn: #d97706;
+      --bad: #dc2626;
+      --brand: #1d4ed8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      color: #0b2a50;
+    }
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      align-items: center;
+    }
+    input, select, button {
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+    }
+    input, select {
+      padding: 0 12px;
+      background: #fff;
+      color: var(--text);
+    }
+    button {
+      padding: 0 14px;
+      cursor: pointer;
+      background: #fff;
+      color: #0b2a50;
+    }
+    button.primary {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
+      font-weight: 600;
+    }
+    button.warn {
+      background: #fff7ed;
+      border-color: #fed7aa;
+      color: #9a3412;
+    }
+    .status-bar {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      white-space: pre-wrap;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      margin-top: 10px;
+      background: #fff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }
+    th, td {
+      border-bottom: 1px solid #edf2f7;
+      text-align: left;
+      padding: 10px 10px;
+      font-size: 13px;
+      vertical-align: top;
+    }
+    th {
+      background: #f8fafc;
+      color: #1e293b;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      line-height: 18px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .tag.ok { background: #ecfdf3; color: #166534; border-color: #bbf7d0; }
+    .tag.warn { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+    .tag.bad { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+    .tiny {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>客服核单台</h1>
+      <div class="muted">用于核对“是否真实支付”与“是否已生成报告”。仅以后端订单与支付网关结果为准，不以用户截图为准。</div>
+      <div class="row">
+        <input id="tradeNoInput" type="text" style="min-width:320px;flex:1;" placeholder="输入 trade_no，例如 bazi-xxxx-177..." />
+        <button class="warn" id="verifyOneBtn">核验支付并补触发报告</button>
+        <button id="copyOneBtn">复制订单号</button>
+      </div>
+      <div class="row">
+        <select id="limitSelect">
+          <option value="20">最近 20 单</option>
+          <option value="50" selected>最近 50 单</option>
+          <option value="100">最近 100 单</option>
+        </select>
+        <button class="primary" id="refreshBtn">刷新订单列表</button>
+      </div>
+      <div id="statusBar" class="status-bar">等待操作…</div>
+    </div>
+
+    <div class="card">
+      <div class="muted">处理建议：未支付=引导继续支付；已支付未出报告=点击“核验支付并补触发报告”；已支付已出报告=发“继续上次订单”。</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>创建时间</th>
+              <th>订单号</th>
+              <th>档位/金额</th>
+              <th>支付</th>
+              <th>报告</th>
+              <th>客户信息</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="orderTbody">
+            <tr><td colspan="7" class="tiny">暂无数据</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://rcyssrsnalefzhzsvswm.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
+    const REST_HEADERS = {
+      apikey: SUPABASE_ANON,
+      Authorization: `Bearer ${SUPABASE_ANON}`,
+      'Content-Type': 'application/json',
+    };
+
+    const tradeNoInput = document.getElementById('tradeNoInput');
+    const verifyOneBtn = document.getElementById('verifyOneBtn');
+    const copyOneBtn = document.getElementById('copyOneBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const limitSelect = document.getElementById('limitSelect');
+    const statusBar = document.getElementById('statusBar');
+    const orderTbody = document.getElementById('orderTbody');
+
+    function setStatus(msg) {
+      statusBar.textContent = msg;
+    }
+
+    function safeJSON(raw) {
+      if (!raw) return {};
+      try { return JSON.parse(raw); } catch (_) { return {}; }
+    }
+
+    function toLocalTime(ts) {
+      if (!ts) return '-';
+      const d = new Date(ts);
+      if (Number.isNaN(d.getTime())) return '-';
+      return d.toLocaleString('zh-CN', { hour12: false });
+    }
+
+    function statusTag(paid, hasAnalysis) {
+      if (paid && hasAnalysis) return '<span class="tag ok">已支付已出报告</span>';
+      if (paid && !hasAnalysis) return '<span class="tag warn">已支付待生成</span>';
+      return '<span class="tag bad">未支付</span>';
+    }
+
+    async function loadOrders() {
+      const limit = Number(limitSelect.value || 50);
+      setStatus('正在拉取订单列表…');
+      const url = `${SUPABASE_URL}/rest/v1/orders?select=trade_no,paid,analysis,created_at,birth_input&order=created_at.desc&limit=${limit}`;
+      const res = await fetch(url, { headers: REST_HEADERS });
+      if (!res.ok) {
+        throw new Error(`拉取失败 HTTP ${res.status}`);
+      }
+      const rows = await res.json();
+      renderRows(Array.isArray(rows) ? rows : []);
+      setStatus(`已加载 ${Array.isArray(rows) ? rows.length : 0} 条订单`);
+    }
+
+    function renderRows(rows) {
+      if (!rows.length) {
+        orderTbody.innerHTML = '<tr><td colspan="7" class="tiny">暂无数据</td></tr>';
+        return;
+      }
+
+      orderTbody.innerHTML = rows.map((row) => {
+        const birth = safeJSON(row.birth_input);
+        const option = birth.payment_option || {};
+        const tier = option.id || '-';
+        const fee = option.fee ? `¥${option.fee}` : '-';
+        const hasAnalysis = !!String(row.analysis || '').trim();
+        const customer = `${birth.year || '-'}-${birth.month || '-'}-${birth.day || '-'} ${birth.hour || '-'}时 / ${birth.gender || '-'}`;
+        return `
+          <tr>
+            <td>${toLocalTime(row.created_at)}</td>
+            <td><code>${row.trade_no || '-'}</code></td>
+            <td>${tier} / ${fee}</td>
+            <td>${row.paid ? '<span class="tag ok">已支付</span>' : '<span class="tag bad">未支付</span>'}</td>
+            <td>${hasAnalysis ? '<span class="tag ok">已生成</span>' : '<span class="tag warn">未生成</span>'}</td>
+            <td class="tiny">${customer}</td>
+            <td>
+              ${statusTag(!!row.paid, hasAnalysis)}
+              <div class="row" style="margin-top:8px;">
+                <button data-trade="${row.trade_no || ''}" class="verify-row-btn">核验+补触发</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      document.querySelectorAll('.verify-row-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const tradeNo = btn.getAttribute('data-trade') || '';
+          if (!tradeNo) return;
+          tradeNoInput.value = tradeNo;
+          await verifyAndReconcile(tradeNo);
+          await loadOrders();
+        });
+      });
+    }
+
+    async function verifyAndReconcile(tradeNo) {
+      const t = String(tradeNo || '').trim();
+      if (!t) {
+        setStatus('请先输入订单号 trade_no');
+        return;
+      }
+      setStatus(`正在核验订单：${t}`);
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/reconcile-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_ANON}`,
+        },
+        body: JSON.stringify({ trade_no: t }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(`核验失败 HTTP ${res.status} ${data?.error || ''}`);
+      }
+
+      const paid = !!data.paid || data.status === 'OD';
+      const analysisExists = !!data.analysis_exists;
+      const analysisTriggered = !!data.analysis_triggered;
+      const lines = [
+        `订单：${t}`,
+        `支付状态：${paid ? '已支付' : `未支付(${data.status || 'unknown'})`}`,
+        `报告状态：${analysisExists ? '已存在' : '未存在'}`,
+        `补触发生成：${analysisTriggered ? '已触发' : '未触发'}`,
+      ];
+      if (!paid) {
+        lines.push('处理建议：该单未到账，请引导客户完成支付。');
+      } else if (paid && !analysisExists) {
+        lines.push('处理建议：已到账未出报告，系统已尝试补触发，请稍后再点一次核验。');
+      } else {
+        lines.push('处理建议：已到账且已有报告，可引导客户“继续上次订单”查看。');
+      }
+      setStatus(lines.join('\n'));
+    }
+
+    verifyOneBtn.addEventListener('click', async () => {
+      try {
+        await verifyAndReconcile(tradeNoInput.value);
+        await loadOrders();
+      } catch (err) {
+        setStatus(`核验失败：${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    copyOneBtn.addEventListener('click', async () => {
+      const v = String(tradeNoInput.value || '').trim();
+      if (!v) {
+        setStatus('当前没有可复制的订单号');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(v);
+        setStatus(`已复制订单号：${v}`);
+      } catch {
+        setStatus('复制失败，请手动复制');
+      }
+    });
+
+    refreshBtn.addEventListener('click', async () => {
+      try {
+        await loadOrders();
+      } catch (err) {
+        setStatus(`加载失败：${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    (async () => {
+      try {
+        await loadOrders();
+      } catch (err) {
+        setStatus(`初始化失败：${err instanceof Error ? err.message : String(err)}`);
+      }
+    })();
+  </script>
+</body>
+</html>
