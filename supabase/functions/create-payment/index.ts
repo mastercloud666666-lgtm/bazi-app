@@ -216,7 +216,7 @@ Deno.serve(async (req) => {
       title: optionConfig.title,
       time: Math.floor(Date.now() / 1000),
       notify_url: `${supabaseUrl}/functions/v1/payment-callback`,
-      return_url: `${returnOrigin}/payment-success.html?trade_no=${encodeURIComponent(trade_no)}#trade_no=${encodeURIComponent(trade_no)}`,
+      return_url: `${returnOrigin}/result.html?trade_no=${encodeURIComponent(trade_no)}&paid=true`,
       nonce_str: nonceStr,
     };
 

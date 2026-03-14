@@ -4,7 +4,7 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v10-mobile-payment-fallback';
+const APP_BUILD = '20260314-grid-v11-mobile-pay-return';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -952,6 +952,28 @@ async function startPayment(birthData, bazi, paymentOption) {
       // 跳转到支付页面
       const payUrl = result.url || result.url_qrcode;
       console.log('跳转到支付页面:', payUrl);
+
+      const ua = navigator.userAgent || '';
+      const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+      if (isMobile && loadingSection) {
+        const safeUrl = String(payUrl || '').replace(/"/g, '&quot;');
+        loadingSection.innerHTML = `
+          <p class="price-desc">请点击下方按钮完成支付，支付后再返回查看报告。</p>
+          <div style="margin-top:14px;display:grid;gap:10px;">
+            <a href="${safeUrl}" target="_blank" rel="noopener" style="display:inline-block;padding:12px 14px;background:#2563eb;color:#fff;border-radius:8px;text-align:center;text-decoration:none;font-weight:600;">去支付</a>
+            <button id="mobile-paid-back-btn" type="button" style="padding:12px 14px;background:#111827;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">我已完成支付，查看报告</button>
+          </div>
+          <p style="margin-top:10px;color:#6b7280;font-size:13px;">若支付页关闭，请点击“我已完成支付，查看报告”。</p>
+        `;
+        const doneBtn = document.getElementById('mobile-paid-back-btn');
+        if (doneBtn) {
+          doneBtn.addEventListener('click', () => {
+            window.location.href = `result.html?trade_no=${encodeURIComponent(tradeNo)}&paid=true`;
+          });
+        }
+        return;
+      }
+
       window.location.href = payUrl;
     } else {
       console.error('支付API错误:', result.errmsg);
