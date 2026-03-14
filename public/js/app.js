@@ -4,7 +4,7 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v24-kefu-home-result';
+const APP_BUILD = '20260314-grid-v25-pay-disclaimer';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -23,6 +23,8 @@ const PENDING_PAYMENT_OPTION_COOKIE = 'bazi_pending_payment_option_id';
 const CUSTOMER_SERVICE_IMAGE = 'images/kefu-wechat.png';
 const CUSTOMER_SERVICE_TITLE = '微信客服';
 const CUSTOMER_SERVICE_SUBTITLE = '长按识别二维码添加客服';
+const PAYMENT_NON_REFUND_NOTICE = '免责条款：命理分析为虚拟服务，支付完成后不支持退款，请确认后再付款。';
+const WECHAT_PAYMENT_CLOSE_NOTICE = '微信浏览器支付完成后，当前页面可能会自动关闭。请重新打开首页点击“继续上次订单”，或选择微信外浏览器完成支付。';
 
 function safeGetLocalStorage(key) {
   try {
@@ -376,14 +378,18 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl) {
   const isWeChat = isWeChatBrowser();
   const debugAnchorHtml = shouldShowPaymentDebug() ? '<div id="mobile-payment-debug-anchor"></div>' : '';
   const panelHtml = `
-    <p class="price-desc">${isWeChat ? '微信内直接打开支付页可能会被系统关闭，建议先复制链接到系统浏览器支付。' : '手机支付请在新窗口完成，当前页面将保留用于继续查看报告。'}</p>
+    <p class="price-desc">${isWeChat ? '微信内支付建议优先使用“复制链接并去浏览器支付”，避免支付后页面被关闭。' : '手机支付请在新窗口完成，当前页面将保留用于继续查看报告。'}</p>
+    <div style="margin-top:8px;padding:10px 12px;border-radius:8px;border:1px solid #fecaca;background:#fef2f2;color:#b91c1c;font-size:13px;line-height:1.6;">
+      <div style="font-weight:700;">${PAYMENT_NON_REFUND_NOTICE}</div>
+      <div style="margin-top:4px;">${WECHAT_PAYMENT_CLOSE_NOTICE}</div>
+    </div>
     <div style="margin-top:12px;display:grid;gap:10px;">
       <button id="mobile-open-pay-btn" type="button" style="padding:12px 14px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">${isWeChat ? '复制链接并去浏览器支付（推荐）' : '打开支付页面'}</button>
       <button id="mobile-copy-pay-btn" type="button" style="padding:12px 14px;background:#fff;color:#1f2937;border:1px solid #d1d5db;border-radius:8px;font-weight:600;cursor:pointer;">复制支付链接</button>
       ${isWeChat ? '<button id="mobile-open-pay-risk-btn" type="button" style="padding:12px 14px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">仍在微信内打开（可能关闭）</button>' : ''}
       <button id="mobile-paid-back-btn" type="button" style="padding:12px 14px;background:#111827;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">我已完成支付，查看报告</button>
     </div>
-    <p style="margin-top:10px;color:#6b7280;font-size:13px;">若支付后页面被微信关闭，请重新打开首页并继续恢复订单。</p>
+    <p style="margin-top:10px;color:#6b7280;font-size:13px;">若支付后页面被微信关闭，请重新打开首页后点击“继续上次订单”。</p>
     ${debugAnchorHtml}
   `;
 
@@ -500,6 +506,22 @@ function pickPaymentOption() {
     subtitle.textContent = '已准备好你的生辰信息，选择后将跳转支付。';
     subtitle.style.cssText = 'margin:0 0 14px;font-size:13px;color:#6C757D;';
 
+    const notice = document.createElement('div');
+    notice.style.cssText = [
+      'margin:0 0 14px',
+      'padding:10px 12px',
+      'border-radius:10px',
+      'border:1px solid #fecaca',
+      'background:#fef2f2',
+      'color:#b91c1c',
+      'font-size:13px',
+      'line-height:1.6',
+    ].join(';');
+    notice.innerHTML = `
+      <div style="font-weight:700;">${PAYMENT_NON_REFUND_NOTICE}</div>
+      <div style="margin-top:4px;">${WECHAT_PAYMENT_CLOSE_NOTICE}</div>
+    `;
+
     const list = document.createElement('div');
     list.style.cssText = 'display:grid;gap:10px;';
 
@@ -573,6 +595,7 @@ function pickPaymentOption() {
     document.addEventListener('keydown', onEsc);
     card.appendChild(title);
     card.appendChild(subtitle);
+    card.appendChild(notice);
     card.appendChild(list);
     card.appendChild(cancelBtn);
     overlay.appendChild(card);
