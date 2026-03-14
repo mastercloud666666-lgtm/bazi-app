@@ -5,7 +5,7 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
 const PENDING_BIRTH_INPUT_KEY = 'bazi_pending_birth_input';
-const APP_BUILD = '20260314-grid-v28-trade-recover-fix';
+const APP_BUILD = '20260314-grid-v29-free-style-fix';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -2098,55 +2098,113 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext
   }
 }
 
-function buildLocalFreeAnalysis(birthData, bazi, daYunData, specialYears, reason = '') {
+function buildLocalFreeAnalysis(birthData, bazi, daYunData, specialYears, _reason = '') {
   const now = new Date().getFullYear();
   const dayStem = bazi?.day?.tg || '';
-  const pillars = [
-    `${bazi?.year?.tg || ''}${bazi?.year?.dz || ''}`,
-    `${bazi?.month?.tg || ''}${bazi?.month?.dz || ''}`,
-    `${bazi?.day?.tg || ''}${bazi?.day?.dz || ''}`,
-    `${bazi?.hour?.tg || ''}${bazi?.hour?.dz || ''}`,
-  ].filter(Boolean);
+  const dayBranch = bazi?.day?.dz || '';
+  const monthStem = bazi?.month?.tg || '';
+  const monthBranch = bazi?.month?.dz || '';
 
-  const counts = ['木', '火', '土', '金', '水'].map((wx) => ({
-    wx,
-    count: Number(bazi?.wuxing?.[wx] || 0),
-  }));
-  const sorted = [...counts].sort((a, b) => b.count - a.count);
-  const maxCount = sorted[0]?.count || 0;
-  const minCount = sorted[sorted.length - 1]?.count || 0;
-  const strong = sorted.filter((x) => x.count === maxCount && x.count > 0).map((x) => x.wx);
-  const weak = sorted.filter((x) => x.count === minCount).map((x) => x.wx);
-  const balance = maxCount - minCount >= 3 ? '五行偏重较明显'
-    : maxCount - minCount >= 2 ? '五行略有偏重'
-    : '五行相对均衡';
+  const dayElement = STEM_ELEMENT_INDEX[dayStem];
+  const producerElement = dayElement === undefined ? undefined : (dayElement + 4) % 5;
+  const controllerElement = dayElement === undefined ? undefined : (dayElement + 3) % 5;
+  const leakElement = dayElement === undefined ? undefined : (dayElement + 1) % 5;
+  const monthElement = BRANCH_ELEMENT_INDEX[monthBranch];
 
-  const yearGod = dayStem ? getTenGod(dayStem, bazi?.year?.tg) : '--';
-  const monthGod = dayStem ? getTenGod(dayStem, bazi?.month?.tg) : '--';
-  const hourGod = dayStem ? getTenGod(dayStem, bazi?.hour?.tg) : '--';
+  let strengthScore = 0;
+  if (dayElement !== undefined && monthElement !== undefined) {
+    if (monthElement === dayElement) strengthScore += 2;
+    else if (monthElement === producerElement) strengthScore += 2;
+    else if (monthElement === controllerElement) strengthScore -= 2;
+    else if (monthElement === leakElement) strengthScore -= 1;
+  }
+
+  const stemSupports = [bazi?.year?.tg, bazi?.month?.tg, bazi?.hour?.tg].filter(Boolean);
+  stemSupports.forEach((tg) => {
+    const e = STEM_ELEMENT_INDEX[tg];
+    if (e === undefined || dayElement === undefined) return;
+    if (e === dayElement || e === producerElement) strengthScore += 1;
+    if (e === controllerElement) strengthScore -= 1;
+  });
+
+  const branchRoots = [bazi?.year?.dz, bazi?.month?.dz, bazi?.day?.dz, bazi?.hour?.dz].filter(Boolean);
+  branchRoots.forEach((dz) => {
+    const hidden = HIDDEN_STEMS_MAP[dz] || [];
+    if (!hidden.length || dayElement === undefined) return;
+    if (hidden.includes(dayStem)) {
+      strengthScore += 2;
+      return;
+    }
+    if (hidden.some((tg) => STEM_ELEMENT_INDEX[tg] === dayElement || STEM_ELEMENT_INDEX[tg] === producerElement)) {
+      strengthScore += 1;
+    }
+  });
+
+  let strengthLabel = '中和';
+  if (strengthScore >= 6) strengthLabel = '身强';
+  else if (strengthScore >= 3) strengthLabel = '偏强';
+  else if (strengthScore <= -4) strengthLabel = '身弱';
+  else if (strengthScore <= -1) strengthLabel = '偏弱';
+
+  const monthGod = dayStem && monthStem ? getTenGod(dayStem, monthStem) : '--';
+  const patternNameMap = {
+    比肩: '比劫格', 劫财: '比劫格',
+    食神: '食神格', 伤官: '伤官格',
+    正财: '财格', 偏财: '财格',
+    正官: '官格', 七杀: '杀格',
+    正印: '印格', 偏印: '印格',
+  };
+  const patternName = patternNameMap[monthGod] || `${monthGod}主事`;
+
+  const dayStemProfileMap = {
+    甲: { core: '外在直接、有担当，内里重原则与成长，做事讲方向感。', adv: '执行果断、抗压和扛事能力强', risk: '容易过度硬扛，忽略节奏与协作' },
+    乙: { core: '心思细腻、适应力强，重关系与长期价值，善于迂回达成目标。', adv: '沟通柔韧、持续推进能力好', risk: '关键时刻易犹豫，决断偏慢' },
+    丙: { core: '表达外放、目标明确，喜欢掌控局面，做事讲效率和影响力。', adv: '号召力强、行动速度快', risk: '情绪上头时容易激进判断' },
+    丁: { core: '观察细致、感知敏锐，擅长深度思考，注重品质与分寸。', adv: '洞察力强、判断细节准', risk: '容易内耗，担心过多影响执行' },
+    戊: { core: '稳定务实、责任感重，重底层安全和可持续，做事偏长期主义。', adv: '抗风险能力强、稳扎稳打', risk: '在变化窗口中反应偏慢' },
+    己: { core: '谨慎周全、重秩序和边界，善于统筹资源，注重现实收益。', adv: '规划能力强、落地性高', risk: '保守倾向明显，错失高弹性机会' },
+    庚: { core: '逻辑直接、标准清晰，重结果与效率，遇事不拖泥带水。', adv: '决断力强、执行穿透力高', risk: '说话做事偏硬，易引发对立' },
+    辛: { core: '审美与标准高，重精度与品质，擅长在复杂信息中抓关键。', adv: '专业度高、细节控制强', risk: '完美主义导致推进延迟' },
+    壬: { core: '思路开阔、适应变化快，擅长整合资源与跨界协同。', adv: '机会嗅觉强、应变能力高', risk: '目标分散时易耗损主线' },
+    癸: { core: '感知深、同理心强，擅长幕后判断与节奏拿捏，做事稳中求进。', adv: '风险识别能力强、稳定性好', risk: '容易想太多，行动延后' },
+  };
+  const dayProfile = dayStemProfileMap[dayStem] || { core: '性格主轴偏理性稳健，重结果与长期。', adv: '执行稳定', risk: '关键窗口决断偏慢' };
+
+  const patternProfileMap = {
+    比肩: '格局偏自主竞争型，做决策更依赖自我判断，适合有主导权的路径。',
+    劫财: '格局偏外部资源驱动，机会来自人脉与协同，利项目推进但需防冲动决策。',
+    食神: '格局偏输出与创造，适合内容、产品、专业服务类赛道，重长期口碑。',
+    伤官: '格局偏表达与突破，创新能力强，适合高变化环境，但要控制节奏。',
+    正财: '格局偏稳健经营，重现金流与确定性，适合长期积累型发展路线。',
+    偏财: '格局偏机会捕捉，适合市场前线和资源整合，需严格控制风险敞口。',
+    正官: '格局偏规则与责任，适合制度型组织和管理岗位，重信誉与稳定进阶。',
+    七杀: '格局偏压力与竞争场，适合攻坚突破型岗位，宜以纪律换效率。',
+    正印: '格局偏学习与系统能力，适合研究、顾问、战略型路线，重体系建设。',
+    偏印: '格局偏洞察和独立思考，适合专业深耕与复杂问题拆解场景。',
+  };
+  const patternProfile = patternProfileMap[monthGod] || '格局信息显示你更适合“先判断趋势，再做动作”的策略型路径。';
 
   const dayuns = Array.isArray(daYunData?.dayuns) ? daYunData.dayuns : [];
   const currentDayun = dayuns.find((d) => now >= d.yearStart && now < d.yearStart + 10) || dayuns[0] || null;
   const nextDayun = dayuns.find((d) => d.yearStart > now) || null;
+  const dayunHint = currentDayun
+    ? `当前大运为「${currentDayun.gz}」（${currentDayun.yearStart}年起）${nextDayun ? `，下一步为「${nextDayun.gz}」（约${nextDayun.yearStart}年）` : ''}`
+    : '当前处于大运切换观察期，宜稳中求进。';
 
-  const nearbySpecial = (specialYears || [])
-    .filter((s) => s.year >= now && s.year <= now + 3)
-    .slice(0, 2);
-  const specialText = nearbySpecial.length
-    ? nearbySpecial.map((s) => `${s.year}年${s.gz}：${(s.reasons || []).slice(0, 2).join('；')}`).join('；')
-    : '近三年无明显天克地冲，按既定节奏稳步推进更有利。';
+  const nearbySpecial = (specialYears || []).filter((s) => s.year >= now && s.year <= now + 2).slice(0, 1);
+  const specialHint = nearbySpecial.length
+    ? `${nearbySpecial[0].year}年${nearbySpecial[0].gz}需重点关注节奏变化，重大事项建议分步推进。`
+    : '近两年节奏总体可控，关键在于先定优先级再行动。';
 
   const lines = [
-    '【免费基础解读】',
-    '当前网络不稳定，已自动切换为基础版解读，核心命盘信息完整可用。',
-    `1. 命盘结构：四柱为 ${pillars.join(' / ')}，日主为 ${bazi?.day?.tg || '--'}。`,
-    `2. 十神概览：年干${yearGod}、月干${monthGod}、时干${hourGod}，建议优先参考月柱与日柱作为主判断。`,
-    `3. 五行状态：${balance}；偏旺：${strong.length ? strong.join('、') : '无明显偏旺'}；相对偏弱：${weak.length ? weak.join('、') : '无明显偏弱'}。`,
-    `4. 大运节奏：${currentDayun ? `当前约在「${currentDayun.gz}」运（${currentDayun.yearStart}年起）` : '当前大运信息读取中'}${nextDayun ? `，下一步「${nextDayun.gz}」运（约${nextDayun.yearStart}年）` : ''}。`,
-    `5. 近年提醒：${specialText}`,
-    '6. 行动建议：先做稳健决策、再做扩张决策；重大事项尽量避开情绪波动期，分阶段推进成功率更高。',
-    reason ? `（网络详情：${String(reason).slice(0, 80)}）` : '',
-  ].filter(Boolean);
+    '【免费基础解读（格局与日柱）】',
+    `1. 日柱与格局结论：你是${dayStem}${dayBranch}日柱，${strengthLabel}，命局以${patternName}为主。`,
+    `2. 命主性格（按日柱）：${dayProfile.core}`,
+    `3. 格局性格（按月令）：${patternProfile}`,
+    `4. 优势与短板：你的优势在于${dayProfile.adv}；需要特别注意${dayProfile.risk}。`,
+    `5. 决策参考：${dayunHint}。${specialHint}`,
+    '6. 行动建议：重大决策按“信息核验-小步试错-再加仓”三步走，避免情绪化拍板。',
+  ];
 
   return lines.join('\n');
 }
@@ -2172,26 +2230,40 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
       ? specialYears.map(s => `${s.year}年${s.gz}（${s.year < currentYear ? '已过' : s.year === currentYear ? '今年' : '未来'}）：${s.reasons.join('；')}`).join('\n')
       : '一生中无明显天克地冲或岁运并临年份';
 
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON}`,
-      },
-      body: JSON.stringify({
-        year: birthData.year, month: birthData.month,
-        day: birthData.day, hour: birthData.hour,
-        gender: birthData.gender,
-        birthplace: birthData.birthplace || '',
-        bazi_str: baziStr,
-        dayun_text: dayunText,
-        special_years_text: specialText,
-        start_age: daYunData.startAge,
-        free_only: true,
-      }),
-    });
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
+    const payload = {
+      year: birthData.year, month: birthData.month,
+      day: birthData.day, hour: birthData.hour,
+      gender: birthData.gender,
+      birthplace: birthData.birthplace || '',
+      bazi_str: baziStr,
+      dayun_text: dayunText,
+      special_years_text: specialText,
+      start_age: daYunData.startAge,
+      free_only: true,
+    };
+
+    let lastErr = null;
+    let res = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        res = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_ANON}`,
+          },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) break;
+        lastErr = new Error(`HTTP ${res.status}`);
+      } catch (err) {
+        lastErr = err;
+      }
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 1200));
+    }
+
+    if (!res || !res.ok) {
+      throw lastErr || new Error('free_analyze_failed');
     }
     const data = await res.json();
     if (data.analysis) {
