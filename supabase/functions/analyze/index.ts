@@ -194,65 +194,70 @@ Deno.serve(async (req) => {
       const currentYear = new Date().getFullYear();
 
       if (free_only) {
-        const hasSpecial = special_years_text && special_years_text !== '一生中无明显天克地冲或岁运并临年份';
-        prompt = `客户${gender}命，八字：${bazi_str}，当前年份：${currentYear}年。
+        prompt = `Client birth info: ${year}-${month}-${day} ${hour}:00, gender: ${gender}, bazi: ${bazi_str}, current year: ${currentYear}.
 
-第一部分：性格分析（结合格局的深度解读）
+Precomputed data:
+Start age: ${start_age}
+Dayun: ${dayun_text}
+Special years: ${special_years_text}
 
-请按以下步骤分析，用口语，用"你"称呼对方：
+Use the exact same core logic as the full paid report (same 15-section framework), but FREE version must output only section 1 and section 2.
+Section 1: Day Master strength (month command, root support, stem support, combinations/clashes, final strength judgment).
+Section 2: Pattern judgment + personality baseline (pattern type, core temperament, key blind spot).
 
-第一步：先判断日主强弱和格局。看月令是否得令，地支是否有根，天干是否得助，同时注意天干五合（甲己合土、乙庚合金、丙辛合水、丁壬合木、戊癸合火）是否影响日主力量，地支六冲是否冲去日主之根。再判断是普通格局（食神/伤官/正财/偏财/正官/七杀/正印/偏印格）还是特殊格局（从财/从杀/从儿/专旺/化气格等）。用一句话把结论说出来，例如"你是甲木日主，月令亥水生扶，身强，正官格"或"你是丙火日主，全局一片水，从杀格"。
-
-第二步：根据确定的格局和强弱，说出3-4个具体的性格特点。每个特点要结合格局说明——不同格局的人性格完全不同：正官格的人守规矩但压抑，七杀格的人有冲劲但急躁，食神格的人享受生活但懒散，从格的人往往有极端个性。每个特点说清楚在工作、感情、人际中的具体表现。
-
-第三步：说一个这个命局格局特有的性格短板，以及这个短板在哪些具体情况下容易惹麻烦或错失机会。
-
-${hasSpecial ? `第二部分：特殊流年提醒
-以下年份存在天克地冲或岁运并临，请逐年分析：
-${special_years_text}
-
-对每个年份：先说是哪种类型，再结合日主五行和格局说这一年容易在哪些方面变动（感情、工作、健康、财务、家庭），给1-2条实际建议。已过的年份简短提一句，今年和未来重点说。` : ''}
-
-不写诗，不引用古文，不写标题符号，直接从第一部分开始，说完就结束。`;
+Requirements:
+- Each section must include: conclusion + reason + practical advice.
+- Chinese output only, plain text only, no markdown, no poetry.
+- The first sentence must clearly state the tier name.
+- Total length: 500-900 Chinese characters.
+- Do NOT output section 3 or later.`;
       } else {
       const nextFiveYears = Array.from({length: 5}, (_, i) => currentYear + i).join('、') + '年';
       const paidTier = resolvedPaymentOptionId || 'basic';
 
       if (paidTier === 'basic') {
-        prompt = `客户生辰：${year}年${month}月${day}日${hour}时，${gender}命，八字：${bazi_str}，当前年份：${currentYear}年。
+        prompt = `Client birth info: ${year}-${month}-${day} ${hour}:00, gender: ${gender}, bazi: ${bazi_str}, current year: ${currentYear}.
 
-起运年龄：${start_age}岁
-大运排列：${dayun_text}
-特殊流年：${special_years_text}
+Precomputed data:
+Start age: ${start_age}
+Dayun: ${dayun_text}
+Special years: ${special_years_text}
 
-这是【入门版三大核心解读】。请严格只输出三段内容，每段单独起一行，使用“第1段：/第2段：/第3段：”格式，不要输出第4段及以后内容：
+This is BASIC tier. Keep the exact same framework as full report, but output only section 1 to section 3:
+Section 1: Day Master strength
+Section 2: Pattern judgment + personality baseline
+Section 3: Useful elements (yong shen) + decision advice
 
-第1段：性格底盘定位。简明说清日主强弱、格局倾向、主要优势和短板，告诉客户“你最像什么类型的人”。
-
-第2段：近期机会窗口。重点看未来12个月在事业/财务上的机会与风险，明确“该主动做什么、暂缓什么”。
-
-第3段：情感关系方向。说明感情推进节奏、沟通雷区、可执行改善动作（至少3条）。
-
-要求：口语化、实操导向、不要写诗和古文，不要使用Markdown，全文约1000-1400字。第一句必须写“本次为入门版三项解读”。`;
+Requirements:
+- Chinese output only, plain text only, no markdown, no poetry.
+- Each section must include: conclusion + reason + practical advice.
+- Total length: 1000-1400 Chinese characters.
+- The first sentence must clearly state the tier name.
+- Do NOT output section 4 or later.`;
       } else if (paidTier === 'pro') {
-        prompt = `客户生辰：${year}年${month}月${day}日${hour}时，${gender}命，八字：${bazi_str}，当前年份：${currentYear}年。
+        prompt = `Client birth info: ${year}-${month}-${day} ${hour}:00, gender: ${gender}, bazi: ${bazi_str}, current year: ${currentYear}.
 
-起运年龄：${start_age}岁
-大运排列：${dayun_text}
-特殊流年：${special_years_text}
+Precomputed data:
+Start age: ${start_age}
+Dayun: ${dayun_text}
+Special years: ${special_years_text}
 
-这是【进阶版八大维度深析】。请严格只输出八段内容，每段单独起一行，使用“第1段：...第8段：”格式，不要输出第9段及以后内容：
+This is PRO tier. Keep the exact same framework as full report, but output only section 1 to section 8:
+Section 1: Day Master strength
+Section 2: Pattern judgment
+Section 3: Useful elements (yong shen)
+Section 4: Personality traits
+Section 5: Career and wealth
+Section 6: Relationship and marriage
+Section 7: Health focus
+Section 8: ShenSha summary
 
-第1段：日主强弱与格局判断
-第2段：用神喜忌与五行平衡
-第3段：事业方向与工作策略
-第4段：财运节奏与投资风险提示
-第5段：感情婚姻走势与相处建议
-第6段：健康薄弱点与调理方向
-第7段：当前大运与下两步大运节奏
-第8段：关键年份提醒与行动清单（至少5条）
-
-要求：口语化、结论先行、每段有“判断+原因+建议”，不要写诗和古文，不要Markdown，全文约2400-3200字。第一句必须写“本次为进阶版八项深析”。`;
+Requirements:
+- Chinese output only, plain text only, no markdown, no poetry.
+- Each section must include: judgment + reason + practical advice.
+- Total length: 2400-3200 Chinese characters.
+- The first sentence must clearly state the tier name.
+- Do NOT output section 9 or later.`;
       } else {
       prompt = `客户生辰：${year}年${month}月${day}日${hour}时，${gender}命，八字：${bazi_str}，当前年份：${currentYear}年。
 
@@ -357,18 +362,29 @@ ${special_years_text}
       } // end if free_only else
     } // end else bazi
 
-    // 付费八字保持结构完整，同时压缩单段长度，减少生成耗时。
-    if (service === 'bazi' && !free_only) {
-      const paidTier = resolvedPaymentOptionId || 'basic';
-      if (paidTier === 'vip') {
+    // Bazi tiers use one unified framework, only output depth differs.
+    if (service === 'bazi') {
+      const baziTier = free_only ? 'free' : (resolvedPaymentOptionId || 'basic');
+      if (baziTier === 'vip') {
         maxTokens = Math.min(maxTokens, 8192);
-        prompt += `\n\n补充要求：这是尊享版完整版报告，必须完整输出第1段到第15段，任何一段都不能缺失或截断。每一段都必须以“第X段：”开头，并且15段都要单独起一行。每段建议260-360字，总字数目标约5000字（允许区间4800-5200字）。第一句必须写“本次为尊享完整版15大项全解”。即使临近 token 上限，也要优先压缩措辞并确保第十五段有完整结尾。`;
-      } else if (paidTier === 'pro') {
+        prompt += `
+
+Tier constraint: VIP must output section 1 to section 15 completely. Every section must start with "Section X:" on its own line. Suggested 260-360 Chinese characters per section, total target 4800-5200.`;
+      } else if (baziTier === 'pro') {
         maxTokens = Math.min(maxTokens, 5600);
-        prompt += `\n\n补充要求：这是进阶版，只允许输出第1段到第8段，不得出现第9段及以后。总字数控制在2400-3200字。`;
-      } else {
+        prompt += `
+
+Tier constraint: PRO can output only section 1 to section 8. Do not output section 9 or later. Total target 2400-3200 Chinese characters.`;
+      } else if (baziTier === 'basic') {
         maxTokens = Math.min(maxTokens, 3200);
-        prompt += `\n\n补充要求：这是入门版，只允许输出第1段到第3段，不得出现第4段及以后。总字数控制在1000-1400字。`;
+        prompt += `
+
+Tier constraint: BASIC can output only section 1 to section 3. Do not output section 4 or later. Total target 1000-1400 Chinese characters.`;
+      } else {
+        maxTokens = Math.min(maxTokens, 1500);
+        prompt += `
+
+Tier constraint: FREE can output only section 1 to section 2. Do not output section 3 or later. Total target 500-900 Chinese characters.`;
       }
     }
 
@@ -401,6 +417,7 @@ ${special_years_text}
         body: JSON.stringify({
           model: 'deepseek-chat',
           max_tokens: maxTokens,
+          temperature: 0.2,
           stream: true,
           messages: [
             { role: 'system', content: SYSTEM_MSG },
@@ -428,6 +445,7 @@ ${special_years_text}
       body: JSON.stringify({
         model: 'deepseek-chat',
         max_tokens: maxTokens,
+        temperature: 0.2,
         messages: [
           { role: 'system', content: SYSTEM_MSG },
           { role: 'user', content: prompt }

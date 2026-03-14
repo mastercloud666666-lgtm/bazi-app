@@ -5,7 +5,7 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
 const PENDING_BIRTH_INPUT_KEY = 'bazi_pending_birth_input';
-const APP_BUILD = '20260314-grid-v29-free-style-fix';
+const APP_BUILD = '20260314-grid-v30-unified-logic';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -2197,13 +2197,9 @@ function buildLocalFreeAnalysis(birthData, bazi, daYunData, specialYears, _reaso
     : '近两年节奏总体可控，关键在于先定优先级再行动。';
 
   const lines = [
-    '【免费基础解读（格局与日柱）】',
-    `1. 日柱与格局结论：你是${dayStem}${dayBranch}日柱，${strengthLabel}，命局以${patternName}为主。`,
-    `2. 命主性格（按日柱）：${dayProfile.core}`,
-    `3. 格局性格（按月令）：${patternProfile}`,
-    `4. 优势与短板：你的优势在于${dayProfile.adv}；需要特别注意${dayProfile.risk}。`,
-    `5. 决策参考：${dayunHint}。${specialHint}`,
-    '6. 行动建议：重大决策按“信息核验-小步试错-再加仓”三步走，避免情绪化拍板。',
+    '本次为免费版基础预览',
+    `第1段：日主强弱。你是${dayStem}${dayBranch}日柱，综合判断为${strengthLabel}，命局以${patternName}倾向为主。建议：先稳后进。`,
+    `第2段：格局判断与命主性格底盘。${patternProfile}按日柱看，${dayProfile.core}优势在于${dayProfile.adv}，短板在于${dayProfile.risk}。建议：${dayunHint}${specialHint}`,
   ];
 
   return lines.join('\n');
