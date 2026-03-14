@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>手动补单后台</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --card: #ffffff;
+      --line: #d9e2ef;
+      --text: #0f172a;
+      --muted: #64748b;
+      --brand: #1d4ed8;
+      --brand-dark: #123a94;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      margin: 0 0 6px;
+      color: #0b2a50;
+      font-size: 22px;
+    }
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    @media (max-width: 860px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    .field label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .field input, .field select {
+      width: 100%;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      padding: 0 10px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text);
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      align-items: center;
+    }
+    button {
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #0b2a50;
+      padding: 0 14px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    button.primary {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
+      font-weight: 600;
+    }
+    button.primary:hover {
+      background: var(--brand-dark);
+      border-color: var(--brand-dark);
+    }
+    .mono {
+      font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+      font-size: 13px;
+      word-break: break-all;
+    }
+    .output {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      background: #f8fbff;
+      white-space: pre-wrap;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+    .quick-link a {
+      color: var(--brand);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .quick-link a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>手动补单后台</h1>
+      <div class="muted">
+        用于“客户已咨询但系统未产生日志订单”时，手动补建订单并生成支付链接。<br />
+        先建单，再发支付链接；付款后可在 <code>/support-orders.html</code> 核验支付并补触发报告。
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label>出生年</label>
+          <input id="year" type="number" value="1988" />
+        </div>
+        <div class="field">
+          <label>出生月</label>
+          <input id="month" type="number" min="1" max="12" value="8" />
+        </div>
+        <div class="field">
+          <label>出生日</label>
+          <input id="day" type="number" min="1" max="31" value="21" />
+        </div>
+        <div class="field">
+          <label>出生时（0-23）</label>
+          <input id="hour" type="number" min="0" max="23" value="15" />
+        </div>
+        <div class="field">
+          <label>性别</label>
+          <select id="gender">
+            <option value="男" selected>男</option>
+            <option value="女">女</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>出生地（可选）</label>
+          <input id="birthplace" type="text" placeholder="例如：北京" />
+        </div>
+        <div class="field">
+          <label>支付档位</label>
+          <select id="tier">
+            <option value="basic">入门版（0.01）</option>
+            <option value="pro">进阶版（0.01）</option>
+            <option value="vip">尊享版（0.01）</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>自定义订单号（可选）</label>
+          <input id="tradeNoInput" type="text" placeholder="留空自动生成" />
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="primary" id="createOrderBtn">1. 生成并写入订单</button>
+        <button class="primary" id="createPayBtn">2. 生成支付链接</button>
+        <button id="copyTradeBtn">复制订单号</button>
+        <button id="copyPayBtn">复制支付链接</button>
+      </div>
+
+      <div id="resultBox" class="output">等待操作…</div>
+      <div class="quick-link" style="margin-top:8px;">
+        <a id="resultLink" href="#" target="_blank" rel="noopener">打开订单结果页</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/bazi.js"></script>
+  <script>
+    const SUPABASE_URL = 'https://rcyssrsnalefzhzsvswm.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
+    const PAYMENT_OPTIONS = {
+      basic: { id: 'basic', title: '入门版：三大核心解读', fee: '0.01' },
+      pro: { id: 'pro', title: '进阶版：八大维度深析', fee: '0.01' },
+      vip: { id: 'vip', title: '尊享完整版：15大项全解', fee: '0.01' },
+    };
+
+    const resultBox = document.getElementById('resultBox');
+    const resultLink = document.getElementById('resultLink');
+    const tradeNoInput = document.getElementById('tradeNoInput');
+
+    let currentTradeNo = '';
+    let currentPayUrl = '';
+
+    function setResult(msg) {
+      resultBox.textContent = msg;
+    }
+
+    function genTradeNo() {
+      const rand = Math.random().toString(36).slice(2, 8);
+      return `bazi-manual-${Date.now()}-${rand}`;
+    }
+
+    function getForm() {
+      const year = Number(document.getElementById('year').value);
+      const month = Number(document.getElementById('month').value);
+      const day = Number(document.getElementById('day').value);
+      const hour = Number(document.getElementById('hour').value);
+      const gender = String(document.getElementById('gender').value || '男');
+      const birthplace = String(document.getElementById('birthplace').value || '').trim();
+      const tier = String(document.getElementById('tier').value || 'basic');
+
+      if (!year || !month || !day || Number.isNaN(hour) || hour < 0 || hour > 23) {
+        throw new Error('出生信息不完整，请检查年/月/日/时');
+      }
+
+      const bazi = window.BaziCalc.calculateBazi(year, month, day, hour);
+      const baziStr = `${bazi.year.tg}${bazi.year.dz}年 ${bazi.month.tg}${bazi.month.dz}月 ${bazi.day.tg}${bazi.day.dz}日 ${bazi.hour.tg}${bazi.hour.dz}时`;
+      const daYunData = window.BaziCalc.calculateDaYun(bazi.year, bazi.month, gender, year, month, day);
+      const currentYear = new Date().getFullYear();
+      const lastDayun = daYunData.dayuns[daYunData.dayuns.length - 1];
+      const lifeEndYear = year + lastDayun.ageStart + 10;
+      const lifeStartYear = year + daYunData.startAge;
+      const specialYears = window.BaziCalc.calcSpecialYears(bazi, daYunData.dayuns, year, lifeStartYear, lifeEndYear);
+      const dayunText = daYunData.dayuns.map(d => `${d.gz}（${d.ageStart}岁起，${d.yearStart}年）`).join('、');
+      const specialText = specialYears.length
+        ? specialYears.map(s => {
+            const phase = s.year < currentYear ? '已过' : (s.year === currentYear ? '今年' : '未来');
+            return `${s.year}年${s.gz}（${phase}）：${s.reasons.join('；')}`;
+          }).join('\n')
+        : '一生中无明显天克地冲或岁运并临年份';
+
+      return {
+        year, month, day, hour, gender, birthplace, tier,
+        baziStr,
+        dayunText,
+        specialText,
+        startAge: daYunData.startAge,
+        option: PAYMENT_OPTIONS[tier] || PAYMENT_OPTIONS.basic,
+      };
+    }
+
+    function updateResultLink(tradeNo) {
+      const href = `https://tengyunzi.com/result.html?trade_no=${encodeURIComponent(tradeNo)}&paid=true`;
+      resultLink.href = href;
+      resultLink.textContent = `打开订单结果页：${href}`;
+    }
+
+    async function createOrder() {
+      const form = getForm();
+      const customTradeNo = String(tradeNoInput.value || '').trim();
+      const tradeNo = customTradeNo || genTradeNo();
+
+      const payload = {
+        trade_no: tradeNo,
+        birth_input: JSON.stringify({
+          year: form.year,
+          month: form.month,
+          day: form.day,
+          hour: form.hour,
+          gender: form.gender,
+          birthplace: form.birthplace,
+          bazi_str: form.baziStr,
+          dayun_text: form.dayunText,
+          special_years_text: form.specialText,
+          start_age: form.startAge,
+          payment_option: form.option,
+        }),
+      };
+
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_ANON,
+          Authorization: `Bearer ${SUPABASE_ANON}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(`建单失败 HTTP ${res.status}: ${t}`);
+      }
+
+      currentTradeNo = tradeNo;
+      tradeNoInput.value = tradeNo;
+      updateResultLink(tradeNo);
+      setResult(
+        `订单创建成功\n` +
+        `订单号: ${tradeNo}\n` +
+        `档位: ${form.option.id} / 价格: ¥${form.option.fee}\n` +
+        `命盘: ${form.baziStr}\n\n` +
+        `下一步：点击“2. 生成支付链接”发给客户。`
+      );
+    }
+
+    async function createPaymentUrl() {
+      const tradeNo = String(tradeNoInput.value || currentTradeNo || '').trim();
+      if (!tradeNo) throw new Error('请先创建订单，或先输入订单号');
+      const tier = String(document.getElementById('tier').value || 'basic');
+      const option = PAYMENT_OPTIONS[tier] || PAYMENT_OPTIONS.basic;
+
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_ANON}`,
+        },
+        body: JSON.stringify({
+          trade_no: tradeNo,
+          payment_option_id: option.id,
+          total_fee: option.fee,
+          payment_option_title: option.title,
+          client_env: {
+            user_agent: navigator.userAgent || '',
+            is_mobile: /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || ''),
+            is_wechat: /MicroMessenger/i.test(navigator.userAgent || ''),
+          },
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.errcode !== 0) {
+        throw new Error(`生成支付链接失败: ${data?.errmsg || data?.error || `HTTP ${res.status}`}`);
+      }
+      currentPayUrl = data.url || data.url_qrcode || '';
+      if (!currentPayUrl) {
+        throw new Error('支付接口返回成功，但未返回可用链接');
+      }
+      setResult(
+        `支付链接生成成功\n` +
+        `订单号: ${tradeNo}\n` +
+        `档位: ${option.id} / 价格: ¥${option.fee}\n` +
+        `支付链接: ${currentPayUrl}\n\n` +
+        `已付后请到 /support-orders.html 点“核验+补触发”。`
+      );
+    }
+
+    document.getElementById('createOrderBtn').addEventListener('click', async () => {
+      try {
+        setResult('正在创建订单…');
+        await createOrder();
+      } catch (err) {
+        setResult(`创建失败：${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    document.getElementById('createPayBtn').addEventListener('click', async () => {
+      try {
+        setResult('正在生成支付链接…');
+        await createPaymentUrl();
+      } catch (err) {
+        setResult(`生成失败：${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    document.getElementById('copyTradeBtn').addEventListener('click', async () => {
+      const v = String(tradeNoInput.value || currentTradeNo || '').trim();
+      if (!v) { setResult('当前没有可复制的订单号'); return; }
+      try {
+        await navigator.clipboard.writeText(v);
+        setResult(`已复制订单号：${v}`);
+      } catch {
+        setResult('复制失败，请手动复制订单号');
+      }
+    });
+
+    document.getElementById('copyPayBtn').addEventListener('click', async () => {
+      if (!currentPayUrl) { setResult('当前没有可复制的支付链接，请先生成'); return; }
+      try {
+        await navigator.clipboard.writeText(currentPayUrl);
+        setResult(`已复制支付链接：\n${currentPayUrl}`);
+      } catch {
+        setResult(`复制失败，请手动复制：\n${currentPayUrl}`);
+      }
+    });
+
+    setResult('可直接填写客户生辰后点“1. 生成并写入订单”');
+  </script>
+</body>
+</html>
