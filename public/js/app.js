@@ -4,7 +4,7 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v12-mobile-recover-entry';
+const APP_BUILD = '20260314-grid-v13-mobile-cookie-recover';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -16,6 +16,87 @@ const PAID_ONE_TIME_NOTICE_HTML = '<p style="margin-top:10px;color:#dc2626;font-
 window.__BAZI_APP_BUILD = APP_BUILD;
 window.__BAZI_PAYMENT_OPTION_IDS = PAYMENT_OPTIONS.map((x) => x.id);
 console.log('[bazi-app build]', APP_BUILD);
+
+const CLIENT_ID_KEY = 'bazi_client_id';
+const PENDING_TRADE_COOKIE = 'bazi_pending_trade_no';
+const PENDING_PAYMENT_OPTION_COOKIE = 'bazi_pending_payment_option_id';
+
+function safeGetLocalStorage(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSetLocalStorage(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {}
+}
+
+function safeRemoveLocalStorage(key) {
+  try {
+    localStorage.removeItem(key);
+  } catch {}
+}
+
+function setCookie(name, value, maxAgeSeconds = 2592000) {
+  const encoded = encodeURIComponent(String(value || ''));
+  document.cookie = `${name}=${encoded}; Max-Age=${maxAgeSeconds}; Path=/; SameSite=Lax`;
+}
+
+function getCookie(name) {
+  const key = `${name}=`;
+  const parts = document.cookie ? document.cookie.split('; ') : [];
+  for (const part of parts) {
+    if (part.startsWith(key)) return decodeURIComponent(part.slice(key.length));
+  }
+  return '';
+}
+
+function clearCookie(name) {
+  document.cookie = `${name}=; Max-Age=0; Path=/; SameSite=Lax`;
+}
+
+function getClientId() {
+  let cid = safeGetLocalStorage(CLIENT_ID_KEY) || getCookie(CLIENT_ID_KEY);
+  if (!cid) {
+    cid = Math.random().toString(36).slice(2, 10);
+  }
+  safeSetLocalStorage(CLIENT_ID_KEY, cid);
+  setCookie(CLIENT_ID_KEY, cid, 60 * 60 * 24 * 180);
+  return cid;
+}
+
+function setPendingTradeNo(tradeNo) {
+  safeSetLocalStorage(PENDING_TRADE_KEY, tradeNo);
+  setCookie(PENDING_TRADE_COOKIE, tradeNo, 60 * 60 * 24 * 30);
+}
+
+function getPendingTradeNo() {
+  return safeGetLocalStorage(PENDING_TRADE_KEY) || getCookie(PENDING_TRADE_COOKIE);
+}
+
+function clearPendingTradeNo() {
+  safeRemoveLocalStorage(PENDING_TRADE_KEY);
+  clearCookie(PENDING_TRADE_COOKIE);
+}
+
+function setPendingPaymentOptionId(optionId) {
+  if (!optionId) return;
+  safeSetLocalStorage(PENDING_PAYMENT_OPTION_KEY, optionId);
+  setCookie(PENDING_PAYMENT_OPTION_COOKIE, optionId, 60 * 60 * 24 * 30);
+}
+
+function getPendingPaymentOptionId() {
+  return safeGetLocalStorage(PENDING_PAYMENT_OPTION_KEY) || getCookie(PENDING_PAYMENT_OPTION_COOKIE) || '';
+}
+
+function clearPendingPaymentOptionId() {
+  safeRemoveLocalStorage(PENDING_PAYMENT_OPTION_KEY);
+  clearCookie(PENDING_PAYMENT_OPTION_COOKIE);
+}
 
 function pickPaymentOption() {
   return new Promise(resolve => {
@@ -199,7 +280,29 @@ if (form) {
   });
 
   const resumeFromPendingTrade = async () => {
-    const pendingTradeNo = localStorage.getItem(PENDING_TRADE_KEY);
+    let pendingTradeNo = getPendingTradeNo();
+    const clientId = getClientId();
+
+    if (!pendingTradeNo && clientId) {
+      try {
+        const pattern = encodeURIComponent(`bazi-${clientId}-%`);
+        const recentRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/orders?trade_no=like.${pattern}&select=trade_no,paid,analysis&order=trade_no.desc&limit=1`,
+          { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
+        );
+        if (recentRes.ok) {
+          const recentRows = await recentRes.json();
+          const recentOrder = Array.isArray(recentRows) ? recentRows[0] : null;
+          if (recentOrder?.trade_no) {
+            pendingTradeNo = recentOrder.trade_no;
+            setPendingTradeNo(pendingTradeNo);
+          }
+        }
+      } catch (err) {
+        console.warn('recover latest trade by client id failed:', err);
+      }
+    }
+
     if (!pendingTradeNo) return;
 
     try {
@@ -211,8 +314,8 @@ if (form) {
       const rows = await res.json();
       const order = Array.isArray(rows) ? rows[0] : null;
       if (!order) {
-        localStorage.removeItem(PENDING_TRADE_KEY);
-        localStorage.removeItem(PENDING_PAYMENT_OPTION_KEY);
+        clearPendingTradeNo();
+        clearPendingPaymentOptionId();
         return;
       }
 
@@ -254,8 +357,8 @@ if (form) {
       clearBtn.style.cssText = 'padding:8px 12px;border:1px solid #93C5FD;border-radius:8px;background:#fff;color:#1E3A8A;cursor:pointer;font-size:13px;';
       clearBtn.textContent = '\u6e05\u9664\u8fd9\u6761\u8ba2\u5355';
       clearBtn.addEventListener('click', () => {
-        localStorage.removeItem(PENDING_TRADE_KEY);
-        localStorage.removeItem(PENDING_PAYMENT_OPTION_KEY);
+        clearPendingTradeNo();
+        clearPendingPaymentOptionId();
         panel.remove();
       });
 
@@ -718,7 +821,7 @@ function renderBaziDetailGrid(bazi) {
     || p.get('trade_order_id')
     || hashParams.get('trade_no')
     || hashParams.get('trade_order_id')
-    || localStorage.getItem(PENDING_TRADE_KEY);
+    || getPendingTradeNo();
   if (tradeNo && !p.get('year')) {
     // ????????????????????????
     let order = null;
@@ -753,7 +856,7 @@ function renderBaziDetailGrid(bazi) {
         birthplace = birth.birthplace || '';
         lon        = birth.lon || '';
         const optionId = birth?.payment_option?.id;
-        if (optionId) localStorage.setItem(PENDING_PAYMENT_OPTION_KEY, optionId);
+        if (optionId) setPendingPaymentOptionId(optionId);
       } catch (err) {
         console.warn('??????????:', err);
       }
@@ -860,7 +963,7 @@ function renderBaziDetailGrid(bazi) {
 
   // 优先显示完整版缓存
   if (cachedFull) {
-    localStorage.removeItem(PENDING_PAYMENT_OPTION_KEY);
+    clearPendingPaymentOptionId();
     showAnalysis(cachedFull, true);
   } else if (cached && !tradeNo) {
     // 如果有免费版缓存且不是支付回调，显示免费版
@@ -938,9 +1041,9 @@ async function startPayment(birthData, bazi, paymentOption) {
     loadingSection.innerHTML = `<p class="price-desc">正在创建${chosenOption.title}支付订单，请稍候…</p>`;
   }
 
-  const tradeNo = 'bazi_' + Date.now();
-  localStorage.setItem(PENDING_TRADE_KEY, tradeNo);
-  localStorage.setItem(PENDING_PAYMENT_OPTION_KEY, chosenOption.id);
+  const tradeNo = `bazi-${getClientId()}-${Date.now()}`;
+  setPendingTradeNo(tradeNo);
+  setPendingPaymentOptionId(chosenOption.id);
   const baziStr = `${bazi.year.tg}${bazi.year.dz}年 ${bazi.month.tg}${bazi.month.dz}月 ${bazi.day.tg}${bazi.day.dz}日 ${bazi.hour.tg}${bazi.hour.dz}时`;
 
   console.log('订单号:', tradeNo);
@@ -1051,15 +1154,15 @@ async function startPayment(birthData, bazi, paymentOption) {
     } else {
       console.error('支付API错误:', result.errmsg);
       alert(`支付请求失败：${result.errmsg}`);
-      localStorage.removeItem(PENDING_TRADE_KEY);
-      localStorage.removeItem(PENDING_PAYMENT_OPTION_KEY);
+      clearPendingTradeNo();
+      clearPendingPaymentOptionId();
       resetPayButtons();
     }
   } catch (err) {
     console.error('支付请求失败:', err);
     alert('支付请求失败，请稍后重试');
-    localStorage.removeItem(PENDING_TRADE_KEY);
-    localStorage.removeItem(PENDING_PAYMENT_OPTION_KEY);
+    clearPendingTradeNo();
+    clearPendingPaymentOptionId();
     resetPayButtons();
   }
 }
@@ -1073,7 +1176,7 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
   let paidSeenCount = 0;
   let unpaidOrUnknownCount = 0;
   let streamFallbackTriggered = false;
-  let resolvedPaymentOptionId = localStorage.getItem(PENDING_PAYMENT_OPTION_KEY) || '';
+  let resolvedPaymentOptionId = getPendingPaymentOptionId();
 
   if (birthData && bazi && daYunData && specialYears) {
     window.__lastPaidPollContext = { birthData, bazi, daYunData, specialYears, paymentOptionId: resolvedPaymentOptionId };
@@ -1103,7 +1206,7 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
           const birth = JSON.parse(order.birth_input);
           resolvedPaymentOptionId = birth?.payment_option?.id || '';
           if (resolvedPaymentOptionId) {
-            localStorage.setItem(PENDING_PAYMENT_OPTION_KEY, resolvedPaymentOptionId);
+            setPendingPaymentOptionId(resolvedPaymentOptionId);
           }
         } catch {}
       }
@@ -1111,8 +1214,8 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
       if (order?.paid && order?.analysis) {
         // 保存到完整版缓存
         localStorage.setItem(fullCacheKey, order.analysis);
-        localStorage.removeItem(PENDING_TRADE_KEY);
-        localStorage.removeItem(PENDING_PAYMENT_OPTION_KEY);
+        clearPendingTradeNo();
+        clearPendingPaymentOptionId();
         showAnalysis(order.analysis, true); // hidePay = true，隐藏付费提示
         return;
       }
@@ -1408,7 +1511,7 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext
         .replace(/^\s*[-–—>]\s*/gm, '').replace(/由\s*DeepSeek\s*生成.*$/gis, '')
         .replace(/Powered by DeepSeek.*$/gis, '').replace(/\n{3,}/g, '\n\n').trim();
       localStorage.setItem(fullCacheKey, cleaned);
-      localStorage.removeItem(PENDING_PAYMENT_OPTION_KEY);
+      clearPendingPaymentOptionId();
       showAnalysis(cleaned, true);
     } else {
       if (loading) { loading.style.display = 'block'; loading.innerHTML = '<p>解读获取失败，请刷新重试</p>'; }
