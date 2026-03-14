@@ -160,25 +160,34 @@ function buildHepanPreview() {
   return true;
 }
 
-form.addEventListener('submit', e => {
-  e.preventDefault();
+function triggerPaidFlowFromForm() {
+  if (!form.checkValidity()) {
+    alert('请先完整填写双方出生信息（年/月/日/时）');
+    form.reportValidity();
+    return;
+  }
+
   if (!buildHepanPreview()) return;
 
+  const payBtn = document.getElementById('hepan-pay-btn');
+  if (payBtn) {
+    payBtn.click();
+  } else {
+    document.getElementById('pay-card').style.display = 'none';
+    document.getElementById('hepan-loading').style.display = 'block';
+    hepanAnalyze(_manBazi, _womanBazi, _manData, _womanData);
+  }
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  triggerPaidFlowFromForm();
 });
 
 if (payEntryBtn) {
-  payEntryBtn.addEventListener('click', () => {
-    if (!form.checkValidity()) {
-      form.reportValidity();
-      return;
-    }
-    if (!buildHepanPreview()) return;
-    const payCard = document.getElementById('pay-card');
-    if (payCard) {
-      payCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  });
+  payEntryBtn.addEventListener('click', triggerPaidFlowFromForm);
 }
 
 // ── 付款按钮（测试阶段直接生成报告）─────────────────────────────
