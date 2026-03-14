@@ -24,20 +24,44 @@ Deno.serve(async (req) => {
     let prompt = '';
     let maxTokens = free_only ? 1500 : 8192;
     let resolvedPaymentOptionId = typeof payment_option_id === 'string' ? payment_option_id : '';
+    let tradeOrder: { paid?: boolean; birth_input?: string | null } | null = null;
 
-    if (!resolvedPaymentOptionId && trade_no) {
-      const { data: tradeOrder } = await supabase
+    if (trade_no) {
+      const { data } = await supabase
         .from('orders')
-        .select('birth_input')
+        .select('paid,birth_input')
         .eq('trade_no', trade_no)
         .maybeSingle();
-      if (tradeOrder?.birth_input) {
+      tradeOrder = data || null;
+      if (!resolvedPaymentOptionId && tradeOrder?.birth_input) {
         try {
           const birth = JSON.parse(tradeOrder.birth_input);
           resolvedPaymentOptionId = birth?.payment_option?.id || '';
         } catch (_) {
           // ignore parse errors and fallback to non-vip defaults
         }
+      }
+    }
+
+    // 安全兜底：任何付费八字请求都必须是已支付订单，防止绕过前端直接刷完整版
+    if (service === 'bazi' && !free_only) {
+      if (!trade_no) {
+        return new Response(JSON.stringify({ error: 'trade_no is required for paid analyze' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...CORS },
+        });
+      }
+      if (!tradeOrder) {
+        return new Response(JSON.stringify({ error: 'order not found' }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json', ...CORS },
+        });
+      }
+      if (!tradeOrder.paid) {
+        return new Response(JSON.stringify({ error: 'order not paid' }), {
+          status: 402,
+          headers: { 'Content-Type': 'application/json', ...CORS },
+        });
       }
     }
 

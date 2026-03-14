@@ -5,7 +5,7 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
 const PENDING_BIRTH_INPUT_KEY = 'bazi_pending_birth_input';
-const APP_BUILD = '20260314-grid-v30-unified-logic';
+const APP_BUILD = '20260314-grid-v31-security-guard';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -1692,7 +1692,6 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
   const reconcileIntervalMs = 7000;
   let lastReconcileTs = 0;
   let paidSeenCount = 0;
-  let unpaidOrUnknownCount = 0;
   let streamFallbackTriggered = false;
   let resolvedPaymentOptionId = getPendingPaymentOptionId();
 
@@ -1760,19 +1759,6 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
         }
       }
 
-      if (!order?.analysis) {
-        unpaidOrUnknownCount += 1;
-        if (!streamFallbackTriggered && unpaidOrUnknownCount >= 20 && resolvedBirthData && resolvedBazi && resolvedDaYunData && resolvedSpecialYears) {
-          streamFallbackTriggered = true;
-          document.getElementById('analysis-loading').innerHTML = '<p class="price-desc">\u652f\u4ed8\u72b6\u6001\u786e\u8ba4\u8f83\u6162\uff0c\u6b63\u5728\u5148\u4e3a\u60a8\u751f\u6210\u5b8c\u6574\u62a5\u544a\uff0c\u8bf7\u7a0d\u5019\u2026</p>' + PAID_ONE_TIME_NOTICE_HTML;
-          await fullAnalyze(resolvedBirthData, resolvedBazi, resolvedDaYunData, resolvedSpecialYears, {
-            tradeNo,
-            paymentOptionId: resolvedPaymentOptionId,
-          });
-          return;
-        }
-      }
-      
       // 更新加载提示（每 8 次更新一次）
       if (i % 8 === 0 && i > 0) {
         const seconds = Math.ceil(((i + 1) * pollIntervalMs) / 1000);
