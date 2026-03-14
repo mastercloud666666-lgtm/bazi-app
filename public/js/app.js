@@ -4,7 +4,7 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v19-wechat-jsapi-option1';
+const APP_BUILD = '20260314-grid-v20-wechat-jsapi-debug';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -165,6 +165,53 @@ function normalizeWeChatJsapiPayload(result) {
     signType: String(signType),
     paySign: String(paySign),
   };
+}
+
+function shouldShowPaymentDebug() {
+  if (window.__BAZI_PAY_DEBUG === true) return true;
+  try {
+    const p = new URLSearchParams(location.search || '');
+    if (p.get('pay_debug') === '1') return true;
+  } catch {}
+  return isWeChatBrowser();
+}
+
+function renderPaymentDebugInfo(mountEl, result, jsapiPayload) {
+  if (!mountEl || !shouldShowPaymentDebug()) return;
+
+  const oldPanel = mountEl.querySelector('#payment-debug-panel');
+  if (oldPanel) oldPanel.remove();
+
+  const gateway = result?.gateway_meta || {};
+  const requiredKeys = ['appId', 'timeStamp', 'nonceStr', 'package', 'paySign'];
+  const missing = requiredKeys.filter((key) => !jsapiPayload || !jsapiPayload[key]);
+  const jsapiStatus = missing.length
+    ? `JSAPI 参数缺失：${missing.join(', ')}`
+    : 'JSAPI 参数完整，可直接微信内唤起支付';
+
+  const panel = document.createElement('div');
+  panel.id = 'payment-debug-panel';
+  panel.style.cssText = 'margin-top:12px;padding:10px 12px;border:1px dashed #f59e0b;background:#fffbeb;border-radius:8px;font-size:12px;color:#7c2d12;line-height:1.6;';
+
+  const title = document.createElement('div');
+  title.style.cssText = 'font-weight:700;margin-bottom:6px;';
+  title.textContent = '支付调试信息（测试模式）';
+  panel.appendChild(title);
+
+  const lines = [
+    `网关优先: ${gateway.preferred_api_base || '-'}`,
+    `网关实际: ${gateway.selected_api_base || '-'}`,
+    `是否回退: ${gateway.fallback_used ? '是' : '否'}`,
+    jsapiStatus,
+  ];
+
+  for (const text of lines) {
+    const line = document.createElement('div');
+    line.textContent = text;
+    panel.appendChild(line);
+  }
+
+  mountEl.appendChild(panel);
 }
 
 function invokeWeChatJsapiPay(jsapiPayload, tradeNo) {
@@ -1348,6 +1395,9 @@ async function startPayment(birthData, bazi, paymentOption) {
         hasJsapiPayload: !!jsapiPayload,
         gateway: result?.gateway_meta || null,
       });
+      if (loadingSection) {
+        renderPaymentDebugInfo(loadingSection, result, jsapiPayload);
+      }
 
       if (isWeChat && jsapiPayload) {
         if (loadingSection) {
@@ -1381,6 +1431,9 @@ async function startPayment(birthData, bazi, paymentOption) {
       window.location.href = payUrl;
     } else {
       console.error('支付API错误:', result.errmsg);
+      if (loadingSection) {
+        renderPaymentDebugInfo(loadingSection, result, null);
+      }
       alert(`支付请求失败：${result.errmsg}`);
       clearPendingTradeNo();
       clearPendingPaymentOptionId();
