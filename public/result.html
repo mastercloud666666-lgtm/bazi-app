@@ -174,22 +174,42 @@
       .bazi-table {
         grid-template-columns: repeat(2, 1fr);
       }
+      #bazi-detail-section .mk-card-body {
+        padding: 12px 8px;
+      }
+      .bazi-detail-grid {
+        overflow-x: visible;
+      }
       .bzg-table th,
       .bzg-table td {
-        padding: 8px 6px;
-        font-size: 13px;
+        padding: 7px 4px;
+        font-size: 12px;
+        line-height: 1.35;
       }
       .bzg-table {
-        min-width: 560px;
+        min-width: 0;
+        width: 100%;
+        table-layout: fixed;
+      }
+      .bzg-table tbody th {
+        width: 52px;
+        font-size: 12px;
       }
       .bzg-token {
-        font-size: 32px;
+        font-size: 24px;
       }
       .bzg-token.bzg-branch {
-        font-size: 30px;
+        font-size: 22px;
       }
       .bzg-token.bzg-sub {
-        font-size: 18px;
+        font-size: 15px;
+      }
+      .bzg-sub-label {
+        font-size: 12px;
+      }
+      .bzg-stack {
+        gap: 2px;
+        line-height: 1.2;
       }
     }
   </style>
