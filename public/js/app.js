@@ -4,7 +4,7 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v16-wechat-fallback-nonstream';
+const APP_BUILD = '20260314-grid-v17-wechat-pay-panel';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -96,6 +96,81 @@ function getPendingPaymentOptionId() {
 function clearPendingPaymentOptionId() {
   safeRemoveLocalStorage(PENDING_PAYMENT_OPTION_KEY);
   clearCookie(PENDING_PAYMENT_OPTION_COOKIE);
+}
+
+async function copyTextSafe(text) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
+function showMobilePayPanel(payUrl, tradeNo, mountEl) {
+  const resultUrl = `result.html?trade_no=${encodeURIComponent(tradeNo)}&paid=true`;
+  const panelHtml = `
+    <p class="price-desc">微信内支付请在新窗口完成，当前页面将保留用于继续查看报告。</p>
+    <div style="margin-top:12px;display:grid;gap:10px;">
+      <button id="mobile-open-pay-btn" type="button" style="padding:12px 14px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">打开支付页面</button>
+      <button id="mobile-copy-pay-btn" type="button" style="padding:12px 14px;background:#fff;color:#1f2937;border:1px solid #d1d5db;border-radius:8px;font-weight:600;cursor:pointer;">复制支付链接</button>
+      <button id="mobile-paid-back-btn" type="button" style="padding:12px 14px;background:#111827;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">我已完成支付，查看报告</button>
+    </div>
+    <p style="margin-top:10px;color:#6b7280;font-size:13px;">若支付后页面被微信关闭，请重新打开首页并继续恢复订单。</p>
+  `;
+
+  if (mountEl) {
+    mountEl.style.display = 'block';
+    mountEl.innerHTML = panelHtml;
+  } else {
+    let overlay = document.getElementById('mobile-pay-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'mobile-pay-overlay';
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,37,64,0.45);z-index:10000;padding:18px;display:flex;align-items:center;justify-content:center;';
+      overlay.innerHTML = `
+        <div style="width:min(92vw,420px);background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:14px;">
+          ${panelHtml}
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', (evt) => {
+        if (evt.target === overlay) overlay.remove();
+      });
+    } else {
+      overlay.style.display = 'flex';
+    }
+  }
+
+  const openPayBtn = document.getElementById('mobile-open-pay-btn');
+  if (openPayBtn) {
+    openPayBtn.addEventListener('click', () => {
+      const win = window.open(payUrl, '_blank');
+      if (!win) {
+        alert('未能自动打开支付页，请先复制支付链接再打开。');
+      }
+    });
+  }
+
+  const copyPayBtn = document.getElementById('mobile-copy-pay-btn');
+  if (copyPayBtn) {
+    copyPayBtn.addEventListener('click', async () => {
+      const ok = await copyTextSafe(payUrl);
+      if (ok) {
+        alert('支付链接已复制，请在浏览器打开并完成支付。');
+      } else {
+        prompt('请手动复制支付链接：', payUrl);
+      }
+    });
+  }
+
+  const doneBtn = document.getElementById('mobile-paid-back-btn');
+  if (doneBtn) {
+    doneBtn.addEventListener('click', () => {
+      window.location.href = resultUrl;
+    });
+  }
 }
 
 function pickPaymentOption() {
@@ -1132,22 +1207,8 @@ async function startPayment(birthData, bazi, paymentOption) {
 
       const ua = navigator.userAgent || '';
       const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
-      if (isMobile && loadingSection) {
-        const safeUrl = String(payUrl || '').replace(/"/g, '&quot;');
-        loadingSection.innerHTML = `
-          <p class="price-desc">请点击下方按钮完成支付，支付后再返回查看报告。</p>
-          <div style="margin-top:14px;display:grid;gap:10px;">
-            <a href="${safeUrl}" target="_blank" rel="noopener" style="display:inline-block;padding:12px 14px;background:#2563eb;color:#fff;border-radius:8px;text-align:center;text-decoration:none;font-weight:600;">去支付</a>
-            <button id="mobile-paid-back-btn" type="button" style="padding:12px 14px;background:#111827;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">我已完成支付，查看报告</button>
-          </div>
-          <p style="margin-top:10px;color:#6b7280;font-size:13px;">若支付页关闭，请点击“我已完成支付，查看报告”。</p>
-        `;
-        const doneBtn = document.getElementById('mobile-paid-back-btn');
-        if (doneBtn) {
-          doneBtn.addEventListener('click', () => {
-            window.location.href = `result.html?trade_no=${encodeURIComponent(tradeNo)}&paid=true`;
-          });
-        }
+      if (isMobile) {
+        showMobilePayPanel(payUrl, tradeNo, loadingSection || null);
         return;
       }
 
