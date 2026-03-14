@@ -4,7 +4,7 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v21-wechat-jsapi-debugfix';
+const APP_BUILD = '20260314-grid-v22-wechat-jsapi-debugfix2';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -271,6 +271,7 @@ function invokeWeChatJsapiPay(jsapiPayload, tradeNo) {
 function showMobilePayPanel(payUrl, tradeNo, mountEl) {
   const resultUrl = `result.html?trade_no=${encodeURIComponent(tradeNo)}&paid=true`;
   const isWeChat = isWeChatBrowser();
+  const debugAnchorHtml = shouldShowPaymentDebug() ? '<div id="mobile-payment-debug-anchor"></div>' : '';
   const panelHtml = `
     <p class="price-desc">${isWeChat ? '微信内直接打开支付页可能会被系统关闭，建议先复制链接到系统浏览器支付。' : '手机支付请在新窗口完成，当前页面将保留用于继续查看报告。'}</p>
     <div style="margin-top:12px;display:grid;gap:10px;">
@@ -280,6 +281,7 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl) {
       <button id="mobile-paid-back-btn" type="button" style="padding:12px 14px;background:#111827;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">我已完成支付，查看报告</button>
     </div>
     <p style="margin-top:10px;color:#6b7280;font-size:13px;">若支付后页面被微信关闭，请重新打开首页并继续恢复订单。</p>
+    ${debugAnchorHtml}
   `;
 
   if (mountEl) {
@@ -302,6 +304,11 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl) {
       });
     } else {
       overlay.style.display = 'flex';
+      overlay.innerHTML = `
+        <div style="width:min(92vw,420px);background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:14px;">
+          ${panelHtml}
+        </div>
+      `;
     }
   }
 
@@ -350,6 +357,8 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl) {
       window.location.href = payUrl;
     });
   }
+
+  return document.getElementById('mobile-payment-debug-anchor') || mountEl || null;
 }
 
 function pickPaymentOption() {
@@ -1412,10 +1421,8 @@ async function startPayment(birthData, bazi, paymentOption) {
             loadingSection.innerHTML = '<p class="price-desc">微信支付唤起失败，已切换链接支付方式，请继续完成支付…</p>';
           }
           if (payUrl) {
-            showMobilePayPanel(payUrl, tradeNo, loadingSection || null);
-            if (loadingSection) {
-              renderPaymentDebugInfo(loadingSection, result, jsapiPayload);
-            }
+            const debugMount = showMobilePayPanel(payUrl, tradeNo, loadingSection || null);
+            renderPaymentDebugInfo(debugMount, result, jsapiPayload);
             return;
           }
           throw wxErr;
@@ -1427,10 +1434,8 @@ async function startPayment(birthData, bazi, paymentOption) {
       }
 
       if (isMobile) {
-        showMobilePayPanel(payUrl, tradeNo, loadingSection || null);
-        if (loadingSection) {
-          renderPaymentDebugInfo(loadingSection, result, jsapiPayload);
-        }
+        const debugMount = showMobilePayPanel(payUrl, tradeNo, loadingSection || null);
+        renderPaymentDebugInfo(debugMount, result, jsapiPayload);
         return;
       }
 
