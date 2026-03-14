@@ -4,7 +4,8 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v27-free-fallback';
+const PENDING_BIRTH_INPUT_KEY = 'bazi_pending_birth_input';
+const APP_BUILD = '20260314-grid-v28-trade-recover-fix';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -86,6 +87,7 @@ function getPendingTradeNo() {
 function clearPendingTradeNo() {
   safeRemoveLocalStorage(PENDING_TRADE_KEY);
   clearCookie(PENDING_TRADE_COOKIE);
+  clearPendingBirthInput();
 }
 
 function setPendingPaymentOptionId(optionId) {
@@ -101,6 +103,64 @@ function getPendingPaymentOptionId() {
 function clearPendingPaymentOptionId() {
   safeRemoveLocalStorage(PENDING_PAYMENT_OPTION_KEY);
   clearCookie(PENDING_PAYMENT_OPTION_COOKIE);
+}
+
+function setPendingBirthInput(tradeNo, birthInput) {
+  if (!tradeNo || !birthInput) return;
+  const payload = {
+    trade_no: tradeNo,
+    birth_input: { ...birthInput },
+    saved_at: Date.now(),
+  };
+  safeSetLocalStorage(PENDING_BIRTH_INPUT_KEY, JSON.stringify(payload));
+}
+
+function getPendingBirthInput(tradeNo = '') {
+  const raw = safeGetLocalStorage(PENDING_BIRTH_INPUT_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (tradeNo && parsed.trade_no && parsed.trade_no !== tradeNo) return null;
+    const birth = parsed.birth_input;
+    if (!birth || typeof birth !== 'object') return null;
+    return birth;
+  } catch {
+    return null;
+  }
+}
+
+function clearPendingBirthInput(tradeNo = '') {
+  if (!tradeNo) {
+    safeRemoveLocalStorage(PENDING_BIRTH_INPUT_KEY);
+    return;
+  }
+  const current = getPendingBirthInput(tradeNo);
+  if (current) safeRemoveLocalStorage(PENDING_BIRTH_INPUT_KEY);
+}
+
+function buildResultUrl(tradeNo, birthInput = null) {
+  const params = new URLSearchParams();
+  if (tradeNo) params.set('trade_no', tradeNo);
+  params.set('paid', 'true');
+
+  if (birthInput && typeof birthInput === 'object') {
+    const y = Number(birthInput.year);
+    const m = Number(birthInput.month);
+    const d = Number(birthInput.day);
+    const h = Number(birthInput.hour);
+    const inputH = Number.isFinite(Number(birthInput.inputHour)) ? Number(birthInput.inputHour) : h;
+    if (Number.isFinite(y)) params.set('year', String(y));
+    if (Number.isFinite(m)) params.set('month', String(m));
+    if (Number.isFinite(d)) params.set('day', String(d));
+    if (Number.isFinite(h)) params.set('hour', String(h));
+    if (Number.isFinite(inputH)) params.set('inputHour', String(inputH));
+    if (birthInput.gender) params.set('gender', String(birthInput.gender));
+    if (birthInput.birthplace) params.set('birthplace', String(birthInput.birthplace));
+    if (birthInput.lon) params.set('lon', String(birthInput.lon));
+  }
+
+  return `result.html?${params.toString()}`;
 }
 
 function initCustomerServiceWidget() {
@@ -302,7 +362,7 @@ function invokeWeChatJsapiPay(jsapiPayload, tradeNo) {
       fn(payload);
     };
 
-    const resultUrl = `result.html?trade_no=${encodeURIComponent(tradeNo)}&paid=true`;
+    const resultUrl = buildResultUrl(tradeNo, getPendingBirthInput(tradeNo));
     const invoke = () => {
       if (!window.WeixinJSBridge || typeof window.WeixinJSBridge.invoke !== 'function') {
         finish(reject, new Error('wx_bridge_unavailable'));
@@ -374,7 +434,7 @@ async function reconcilePaymentStatus(tradeNo, options = {}) {
 }
 
 function showMobilePayPanel(payUrl, tradeNo, mountEl) {
-  const resultUrl = `result.html?trade_no=${encodeURIComponent(tradeNo)}&paid=true`;
+  const resultUrl = buildResultUrl(tradeNo, getPendingBirthInput(tradeNo));
   const isWeChat = isWeChatBrowser();
   const debugAnchorHtml = shouldShowPaymentDebug() ? '<div id="mobile-payment-debug-anchor"></div>' : '';
   const panelHtml = `
@@ -698,28 +758,10 @@ if (form) {
 
     if (!pendingTradeNo) return;
 
-    try {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(pendingTradeNo)}&select=paid,analysis`,
-        { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
-      );
-      if (!res.ok) return;
-      const rows = await res.json();
-      const order = Array.isArray(rows) ? rows[0] : null;
-      if (!order) {
-        clearPendingTradeNo();
-        clearPendingPaymentOptionId();
-        return;
-      }
-
-      const resultUrl = `result.html?trade_no=${encodeURIComponent(pendingTradeNo)}&paid=true`;
-      const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
-      if (order.paid && isMobile) {
-        window.location.href = resultUrl;
-        return;
-      }
-
+    const renderPendingPanel = (paid = false) => {
       if (document.getElementById('pending-trade-resume')) return;
+      const resultUrl = buildResultUrl(pendingTradeNo, getPendingBirthInput(pendingTradeNo));
+
       const panel = document.createElement('div');
       panel.id = 'pending-trade-resume';
       panel.style.cssText = [
@@ -732,7 +774,7 @@ if (form) {
 
       const title = document.createElement('div');
       title.style.cssText = 'font-size:14px;color:#1E3A8A;font-weight:700;margin-bottom:8px;';
-      title.textContent = order.paid ? '\u68c0\u6d4b\u5230\u5df2\u652f\u4ed8\u8ba2\u5355\uff0c\u53ef\u7ee7\u7eed\u67e5\u770b\u62a5\u544a' : '\u68c0\u6d4b\u5230\u5f85\u5904\u7406\u8ba2\u5355\uff0c\u53ef\u7ee7\u7eed\u67e5\u770b\u7ed3\u679c';
+      title.textContent = paid ? '检测到已支付订单，可继续查看报告' : '检测到上次订单，可继续恢复结果';
 
       const row = document.createElement('div');
       row.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;';
@@ -740,7 +782,7 @@ if (form) {
       const resumeBtn = document.createElement('button');
       resumeBtn.type = 'button';
       resumeBtn.style.cssText = 'padding:8px 12px;border:0;border-radius:8px;background:#2563EB;color:#fff;cursor:pointer;font-size:13px;';
-      resumeBtn.textContent = order.paid ? '\u7ee7\u7eed\u67e5\u770b\u62a5\u544a' : '\u7ee7\u7eed\u652f\u4ed8\u540e\u67e5\u770b';
+      resumeBtn.textContent = paid ? '继续查看报告' : '继续上次订单';
       resumeBtn.addEventListener('click', () => {
         window.location.href = resultUrl;
       });
@@ -748,7 +790,7 @@ if (form) {
       const clearBtn = document.createElement('button');
       clearBtn.type = 'button';
       clearBtn.style.cssText = 'padding:8px 12px;border:1px solid #93C5FD;border-radius:8px;background:#fff;color:#1E3A8A;cursor:pointer;font-size:13px;';
-      clearBtn.textContent = '\u6e05\u9664\u8fd9\u6761\u8ba2\u5355';
+      clearBtn.textContent = '清除这条订单';
       clearBtn.addEventListener('click', () => {
         clearPendingTradeNo();
         clearPendingPaymentOptionId();
@@ -760,8 +802,35 @@ if (form) {
       panel.appendChild(title);
       panel.appendChild(row);
       form.prepend(panel);
+    };
+
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(pendingTradeNo)}&select=paid,analysis`,
+        { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
+      );
+      if (!res.ok) {
+        renderPendingPanel(false);
+        return;
+      }
+      const rows = await res.json();
+      const order = Array.isArray(rows) ? rows[0] : null;
+      if (!order) {
+        renderPendingPanel(false);
+        return;
+      }
+
+      const resultUrl = buildResultUrl(pendingTradeNo, getPendingBirthInput(pendingTradeNo));
+      const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
+      if (order.paid && isMobile) {
+        window.location.href = resultUrl;
+        return;
+      }
+
+      renderPendingPanel(!!order.paid);
     } catch (err) {
       console.warn('pending trade recover failed:', err);
+      renderPendingPanel(false);
     }
   };
 
@@ -1209,7 +1278,22 @@ function renderBaziDetailGrid(bazi) {
   const hashParams = new URLSearchParams(location.hash.replace(/^#/, ''));
   let year, month, day, hour, inputHour, gender, birthplace, lon;
 
-  // ??????? trade_no?????????
+  const applyBirthInput = (birth) => {
+    if (!birth || typeof birth !== 'object') return false;
+    year = Number(birth.year);
+    month = Number(birth.month);
+    day = Number(birth.day);
+    hour = Number(birth.hour);
+    inputHour = Number.isFinite(Number(birth.inputHour)) ? Number(birth.inputHour) : Number(birth.hour);
+    gender = birth.gender;
+    birthplace = birth.birthplace || '';
+    lon = birth.lon || '';
+    const optionId = birth?.payment_option?.id;
+    if (optionId) setPendingPaymentOptionId(optionId);
+    return Number.isFinite(year) && Number.isFinite(month) && Number.isFinite(day) && Number.isFinite(hour) && !!gender;
+  };
+
+  // 优先从 trade_no 恢复订单
   const tradeNo = p.get('trade_no')
     || p.get('trade_order_id')
     || hashParams.get('trade_no')
@@ -1217,7 +1301,7 @@ function renderBaziDetailGrid(bazi) {
     || getPendingTradeNo();
   if (tradeNo) setPendingTradeNo(tradeNo);
   if (tradeNo && !p.get('year')) {
-    // ????????????????????????
+    // 从 orders 表拉取 birth_input（多次重试）
     let order = null;
     for (let i = 0; i < 6; i++) {
       try {
@@ -1233,35 +1317,35 @@ function renderBaziDetailGrid(bazi) {
           }
         }
       } catch (err) {
-        console.warn('?????????????:', err);
+        console.warn('restore birth_input failed:', err);
       }
       if (i < 5) await new Promise((r) => setTimeout(r, 800));
     }
 
+    let restored = false;
     if (order && order.birth_input) {
       try {
-        const birth = JSON.parse(order.birth_input);
-        year       = Number(birth.year);
-        month      = Number(birth.month);
-        day        = Number(birth.day);
-        hour       = Number(birth.hour);
-        inputHour  = Number(birth.hour);
-        gender     = birth.gender;
-        birthplace = birth.birthplace || '';
-        lon        = birth.lon || '';
-        const optionId = birth?.payment_option?.id;
-        if (optionId) setPendingPaymentOptionId(optionId);
+        const rawBirth = typeof order.birth_input === 'string' ? JSON.parse(order.birth_input) : order.birth_input;
+        restored = applyBirthInput(rawBirth);
       } catch (err) {
-        console.warn('??????????:', err);
+        console.warn('parse birth_input failed:', err);
+      }
+    }
+
+    // 表查不到时，使用本地支付快照兜底（微信内页面关闭后最关键）
+    if (!restored) {
+      const pendingBirth = getPendingBirthInput(tradeNo);
+      if (pendingBirth) {
+        restored = applyBirthInput(pendingBirth);
       }
     }
   } else {
-    // ? URL ????
+    // URL 直接带参
     year       = parseInt(p.get('year'));
     month      = parseInt(p.get('month'));
     day        = parseInt(p.get('day'));
-    hour       = parseInt(p.get('hour'));       // ???????
-    inputHour  = parseInt(p.get('inputHour')); // ????
+    hour       = parseInt(p.get('hour'));
+    inputHour  = parseInt(p.get('inputHour'));
     gender     = p.get('gender');
     birthplace = p.get('birthplace') || '';
     lon        = p.get('lon') || '';
@@ -1278,9 +1362,18 @@ function renderBaziDetailGrid(bazi) {
     if (loading) {
       loading.style.display = 'block';
       if (tradeNo) {
-        loading.innerHTML = `<p class="price-desc">????????????????????????</p><p style="margin-top:8px;color:#6B7280;font-size:13px;">????${tradeNo}</p>`;
+        loading.innerHTML = `
+          <p class="price-desc">未能自动恢复该订单的出生信息，请返回首页点击“继续上次订单”。</p>
+          <p style="margin-top:8px;color:#6B7280;font-size:13px;">订单号：${tradeNo}</p>
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+            <a href="index.html" style="display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:8px;background:#2563eb;color:#fff;text-decoration:none;font-size:13px;">返回首页继续订单</a>
+            <button id="retry-restore-btn" type="button" style="padding:8px 12px;border:1px solid #93c5fd;border-radius:8px;background:#fff;color:#1E3A8A;font-size:13px;cursor:pointer;">重试恢复</button>
+          </div>
+        `;
+        const retryBtn = document.getElementById('retry-restore-btn');
+        if (retryBtn) retryBtn.addEventListener('click', () => location.reload());
       } else {
-        loading.innerHTML = '<p class="price-desc">??????????????????</p>';
+        loading.innerHTML = '<p class="price-desc">参数不完整，请返回首页重新排盘。</p>';
       }
     }
     return;
@@ -1438,6 +1531,7 @@ async function startPayment(birthData, bazi, paymentOption) {
   const tradeNo = `bazi-${getClientId()}-${Date.now()}`;
   setPendingTradeNo(tradeNo);
   setPendingPaymentOptionId(chosenOption.id);
+  setPendingBirthInput(tradeNo, birthData);
   const baziStr = `${bazi.year.tg}${bazi.year.dz}年 ${bazi.month.tg}${bazi.month.dz}月 ${bazi.day.tg}${bazi.day.dz}日 ${bazi.hour.tg}${bazi.hour.dz}时`;
 
   console.log('订单号:', tradeNo);
@@ -1926,7 +2020,7 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext
     try {
       if (loading) {
         loading.style.display = 'block';
-        loading.innerHTML = '<p class="price-desc">??????????????????????</p>' + PAID_ONE_TIME_NOTICE_HTML;
+        loading.innerHTML = '<p class="price-desc">支付已确认，正在切换备用通道生成完整报告，请稍候…</p>' + PAID_ONE_TIME_NOTICE_HTML;
       }
 
       const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
@@ -1954,7 +2048,7 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext
     const canUseStream = streamRes.ok && streamRes.body && typeof streamRes.body.getReader === 'function';
     if (!canUseStream) {
       const ok = await tryNonStreamFallback();
-      if (!ok && loading) loading.innerHTML = '<p>????????????</p>';
+      if (!ok && loading) loading.innerHTML = '<p>报告生成失败，请刷新后重试。</p>';
       return;
     }
 
@@ -1993,14 +2087,14 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext
       if (!ok) {
         if (loading) {
           loading.style.display = 'block';
-          loading.innerHTML = '<p>????????????</p>';
+          loading.innerHTML = '<p>报告生成失败，请刷新后重试。</p>';
         }
         if (content) content.style.display = 'none';
       }
     }
   } catch (err) {
     const ok = await tryNonStreamFallback();
-    if (!ok && loading) loading.innerHTML = `<p>?????${err?.message || err}??????</p>`;
+    if (!ok && loading) loading.innerHTML = `<p>网络异常：${err?.message || err}，请刷新重试。</p>`;
   }
 }
 
