@@ -260,6 +260,55 @@ function buildHepanPayload(manBazi, womanBazi, manData, womanData) {
   };
 }
 
+function hydratePreviewFromPayload(payload) {
+  if (!payload || typeof payload !== 'object') return false;
+  const manBirth = payload.man_birth;
+  const womanBirth = payload.woman_birth;
+  if (!manBirth || !womanBirth) return false;
+
+  const hasMan =
+    Number.isFinite(Number(manBirth.year)) &&
+    Number.isFinite(Number(manBirth.month)) &&
+    Number.isFinite(Number(manBirth.day)) &&
+    Number.isFinite(Number(manBirth.hour));
+  const hasWoman =
+    Number.isFinite(Number(womanBirth.year)) &&
+    Number.isFinite(Number(womanBirth.month)) &&
+    Number.isFinite(Number(womanBirth.day)) &&
+    Number.isFinite(Number(womanBirth.hour));
+  if (!hasMan || !hasWoman) return false;
+
+  const manData = {
+    year: Number(manBirth.year),
+    month: Number(manBirth.month),
+    day: Number(manBirth.day),
+    hour: Number(manBirth.hour),
+  };
+  const womanData = {
+    year: Number(womanBirth.year),
+    month: Number(womanBirth.month),
+    day: Number(womanBirth.day),
+    hour: Number(womanBirth.hour),
+  };
+
+  const manBazi = BaziCalc.calculateBazi(manData.year, manData.month, manData.day, manData.hour);
+  const womanBazi = BaziCalc.calculateBazi(womanData.year, womanData.month, womanData.day, womanData.hour);
+
+  _manBazi = manBazi;
+  _womanBazi = womanBazi;
+  _manData = manData;
+  _womanData = womanData;
+
+  renderMiniPillars('man-pillars', manBazi);
+  renderMiniPillars('woman-pillars', womanBazi);
+  const tags = calcCompatTags(manBazi, womanBazi);
+  document.getElementById('compat-tags').innerHTML = tags
+    .map((t) => `<span class="compat-tag ${t.cls}">${t.text}</span>`)
+    .join('');
+
+  return true;
+}
+
 function buildHepanPreview() {
   const manData = collectPerson('man');
   const womanData = collectPerson('woman');
@@ -409,7 +458,7 @@ function renderHepanAnalysis(analysisText) {
   document.getElementById('hepan-text').textContent = analysisText || '';
 }
 
-async function triggerHepanAnalyzeByTradeNo(tradeNo, payloadFromOrder = null) {
+async function triggerHepanAnalyzeByTradeNo(tradeNo, payloadFromOrder = null, streamMode = false) {
   const payload = payloadFromOrder || readOrderPayload(tradeNo) || {};
   const reqBody = {
     trade_no: tradeNo,
@@ -419,7 +468,7 @@ async function triggerHepanAnalyzeByTradeNo(tradeNo, payloadFromOrder = null) {
     man_dayun: payload.man_dayun,
     woman_dayun: payload.woman_dayun,
     current_year: payload.current_year || new Date().getFullYear(),
-    stream: false,
+    stream: streamMode === true,
   };
 
   const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
@@ -431,6 +480,65 @@ async function triggerHepanAnalyzeByTradeNo(tradeNo, payloadFromOrder = null) {
     body: JSON.stringify(reqBody),
   });
 
+  if (streamMode) {
+    if (!res.ok || !res.body) {
+      let errMsg = `\u6d41\u5f0f\u5206\u6790\u8bf7\u6c42\u5931\u8d25\uff08${res.status}\uff09`;
+      try {
+        const errData = await res.json();
+        errMsg = errData?.error || errMsg;
+      } catch (_) {}
+      throw new Error(errMsg);
+    }
+
+    document.getElementById('hepan-loading').style.display = 'none';
+    document.getElementById('hepan-content').style.display = 'block';
+    document.getElementById('pay-card').style.display = 'none';
+    const textEl = document.getElementById('hepan-text');
+    textEl.textContent = '';
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let buffer = '';
+
+    outer: while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (data === '[DONE]') break outer;
+        try {
+          const delta = JSON.parse(data).choices?.[0]?.delta?.content || '';
+          if (delta) {
+            fullText += delta;
+            textEl.textContent = fullText;
+          }
+        } catch (_) {}
+      }
+    }
+
+    if (!fullText.trim()) {
+      throw new Error('\u6d41\u5f0f\u751f\u6210\u672a\u8fd4\u56de\u5185\u5bb9');
+    }
+
+    // best effort: 把流式最终文本写回订单，方便刷新恢复
+    fetch(`${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(tradeNo)}`, {
+      method: 'PATCH',
+      headers: {
+        apikey: SUPABASE_ANON,
+        Authorization: `Bearer ${SUPABASE_ANON}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ analysis: fullText }),
+    }).catch(() => {});
+
+    return fullText;
+  }
+
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data?.error || `\u5206\u6790\u8bf7\u6c42\u5931\u8d25\uff08${res.status}\uff09`);
@@ -440,6 +548,7 @@ async function triggerHepanAnalyzeByTradeNo(tradeNo, payloadFromOrder = null) {
 
 async function pollPaidHepanOrder(tradeNo) {
   let analyzeTriggered = false;
+  let previewHydrated = false;
 
   for (let i = 0; i < 90; i += 1) {
     await new Promise((resolve) => setTimeout(resolve, 1200));
@@ -457,6 +566,18 @@ async function pollPaidHepanOrder(tradeNo) {
       const rows = await res.json().catch(() => []);
       const order = Array.isArray(rows) ? rows[0] : null;
       if (!order) continue;
+      const payload = (() => {
+        try {
+          return order.birth_input ? JSON.parse(order.birth_input) : null;
+        } catch {
+          return null;
+        }
+      })();
+
+      if (!previewHydrated) {
+        const hydrated = hydratePreviewFromPayload(payload || readOrderPayload(tradeNo));
+        previewHydrated = hydrated || previewHydrated;
+      }
 
       if (order.analysis) {
         renderHepanAnalysis(order.analysis);
@@ -478,15 +599,11 @@ async function pollPaidHepanOrder(tradeNo) {
 
       if (order.paid && !order.analysis && !analyzeTriggered) {
         analyzeTriggered = true;
-        const payload = (() => {
-          try {
-            return order.birth_input ? JSON.parse(order.birth_input) : null;
-          } catch {
-            return null;
-          }
-        })();
+        const loadingEl = document.getElementById('hepan-loading');
+        loadingEl.style.display = 'block';
+        loadingEl.innerHTML = '<p>\u5df2\u786e\u8ba4\u652f\u4ed8\uff0c\u6b63\u5728\u6d41\u5f0f\u751f\u6210\u62a5\u544a...</p>';
         try {
-          const analysis = await triggerHepanAnalyzeByTradeNo(tradeNo, payload);
+          const analysis = await triggerHepanAnalyzeByTradeNo(tradeNo, payload, true);
           if (analysis) {
             renderHepanAnalysis(analysis);
             clearPendingTradeNo();
@@ -494,7 +611,18 @@ async function pollPaidHepanOrder(tradeNo) {
             return;
           }
         } catch (e) {
-          console.warn('trigger hepan analyze failed:', e);
+          console.warn('trigger hepan stream analyze failed:', e);
+          try {
+            const analysis = await triggerHepanAnalyzeByTradeNo(tradeNo, payload, false);
+            if (analysis) {
+              renderHepanAnalysis(analysis);
+              clearPendingTradeNo();
+              clearCachedOrderPayload(tradeNo);
+              return;
+            }
+          } catch (e2) {
+            console.warn('trigger hepan sync analyze failed:', e2);
+          }
         }
       }
     } catch (err) {
@@ -529,6 +657,8 @@ async function resumeOrderIfNeeded() {
   const tradeNo = getTradeNoFromLocation() || getPendingTradeNo();
   if (!tradeNo) return;
 
+  const cachedPayload = readOrderPayload(tradeNo);
+  hydratePreviewFromPayload(cachedPayload);
   showPaidLoadingState();
   await pollPaidHepanOrder(tradeNo);
 }
