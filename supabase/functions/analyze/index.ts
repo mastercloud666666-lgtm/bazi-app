@@ -25,6 +25,7 @@ Deno.serve(async (req) => {
     let maxTokens = free_only ? 1500 : 8192;
     let resolvedPaymentOptionId = typeof payment_option_id === 'string' ? payment_option_id : '';
     let tradeOrder: { paid?: boolean; birth_input?: string | null } | null = null;
+    let tradeBirth: Record<string, any> = {};
 
     if (trade_no) {
       const { data } = await supabase
@@ -33,18 +34,20 @@ Deno.serve(async (req) => {
         .eq('trade_no', trade_no)
         .maybeSingle();
       tradeOrder = data || null;
-      if (!resolvedPaymentOptionId && tradeOrder?.birth_input) {
+      if (tradeOrder?.birth_input) {
         try {
-          const birth = JSON.parse(tradeOrder.birth_input);
-          resolvedPaymentOptionId = birth?.payment_option?.id || '';
+          tradeBirth = JSON.parse(tradeOrder.birth_input);
+          if (!resolvedPaymentOptionId) {
+            resolvedPaymentOptionId = tradeBirth?.payment_option?.id || '';
+          }
         } catch (_) {
-          // ignore parse errors and fallback to non-vip defaults
+          tradeBirth = {};
         }
       }
     }
 
-    // 安全兜底：任何付费八字请求都必须是已支付订单，防止绕过前端直接刷完整版
-    if (service === 'bazi' && !free_only) {
+    const requiresPaidOrder = (service === 'bazi' && !free_only) || service === 'hepan';
+    if (requiresPaidOrder) {
       if (!trade_no) {
         return new Response(JSON.stringify({ error: 'trade_no is required for paid analyze' }), {
           status: 400,
@@ -179,7 +182,27 @@ Deno.serve(async (req) => {
 用口语，像一个走访过的风水师在给你当面说，不写标题符号，实用为主，直接从分析开始。`;
 
     } else if (service === 'hepan') {
-      const { man_bazi_str, woman_bazi_str, man_dayun, woman_dayun, current_year } = body;
+      let man_bazi_str = String(body?.man_bazi_str || '').trim();
+      let woman_bazi_str = String(body?.woman_bazi_str || '').trim();
+      let man_dayun = String(body?.man_dayun || '').trim();
+      let woman_dayun = String(body?.woman_dayun || '').trim();
+      let current_year = Number(body?.current_year) || new Date().getFullYear();
+
+      if ((!man_bazi_str || !woman_bazi_str || !man_dayun || !woman_dayun) && tradeBirth) {
+        man_bazi_str = man_bazi_str || String(tradeBirth?.man_bazi_str || '').trim();
+        woman_bazi_str = woman_bazi_str || String(tradeBirth?.woman_bazi_str || '').trim();
+        man_dayun = man_dayun || String(tradeBirth?.man_dayun || '').trim();
+        woman_dayun = woman_dayun || String(tradeBirth?.woman_dayun || '').trim();
+        current_year = Number(tradeBirth?.current_year) || current_year;
+      }
+
+      if (!man_bazi_str || !woman_bazi_str || !man_dayun || !woman_dayun) {
+        return new Response(JSON.stringify({ error: 'hepan payload incomplete' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...CORS },
+        });
+      }
+
       maxTokens = 8192;
       prompt = `合盘分析，当前年份：${current_year}年。
 男方八字：${man_bazi_str}
@@ -431,7 +454,7 @@ Tier constraint: FREE can output only section 1 to section 2. Do not output sect
 
 
     // 合盘默认流式；付费八字在显式请求 stream=true 时也走流式输出。
-    if (service === 'hepan' || (service === 'bazi' && !free_only && stream === true)) {
+    if ((service === 'hepan' && stream === true) || (service === 'bazi' && !free_only && stream === true)) {
       const dsStream = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {

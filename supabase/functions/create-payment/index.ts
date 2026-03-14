@@ -70,6 +70,12 @@ function resolveReturnOrigin(req: Request, fallbackOrigin: string): string {
   return fallbackOrigin;
 }
 
+function resolveReturnPath(value: unknown): '/result.html' | '/hepan.html' {
+  const path = String(value || '').trim();
+  if (path === '/hepan.html') return '/hepan.html';
+  return '/result.html';
+}
+
 // Pure JS MD5 implementation (Web Crypto API does not support MD5)
 function md5(input: string): string {
   const str = unescape(encodeURIComponent(input));
@@ -292,7 +298,8 @@ Deno.serve(async (req) => {
     const fallbackOrigin = Deno.env.get('PAY_RETURN_ORIGIN') || 'https://tengyunzi.com';
     const returnOrigin = resolveReturnOrigin(req, fallbackOrigin);
     const notifyUrl = `${supabaseUrl}/functions/v1/payment-callback`;
-    const returnUrl = `${returnOrigin}/result.html?trade_no=${encodeURIComponent(tradeNo)}&paid=true`;
+    const returnPath = resolveReturnPath(body?.return_path);
+    const returnUrl = `${returnOrigin}${returnPath}?trade_no=${encodeURIComponent(tradeNo)}&paid=true`;
 
     const payParams: Record<string, string | number> = {
       version: '1.1',
@@ -351,6 +358,7 @@ Deno.serve(async (req) => {
       selected_api_base: selectedApiBase || null,
       fallback_used: selectedApiBase ? selectedApiBase !== preferredApiBase : false,
       return_origin: returnOrigin,
+      return_path: returnPath,
     };
 
     if (!response) {

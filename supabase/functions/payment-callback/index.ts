@@ -6,6 +6,20 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 );
 
+function parseBirthInput(value: unknown): Record<string, any> {
+  if (!value) return {};
+  if (typeof value === 'object' && !Array.isArray(value)) return value as Record<string, any>;
+  if (typeof value !== 'string') return {};
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+      ? parsed as Record<string, any>
+      : {};
+  } catch {
+    return {};
+  }
+}
+
 // 纯 JS MD5 实现（Web Crypto API 不支持 MD5）
 function md5(input: string): string {
   const str = unescape(encodeURIComponent(input));
@@ -131,30 +145,42 @@ Deno.serve(async (req) => {
   console.log(`Order ${trade_order_id} marked as paid, triggering analysis...`);
 
   // 异步触发 AI 分析（不等待结果，但添加错误处理）
-  const birth = JSON.parse(order.birth_input);
-  
-  // 使用不等待的 fetch，确保即使出错也不影响回调响应
+  const birth = parseBirthInput(order.birth_input);
+  const orderService = birth?.order_service === 'hepan' ? 'hepan' : 'bazi';
+  const analyzePayload: Record<string, unknown> = {
+    trade_no: trade_order_id,
+    service: orderService,
+  };
+
+  if (orderService === 'hepan') {
+    analyzePayload.man_bazi_str = birth.man_bazi_str;
+    analyzePayload.woman_bazi_str = birth.woman_bazi_str;
+    analyzePayload.man_dayun = birth.man_dayun;
+    analyzePayload.woman_dayun = birth.woman_dayun;
+    analyzePayload.current_year = Number(birth.current_year) || new Date().getFullYear();
+    analyzePayload.stream = false;
+  } else {
+    analyzePayload.free_only = false;
+    analyzePayload.payment_option_id = birth?.payment_option?.id || 'basic';
+    analyzePayload.year = birth.year;
+    analyzePayload.month = birth.month;
+    analyzePayload.day = birth.day;
+    analyzePayload.hour = birth.hour;
+    analyzePayload.gender = birth.gender;
+    analyzePayload.bazi_str = birth.bazi_str;
+    analyzePayload.dayun_text = birth.dayun_text;
+    analyzePayload.special_years_text = birth.special_years_text;
+    analyzePayload.start_age = birth.start_age;
+  }
+
+  // ????????? fetch???????????????????????
   fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/analyze`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
     },
-    body: JSON.stringify({
-      trade_no: trade_order_id,
-      service: 'bazi',
-      free_only: false,
-      payment_option_id: birth?.payment_option?.id || 'basic',
-      year: birth.year,
-      month: birth.month,
-      day: birth.day,
-      hour: birth.hour,
-      gender: birth.gender,
-      bazi_str: birth.bazi_str,
-      dayun_text: birth.dayun_text,
-      special_years_text: birth.special_years_text,
-      start_age: birth.start_age,
-    }),
+    body: JSON.stringify(analyzePayload),
   }).catch(err => {
     console.error(`Failed to trigger analysis for order ${trade_order_id}:`, err);
     // 分析失败不影响支付状态，用户可以手动刷新页面获取结果
