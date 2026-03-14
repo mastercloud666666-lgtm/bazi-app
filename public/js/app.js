@@ -4,7 +4,7 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v25-pay-disclaimer';
+const APP_BUILD = '20260314-grid-v26-pay-panel-polish';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -245,7 +245,7 @@ function shouldShowPaymentDebug() {
     const p = new URLSearchParams(location.search || '');
     if (p.get('pay_debug') === '1') return true;
   } catch {}
-  return isWeChatBrowser();
+  return false;
 }
 
 function renderPaymentDebugInfo(mountEl, result, jsapiPayload) {
@@ -378,10 +378,11 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl) {
   const isWeChat = isWeChatBrowser();
   const debugAnchorHtml = shouldShowPaymentDebug() ? '<div id="mobile-payment-debug-anchor"></div>' : '';
   const panelHtml = `
-    <p class="price-desc">${isWeChat ? '微信内支付建议优先使用“复制链接并去浏览器支付”，避免支付后页面被关闭。' : '手机支付请在新窗口完成，当前页面将保留用于继续查看报告。'}</p>
-    <div style="margin-top:8px;padding:10px 12px;border-radius:8px;border:1px solid #fecaca;background:#fef2f2;color:#b91c1c;font-size:13px;line-height:1.6;">
-      <div style="font-weight:700;">${PAYMENT_NON_REFUND_NOTICE}</div>
-      <div style="margin-top:4px;">${WECHAT_PAYMENT_CLOSE_NOTICE}</div>
+    <div style="margin-top:2px;padding:10px 12px;border-radius:10px;border:1px solid #fed7aa;background:#fff7ed;color:#7c2d12;font-size:13px;line-height:1.6;">
+      <div style="font-weight:700;color:#9a3412;">支付须知（请先阅读）</div>
+      <div style="margin-top:6px;">1. ${PAYMENT_NON_REFUND_NOTICE}</div>
+      <div style="margin-top:4px;">2. 微信浏览器支付后页面可能自动关闭（微信机制）。</div>
+      <div style="margin-top:4px;">3. 支付完成后请重新打开首页，点击“继续上次订单”；或直接选择“复制链接并去浏览器支付（推荐）”。</div>
     </div>
     <div style="margin-top:12px;display:grid;gap:10px;">
       <button id="mobile-open-pay-btn" type="button" style="padding:12px 14px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">${isWeChat ? '复制链接并去浏览器支付（推荐）' : '打开支付页面'}</button>
@@ -389,7 +390,7 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl) {
       ${isWeChat ? '<button id="mobile-open-pay-risk-btn" type="button" style="padding:12px 14px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">仍在微信内打开（可能关闭）</button>' : ''}
       <button id="mobile-paid-back-btn" type="button" style="padding:12px 14px;background:#111827;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">我已完成支付，查看报告</button>
     </div>
-    <p style="margin-top:10px;color:#6b7280;font-size:13px;">若支付后页面被微信关闭，请重新打开首页后点击“继续上次订单”。</p>
+    <p style="margin-top:10px;color:#6b7280;font-size:13px;">${isWeChat ? '如页面被关闭，重新打开首页后点击“继续上次订单”。' : '手机支付请在新窗口完成，当前页面将保留用于继续查看报告。'}</p>
     ${debugAnchorHtml}
   `;
 
