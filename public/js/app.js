@@ -4,7 +4,7 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v11-mobile-pay-return';
+const APP_BUILD = '20260314-grid-v12-mobile-recover-entry';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -197,6 +197,79 @@ if (form) {
   document.getElementById('birthplace').addEventListener('input', e => {
     scheduleGeocode(e.target.value.trim());
   });
+
+  const resumeFromPendingTrade = async () => {
+    const pendingTradeNo = localStorage.getItem(PENDING_TRADE_KEY);
+    if (!pendingTradeNo) return;
+
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(pendingTradeNo)}&select=paid,analysis`,
+        { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
+      );
+      if (!res.ok) return;
+      const rows = await res.json();
+      const order = Array.isArray(rows) ? rows[0] : null;
+      if (!order) {
+        localStorage.removeItem(PENDING_TRADE_KEY);
+        localStorage.removeItem(PENDING_PAYMENT_OPTION_KEY);
+        return;
+      }
+
+      const resultUrl = `result.html?trade_no=${encodeURIComponent(pendingTradeNo)}&paid=true`;
+      const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
+      if (order.paid && isMobile) {
+        window.location.href = resultUrl;
+        return;
+      }
+
+      if (document.getElementById('pending-trade-resume')) return;
+      const panel = document.createElement('div');
+      panel.id = 'pending-trade-resume';
+      panel.style.cssText = [
+        'margin:0 0 12px',
+        'padding:12px',
+        'border:1px solid #BFDBFE',
+        'border-radius:10px',
+        'background:#EFF6FF',
+      ].join(';');
+
+      const title = document.createElement('div');
+      title.style.cssText = 'font-size:14px;color:#1E3A8A;font-weight:700;margin-bottom:8px;';
+      title.textContent = order.paid ? '\u68c0\u6d4b\u5230\u5df2\u652f\u4ed8\u8ba2\u5355\uff0c\u53ef\u7ee7\u7eed\u67e5\u770b\u62a5\u544a' : '\u68c0\u6d4b\u5230\u5f85\u5904\u7406\u8ba2\u5355\uff0c\u53ef\u7ee7\u7eed\u67e5\u770b\u7ed3\u679c';
+
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;';
+
+      const resumeBtn = document.createElement('button');
+      resumeBtn.type = 'button';
+      resumeBtn.style.cssText = 'padding:8px 12px;border:0;border-radius:8px;background:#2563EB;color:#fff;cursor:pointer;font-size:13px;';
+      resumeBtn.textContent = order.paid ? '\u7ee7\u7eed\u67e5\u770b\u62a5\u544a' : '\u7ee7\u7eed\u652f\u4ed8\u540e\u67e5\u770b';
+      resumeBtn.addEventListener('click', () => {
+        window.location.href = resultUrl;
+      });
+
+      const clearBtn = document.createElement('button');
+      clearBtn.type = 'button';
+      clearBtn.style.cssText = 'padding:8px 12px;border:1px solid #93C5FD;border-radius:8px;background:#fff;color:#1E3A8A;cursor:pointer;font-size:13px;';
+      clearBtn.textContent = '\u6e05\u9664\u8fd9\u6761\u8ba2\u5355';
+      clearBtn.addEventListener('click', () => {
+        localStorage.removeItem(PENDING_TRADE_KEY);
+        localStorage.removeItem(PENDING_PAYMENT_OPTION_KEY);
+        panel.remove();
+      });
+
+      row.appendChild(resumeBtn);
+      row.appendChild(clearBtn);
+      panel.appendChild(title);
+      panel.appendChild(row);
+      form.prepend(panel);
+    } catch (err) {
+      console.warn('pending trade recover failed:', err);
+    }
+  };
+
+  resumeFromPendingTrade();
 
   form.addEventListener('submit', async e => {
     e.preventDefault();
