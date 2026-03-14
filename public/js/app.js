@@ -4,7 +4,7 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v15-wechat-recover-likefix';
+const APP_BUILD = '20260314-grid-v16-wechat-fallback-nonstream';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -1444,44 +1444,91 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext
   if (payPrompt) payPrompt.style.display = 'none';
   if (loading) loading.style.display = 'block';
 
-  const baziStr = `${bazi.year.tg}${bazi.year.dz}年 ${bazi.month.tg}${bazi.month.dz}月 ${bazi.day.tg}${bazi.day.dz}日 ${bazi.hour.tg}${bazi.hour.dz}时`;
+  const baziStr = `${bazi.year.tg}${bazi.year.dz} ${bazi.month.tg}${bazi.month.dz} ${bazi.day.tg}${bazi.day.dz} ${bazi.hour.tg}${bazi.hour.dz}`;
   const fullCacheKey = `bazi_full_${birthData.year}_${birthData.month}_${birthData.day}_${birthData.hour}_${birthData.gender}`;
-  const dayunText = daYunData.dayuns.map(d => `${d.gz}（${d.ageStart}岁起，${d.yearStart}年）`).join('、');
+  const dayunText = daYunData.dayuns.map(d => `${d.gz}(${d.ageStart}-${d.yearStart})`).join(', ');
   const specialText = specialYears.length
-    ? specialYears.map(s => `${s.year}年${s.gz}（${s.year < currentYear ? '已过' : s.year === currentYear ? '今年' : '未来'}）：${s.reasons.join('；')}`).join('\n')
-    : '一生中无明显天克地冲或岁运并临年份';
+    ? specialYears.map(s => `${s.year} ${s.gz} ${s.year < currentYear ? 'past' : s.year === currentYear ? 'current' : 'future'}: ${s.reasons.join('; ')}`).join('\\n')
+    : 'none';
 
   const analysisText = document.getElementById('analysis-text');
 
-  try {
-    const payload = {
-      year: birthData.year, month: birthData.month, day: birthData.day, hour: birthData.hour,
-      gender: birthData.gender, birthplace: birthData.birthplace || '',
-      bazi_str: baziStr, dayun_text: dayunText, special_years_text: specialText,
-      start_age: daYunData.startAge,
-    };
-    if (paidContext?.tradeNo) payload.trade_no = paidContext.tradeNo;
-    if (paidContext?.paymentOptionId) payload.payment_option_id = paidContext.paymentOptionId;
-    payload.stream = true;
+  const basePayload = {
+    year: birthData.year,
+    month: birthData.month,
+    day: birthData.day,
+    hour: birthData.hour,
+    gender: birthData.gender,
+    birthplace: birthData.birthplace || '',
+    bazi_str: baziStr,
+    dayun_text: dayunText,
+    special_years_text: specialText,
+    start_age: daYunData.startAge,
+  };
+  if (paidContext?.tradeNo) basePayload.trade_no = paidContext.tradeNo;
+  if (paidContext?.paymentOptionId) basePayload.payment_option_id = paidContext.paymentOptionId;
 
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
+  const cleanAnalysisText = (raw) => {
+    return String(raw || '')
+      .replace(/#{1,6}\s*/g, '')
+      .replace(/\*{1,3}([^*\n]+)\*{1,3}/g, '$1')
+      .replace(/^\s*[-*>]\s*/gm, '')
+      .replace(/Powered by DeepSeek.*$/gim, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  };
+
+  const renderFinal = (raw) => {
+    const cleaned = cleanAnalysisText(raw);
+    if (!cleaned) return false;
+    safeSetLocalStorage(fullCacheKey, cleaned);
+    clearPendingPaymentOptionId();
+    showAnalysis(cleaned, true);
+    return true;
+  };
+
+  const tryNonStreamFallback = async () => {
+    try {
+      if (loading) {
+        loading.style.display = 'block';
+        loading.innerHTML = '<p class="price-desc">??????????????????????</p>' + PAID_ONE_TIME_NOTICE_HTML;
+      }
+
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON}` },
+        body: JSON.stringify({ ...basePayload, stream: false }),
+      });
+      if (!res.ok) return false;
+
+      const data = await res.json();
+      return renderFinal(data?.analysis);
+    } catch (err) {
+      console.warn('non-stream fallback failed:', err);
+      return false;
+    }
+  };
+
+  try {
+    const streamRes = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON}` },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...basePayload, stream: true }),
     });
 
-    if (!res.ok || !res.body) {
-      if (loading) loading.innerHTML = '<p>解读获取失败，请刷新重试</p>';
+    const canUseStream = streamRes.ok && streamRes.body && typeof streamRes.body.getReader === 'function';
+    if (!canUseStream) {
+      const ok = await tryNonStreamFallback();
+      if (!ok && loading) loading.innerHTML = '<p>????????????</p>';
       return;
     }
 
-    // 切换到流式显示
     if (loading) loading.style.display = 'none';
     if (content) content.style.display = 'block';
     togglePaidOneTimeNotice(true);
     if (analysisText) analysisText.textContent = '';
 
-    const reader = res.body.getReader();
+    const reader = streamRes.body.getReader();
     const decoder = new TextDecoder();
     let fullText = '';
     let buffer = '';
@@ -1506,24 +1553,22 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext
       }
     }
 
-    if (fullText) {
-      const cleaned = fullText
-        .replace(/#{1,6}\s*/g, '').replace(/\*{1,3}([^*\n]+)\*{1,3}/g, '$1')
-        .replace(/^\s*[-–—>]\s*/gm, '').replace(/由\s*DeepSeek\s*生成.*$/gis, '')
-        .replace(/Powered by DeepSeek.*$/gis, '').replace(/\n{3,}/g, '\n\n').trim();
-      localStorage.setItem(fullCacheKey, cleaned);
-      clearPendingPaymentOptionId();
-      showAnalysis(cleaned, true);
-    } else {
-      if (loading) { loading.style.display = 'block'; loading.innerHTML = '<p>解读获取失败，请刷新重试</p>'; }
-      if (content) content.style.display = 'none';
+    if (!renderFinal(fullText)) {
+      const ok = await tryNonStreamFallback();
+      if (!ok) {
+        if (loading) {
+          loading.style.display = 'block';
+          loading.innerHTML = '<p>????????????</p>';
+        }
+        if (content) content.style.display = 'none';
+      }
     }
   } catch (err) {
-    if (loading) loading.innerHTML = `<p>网络错误：${err?.message || err}，请刷新重试</p>`;
+    const ok = await tryNonStreamFallback();
+    if (!ok && loading) loading.innerHTML = `<p>?????${err?.message || err}??????</p>`;
   }
 }
 
-// ── 免费自动分析 ───────────────────────────────────────────────────
 async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
   const currentYear = new Date().getFullYear();
   const locked  = document.getElementById('analysis-locked');
