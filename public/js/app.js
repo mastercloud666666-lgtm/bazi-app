@@ -4,7 +4,7 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v23-reconcile-payment';
+const APP_BUILD = '20260314-grid-v24-kefu-home-result';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -20,6 +20,9 @@ console.log('[bazi-app build]', APP_BUILD);
 const CLIENT_ID_KEY = 'bazi_client_id';
 const PENDING_TRADE_COOKIE = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_COOKIE = 'bazi_pending_payment_option_id';
+const CUSTOMER_SERVICE_IMAGE = 'images/kefu-wechat.png';
+const CUSTOMER_SERVICE_TITLE = '微信客服';
+const CUSTOMER_SERVICE_SUBTITLE = '长按识别二维码添加客服';
 
 function safeGetLocalStorage(key) {
   try {
@@ -98,6 +101,67 @@ function clearPendingPaymentOptionId() {
   clearCookie(PENDING_PAYMENT_OPTION_COOKIE);
 }
 
+function initCustomerServiceWidget() {
+  const canShowOnPage = !!document.getElementById('bazi-form') || !!document.getElementById('bazi-table-section');
+  if (!canShowOnPage || document.getElementById('kefu-float-btn')) return;
+
+  const style = document.createElement('style');
+  style.id = 'kefu-widget-style';
+  style.textContent = `
+    #kefu-float-btn{position:fixed;right:16px;bottom:88px;z-index:9998;background:#0b5cc9;color:#fff;border:none;border-radius:999px;padding:10px 14px;font-size:13px;font-weight:600;box-shadow:0 8px 22px rgba(10,37,64,.28);cursor:pointer}
+    #kefu-modal{position:fixed;inset:0;background:rgba(10,37,64,.46);z-index:10020;display:none;align-items:center;justify-content:center;padding:16px}
+    #kefu-modal.show{display:flex}
+    #kefu-card{width:min(92vw,360px);background:#fff;border-radius:14px;border:1px solid #e5e7eb;padding:14px}
+    #kefu-title{font-size:18px;font-weight:700;color:#0f172a}
+    #kefu-sub{font-size:13px;color:#64748b;margin-top:4px}
+    #kefu-image{width:100%;margin-top:12px;border-radius:10px;border:1px solid #dbe3ed;background:#fff}
+    #kefu-close{margin-top:12px;width:100%;padding:10px 12px;border:none;border-radius:8px;background:#111827;color:#fff;font-weight:600;cursor:pointer}
+    @media (min-width:768px){#kefu-float-btn{bottom:26px}}
+  `;
+  document.head.appendChild(style);
+
+  const openBtn = document.createElement('button');
+  openBtn.id = 'kefu-float-btn';
+  openBtn.type = 'button';
+  openBtn.textContent = '客服微信';
+
+  const modal = document.createElement('div');
+  modal.id = 'kefu-modal';
+  modal.innerHTML = `
+    <div id="kefu-card">
+      <div id="kefu-title">${CUSTOMER_SERVICE_TITLE}</div>
+      <div id="kefu-sub">${CUSTOMER_SERVICE_SUBTITLE}</div>
+      <img id="kefu-image" src="${CUSTOMER_SERVICE_IMAGE}" alt="微信客服二维码">
+      <button id="kefu-close" type="button">关闭</button>
+    </div>
+  `;
+
+  document.body.appendChild(openBtn);
+  document.body.appendChild(modal);
+
+  const img = modal.querySelector('#kefu-image');
+  if (img) {
+    img.addEventListener('error', () => {
+      img.alt = '客服图片加载失败';
+      img.style.display = 'none';
+      const hint = document.createElement('div');
+      hint.style.cssText = 'margin-top:12px;padding:10px;border:1px dashed #cbd5e1;border-radius:8px;color:#64748b;font-size:13px;';
+      hint.textContent = '客服微信图片暂未配置，请稍后重试。';
+      img.parentElement?.insertBefore(hint, document.getElementById('kefu-close'));
+    }, { once: true });
+  }
+
+  openBtn.addEventListener('click', () => {
+    modal.classList.add('show');
+  });
+  modal.addEventListener('click', (evt) => {
+    if (evt.target === modal) modal.classList.remove('show');
+  });
+  modal.querySelector('#kefu-close')?.addEventListener('click', () => {
+    modal.classList.remove('show');
+  });
+}
+
 async function copyTextSafe(text) {
   try {
     if (navigator.clipboard?.writeText) {
@@ -106,6 +170,12 @@ async function copyTextSafe(text) {
     }
   } catch {}
   return false;
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCustomerServiceWidget, { once: true });
+} else {
+  initCustomerServiceWidget();
 }
 
 function isWeChatBrowser() {
