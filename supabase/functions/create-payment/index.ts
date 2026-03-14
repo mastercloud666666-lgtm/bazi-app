@@ -12,6 +12,14 @@ const PAYMENT_OPTION_MAP: Record<string, { title: string; total_fee: string }> =
   vip: { title: '尊享版15项完整版', total_fee: '0.01' },
 };
 
+const DEFAULT_PRIMARY_API_BASE = 'https://api.xunhupay.com';
+const DEFAULT_BACKUP_API_BASE = 'https://api.dpweixin.com';
+
+function normalizeApiBase(base: string | undefined, fallback: string) {
+  const value = (base || fallback).trim();
+  return value.replace(/\/+$/, '');
+}
+
 // 纯 JS MD5 实现（Web Crypto API 不支持 MD5）
 function md5(input: string): string {
   const str = unescape(encodeURIComponent(input));
@@ -154,7 +162,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { trade_no, birth_input, payment_option_id } = body;
+    const { trade_no, payment_option_id, client_env } = body;
     if (!trade_no) {
       return new Response(JSON.stringify({
         error: 'Invalid request',
@@ -191,6 +199,20 @@ Deno.serve(async (req) => {
       });
     }
 
+    const userAgent = String(client_env?.user_agent || req.headers.get('user-agent') || '');
+    const isWeChatClient = Boolean(client_env?.is_wechat) || /MicroMessenger/i.test(userAgent);
+    const forceBackupOnWeChat = Deno.env.get('HUPI_FORCE_BACKUP_WECHAT') !== '0';
+    const primaryApiBase = normalizeApiBase(Deno.env.get('HUPI_API_BASE'), DEFAULT_PRIMARY_API_BASE);
+    const backupApiBase = normalizeApiBase(Deno.env.get('HUPI_BACKUP_API_BASE'), DEFAULT_BACKUP_API_BASE);
+    const paymentApiBase = isWeChatClient && forceBackupOnWeChat ? backupApiBase : primaryApiBase;
+    const paymentEndpoint = `${paymentApiBase}/payment/do.html`;
+
+    const gatewayMeta = {
+      is_wechat: isWeChatClient,
+      used_backup: paymentApiBase === backupApiBase,
+      payment_api_base: paymentApiBase,
+    };
+
     const nonceStr = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     const fallbackOrigin = Deno.env.get('PAY_RETURN_ORIGIN') || 'https://tengyunzi.com';
     const originHeader = req.headers.get('origin');
@@ -208,7 +230,7 @@ Deno.serve(async (req) => {
 
     const optionConfig = PAYMENT_OPTION_MAP[payment_option_id] || PAYMENT_OPTION_MAP.basic;
 
-    const payParams = {
+    const payParams: Record<string, string | number> = {
       version: '1.1',
       appid: appId,
       trade_order_id: trade_no,
@@ -220,12 +242,17 @@ Deno.serve(async (req) => {
       nonce_str: nonceStr,
     };
 
+    const wechatPayType = Deno.env.get('HUPI_WECHAT_PAY_TYPE')?.trim();
+    if (isWeChatClient && wechatPayType) {
+      payParams.type = wechatPayType;
+    }
+
     const sortedKeys = Object.keys(payParams).sort();
     const signString = sortedKeys.map(k => `${k}=${payParams[k]}`).join('&') + appSecret;
     const hash = md5(signString);
 
     // 发起POST请求获取支付URL
-    const response = await fetch('https://api.xunhupay.com/payment/do.html', {
+    const response = await fetch(paymentEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -236,11 +263,16 @@ Deno.serve(async (req) => {
     const responseText = await response.text();
     
     if (!response.ok) {
-      console.error('Payment API error:', response.status, responseText);
+      console.error('Payment API error:', {
+        status: response.status,
+        responseText,
+        gatewayMeta,
+      });
       return new Response(JSON.stringify({ 
         error: 'Payment API error',
         status: response.status,
-        response: responseText
+        response: responseText,
+        gateway_meta: gatewayMeta,
       }), {
         status: 500,
         headers: {
@@ -250,7 +282,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    const result = JSON.parse(responseText);
+    const parsed = JSON.parse(responseText);
+    const result = (parsed && typeof parsed === 'object')
+      ? { ...parsed, gateway_meta: gatewayMeta }
+      : { errcode: 500, errmsg: 'Invalid payment response', raw: parsed, gateway_meta: gatewayMeta };
 
     return new Response(JSON.stringify(result), {
       headers: {

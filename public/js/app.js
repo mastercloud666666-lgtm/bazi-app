@@ -4,7 +4,7 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v18-wechat-stay-page';
+const APP_BUILD = '20260314-grid-v19-wechat-jsapi-option1';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -108,9 +108,122 @@ async function copyTextSafe(text) {
   return false;
 }
 
+function isWeChatBrowser() {
+  return /MicroMessenger/i.test(navigator.userAgent || '');
+}
+
+function parseJsonIfString(value) {
+  if (typeof value !== 'string') return value;
+  const trimmed = value.trim();
+  if (!trimmed || (trimmed[0] !== '{' && trimmed[0] !== '[')) return value;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return value;
+  }
+}
+
+function normalizeWeChatJsapiPayload(result) {
+  const candidates = [
+    result?.wx_jsapi,
+    result?.wechat_jsapi,
+    result?.jsapi,
+    result?.pay_info,
+    result?.data?.wx_jsapi,
+    result?.data?.wechat_jsapi,
+    result?.data?.jsapi,
+    result?.data?.pay_info,
+    result?.data,
+    result,
+  ].map(parseJsonIfString);
+
+  let source = null;
+  for (const candidate of candidates) {
+    if (candidate && typeof candidate === 'object' && !Array.isArray(candidate)) {
+      source = candidate;
+      break;
+    }
+  }
+  if (!source) return null;
+
+  const appId = source.appId || source.appid;
+  const timeStampRaw = source.timeStamp || source.timestamp;
+  const nonceStr = source.nonceStr || source.noncestr;
+  const pkg = source.package || source.pkg;
+  const signType = source.signType || source.signtype || 'MD5';
+  const paySign = source.paySign || source.paysign || source.sign;
+
+  if (!appId || !timeStampRaw || !nonceStr || !pkg || !paySign) {
+    return null;
+  }
+
+  return {
+    appId: String(appId),
+    timeStamp: String(timeStampRaw),
+    nonceStr: String(nonceStr),
+    package: String(pkg),
+    signType: String(signType),
+    paySign: String(paySign),
+  };
+}
+
+function invokeWeChatJsapiPay(jsapiPayload, tradeNo) {
+  return new Promise((resolve, reject) => {
+    if (!isWeChatBrowser()) {
+      reject(new Error('not_wechat_browser'));
+      return;
+    }
+
+    let settled = false;
+    let timer = null;
+    const finish = (fn, payload) => {
+      if (settled) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      fn(payload);
+    };
+
+    const resultUrl = `result.html?trade_no=${encodeURIComponent(tradeNo)}&paid=true`;
+    const invoke = () => {
+      if (!window.WeixinJSBridge || typeof window.WeixinJSBridge.invoke !== 'function') {
+        finish(reject, new Error('wx_bridge_unavailable'));
+        return;
+      }
+      window.WeixinJSBridge.invoke('getBrandWCPayRequest', jsapiPayload, (res) => {
+        const msg = String(res?.err_msg || '').toLowerCase();
+        if (msg.includes('ok')) {
+          window.location.href = resultUrl;
+          finish(resolve, true);
+          return;
+        }
+        if (msg.includes('cancel')) {
+          finish(reject, new Error('wxpay_cancel'));
+          return;
+        }
+        const detail = res?.err_desc || res?.err_msg || 'wxpay_failed';
+        finish(reject, new Error(String(detail)));
+      });
+    };
+
+    if (typeof window.WeixinJSBridge === 'undefined') {
+      const onReady = () => {
+        document.removeEventListener('WeixinJSBridgeReady', onReady);
+        invoke();
+      };
+      document.addEventListener('WeixinJSBridgeReady', onReady);
+      timer = setTimeout(() => {
+        finish(reject, new Error('wx_bridge_timeout'));
+      }, 5000);
+      return;
+    }
+
+    invoke();
+  });
+}
+
 function showMobilePayPanel(payUrl, tradeNo, mountEl) {
   const resultUrl = `result.html?trade_no=${encodeURIComponent(tradeNo)}&paid=true`;
-  const isWeChat = /MicroMessenger/i.test(navigator.userAgent || '');
+  const isWeChat = isWeChatBrowser();
   const panelHtml = `
     <p class="price-desc">${isWeChat ? '微信内直接打开支付页可能会被系统关闭，建议先复制链接到系统浏览器支付。' : '手机支付请在新窗口完成，当前页面将保留用于继续查看报告。'}</p>
     <div style="margin-top:12px;display:grid;gap:10px;">
@@ -1198,6 +1311,9 @@ async function startPayment(birthData, bazi, paymentOption) {
   }
 
   console.log('调用后端代理创建支付...');
+  const ua = navigator.userAgent || '';
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+  const isWeChat = isWeChatBrowser();
 
   // 调用后端代理创建支付
   try {
@@ -1213,6 +1329,11 @@ async function startPayment(birthData, bazi, paymentOption) {
         payment_option_id: chosenOption.id,
         payment_option_title: chosenOption.title,
         total_fee: chosenOption.fee,
+        client_env: {
+          user_agent: ua,
+          is_mobile: isMobile,
+          is_wechat: isWeChat,
+        },
       }),
     });
 
@@ -1220,12 +1341,38 @@ async function startPayment(birthData, bazi, paymentOption) {
     console.log('支付API返回:', result);
 
     if (result.errcode === 0) {
-      // 跳转到支付页面
-      const payUrl = result.url || result.url_qrcode;
-      console.log('跳转到支付页面:', payUrl);
+      const payUrl = result.url || result.url_qrcode || '';
+      const jsapiPayload = normalizeWeChatJsapiPayload(result);
+      console.log('支付信息:', {
+        payUrl,
+        hasJsapiPayload: !!jsapiPayload,
+        gateway: result?.gateway_meta || null,
+      });
 
-      const ua = navigator.userAgent || '';
-      const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+      if (isWeChat && jsapiPayload) {
+        if (loadingSection) {
+          loadingSection.innerHTML = '<p class="price-desc">正在唤起微信支付…</p>';
+        }
+        try {
+          await invokeWeChatJsapiPay(jsapiPayload, tradeNo);
+          return;
+        } catch (wxErr) {
+          console.warn('微信JSAPI支付唤起失败，回退到链接支付:', wxErr);
+          if (loadingSection) {
+            loadingSection.innerHTML = '<p class="price-desc">微信支付唤起失败，已切换链接支付方式，请继续完成支付…</p>';
+          }
+          if (payUrl) {
+            showMobilePayPanel(payUrl, tradeNo, loadingSection || null);
+            return;
+          }
+          throw wxErr;
+        }
+      }
+
+      if (!payUrl) {
+        throw new Error('payment_url_missing');
+      }
+
       if (isMobile) {
         showMobilePayPanel(payUrl, tradeNo, loadingSection || null);
         return;
