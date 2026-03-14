@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex,nofollow" />
-  <title>客服核单台</title>
+  <title>Support Order Console</title>
   <style>
     :root {
       --bg: #f4f6fb;
@@ -12,10 +12,11 @@
       --line: #dbe3ef;
       --text: #0f172a;
       --muted: #64748b;
-      --ok: #0f9d58;
-      --warn: #d97706;
-      --bad: #dc2626;
+      --ok: #166534;
+      --warn: #92400e;
+      --bad: #991b1b;
       --brand: #1d4ed8;
+      --brand-dark: #123a94;
     }
     * { box-sizing: border-box; }
     body {
@@ -24,11 +25,7 @@
       color: var(--text);
       font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
     }
-    .wrap {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 16px;
-    }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 16px; }
     .card {
       background: var(--card);
       border: 1px solid var(--line);
@@ -39,19 +36,20 @@
     }
     h1 {
       margin: 0 0 6px;
-      font-size: 22px;
       color: #0b2a50;
+      font-size: 22px;
     }
     .muted {
       color: var(--muted);
       font-size: 14px;
+      line-height: 1.6;
     }
     .row {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: 8px;
       margin-top: 10px;
-      align-items: center;
     }
     input, select, button {
       height: 40px;
@@ -65,16 +63,20 @@
       color: var(--text);
     }
     button {
-      padding: 0 14px;
-      cursor: pointer;
       background: #fff;
       color: #0b2a50;
+      padding: 0 14px;
+      cursor: pointer;
     }
     button.primary {
       background: var(--brand);
       border-color: var(--brand);
       color: #fff;
       font-weight: 600;
+    }
+    button.primary:hover {
+      background: var(--brand-dark);
+      border-color: var(--brand-dark);
     }
     button.warn {
       background: #fff7ed;
@@ -106,7 +108,7 @@
     th, td {
       border-bottom: 1px solid #edf2f7;
       text-align: left;
-      padding: 10px 10px;
+      padding: 10px;
       font-size: 13px;
       vertical-align: top;
     }
@@ -126,54 +128,65 @@
       border: 1px solid transparent;
       white-space: nowrap;
     }
-    .tag.ok { background: #ecfdf3; color: #166534; border-color: #bbf7d0; }
-    .tag.warn { background: #fffbeb; color: #92400e; border-color: #fde68a; }
-    .tag.bad { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+    .tag.ok { background: #ecfdf3; color: var(--ok); border-color: #bbf7d0; }
+    .tag.warn { background: #fffbeb; color: var(--warn); border-color: #fde68a; }
+    .tag.bad { background: #fef2f2; color: var(--bad); border-color: #fecaca; }
     .tiny {
       font-size: 12px;
       color: var(--muted);
       line-height: 1.5;
+      word-break: break-word;
     }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>客服核单台</h1>
-      <div class="muted">用于核对“是否真实支付”与“是否已生成报告”。仅以后端订单与支付网关结果为准，不以用户截图为准。手动补单入口：<a href="/support-manual-order.html" target="_blank" rel="noopener">/support-manual-order.html</a></div>
+      <h1>Support Order Console</h1>
+      <div class="muted">
+        Backend truth source: payment gateway + order status only.
+        Manual order page:
+        <a href="/support-manual-order.html" target="_blank" rel="noopener">/support-manual-order.html</a>
+      </div>
       <div class="row">
-        <input id="tradeNoInput" type="text" style="min-width:320px;flex:1;" placeholder="输入 trade_no，例如 bazi-xxxx-177..." />
-        <button class="warn" id="verifyOneBtn">核验支付并补触发报告</button>
-        <button id="copyOneBtn">复制订单号</button>
+        <input id="adminTokenInput" type="password" style="min-width:280px;flex:1;" placeholder="ADMIN_DASHBOARD_TOKEN" />
+        <button class="primary" id="saveAdminTokenBtn">Save Token (Session)</button>
+      </div>
+      <div class="row">
+        <input id="tradeNoInput" type="text" style="min-width:320px;flex:1;" placeholder="trade_no, e.g. bazi-xxxx-177..." />
+        <button class="warn" id="verifyOneBtn">Verify + Trigger</button>
+        <button id="copyOneBtn">Copy Trade No</button>
       </div>
       <div class="row">
         <select id="limitSelect">
-          <option value="20">最近 20 单</option>
-          <option value="50" selected>最近 50 单</option>
-          <option value="100">最近 100 单</option>
+          <option value="20">Last 20</option>
+          <option value="50" selected>Last 50</option>
+          <option value="100">Last 100</option>
         </select>
-        <button class="primary" id="refreshBtn">刷新订单列表</button>
+        <button class="primary" id="refreshBtn">Refresh Orders</button>
       </div>
-      <div id="statusBar" class="status-bar">等待操作…</div>
+      <div id="statusBar" class="status-bar">Save admin token first.</div>
     </div>
 
     <div class="card">
-      <div class="muted">处理建议：未支付=引导继续支付；已支付未出报告=点击“核验支付并补触发报告”；已支付已出报告=发“继续上次订单”。</div>
+      <div class="muted">
+        If customer says "paid but no report", click "Verify + Trigger", then ask customer to reopen order result page.
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>创建时间</th>
-              <th>订单号</th>
-              <th>档位/金额</th>
-              <th>支付</th>
-              <th>报告</th>
-              <th>客户信息</th>
-              <th>操作</th>
+              <th>Created At</th>
+              <th>Trade No</th>
+              <th>Tier/Fee</th>
+              <th>Paid</th>
+              <th>Report</th>
+              <th>Birth Info</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="orderTbody">
-            <tr><td colspan="7" class="tiny">暂无数据</td></tr>
+            <tr><td colspan="7" class="tiny">No data</td></tr>
           </tbody>
         </table>
       </div>
@@ -183,12 +196,11 @@
   <script>
     const SUPABASE_URL = 'https://rcyssrsnalefzhzsvswm.supabase.co';
     const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
-    const REST_HEADERS = {
-      apikey: SUPABASE_ANON,
-      Authorization: `Bearer ${SUPABASE_ANON}`,
-      'Content-Type': 'application/json',
-    };
+    const ADMIN_TOOL_URL = `${SUPABASE_URL}/functions/v1/admin-orders`;
+    const ADMIN_TOKEN_KEY = 'bazi_support_admin_token';
 
+    const adminTokenInput = document.getElementById('adminTokenInput');
+    const saveAdminTokenBtn = document.getElementById('saveAdminTokenBtn');
     const tradeNoInput = document.getElementById('tradeNoInput');
     const verifyOneBtn = document.getElementById('verifyOneBtn');
     const copyOneBtn = document.getElementById('copyOneBtn');
@@ -201,7 +213,45 @@
       statusBar.textContent = msg;
     }
 
-    function safeJSON(raw) {
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function getAdminToken() {
+      return String(sessionStorage.getItem(ADMIN_TOKEN_KEY) || '').trim();
+    }
+
+    function setAdminToken(value) {
+      sessionStorage.setItem(ADMIN_TOKEN_KEY, String(value || '').trim());
+    }
+
+    async function callAdmin(action, payload = {}) {
+      const token = getAdminToken();
+      if (!token) throw new Error('Missing admin token. Save token first.');
+
+      const res = await fetch(ADMIN_TOOL_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_ANON}`,
+          'x-admin-token': token,
+        },
+        body: JSON.stringify({ action, ...payload }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data?.error) {
+        const details = typeof data?.details === 'string' ? `: ${data.details}` : '';
+        throw new Error(data?.error ? `${data.error}${details}` : `HTTP ${res.status}`);
+      }
+      return data;
+    }
+
+    function parseBirthInput(raw) {
       if (!raw) return {};
       try { return JSON.parse(raw); } catch (_) { return {}; }
     }
@@ -214,49 +264,50 @@
     }
 
     function statusTag(paid, hasAnalysis) {
-      if (paid && hasAnalysis) return '<span class="tag ok">已支付已出报告</span>';
-      if (paid && !hasAnalysis) return '<span class="tag warn">已支付待生成</span>';
-      return '<span class="tag bad">未支付</span>';
+      if (paid && hasAnalysis) return '<span class="tag ok">Paid + Report</span>';
+      if (paid && !hasAnalysis) return '<span class="tag warn">Paid no report</span>';
+      return '<span class="tag bad">Not paid</span>';
+    }
+
+    function validateTradeNo(value) {
+      return /^bazi-[a-z0-9_-]{4,120}$/i.test(String(value || '').trim());
     }
 
     async function loadOrders() {
-      const limit = Number(limitSelect.value || 50);
-      setStatus('正在拉取订单列表…');
-      const url = `${SUPABASE_URL}/rest/v1/orders?select=trade_no,paid,analysis,created_at,birth_input&order=created_at.desc&limit=${limit}`;
-      const res = await fetch(url, { headers: REST_HEADERS });
-      if (!res.ok) {
-        throw new Error(`拉取失败 HTTP ${res.status}`);
-      }
-      const rows = await res.json();
-      renderRows(Array.isArray(rows) ? rows : []);
-      setStatus(`已加载 ${Array.isArray(rows) ? rows.length : 0} 条订单`);
+      const limit = Math.min(Math.max(Number(limitSelect.value || 50), 1), 100);
+      setStatus('Loading orders...');
+      const data = await callAdmin('list', { limit });
+      const rows = Array.isArray(data?.orders) ? data.orders : [];
+      renderRows(rows);
+      setStatus(`Loaded ${rows.length} orders.`);
     }
 
     function renderRows(rows) {
       if (!rows.length) {
-        orderTbody.innerHTML = '<tr><td colspan="7" class="tiny">暂无数据</td></tr>';
+        orderTbody.innerHTML = '<tr><td colspan="7" class="tiny">No data</td></tr>';
         return;
       }
 
       orderTbody.innerHTML = rows.map((row) => {
-        const birth = safeJSON(row.birth_input);
+        const birth = parseBirthInput(row.birth_input);
         const option = birth.payment_option || {};
-        const tier = option.id || '-';
-        const fee = option.fee ? `¥${option.fee}` : '-';
+        const tier = escapeHtml(option.id || '-');
+        const fee = option.fee ? `CNY ${escapeHtml(option.fee)}` : '-';
         const hasAnalysis = !!String(row.analysis || '').trim();
-        const customer = `${birth.year || '-'}-${birth.month || '-'}-${birth.day || '-'} ${birth.hour || '-'}时 / ${birth.gender || '-'}`;
+        const customer = `${escapeHtml(birth.year || '-')}-${escapeHtml(birth.month || '-')}-${escapeHtml(birth.day || '-')} ${escapeHtml(birth.hour || '-')} / ${escapeHtml(birth.gender || '-')}`;
+        const tradeNo = escapeHtml(row.trade_no || '-');
         return `
           <tr>
             <td>${toLocalTime(row.created_at)}</td>
-            <td><code>${row.trade_no || '-'}</code></td>
+            <td><code>${tradeNo}</code></td>
             <td>${tier} / ${fee}</td>
-            <td>${row.paid ? '<span class="tag ok">已支付</span>' : '<span class="tag bad">未支付</span>'}</td>
-            <td>${hasAnalysis ? '<span class="tag ok">已生成</span>' : '<span class="tag warn">未生成</span>'}</td>
+            <td>${row.paid ? '<span class="tag ok">Paid</span>' : '<span class="tag bad">No</span>'}</td>
+            <td>${hasAnalysis ? '<span class="tag ok">Ready</span>' : '<span class="tag warn">Pending</span>'}</td>
             <td class="tiny">${customer}</td>
             <td>
               ${statusTag(!!row.paid, hasAnalysis)}
               <div class="row" style="margin-top:8px;">
-                <button data-trade="${row.trade_no || ''}" class="verify-row-btn">核验+补触发</button>
+                <button data-trade="${tradeNo}" class="verify-row-btn">Verify</button>
               </div>
             </td>
           </tr>
@@ -275,64 +326,65 @@
     }
 
     async function verifyAndReconcile(tradeNo) {
-      const t = String(tradeNo || '').trim();
-      if (!t) {
-        setStatus('请先输入订单号 trade_no');
+      const value = String(tradeNo || '').trim();
+      if (!validateTradeNo(value)) {
+        setStatus('Invalid trade_no format.');
         return;
       }
-      setStatus(`正在核验订单：${t}`);
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/reconcile-payment`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${SUPABASE_ANON}`,
-        },
-        body: JSON.stringify({ trade_no: t }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(`核验失败 HTTP ${res.status} ${data?.error || ''}`);
-      }
 
-      const paid = !!data.paid || data.status === 'OD';
+      setStatus(`Verifying ${value} ...`);
+      const data = await callAdmin('verify', { trade_no: value });
+      const paid = !!data.paid;
       const analysisExists = !!data.analysis_exists;
       const analysisTriggered = !!data.analysis_triggered;
+
       const lines = [
-        `订单：${t}`,
-        `支付状态：${paid ? '已支付' : `未支付(${data.status || 'unknown'})`}`,
-        `报告状态：${analysisExists ? '已存在' : '未存在'}`,
-        `补触发生成：${analysisTriggered ? '已触发' : '未触发'}`,
+        `Trade: ${value}`,
+        `Paid: ${paid ? 'YES' : 'NO'}`,
+        `Report: ${analysisExists ? 'EXISTS' : 'MISSING'}`,
+        `Triggered: ${analysisTriggered ? 'YES' : 'NO'}`,
       ];
+
       if (!paid) {
-        lines.push('处理建议：该单未到账，请引导客户完成支付。');
-      } else if (paid && !analysisExists) {
-        lines.push('处理建议：已到账未出报告，系统已尝试补触发，请稍后再点一次核验。');
+        lines.push('Advice: ask customer to complete payment.');
+      } else if (!analysisExists) {
+        lines.push('Advice: payment confirmed, generation triggered. Recheck shortly.');
       } else {
-        lines.push('处理建议：已到账且已有报告，可引导客户“继续上次订单”查看。');
+        lines.push('Advice: report ready, ask customer to continue previous order.');
       }
       setStatus(lines.join('\n'));
     }
+
+    saveAdminTokenBtn.addEventListener('click', () => {
+      const token = String(adminTokenInput.value || '').trim();
+      if (!token) {
+        setStatus('Input admin token first.');
+        return;
+      }
+      setAdminToken(token);
+      setStatus('Admin token saved in this tab session.');
+    });
 
     verifyOneBtn.addEventListener('click', async () => {
       try {
         await verifyAndReconcile(tradeNoInput.value);
         await loadOrders();
       } catch (err) {
-        setStatus(`核验失败：${err instanceof Error ? err.message : String(err)}`);
+        setStatus(`Verify failed: ${err instanceof Error ? err.message : String(err)}`);
       }
     });
 
     copyOneBtn.addEventListener('click', async () => {
-      const v = String(tradeNoInput.value || '').trim();
-      if (!v) {
-        setStatus('当前没有可复制的订单号');
+      const value = String(tradeNoInput.value || '').trim();
+      if (!value) {
+        setStatus('No trade no to copy.');
         return;
       }
       try {
-        await navigator.clipboard.writeText(v);
-        setStatus(`已复制订单号：${v}`);
+        await navigator.clipboard.writeText(value);
+        setStatus(`Copied trade no: ${value}`);
       } catch {
-        setStatus('复制失败，请手动复制');
+        setStatus('Copy failed.');
       }
     });
 
@@ -340,16 +392,14 @@
       try {
         await loadOrders();
       } catch (err) {
-        setStatus(`加载失败：${err instanceof Error ? err.message : String(err)}`);
+        setStatus(`Load failed: ${err instanceof Error ? err.message : String(err)}`);
       }
     });
 
-    (async () => {
-      try {
-        await loadOrders();
-      } catch (err) {
-        setStatus(`初始化失败：${err instanceof Error ? err.message : String(err)}`);
-      }
+    (() => {
+      const token = getAdminToken();
+      if (token) adminTokenInput.value = token;
+      setStatus(token ? 'Token found. Click Refresh Orders.' : 'Save admin token first.');
     })();
   </script>
 </body>
