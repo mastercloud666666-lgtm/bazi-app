@@ -4,7 +4,7 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v26-pay-panel-polish';
+const APP_BUILD = '20260314-grid-v27-free-fallback';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -2004,6 +2004,59 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext
   }
 }
 
+function buildLocalFreeAnalysis(birthData, bazi, daYunData, specialYears, reason = '') {
+  const now = new Date().getFullYear();
+  const dayStem = bazi?.day?.tg || '';
+  const pillars = [
+    `${bazi?.year?.tg || ''}${bazi?.year?.dz || ''}`,
+    `${bazi?.month?.tg || ''}${bazi?.month?.dz || ''}`,
+    `${bazi?.day?.tg || ''}${bazi?.day?.dz || ''}`,
+    `${bazi?.hour?.tg || ''}${bazi?.hour?.dz || ''}`,
+  ].filter(Boolean);
+
+  const counts = ['木', '火', '土', '金', '水'].map((wx) => ({
+    wx,
+    count: Number(bazi?.wuxing?.[wx] || 0),
+  }));
+  const sorted = [...counts].sort((a, b) => b.count - a.count);
+  const maxCount = sorted[0]?.count || 0;
+  const minCount = sorted[sorted.length - 1]?.count || 0;
+  const strong = sorted.filter((x) => x.count === maxCount && x.count > 0).map((x) => x.wx);
+  const weak = sorted.filter((x) => x.count === minCount).map((x) => x.wx);
+  const balance = maxCount - minCount >= 3 ? '五行偏重较明显'
+    : maxCount - minCount >= 2 ? '五行略有偏重'
+    : '五行相对均衡';
+
+  const yearGod = dayStem ? getTenGod(dayStem, bazi?.year?.tg) : '--';
+  const monthGod = dayStem ? getTenGod(dayStem, bazi?.month?.tg) : '--';
+  const hourGod = dayStem ? getTenGod(dayStem, bazi?.hour?.tg) : '--';
+
+  const dayuns = Array.isArray(daYunData?.dayuns) ? daYunData.dayuns : [];
+  const currentDayun = dayuns.find((d) => now >= d.yearStart && now < d.yearStart + 10) || dayuns[0] || null;
+  const nextDayun = dayuns.find((d) => d.yearStart > now) || null;
+
+  const nearbySpecial = (specialYears || [])
+    .filter((s) => s.year >= now && s.year <= now + 3)
+    .slice(0, 2);
+  const specialText = nearbySpecial.length
+    ? nearbySpecial.map((s) => `${s.year}年${s.gz}：${(s.reasons || []).slice(0, 2).join('；')}`).join('；')
+    : '近三年无明显天克地冲，按既定节奏稳步推进更有利。';
+
+  const lines = [
+    '【免费基础解读】',
+    '当前网络不稳定，已自动切换为基础版解读，核心命盘信息完整可用。',
+    `1. 命盘结构：四柱为 ${pillars.join(' / ')}，日主为 ${bazi?.day?.tg || '--'}。`,
+    `2. 十神概览：年干${yearGod}、月干${monthGod}、时干${hourGod}，建议优先参考月柱与日柱作为主判断。`,
+    `3. 五行状态：${balance}；偏旺：${strong.length ? strong.join('、') : '无明显偏旺'}；相对偏弱：${weak.length ? weak.join('、') : '无明显偏弱'}。`,
+    `4. 大运节奏：${currentDayun ? `当前约在「${currentDayun.gz}」运（${currentDayun.yearStart}年起）` : '当前大运信息读取中'}${nextDayun ? `，下一步「${nextDayun.gz}」运（约${nextDayun.yearStart}年）` : ''}。`,
+    `5. 近年提醒：${specialText}`,
+    '6. 行动建议：先做稳健决策、再做扩张决策；重大事项尽量避开情绪波动期，分阶段推进成功率更高。',
+    reason ? `（网络详情：${String(reason).slice(0, 80)}）` : '',
+  ].filter(Boolean);
+
+  return lines.join('\n');
+}
+
 async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
   const currentYear = new Date().getFullYear();
   const locked  = document.getElementById('analysis-locked');
@@ -2043,6 +2096,9 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
         free_only: true,
       }),
     });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
     const data = await res.json();
     if (data.analysis) {
       const cleaned = data.analysis
@@ -2056,9 +2112,10 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
       localStorage.setItem(cacheKey, cleaned);
       showAnalysis(cleaned);
     } else {
-      if (loading) loading.innerHTML = '<p>解读获取失败，请刷新重试</p>';
+      showAnalysis(buildLocalFreeAnalysis(birthData, bazi, daYunData, specialYears, 'empty analysis'));
     }
   } catch (err) {
-    if (loading) loading.innerHTML = `<p>网络错误：${err?.message || err}，请刷新重试</p>`;
+    console.warn('free analyze failed, use local fallback', err);
+    showAnalysis(buildLocalFreeAnalysis(birthData, bazi, daYunData, specialYears, err?.message || err));
   }
 }
