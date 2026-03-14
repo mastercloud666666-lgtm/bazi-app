@@ -204,13 +204,17 @@ Deno.serve(async (req) => {
     const forceBackupOnWeChat = Deno.env.get('HUPI_FORCE_BACKUP_WECHAT') !== '0';
     const primaryApiBase = normalizeApiBase(Deno.env.get('HUPI_API_BASE'), DEFAULT_PRIMARY_API_BASE);
     const backupApiBase = normalizeApiBase(Deno.env.get('HUPI_BACKUP_API_BASE'), DEFAULT_BACKUP_API_BASE);
-    const paymentApiBase = isWeChatClient && forceBackupOnWeChat ? backupApiBase : primaryApiBase;
-    const paymentEndpoint = `${paymentApiBase}/payment/do.html`;
+    const preferredApiBase = isWeChatClient && forceBackupOnWeChat ? backupApiBase : primaryApiBase;
+    const candidateApiBases = [preferredApiBase];
+    if (preferredApiBase !== primaryApiBase) {
+      candidateApiBases.push(primaryApiBase);
+    }
 
     const gatewayMeta = {
       is_wechat: isWeChatClient,
-      used_backup: paymentApiBase === backupApiBase,
-      payment_api_base: paymentApiBase,
+      used_backup: preferredApiBase === backupApiBase,
+      preferred_api_base: preferredApiBase,
+      attempted_api_bases: candidateApiBases,
     };
 
     const nonceStr = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -251,28 +255,70 @@ Deno.serve(async (req) => {
     const signString = sortedKeys.map(k => `${k}=${payParams[k]}`).join('&') + appSecret;
     const hash = md5(signString);
 
-    // 发起POST请求获取支付URL
-    const response = await fetch(paymentEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({ ...payParams, hash }),
-    });
+    // 发起POST请求获取支付URL（备用网关失败时自动回退主网关）
+    let response: Response | null = null;
+    let responseText = '';
+    let selectedApiBase = '';
+    let transportError = '';
 
-    const responseText = await response.text();
-    
-    if (!response.ok) {
-      console.error('Payment API error:', {
-        status: response.status,
-        responseText,
-        gatewayMeta,
+    for (const apiBase of candidateApiBases) {
+      const endpoint = `${apiBase}/payment/do.html`;
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({ ...payParams, hash }),
+        });
+        const text = await res.text();
+        selectedApiBase = apiBase;
+
+        if (res.ok) {
+          response = res;
+          responseText = text;
+          break;
+        }
+
+        console.error('Payment API non-OK response:', {
+          endpoint,
+          status: res.status,
+          text,
+        });
+        response = res;
+        responseText = text;
+      } catch (err) {
+        transportError = err instanceof Error ? err.message : String(err);
+        console.error('Payment API transport error:', { endpoint, transportError });
+      }
+    }
+
+    const gatewayMetaWithRuntime = {
+      ...gatewayMeta,
+      selected_api_base: selectedApiBase || null,
+      fallback_used: selectedApiBase ? selectedApiBase !== preferredApiBase : false,
+    };
+
+    if (!response) {
+      return new Response(JSON.stringify({
+        error: 'Payment API unavailable',
+        details: transportError || 'no_response',
+        gateway_meta: gatewayMetaWithRuntime,
+      }), {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders,
+        },
       });
-      return new Response(JSON.stringify({ 
+    }
+
+    if (!response.ok) {
+      return new Response(JSON.stringify({
         error: 'Payment API error',
         status: response.status,
         response: responseText,
-        gateway_meta: gatewayMeta,
+        gateway_meta: gatewayMetaWithRuntime,
       }), {
         status: 500,
         headers: {
@@ -284,8 +330,8 @@ Deno.serve(async (req) => {
 
     const parsed = JSON.parse(responseText);
     const result = (parsed && typeof parsed === 'object')
-      ? { ...parsed, gateway_meta: gatewayMeta }
-      : { errcode: 500, errmsg: 'Invalid payment response', raw: parsed, gateway_meta: gatewayMeta };
+      ? { ...parsed, gateway_meta: gatewayMetaWithRuntime }
+      : { errcode: 500, errmsg: 'Invalid payment response', raw: parsed, gateway_meta: gatewayMetaWithRuntime };
 
     return new Response(JSON.stringify(result), {
       headers: {
