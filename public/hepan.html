@@ -93,6 +93,24 @@
       display: none;
     }
     #hepan-content { display: none; }
+    .hepan-action-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    .hepan-action-row .form-submit {
+      flex: 1;
+      min-width: 220px;
+    }
+    .form-submit.pay-entry-btn {
+      background: #0b2a50;
+      border-color: #0b2a50;
+    }
+    .form-submit.pay-entry-btn:hover {
+      background: #081f3a;
+      border-color: #081f3a;
+    }
     .disclaimer {
       font-size: 12px;
       color: var(--text-light);
@@ -104,6 +122,7 @@
     @media (max-width: 768px) {
       .persons-grid { grid-template-columns: 1fr; }
       .bazi-overview { grid-template-columns: 1fr; }
+      .hepan-action-row .form-submit { width: 100%; }
     }
   </style>
 </head>
@@ -277,7 +296,10 @@
 
         </div>
 
-        <button type="submit" class="form-submit">开始合盘分析</button>
+        <div class="hepan-action-row">
+          <button type="submit" class="form-submit">开始合盘分析</button>
+          <button type="button" class="form-submit pay-entry-btn" id="hepan-pay-entry-btn">立即付费解锁合盘报告</button>
+        </div>
       </form>
 
       <!-- Result Section (populated by hepan.js) -->

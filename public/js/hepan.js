@@ -125,24 +125,23 @@ function calcCompatTags(manBazi, womanBazi) {
 // ── 表单提交 ──────────────────────────────────────────────────────
 const form = document.getElementById('hepan-form');
 let _manBazi = null, _womanBazi = null, _manData = null, _womanData = null;
+const payEntryBtn = document.getElementById('hepan-pay-entry-btn');
 
-form.addEventListener('submit', e => {
-  e.preventDefault();
-
-  const manData   = collectPerson('man');
+function buildHepanPreview() {
+  const manData = collectPerson('man');
   const womanData = collectPerson('woman');
-  if (!manData || !womanData) return;
+  if (!manData || !womanData) return false;
 
-  const manBazi   = BaziCalc.calculateBazi(manData.year, manData.month, manData.day, manData.hour);
+  const manBazi = BaziCalc.calculateBazi(manData.year, manData.month, manData.day, manData.hour);
   const womanBazi = BaziCalc.calculateBazi(womanData.year, womanData.month, womanData.day, womanData.hour);
 
-  _manBazi   = manBazi;
+  _manBazi = manBazi;
   _womanBazi = womanBazi;
-  _manData   = manData;
+  _manData = manData;
   _womanData = womanData;
 
   // 渲染八字概览
-  renderMiniPillars('man-pillars',   manBazi);
+  renderMiniPillars('man-pillars', manBazi);
   renderMiniPillars('woman-pillars', womanBazi);
 
   // 渲染快速合缘指标
@@ -152,14 +151,35 @@ form.addEventListener('submit', e => {
     .join('');
 
   // 显示结果区，隐藏表单
-  document.getElementById('form-area').style.display   = 'none';
+  document.getElementById('form-area').style.display = 'none';
   document.getElementById('result-section').style.display = 'block';
-  document.getElementById('pay-card').style.display    = 'block';
-  document.getElementById('hepan-loading').style.display  = 'none';
-  document.getElementById('hepan-content').style.display  = 'none';
+  document.getElementById('pay-card').style.display = 'block';
+  document.getElementById('hepan-loading').style.display = 'none';
+  document.getElementById('hepan-content').style.display = 'none';
+
+  return true;
+}
+
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  if (!buildHepanPreview()) return;
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
+
+if (payEntryBtn) {
+  payEntryBtn.addEventListener('click', () => {
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    if (!buildHepanPreview()) return;
+    const payCard = document.getElementById('pay-card');
+    if (payCard) {
+      payCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
+}
 
 // ── 付款按钮（测试阶段直接生成报告）─────────────────────────────
 document.getElementById('hepan-pay-btn').addEventListener('click', async () => {
