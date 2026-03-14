@@ -4,7 +4,7 @@ const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
-const APP_BUILD = '20260314-grid-v17-wechat-pay-panel';
+const APP_BUILD = '20260314-grid-v18-wechat-stay-page';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -110,11 +110,13 @@ async function copyTextSafe(text) {
 
 function showMobilePayPanel(payUrl, tradeNo, mountEl) {
   const resultUrl = `result.html?trade_no=${encodeURIComponent(tradeNo)}&paid=true`;
+  const isWeChat = /MicroMessenger/i.test(navigator.userAgent || '');
   const panelHtml = `
-    <p class="price-desc">微信内支付请在新窗口完成，当前页面将保留用于继续查看报告。</p>
+    <p class="price-desc">${isWeChat ? '微信内直接打开支付页可能会被系统关闭，建议先复制链接到系统浏览器支付。' : '手机支付请在新窗口完成，当前页面将保留用于继续查看报告。'}</p>
     <div style="margin-top:12px;display:grid;gap:10px;">
-      <button id="mobile-open-pay-btn" type="button" style="padding:12px 14px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">打开支付页面</button>
+      <button id="mobile-open-pay-btn" type="button" style="padding:12px 14px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">${isWeChat ? '复制链接并去浏览器支付（推荐）' : '打开支付页面'}</button>
       <button id="mobile-copy-pay-btn" type="button" style="padding:12px 14px;background:#fff;color:#1f2937;border:1px solid #d1d5db;border-radius:8px;font-weight:600;cursor:pointer;">复制支付链接</button>
+      ${isWeChat ? '<button id="mobile-open-pay-risk-btn" type="button" style="padding:12px 14px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">仍在微信内打开（可能关闭）</button>' : ''}
       <button id="mobile-paid-back-btn" type="button" style="padding:12px 14px;background:#111827;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">我已完成支付，查看报告</button>
     </div>
     <p style="margin-top:10px;color:#6b7280;font-size:13px;">若支付后页面被微信关闭，请重新打开首页并继续恢复订单。</p>
@@ -145,7 +147,17 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl) {
 
   const openPayBtn = document.getElementById('mobile-open-pay-btn');
   if (openPayBtn) {
-    openPayBtn.addEventListener('click', () => {
+    openPayBtn.addEventListener('click', async () => {
+      if (isWeChat) {
+        const ok = await copyTextSafe(payUrl);
+        if (ok) {
+          alert('支付链接已复制，请切换到系统浏览器打开并完成支付。');
+        } else {
+          prompt('请手动复制支付链接：', payUrl);
+        }
+        return;
+      }
+
       const win = window.open(payUrl, '_blank');
       if (!win) {
         alert('未能自动打开支付页，请先复制支付链接再打开。');
@@ -169,6 +181,13 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl) {
   if (doneBtn) {
     doneBtn.addEventListener('click', () => {
       window.location.href = resultUrl;
+    });
+  }
+
+  const riskOpenBtn = document.getElementById('mobile-open-pay-risk-btn');
+  if (riskOpenBtn) {
+    riskOpenBtn.addEventListener('click', () => {
+      window.location.href = payUrl;
     });
   }
 }
