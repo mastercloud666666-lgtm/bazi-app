@@ -154,6 +154,10 @@
 
   <script src="js/bazi.js"></script>
   <script>
+    if (location.protocol !== 'https:' && /(^|\.)tengyunzi\.com$/i.test(location.hostname)) {
+      location.replace(`https://${location.host}${location.pathname}${location.search}${location.hash}`);
+    }
+
     const SUPABASE_URL = 'https://rcyssrsnalefzhzsvswm.supabase.co';
     const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
     const ADMIN_TOOL_URL = `${SUPABASE_URL}/functions/v1/admin-orders`;
@@ -185,12 +189,21 @@
       sessionStorage.setItem(ADMIN_TOKEN_KEY, String(value || '').trim());
     }
 
+    function getActiveAdminToken() {
+      const typed = String(adminTokenInput.value || '').trim();
+      if (typed) {
+        setAdminToken(typed);
+        return typed;
+      }
+      return getAdminToken();
+    }
+
     function validateTradeNo(value) {
       return /^bazi-[a-z0-9_-]{4,120}$/i.test(String(value || '').trim());
     }
 
     async function callAdmin(action, payload = {}) {
-      const token = getAdminToken();
+      const token = getActiveAdminToken();
       if (!token) throw new Error('Missing admin token. Save token first.');
 
       const res = await fetch(ADMIN_TOOL_URL, {
