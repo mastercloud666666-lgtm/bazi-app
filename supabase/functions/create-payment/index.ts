@@ -162,7 +162,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { trade_no, payment_option_id, client_env } = body;
+    const { trade_no, payment_option_id, client_env, pay_type_override } = body;
     if (!trade_no) {
       return new Response(JSON.stringify({
         error: 'Invalid request',
@@ -246,7 +246,8 @@ Deno.serve(async (req) => {
       nonce_str: nonceStr,
     };
 
-    const wechatPayType = Deno.env.get('HUPI_WECHAT_PAY_TYPE')?.trim();
+    const overridePayType = typeof pay_type_override === 'string' ? pay_type_override.trim() : '';
+    const wechatPayType = overridePayType || Deno.env.get('HUPI_WECHAT_PAY_TYPE')?.trim();
     if (isWeChatClient && wechatPayType) {
       payParams.type = wechatPayType;
     }
@@ -295,6 +296,7 @@ Deno.serve(async (req) => {
 
     const gatewayMetaWithRuntime = {
       ...gatewayMeta,
+      wechat_pay_type: isWeChatClient ? (wechatPayType || null) : null,
       selected_api_base: selectedApiBase || null,
       fallback_used: selectedApiBase ? selectedApiBase !== preferredApiBase : false,
     };
