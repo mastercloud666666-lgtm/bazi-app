@@ -146,7 +146,14 @@ Deno.serve(async (req) => {
 
   // 异步触发 AI 分析（不等待结果，但添加错误处理）
   const birth = parseBirthInput(order.birth_input);
-  const orderService = birth?.order_service === 'hepan' ? 'hepan' : 'bazi';
+  const orderService = birth?.order_service === 'hepan'
+    ? 'hepan'
+    : (birth?.order_service === 'pdf' ? 'pdf' : 'bazi');
+  if (orderService === 'pdf') {
+    console.log(`PDF order ${trade_order_id} paid, skip analyze trigger`);
+    return new Response('success', { status: 200 });
+  }
+
   const analyzePayload: Record<string, unknown> = {
     trade_no: trade_order_id,
     service: orderService,

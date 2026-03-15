@@ -5,22 +5,32 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
 const PENDING_BIRTH_INPUT_KEY = 'bazi_pending_birth_input';
-const APP_BUILD = '20260314-grid-v31-security-guard';
+const PDF_PENDING_TRADE_KEY = 'bazi_pdf_pending_trade_no';
+const APP_BUILD = '20260316-home-pdf-sale-v2';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'vip', title: '尊享完整版：15大项全解', subtitle: '最全面 5000 字：命局 + 大运 + 流年 + 婚恋 + 健康一次看透｜正式价 199 元｜测试价 0.01 元', fee: '0.01' },
 ];
 const DEFAULT_PAYMENT_OPTION = PAYMENT_OPTIONS[0];
+const PDF_PRODUCT = {
+  id: 'pdf',
+  title: '八字精读 PDF 文档',
+  subtitle: '付款后可直接下载（测试价 0.01 元）',
+  fee: '0.01',
+  downloadPath: '/downloads/yunzi-bazi-guide.pdf',
+  fileName: '云子命理-八字精读文档.pdf',
+};
 const ONE_TIME_PAID_NOTICE = '\u672c\u6b21\u62a5\u544a\u662f\u4e00\u6b21\u6027\u670d\u52a1\uff0c\u8bf7\u81ea\u884c\u622a\u56fe\u4fdd\u5b58\uff0c\u9875\u9762\u5173\u95ed\u540e\u4e0d\u53ef\u518d\u6b21\u67e5\u770b\u3002';
 const PAID_ONE_TIME_NOTICE_HTML = '<p style="margin-top:10px;color:#dc2626;font-weight:700;">' + ONE_TIME_PAID_NOTICE + '</p>';
 window.__BAZI_APP_BUILD = APP_BUILD;
-window.__BAZI_PAYMENT_OPTION_IDS = PAYMENT_OPTIONS.map((x) => x.id);
+window.__BAZI_PAYMENT_OPTION_IDS = [...PAYMENT_OPTIONS.map((x) => x.id), PDF_PRODUCT.id];
 console.log('[bazi-app build]', APP_BUILD);
 
 const CLIENT_ID_KEY = 'bazi_client_id';
 const PENDING_TRADE_COOKIE = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_COOKIE = 'bazi_pending_payment_option_id';
+const PDF_PENDING_TRADE_COOKIE = 'bazi_pdf_pending_trade_no';
 const CUSTOMER_SERVICE_IMAGE = 'images/kefu-wechat.png';
 const CUSTOMER_SERVICE_TITLE = '微信客服';
 const CUSTOMER_SERVICE_SUBTITLE = '长按识别二维码添加客服';
@@ -103,6 +113,21 @@ function getPendingPaymentOptionId() {
 function clearPendingPaymentOptionId() {
   safeRemoveLocalStorage(PENDING_PAYMENT_OPTION_KEY);
   clearCookie(PENDING_PAYMENT_OPTION_COOKIE);
+}
+
+function setPendingPdfTradeNo(tradeNo) {
+  if (!tradeNo) return;
+  safeSetLocalStorage(PDF_PENDING_TRADE_KEY, tradeNo);
+  setCookie(PDF_PENDING_TRADE_COOKIE, tradeNo, 60 * 60 * 24 * 30);
+}
+
+function getPendingPdfTradeNo() {
+  return safeGetLocalStorage(PDF_PENDING_TRADE_KEY) || getCookie(PDF_PENDING_TRADE_COOKIE) || '';
+}
+
+function clearPendingPdfTradeNo() {
+  safeRemoveLocalStorage(PDF_PENDING_TRADE_KEY);
+  clearCookie(PDF_PENDING_TRADE_COOKIE);
 }
 
 function setPendingBirthInput(tradeNo, birthInput) {
@@ -267,6 +292,42 @@ function parseJsonIfString(value) {
   }
 }
 
+function parseBirthInputSafe(raw) {
+  if (!raw) return {};
+  if (typeof raw === 'object' && !Array.isArray(raw)) return raw;
+  if (typeof raw !== 'string') return {};
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function getAbsolutePdfUrl(downloadPath = PDF_PRODUCT.downloadPath) {
+  const path = String(downloadPath || PDF_PRODUCT.downloadPath || '').trim();
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path)) return path;
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+  return `${window.location.origin}${normalized}`;
+}
+
+async function fetchOrderByTradeNo(tradeNo) {
+  if (!tradeNo) return null;
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(tradeNo)}&select=trade_no,paid,analysis,birth_input&limit=1`,
+      { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
+    );
+    if (!response.ok) return null;
+    const rows = await response.json();
+    return Array.isArray(rows) ? (rows[0] || null) : null;
+  } catch (err) {
+    console.warn('fetch order failed:', err);
+    return null;
+  }
+}
+
 function normalizeWeChatJsapiPayload(result) {
   const candidates = [
     result?.wx_jsapi,
@@ -358,7 +419,7 @@ function renderPaymentDebugInfo(mountEl, result, jsapiPayload) {
   mountEl.appendChild(panel);
 }
 
-function invokeWeChatJsapiPay(jsapiPayload, tradeNo) {
+function invokeWeChatJsapiPay(jsapiPayload, tradeNo, successUrl = '') {
   return new Promise((resolve, reject) => {
     if (!isWeChatBrowser()) {
       reject(new Error('not_wechat_browser'));
@@ -374,7 +435,7 @@ function invokeWeChatJsapiPay(jsapiPayload, tradeNo) {
       fn(payload);
     };
 
-    const resultUrl = buildResultUrl(tradeNo, getPendingBirthInput(tradeNo));
+    const resultUrl = successUrl || buildResultUrl(tradeNo, getPendingBirthInput(tradeNo));
     const invoke = () => {
       if (!window.WeixinJSBridge || typeof window.WeixinJSBridge.invoke !== 'function') {
         finish(reject, new Error('wx_bridge_unavailable'));
@@ -445,8 +506,11 @@ async function reconcilePaymentStatus(tradeNo, options = {}) {
   }
 }
 
-function showMobilePayPanel(payUrl, tradeNo, mountEl) {
+function showMobilePayPanel(payUrl, tradeNo, mountEl, options = {}) {
   const resultUrl = buildResultUrl(tradeNo, getPendingBirthInput(tradeNo));
+  const successUrl = String(options?.successUrl || resultUrl || '').trim() || resultUrl;
+  const doneLabel = String(options?.doneLabel || '我已完成支付，查看报告').trim() || '我已完成支付，查看报告';
+  const customTip = String(options?.customTip || '').trim();
   const isWeChat = isWeChatBrowser();
   const debugAnchorHtml = shouldShowPaymentDebug() ? '<div id="mobile-payment-debug-anchor"></div>' : '';
   const panelHtml = `
@@ -460,9 +524,9 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl) {
       <button id="mobile-open-pay-btn" type="button" style="padding:12px 14px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">${isWeChat ? '复制链接并去浏览器支付（推荐）' : '打开支付页面'}</button>
       <button id="mobile-copy-pay-btn" type="button" style="padding:12px 14px;background:#fff;color:#1f2937;border:1px solid #d1d5db;border-radius:8px;font-weight:600;cursor:pointer;">复制支付链接</button>
       ${isWeChat ? '<button id="mobile-open-pay-risk-btn" type="button" style="padding:12px 14px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">仍在微信内打开（可能关闭）</button>' : ''}
-      <button id="mobile-paid-back-btn" type="button" style="padding:12px 14px;background:#111827;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">我已完成支付，查看报告</button>
+      <button id="mobile-paid-back-btn" type="button" style="padding:12px 14px;background:#111827;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">${doneLabel}</button>
     </div>
-    <p style="margin-top:10px;color:#6b7280;font-size:13px;">${isWeChat ? '如页面被关闭，重新打开首页后点击“继续上次订单”。' : '手机支付请在新窗口完成，当前页面将保留用于继续查看报告。'}</p>
+    <p style="margin-top:10px;color:#6b7280;font-size:13px;">${customTip || (isWeChat ? '如页面被关闭，重新打开首页后点击“继续上次订单”。' : '手机支付请在新窗口完成，当前页面将保留用于继续查看报告。')}</p>
     ${debugAnchorHtml}
   `;
 
@@ -532,7 +596,7 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl) {
       doneBtn.disabled = true;
       doneBtn.textContent = '正在核验支付...';
       await reconcilePaymentStatus(tradeNo, { quiet: true });
-      window.location.href = resultUrl;
+      window.location.href = successUrl;
     });
   }
 
@@ -544,6 +608,279 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl) {
   }
 
   return document.getElementById('mobile-payment-debug-anchor') || mountEl || null;
+}
+
+function ensurePdfPurchaseUI() {
+  const payCard = document.querySelector('.pay-card');
+  if (!payCard) return null;
+
+  let section = document.getElementById('pdf-sale-section');
+  if (!section) {
+    section = document.createElement('div');
+    section.id = 'pdf-sale-section';
+    section.style.cssText = [
+      'margin-top:16px',
+      'padding:14px',
+      'border:1px solid #dbeafe',
+      'border-radius:12px',
+      'background:#f8fbff',
+    ].join(';');
+    section.innerHTML = `
+      <button type="button" id="pdf-pay-btn" class="form-submit" style="margin-top:0;">购买八字精读 PDF 文档</button>
+      <p style="margin:10px 0 0;color:#1f2937;font-size:14px;line-height:1.7;">独立文档版，付款后可直接下载保存。测试价 ${PDF_PRODUCT.fee} 元。</p>
+      <div id="pdf-pay-feedback" style="margin-top:10px;display:none;"></div>
+      <div id="pdf-download-box" style="margin-top:10px;display:none;"></div>
+      <div id="pdf-resume-box" style="margin-top:10px;display:none;"></div>
+    `;
+    payCard.insertAdjacentElement('afterend', section);
+  }
+
+  return {
+    section,
+    button: section.querySelector('#pdf-pay-btn'),
+    feedback: section.querySelector('#pdf-pay-feedback'),
+    downloadBox: section.querySelector('#pdf-download-box'),
+    resumeBox: section.querySelector('#pdf-resume-box'),
+  };
+}
+
+function clearPdfSearchParams() {
+  try {
+    const url = new URL(window.location.href);
+    const keys = ['pdf_paid', 'paid', 'trade_no', 'trade_order_id'];
+    let changed = false;
+    keys.forEach((key) => {
+      if (url.searchParams.has(key)) {
+        url.searchParams.delete(key);
+        changed = true;
+      }
+    });
+    if (!changed) return;
+    const query = url.searchParams.toString();
+    const target = `${url.pathname}${query ? `?${query}` : ''}${url.hash || ''}`;
+    window.history.replaceState({}, '', target);
+  } catch {}
+}
+
+function showPdfDownloadBox(tradeNo, downloadPath = PDF_PRODUCT.downloadPath) {
+  const ui = ensurePdfPurchaseUI();
+  if (!ui || !ui.downloadBox) return;
+  const url = getAbsolutePdfUrl(downloadPath);
+  const orderText = tradeNo ? `<div style="margin-top:6px;font-size:12px;color:#64748b;">订单号：${tradeNo}</div>` : '';
+
+  if (ui.feedback) {
+    ui.feedback.style.display = 'none';
+    ui.feedback.innerHTML = '';
+  }
+  if (ui.resumeBox) {
+    ui.resumeBox.style.display = 'none';
+    ui.resumeBox.innerHTML = '';
+  }
+
+  ui.downloadBox.style.display = 'block';
+  ui.downloadBox.innerHTML = `
+    <div style="padding:12px;border:1px solid #86efac;border-radius:10px;background:#f0fdf4;">
+      <div style="font-size:15px;font-weight:700;color:#166534;">支付成功，可下载 PDF 文档</div>
+      <div style="margin-top:6px;font-size:13px;color:#365314;">请保存文档到本地，避免后续丢失。</div>
+      ${orderText}
+      <div style="margin-top:10px;display:grid;gap:8px;">
+        <a href="${url}" target="_blank" rel="noopener noreferrer" download="${PDF_PRODUCT.fileName}" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 12px;border-radius:8px;background:#166534;color:#fff;text-decoration:none;font-weight:600;">下载 PDF 文档</a>
+        <button id="pdf-copy-link-btn" type="button" style="padding:10px 12px;border:1px solid #bbf7d0;border-radius:8px;background:#fff;color:#166534;font-weight:600;cursor:pointer;">复制下载链接</button>
+      </div>
+    </div>
+  `;
+
+  const copyBtn = ui.downloadBox.querySelector('#pdf-copy-link-btn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      const ok = await copyTextSafe(url);
+      if (ok) {
+        alert('下载链接已复制。');
+      } else {
+        prompt('请手动复制下载链接：', url);
+      }
+    });
+  }
+
+  clearPendingPdfTradeNo();
+  clearPdfSearchParams();
+}
+
+async function tryResumePdfOrder(tradeNo) {
+  if (!tradeNo) return false;
+
+  const ui = ensurePdfPurchaseUI();
+  if (!ui) return false;
+
+  try {
+    const reconcileResult = await reconcilePaymentStatus(tradeNo, { quiet: true });
+    const paidByReconcile = Boolean(reconcileResult?.paid) || String(reconcileResult?.status || '').toUpperCase() === 'OD';
+    if (paidByReconcile && (reconcileResult?.pdf_ready || reconcileResult?.pdf_download_path)) {
+      const path = reconcileResult?.pdf_download_path || PDF_PRODUCT.downloadPath;
+      showPdfDownloadBox(tradeNo, path);
+      return true;
+    }
+  } catch {}
+
+  const order = await fetchOrderByTradeNo(tradeNo);
+  const birth = parseBirthInputSafe(order?.birth_input);
+  const isPdfOrder = birth?.order_service === 'pdf' || birth?.payment_option?.id === PDF_PRODUCT.id;
+  if (!isPdfOrder) return false;
+
+  if (order?.paid) {
+    const path = birth?.pdf_download_path || PDF_PRODUCT.downloadPath;
+    showPdfDownloadBox(tradeNo, path);
+    return true;
+  }
+
+  if (ui.resumeBox) {
+    ui.resumeBox.style.display = 'block';
+    ui.resumeBox.innerHTML = `
+      <div style="padding:10px 12px;border:1px solid #bfdbfe;border-radius:10px;background:#eff6ff;color:#1e3a8a;font-size:13px;line-height:1.6;">
+        检测到未完成的 PDF 订单，可继续支付或支付后点“我已完成支付，下载PDF”。
+      </div>
+    `;
+  }
+  return false;
+}
+
+async function startPdfPayment() {
+  const ui = ensurePdfPurchaseUI();
+  if (!ui || !ui.button) return;
+
+  const button = ui.button;
+  const feedback = ui.feedback;
+  const defaultText = button.dataset.defaultText || button.textContent || '购买八字精读 PDF 文档';
+  button.dataset.defaultText = defaultText;
+
+  const setFeedback = (html) => {
+    if (!feedback) return;
+    feedback.style.display = 'block';
+    feedback.innerHTML = html;
+  };
+
+  button.disabled = true;
+  button.textContent = '正在创建支付订单...';
+  if (ui.downloadBox) {
+    ui.downloadBox.style.display = 'none';
+    ui.downloadBox.innerHTML = '';
+  }
+
+  const tradeNo = `bazi-${getClientId()}-${Date.now()}-pdf`;
+  setPendingPdfTradeNo(tradeNo);
+
+  const pdfBirthInput = {
+    order_service: 'pdf',
+    product_id: PDF_PRODUCT.id,
+    product_title: PDF_PRODUCT.title,
+    payment_option: {
+      id: PDF_PRODUCT.id,
+      title: PDF_PRODUCT.title,
+      fee: PDF_PRODUCT.fee,
+    },
+    pdf_download_path: PDF_PRODUCT.downloadPath,
+  };
+
+  try {
+    const createOrderResp = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON,
+        Authorization: `Bearer ${SUPABASE_ANON}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify({
+        trade_no: tradeNo,
+        birth_input: JSON.stringify(pdfBirthInput),
+      }),
+    });
+    if (!createOrderResp.ok) {
+      const detail = await createOrderResp.text().catch(() => '');
+      throw new Error(`create_order_failed:${createOrderResp.status}:${detail}`);
+    }
+
+    const ua = navigator.userAgent || '';
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+    const isWeChat = isWeChatBrowser();
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${SUPABASE_ANON}`,
+      },
+      body: JSON.stringify({
+        trade_no: tradeNo,
+        payment_option_id: PDF_PRODUCT.id,
+        payment_option_title: PDF_PRODUCT.title,
+        total_fee: PDF_PRODUCT.fee,
+        return_path: '/index.html',
+        birth_input: pdfBirthInput,
+        client_env: {
+          user_agent: ua,
+          is_mobile: isMobile,
+          is_wechat: isWeChat,
+        },
+      }),
+    });
+
+    const result = await response.json();
+    if (result?.errcode !== 0) {
+      throw new Error(result?.errmsg || 'create_payment_failed');
+    }
+
+    const payUrl = result?.url || result?.url_qrcode || '';
+    const jsapiPayload = normalizeWeChatJsapiPayload(result);
+    const successUrl = `${window.location.origin}/index.html?pdf_paid=1&trade_no=${encodeURIComponent(tradeNo)}`;
+
+    setFeedback('<p class="price-desc">订单已创建，请完成支付后下载 PDF。</p>');
+
+    if (isWeChat && jsapiPayload) {
+      try {
+        await invokeWeChatJsapiPay(jsapiPayload, tradeNo, successUrl);
+        return;
+      } catch (wxErr) {
+        console.warn('pdf jsapi pay failed, fallback to h5:', wxErr);
+      }
+    }
+
+    if (!payUrl) {
+      throw new Error('payment_url_missing');
+    }
+
+    const debugMount = showMobilePayPanel(payUrl, tradeNo, feedback || null, {
+      successUrl,
+      doneLabel: '我已完成支付，下载PDF',
+      customTip: '支付完成后，点击“我已完成支付，下载PDF”即可领取文档。',
+    });
+    renderPaymentDebugInfo(debugMount, result, jsapiPayload);
+  } catch (err) {
+    console.error('start pdf payment failed:', err);
+    clearPendingPdfTradeNo();
+    setFeedback('<p class="price-desc">创建支付失败，请稍后重试。</p>');
+  } finally {
+    button.disabled = false;
+    button.textContent = defaultText;
+  }
+}
+
+function initPdfSale() {
+  const ui = ensurePdfPurchaseUI();
+  if (!ui || !ui.button) return;
+
+  if (!ui.button.dataset.bound) {
+    ui.button.dataset.bound = '1';
+    ui.button.addEventListener('click', () => {
+      startPdfPayment();
+    });
+  }
+
+  const search = new URLSearchParams(window.location.search || '');
+  const fromUrl = search.get('trade_no') || search.get('trade_order_id') || '';
+  const pendingTradeNo = fromUrl || getPendingPdfTradeNo();
+  if (!pendingTradeNo) return;
+  setPendingPdfTradeNo(pendingTradeNo);
+  tryResumePdfOrder(pendingTradeNo);
 }
 
 function pickPaymentOption() {
@@ -796,12 +1133,14 @@ if (form) {
       try {
         const pattern = `bazi-${clientId}-*`;
         const recentRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/orders?trade_no=like.${pattern}&select=trade_no,paid,analysis&order=trade_no.desc&limit=1`,
+          `${SUPABASE_URL}/rest/v1/orders?trade_no=like.${pattern}&select=trade_no,paid,analysis,birth_input&order=trade_no.desc&limit=5`,
           { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
         );
         if (recentRes.ok) {
           const recentRows = await recentRes.json();
-          const recentOrder = Array.isArray(recentRows) ? recentRows[0] : null;
+          const recentOrder = Array.isArray(recentRows)
+            ? (recentRows.find((row) => parseBirthInputSafe(row?.birth_input)?.order_service !== 'pdf') || null)
+            : null;
           if (recentOrder?.trade_no) {
             pendingTradeNo = recentOrder.trade_no;
             setPendingTradeNo(pendingTradeNo);
@@ -862,7 +1201,7 @@ if (form) {
 
     try {
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(pendingTradeNo)}&select=paid,analysis`,
+        `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(pendingTradeNo)}&select=paid,analysis,birth_input`,
         { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
       );
       if (!res.ok) {
@@ -873,6 +1212,12 @@ if (form) {
       const order = Array.isArray(rows) ? rows[0] : null;
       if (!order) {
         renderPendingPanel(false);
+        return;
+      }
+      const birth = parseBirthInputSafe(order.birth_input);
+      if (birth?.order_service === 'pdf') {
+        clearPendingTradeNo();
+        clearPendingPaymentOptionId();
         return;
       }
 
@@ -891,6 +1236,7 @@ if (form) {
   };
 
   resumeFromPendingTrade();
+  initPdfSale();
 
   form.addEventListener('submit', async e => {
     e.preventDefault();

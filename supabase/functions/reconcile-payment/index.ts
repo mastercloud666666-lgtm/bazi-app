@@ -9,10 +9,23 @@ const corsHeaders = {
 
 const DEFAULT_PRIMARY_API_BASE = 'https://api.xunhupay.com';
 const DEFAULT_BACKUP_API_BASE = 'https://api.dpweixin.com';
+const DEFAULT_PDF_PATH = '/downloads/yunzi-bazi-guide.pdf';
 
 function normalizeApiBase(base: string | undefined, fallback: string) {
   const value = (base || fallback).trim();
   return value.replace(/\/+$/, '');
+}
+
+function parseBirthInput(value: unknown): Record<string, any> {
+  if (!value) return {};
+  if (typeof value === 'object' && !Array.isArray(value)) return value as Record<string, any>;
+  if (typeof value !== 'string') return {};
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, any> : {};
+  } catch {
+    return {};
+  }
 }
 
 // 纯 JS MD5 实现（Web Crypto API 不支持 MD5）
@@ -142,14 +155,8 @@ async function triggerAnalyzeIfNeeded(order: { analysis: string | null; birth_in
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
   if (!supabaseUrl || !anonKey) return false;
 
-  let birth: any = {};
-  if (order.birth_input) {
-    try {
-      birth = JSON.parse(order.birth_input);
-    } catch {
-      birth = {};
-    }
-  }
+  const birth: Record<string, any> = parseBirthInput(order.birth_input);
+  if (birth?.order_service === 'pdf') return false;
 
   fetch(`${supabaseUrl}/functions/v1/analyze`, {
     method: 'POST',
@@ -222,13 +229,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (order.paid && order.analysis) {
+    const birth = parseBirthInput(order.birth_input);
+    const isPdfOrder = birth?.order_service === 'pdf';
+    const pdfDownloadPath = String(birth?.pdf_download_path || DEFAULT_PDF_PATH);
+
+    if (order.paid && (order.analysis || isPdfOrder)) {
       return new Response(JSON.stringify({
         errcode: 0,
         status: 'OD',
         paid: true,
         analysis_exists: true,
         analysis_triggered: false,
+        pdf_ready: isPdfOrder,
+        pdf_download_path: isPdfOrder ? pdfDownloadPath : null,
         source: 'order-cache',
       }), {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -298,6 +311,8 @@ Deno.serve(async (req) => {
         paid: false,
         analysis_exists: !!order.analysis,
         analysis_triggered: false,
+        pdf_ready: false,
+        pdf_download_path: null,
         gateway_meta: {
           attempted_api_bases: candidateApiBases,
           selected_api_base: selectedApiBase,
@@ -319,6 +334,8 @@ Deno.serve(async (req) => {
       paid: true,
       analysis_exists: !!order.analysis,
       analysis_triggered: analysisTriggered,
+      pdf_ready: isPdfOrder,
+      pdf_download_path: isPdfOrder ? pdfDownloadPath : null,
       gateway_meta: {
         attempted_api_bases: candidateApiBases,
         selected_api_base: selectedApiBase,

@@ -7,10 +7,11 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 };
 
-const PAYMENT_OPTION_MAP: Record<'basic' | 'pro' | 'vip', { title: string; total_fee: string }> = {
+const PAYMENT_OPTION_MAP: Record<'basic' | 'pro' | 'vip' | 'pdf', { title: string; total_fee: string }> = {
   basic: { title: 'Basic Bazi Report', total_fee: '0.01' },
   pro: { title: 'Advanced Bazi Report', total_fee: '0.01' },
   vip: { title: 'Premium Full Bazi Report', total_fee: '0.01' },
+  pdf: { title: 'Bazi PDF Document', total_fee: '0.01' },
 };
 
 const DEFAULT_PRIMARY_API_BASE = 'https://api.xunhupay.com';
@@ -25,11 +26,12 @@ function validateTradeNo(value: string): boolean {
   return /^bazi-[a-z0-9_-]{4,120}$/i.test(value);
 }
 
-function normalizePaymentOptionId(value: unknown, fallback: 'basic' | 'pro' | 'vip' | '' = 'basic'): 'basic' | 'pro' | 'vip' | '' {
+function normalizePaymentOptionId(value: unknown, fallback: 'basic' | 'pro' | 'vip' | 'pdf' | '' = 'basic'): 'basic' | 'pro' | 'vip' | 'pdf' | '' {
   const id = String(value || '').trim();
   if (id === 'pro') return 'pro';
   if (id === 'vip') return 'vip';
   if (id === 'basic') return 'basic';
+  if (id === 'pdf') return 'pdf';
   return fallback;
 }
 
@@ -70,9 +72,10 @@ function resolveReturnOrigin(req: Request, fallbackOrigin: string): string {
   return fallbackOrigin;
 }
 
-function resolveReturnPath(value: unknown): '/result.html' | '/hepan.html' {
+function resolveReturnPath(value: unknown): '/result.html' | '/hepan.html' | '/index.html' {
   const path = String(value || '').trim();
   if (path === '/hepan.html') return '/hepan.html';
+  if (path === '/index.html') return '/index.html';
   return '/result.html';
 }
 
@@ -230,7 +233,7 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const tradeNo = String(body?.trade_no || '').trim();
-    const requestedPaymentOptionId = normalizePaymentOptionId(body?.payment_option_id, 'basic') as 'basic' | 'pro' | 'vip';
+    const requestedPaymentOptionId = normalizePaymentOptionId(body?.payment_option_id, 'basic') as 'basic' | 'pro' | 'vip' | 'pdf';
     const clientEnv = body?.client_env && typeof body.client_env === 'object' ? body.client_env : {};
 
     if (!tradeNo || !validateTradeNo(tradeNo)) {
@@ -273,7 +276,7 @@ Deno.serve(async (req) => {
     // Lock payment option to the one stored in order if present.
     const birth = parseBirthInput(order.birth_input);
     const paymentOptionObj = parseBirthInput(birth.payment_option);
-    const lockedPaymentOptionId = normalizePaymentOptionId(paymentOptionObj.id, '') as '' | 'basic' | 'pro' | 'vip';
+    const lockedPaymentOptionId = normalizePaymentOptionId(paymentOptionObj.id, '') as '' | 'basic' | 'pro' | 'vip' | 'pdf';
     const paymentOptionId = lockedPaymentOptionId || requestedPaymentOptionId;
     const optionConfig = PAYMENT_OPTION_MAP[paymentOptionId];
 
