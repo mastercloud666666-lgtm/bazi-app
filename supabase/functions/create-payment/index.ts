@@ -47,6 +47,36 @@ function parseBirthInput(value: unknown): Record<string, unknown> {
   }
 }
 
+function applyTrackingEvent(
+  birth: Record<string, unknown>,
+  event: string,
+  meta: Record<string, unknown> = {},
+): Record<string, unknown> {
+  const next = { ...birth } as Record<string, any>;
+  const tracking = next.tracking && typeof next.tracking === 'object' && !Array.isArray(next.tracking)
+    ? { ...(next.tracking as Record<string, unknown>) }
+    : {};
+  const events = Array.isArray((tracking as Record<string, unknown>).events)
+    ? [...((tracking as Record<string, unknown>).events as unknown[])]
+    : [];
+  const now = new Date().toISOString();
+
+  const milestoneMap: Record<string, string> = {
+    payment_created: 'payment_created_at',
+  };
+  const milestoneKey = milestoneMap[event];
+  if (milestoneKey && !(tracking as Record<string, unknown>)[milestoneKey]) {
+    (tracking as Record<string, unknown>)[milestoneKey] = now;
+  }
+  (tracking as Record<string, unknown>).last_event = event;
+  (tracking as Record<string, unknown>).last_event_at = now;
+
+  events.push({ event, at: now, meta });
+  (tracking as Record<string, unknown>).events = events.slice(-30);
+  next.tracking = tracking;
+  return next;
+}
+
 function resolveReturnOrigin(req: Request, fallbackOrigin: string): string {
   const allowlist = (Deno.env.get('PAY_RETURN_ALLOWLIST') || '')
     .split(',')
@@ -390,6 +420,22 @@ Deno.serve(async (req) => {
     const result = (parsed && typeof parsed === 'object')
       ? { ...(parsed as Record<string, unknown>), gateway_meta: gatewayMetaWithRuntime }
       : { errcode: 500, errmsg: 'Invalid payment response', gateway_meta: gatewayMetaWithRuntime };
+
+    try {
+      if ((result as Record<string, unknown>)?.errcode === 0) {
+        const trackedBirth = applyTrackingEvent(birth, 'payment_created', {
+          option_id: paymentOptionId,
+          api_base: selectedApiBase || preferredApiBase,
+          is_wechat: isWeChatClient,
+        });
+        await supabase
+          .from('orders')
+          .update({ birth_input: JSON.stringify(trackedBirth) })
+          .eq('trade_no', tradeNo);
+      }
+    } catch (trackErr) {
+      console.warn('create-payment tracking update failed', trackErr);
+    }
 
     return jsonResponse(result);
   } catch (error) {

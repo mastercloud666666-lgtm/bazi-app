@@ -20,6 +20,29 @@ function parseBirthInput(value: unknown): Record<string, any> {
   }
 }
 
+function applyTrackingEvent(
+  birth: Record<string, any>,
+  event: string,
+  meta: Record<string, unknown> = {},
+): Record<string, any> {
+  const next = { ...birth };
+  const tracking = next.tracking && typeof next.tracking === 'object' && !Array.isArray(next.tracking)
+    ? { ...next.tracking as Record<string, any> }
+    : {};
+  const events = Array.isArray(tracking.events) ? [...tracking.events] : [];
+  const now = new Date().toISOString();
+
+  if (event === 'payment_paid' && !tracking.payment_paid_at) {
+    tracking.payment_paid_at = now;
+  }
+  tracking.last_event = event;
+  tracking.last_event_at = now;
+  events.push({ event, at: now, meta });
+  tracking.events = events.slice(-30);
+  next.tracking = tracking;
+  return next;
+}
+
 // 纯 JS MD5 实现（Web Crypto API 不支持 MD5）
 function md5(input: string): string {
   const str = unescape(encodeURIComponent(input));
@@ -140,7 +163,14 @@ Deno.serve(async (req) => {
     return new Response('order not found', { status: 404 });
   }
 
-  await supabase.from('orders').update({ paid: true }).eq('trade_no', trade_order_id);
+  const trackedBirth = applyTrackingEvent(parseBirthInput(order.birth_input), 'payment_paid', {
+    source: 'payment-callback',
+    gateway_status: status,
+  });
+  await supabase
+    .from('orders')
+    .update({ paid: true, birth_input: JSON.stringify(trackedBirth) })
+    .eq('trade_no', trade_order_id);
 
   console.log(`Order ${trade_order_id} marked as paid, triggering analysis...`);
 

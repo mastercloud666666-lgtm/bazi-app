@@ -6,7 +6,7 @@ const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
 const PENDING_BIRTH_INPUT_KEY = 'bazi_pending_birth_input';
 const PDF_PENDING_TRADE_KEY = 'bazi_pdf_pending_trade_no';
-const APP_BUILD = '20260316-pay-error-fix-v1';
+const APP_BUILD = '20260316-funnel-v1';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -31,6 +31,7 @@ const CLIENT_ID_KEY = 'bazi_client_id';
 const PENDING_TRADE_COOKIE = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_COOKIE = 'bazi_pending_payment_option_id';
 const PDF_PENDING_TRADE_COOKIE = 'bazi_pdf_pending_trade_no';
+const EVENT_TRACK_ONCE_PREFIX = 'bazi_event_once_';
 const CUSTOMER_SERVICE_IMAGE = 'images/kefu-wechat.png';
 const CUSTOMER_SERVICE_TITLE = '微信客服';
 const CUSTOMER_SERVICE_SUBTITLE = '长按识别二维码添加客服';
@@ -329,6 +330,40 @@ async function fetchOrderByTradeNo(tradeNo) {
   }
 }
 
+async function trackOrderEvent(tradeNo, event, meta = {}) {
+  const id = String(tradeNo || '').trim();
+  const evt = String(event || '').trim();
+  if (!id || !evt) return;
+  try {
+    await fetch(`${SUPABASE_URL}/functions/v1/track-order-event`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${SUPABASE_ANON}`,
+      },
+      body: JSON.stringify({
+        trade_no: id,
+        event: evt,
+        meta: meta && typeof meta === 'object' ? meta : {},
+      }),
+      keepalive: true,
+    });
+  } catch (err) {
+    console.warn('track order event failed:', evt, id, err);
+  }
+}
+
+function trackOrderEventOnce(tradeNo, event, meta = {}) {
+  const id = String(tradeNo || '').trim();
+  const evt = String(event || '').trim();
+  if (!id || !evt) return;
+  const key = `${EVENT_TRACK_ONCE_PREFIX}${evt}_${id}`;
+  const done = safeGetLocalStorage(key);
+  if (done) return;
+  safeSetLocalStorage(key, String(Date.now()));
+  trackOrderEvent(id, evt, meta);
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -343,6 +378,7 @@ async function verifyPdfOrderWithPolling(tradeNo, options = {}) {
     const reconcileResult = await reconcilePaymentStatus(tradeNo, { quiet });
     const paidByReconcile = Boolean(reconcileResult?.paid) || String(reconcileResult?.status || '').toUpperCase() === 'OD';
     if (paidByReconcile && (reconcileResult?.pdf_ready || reconcileResult?.pdf_download_path)) {
+      trackOrderEventOnce(tradeNo, 'payment_verified', { source: 'pdf_reconcile' });
       return {
         paid: true,
         isPdfOrder: true,
@@ -356,6 +392,7 @@ async function verifyPdfOrderWithPolling(tradeNo, options = {}) {
     if (!isPdfOrder) return { paid: false, isPdfOrder: false };
 
     if (order?.paid) {
+      trackOrderEventOnce(tradeNo, 'payment_verified', { source: 'pdf_order_row' });
       return {
         paid: true,
         isPdfOrder: true,
@@ -615,6 +652,10 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl, options = {}) {
   const openPayBtn = document.getElementById('mobile-open-pay-btn');
   if (openPayBtn) {
     openPayBtn.addEventListener('click', async () => {
+      trackOrderEvent(tradeNo, 'payment_page_opened', {
+        in_wechat: isWeChat,
+        method: isWeChat ? 'copy_to_browser' : 'open_new_tab',
+      });
       if (isWeChat) {
         const ok = await copyTextSafe(payUrl);
         if (ok) {
@@ -635,6 +676,9 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl, options = {}) {
   const copyPayBtn = document.getElementById('mobile-copy-pay-btn');
   if (copyPayBtn) {
     copyPayBtn.addEventListener('click', async () => {
+      trackOrderEvent(tradeNo, 'payment_link_copied', {
+        in_wechat: isWeChat,
+      });
       const ok = await copyTextSafe(payUrl);
       if (ok) {
         alert('支付链接已复制，请在浏览器打开并完成支付。');
@@ -647,6 +691,7 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl, options = {}) {
   const doneBtn = document.getElementById('mobile-paid-back-btn');
   if (doneBtn) {
     doneBtn.addEventListener('click', async () => {
+      trackOrderEvent(tradeNo, 'payment_verify_clicked');
       doneBtn.disabled = true;
       doneBtn.textContent = '正在核验支付...';
       await reconcilePaymentStatus(tradeNo, { quiet: true });
@@ -745,11 +790,18 @@ function showPdfDownloadBox(tradeNo, downloadPath = PDF_PRODUCT.downloadPath) {
       <div style="margin-top:6px;font-size:13px;color:#365314;">请保存文档到本地，避免后续丢失。</div>
       ${orderText}
       <div style="margin-top:10px;display:grid;gap:8px;">
-        <a href="${url}" target="_blank" rel="noopener noreferrer" download="${PDF_PRODUCT.fileName}" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 12px;border-radius:8px;background:#166534;color:#fff;text-decoration:none;font-weight:600;">下载《八字命理合集》PDF</a>
+        <a id="pdf-download-link-btn" href="${url}" target="_blank" rel="noopener noreferrer" download="${PDF_PRODUCT.fileName}" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 12px;border-radius:8px;background:#166534;color:#fff;text-decoration:none;font-weight:600;">下载《八字命理合集》PDF</a>
         <button id="pdf-copy-link-btn" type="button" style="padding:10px 12px;border:1px solid #bbf7d0;border-radius:8px;background:#fff;color:#166534;font-weight:600;cursor:pointer;">复制下载链接</button>
       </div>
     </div>
   `;
+
+  const downloadBtn = ui.downloadBox.querySelector('#pdf-download-link-btn');
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', () => {
+      trackOrderEventOnce(tradeNo, 'pdf_download_clicked');
+    });
+  }
 
   const copyBtn = ui.downloadBox.querySelector('#pdf-copy-link-btn');
   if (copyBtn) {
@@ -879,6 +931,10 @@ async function startPdfPayment() {
       const detail = await createOrderResp.text().catch(() => '');
       throw new Error(`create_order_failed:${createOrderResp.status}:${detail}`);
     }
+    trackOrderEventOnce(tradeNo, 'order_created', {
+      service: 'pdf',
+      payment_option_id: PDF_PRODUCT.id,
+    });
 
     const ua = navigator.userAgent || '';
     const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
@@ -911,6 +967,11 @@ async function startPdfPayment() {
 
     const payUrl = result?.url || result?.url_qrcode || '';
     const jsapiPayload = normalizeWeChatJsapiPayload(result);
+    trackOrderEventOnce(tradeNo, 'payment_created', {
+      service: 'pdf',
+      payment_option_id: PDF_PRODUCT.id,
+      api_base: result?.gateway_meta?.selected_api_base || '',
+    });
     const successUrl = `${window.location.origin}/index.html?pdf_paid=1&trade_no=${encodeURIComponent(tradeNo)}`;
 
     setFeedback('<p class="price-desc">订单已创建，请完成支付后下载《八字命理合集》PDF。</p>');
@@ -2073,6 +2134,10 @@ async function startPayment(birthData, bazi, paymentOption) {
   try {
     await upsertOrderSnapshot();
     console.log('订单创建/更新成功');
+    trackOrderEventOnce(tradeNo, 'order_created', {
+      service: 'bazi',
+      payment_option_id: chosenOption.id,
+    });
   } catch (err) {
     console.error('订单创建失败:', err);
     alert('支付请求失败：订单创建失败，请检查网络后重试');
@@ -2149,6 +2214,11 @@ async function startPayment(birthData, bazi, paymentOption) {
     if (response.ok && result?.errcode === 0) {
       const payUrl = result.url || result.url_qrcode || '';
       const jsapiPayload = normalizeWeChatJsapiPayload(result);
+      trackOrderEventOnce(tradeNo, 'payment_created', {
+        service: 'bazi',
+        payment_option_id: chosenOption.id,
+        api_base: result?.gateway_meta?.selected_api_base || '',
+      });
       console.log('支付信息:', {
         payUrl,
         hasJsapiPayload: !!jsapiPayload,
@@ -2238,6 +2308,7 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
     if (streamFallbackTriggered) return false;
     if (!resolvedBirthData || !resolvedBazi || !resolvedDaYunData || !resolvedSpecialYears) return false;
     streamFallbackTriggered = true;
+    trackOrderEventOnce(tradeNo, 'payment_verified', { source: 'poll_direct_generate' });
 
     const loadingEl = document.getElementById('analysis-loading');
     if (loadingEl) {
@@ -2306,6 +2377,7 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
       if (order?.paid && order?.analysis) {
         // save full report to cache
         localStorage.setItem(fullCacheKey, order.analysis);
+        trackOrderEventOnce(tradeNo, 'payment_verified', { source: 'poll_paid_with_analysis' });
         clearPendingTradeNo();
         clearPendingPaymentOptionId();
         showAnalysis(order.analysis, true); // hidePay=true: hide pay prompt
@@ -2390,6 +2462,14 @@ function showAnalysis(text, hidePay = false) {
   document.getElementById('analysis-text').textContent = normalizeReportLines(text) + DISCLAIMER;
   const payPrompt = document.getElementById('pay-prompt');
   if (payPrompt) payPrompt.style.display = hidePay ? 'none' : 'block';
+
+  if (hidePay) {
+    const params = new URLSearchParams(window.location.search || '');
+    const tradeNo = params.get('trade_no') || params.get('trade_order_id') || getPendingTradeNo();
+    if (tradeNo) {
+      trackOrderEventOnce(tradeNo, 'report_viewed', { page: 'result' });
+    }
+  }
 }
 
 // ── 渲染命局干支关系 ───────────────────────────────────────────────

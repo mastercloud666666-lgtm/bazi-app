@@ -50,7 +50,7 @@ function getAdminToken(req: Request): string {
 }
 
 function validateTradeNo(tradeNo: string): boolean {
-  return /^bazi-[a-z0-9_-]{4,120}$/i.test(tradeNo);
+  return /^(bazi|hepan)-[a-z0-9_-]{4,140}$/i.test(tradeNo);
 }
 
 function normalizePaymentOptionId(value: unknown, fallback = 'basic'): string {
@@ -69,6 +69,34 @@ function parseBirthInput(value: unknown): JsonRecord {
   } catch {
     return {};
   }
+}
+
+function asString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function hasText(value: unknown): boolean {
+  return asString(value).length > 0;
+}
+
+function parseTracking(birth: JsonRecord): JsonRecord {
+  const tracking = birth.tracking;
+  if (!tracking || typeof tracking !== 'object' || Array.isArray(tracking)) return {};
+  return tracking as JsonRecord;
+}
+
+function toMillis(value: unknown): number {
+  const text = asString(value);
+  if (!text) return 0;
+  const ts = Date.parse(text);
+  return Number.isFinite(ts) ? ts : 0;
+}
+
+function detectService(birth: JsonRecord): 'pdf' | 'hepan' | 'bazi' {
+  const service = asString(birth.order_service).toLowerCase();
+  if (service === 'pdf') return 'pdf';
+  if (service === 'hepan') return 'hepan';
+  return 'bazi';
 }
 
 Deno.serve(async (req) => {
@@ -215,6 +243,112 @@ Deno.serve(async (req) => {
       }
 
       return json(req, { ok: true, ...data });
+    }
+
+    if (action === 'funnel') {
+      const days = Math.min(Math.max(Number((body as JsonRecord).days || 7), 1), 30);
+      const maxRows = Math.min(Math.max(Number((body as JsonRecord).max_rows || 1500), 100), 3000);
+      const sinceMs = Date.now() - (days * 24 * 60 * 60 * 1000);
+      const sinceIso = new Date(sinceMs).toISOString();
+
+      const { data, error } = await supabase
+        .from('orders')
+        .select('trade_no,paid,analysis,created_at,birth_input')
+        .gte('created_at', sinceIso)
+        .order('created_at', { ascending: false })
+        .limit(maxRows);
+      if (error) return json(req, { error: 'funnel_query_failed', details: error.message }, 500);
+
+      const rows = Array.isArray(data) ? data : [];
+      const summary = {
+        total_orders: 0,
+        payment_created: 0,
+        paid: 0,
+        verified: 0,
+        delivered: 0,
+      };
+      const byService: Record<string, { total: number; paid: number; delivered: number }> = {
+        bazi: { total: 0, paid: 0, delivered: 0 },
+        hepan: { total: 0, paid: 0, delivered: 0 },
+        pdf: { total: 0, paid: 0, delivered: 0 },
+      };
+      const failures: Array<Record<string, unknown>> = [];
+
+      for (const row of rows) {
+        const tradeNo = asString((row as JsonRecord).trade_no);
+        if (!tradeNo) continue;
+
+        const createdAt = asString((row as JsonRecord).created_at);
+        const createdMs = toMillis(createdAt);
+        if (!createdMs || createdMs < sinceMs) continue;
+
+        const birth = parseBirthInput((row as JsonRecord).birth_input);
+        const tracking = parseTracking(birth);
+        const service = detectService(birth);
+        const paid = Boolean((row as JsonRecord).paid);
+        const hasAnalysis = hasText((row as JsonRecord).analysis);
+
+        const paymentCreated = Boolean(toMillis(tracking.payment_created_at)) || paid;
+        const paymentVerified = Boolean(toMillis(tracking.payment_verified_at)) || paid;
+        const delivered = service === 'pdf'
+          ? Boolean(toMillis(tracking.pdf_download_clicked_at))
+          : hasAnalysis || Boolean(toMillis(tracking.report_viewed_at));
+
+        summary.total_orders += 1;
+        if (paymentCreated) summary.payment_created += 1;
+        if (paid) summary.paid += 1;
+        if (paymentVerified) summary.verified += 1;
+        if (delivered) summary.delivered += 1;
+
+        byService[service].total += 1;
+        if (paid) byService[service].paid += 1;
+        if (delivered) byService[service].delivered += 1;
+
+        const ageMinutes = Math.floor((Date.now() - createdMs) / 60000);
+        let issue = '';
+        if (paymentCreated && !paid && ageMinutes >= 10) {
+          issue = 'payment_not_completed';
+        } else if (paid && !paymentVerified && ageMinutes >= 2) {
+          issue = 'paid_not_verified';
+        } else if (paid && paymentVerified && !delivered && ageMinutes >= 5) {
+          issue = service === 'pdf' ? 'paid_not_downloaded' : 'paid_not_delivered';
+        }
+
+        if (issue) {
+          failures.push({
+            trade_no: tradeNo,
+            created_at: createdAt,
+            service,
+            paid,
+            has_analysis: hasAnalysis,
+            issue,
+            age_minutes: ageMinutes,
+          });
+        }
+      }
+
+      failures.sort((a, b) => Number((b as JsonRecord).age_minutes || 0) - Number((a as JsonRecord).age_minutes || 0));
+      const failureRows = failures.slice(0, 80);
+
+      const ratio = (num: number, den: number) => (den > 0 ? Number(((num / den) * 100).toFixed(2)) : 0);
+      const conversion = {
+        order_to_payment_created: ratio(summary.payment_created, summary.total_orders),
+        payment_created_to_paid: ratio(summary.paid, summary.payment_created),
+        paid_to_verified: ratio(summary.verified, summary.paid),
+        verified_to_delivered: ratio(summary.delivered, summary.verified),
+        order_to_delivered: ratio(summary.delivered, summary.total_orders),
+      };
+
+      return json(req, {
+        ok: true,
+        days,
+        since: sinceIso,
+        scanned_rows: rows.length,
+        summary,
+        conversion,
+        by_service: byService,
+        failures: failureRows,
+      });
     }
 
     return json(req, { error: 'unsupported_action' }, 400);

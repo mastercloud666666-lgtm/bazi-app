@@ -28,6 +28,29 @@ function parseBirthInput(value: unknown): Record<string, any> {
   }
 }
 
+function applyTrackingEvent(
+  birth: Record<string, any>,
+  event: string,
+  meta: Record<string, unknown> = {},
+): Record<string, any> {
+  const next = { ...birth };
+  const tracking = next.tracking && typeof next.tracking === 'object' && !Array.isArray(next.tracking)
+    ? { ...next.tracking as Record<string, any> }
+    : {};
+  const events = Array.isArray(tracking.events) ? [...tracking.events] : [];
+  const now = new Date().toISOString();
+
+  if (event === 'payment_verified' && !tracking.payment_verified_at) {
+    tracking.payment_verified_at = now;
+  }
+  tracking.last_event = event;
+  tracking.last_event_at = now;
+  events.push({ event, at: now, meta });
+  tracking.events = events.slice(-30);
+  next.tracking = tracking;
+  return next;
+}
+
 // 纯 JS MD5 实现（Web Crypto API 不支持 MD5）
 function md5(input: string): string {
   const str = unescape(encodeURIComponent(input));
@@ -234,6 +257,16 @@ Deno.serve(async (req) => {
     const pdfDownloadPath = String(birth?.pdf_download_path || DEFAULT_PDF_PATH);
 
     if (order.paid && (order.analysis || isPdfOrder)) {
+      try {
+        const trackedBirth = applyTrackingEvent(birth, 'payment_verified', { source: 'order-cache' });
+        await supabase
+          .from('orders')
+          .update({ birth_input: JSON.stringify(trackedBirth) })
+          .eq('trade_no', tradeNo);
+      } catch (trackErr) {
+        console.warn('reconcile cache tracking failed:', trackErr);
+      }
+
       return new Response(JSON.stringify({
         errcode: 0,
         status: 'OD',
@@ -322,9 +355,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!order.paid) {
-      await supabase.from('orders').update({ paid: true }).eq('trade_no', tradeNo);
-    }
+    const trackedBirth = applyTrackingEvent(birth, 'payment_verified', {
+      source: 'reconcile-payment',
+      api_base: selectedApiBase || '',
+    });
+    await supabase
+      .from('orders')
+      .update({ paid: true, birth_input: JSON.stringify(trackedBirth) })
+      .eq('trade_no', tradeNo);
 
     const analysisTriggered = await triggerAnalyzeIfNeeded(order, tradeNo);
 

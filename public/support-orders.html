@@ -39,6 +39,11 @@
       color: #0b2a50;
       font-size: 22px;
     }
+    h2 {
+      margin: 0;
+      color: #0b2a50;
+      font-size: 18px;
+    }
     .muted {
       color: var(--muted);
       font-size: 14px;
@@ -137,6 +142,37 @@
       line-height: 1.5;
       word-break: break-word;
     }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .metric-card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f8fafc;
+      padding: 10px 12px;
+    }
+    .metric-label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .metric-value {
+      font-size: 22px;
+      line-height: 1.2;
+      font-weight: 700;
+      color: #0b2a50;
+      margin-top: 4px;
+    }
+    .metric-sub {
+      font-size: 12px;
+      color: #475569;
+      margin-top: 4px;
+    }
+    .failure-table table {
+      min-width: 780px;
+    }
   </style>
 </head>
 <body>
@@ -163,9 +199,51 @@
           <option value="50" selected>Last 50</option>
           <option value="100">Last 100</option>
         </select>
-        <button class="primary" id="refreshBtn">Refresh Orders</button>
+        <button class="primary" id="refreshBtn">Refresh All</button>
       </div>
       <div id="statusBar" class="status-bar">Save admin token first.</div>
+    </div>
+
+    <div class="card">
+      <h2>支付成功率看板</h2>
+      <div class="muted" style="margin-top:6px;">
+        追踪关键节点：下单 → 拉起支付 → 支付完成 → 校验成功 → 交付成功。
+      </div>
+      <div class="row">
+        <select id="funnelDaysSelect">
+          <option value="7" selected>最近 7 天</option>
+          <option value="14">最近 14 天</option>
+          <option value="30">最近 30 天</option>
+        </select>
+        <button class="primary" id="funnelRefreshBtn">刷新看板</button>
+      </div>
+      <div id="funnelMeta" class="tiny" style="margin-top:8px;">暂无统计数据</div>
+      <div id="funnelMetricGrid" class="metric-grid">
+        <div class="metric-card"><div class="metric-label">总订单</div><div class="metric-value">-</div><div class="metric-sub">等待加载</div></div>
+        <div class="metric-card"><div class="metric-label">拉起支付</div><div class="metric-value">-</div><div class="metric-sub">等待加载</div></div>
+        <div class="metric-card"><div class="metric-label">支付成功</div><div class="metric-value">-</div><div class="metric-sub">等待加载</div></div>
+        <div class="metric-card"><div class="metric-label">校验成功</div><div class="metric-value">-</div><div class="metric-sub">等待加载</div></div>
+        <div class="metric-card"><div class="metric-label">交付成功</div><div class="metric-value">-</div><div class="metric-sub">等待加载</div></div>
+        <div class="metric-card"><div class="metric-label">总转化率</div><div class="metric-value">-</div><div class="metric-sub">下单→交付</div></div>
+      </div>
+
+      <div class="table-wrap failure-table" style="margin-top:12px;">
+        <table>
+          <thead>
+            <tr>
+              <th>问题类型</th>
+              <th>Trade No</th>
+              <th>服务</th>
+              <th>创建时间</th>
+              <th>耗时(分钟)</th>
+              <th>支付状态</th>
+            </tr>
+          </thead>
+          <tbody id="funnelFailureTbody">
+            <tr><td colspan="6" class="tiny">暂无异常订单</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <div class="card">
@@ -210,6 +288,11 @@
     const copyOneBtn = document.getElementById('copyOneBtn');
     const refreshBtn = document.getElementById('refreshBtn');
     const limitSelect = document.getElementById('limitSelect');
+    const funnelDaysSelect = document.getElementById('funnelDaysSelect');
+    const funnelRefreshBtn = document.getElementById('funnelRefreshBtn');
+    const funnelMeta = document.getElementById('funnelMeta');
+    const funnelMetricGrid = document.getElementById('funnelMetricGrid');
+    const funnelFailureTbody = document.getElementById('funnelFailureTbody');
     const statusBar = document.getElementById('statusBar');
     const orderTbody = document.getElementById('orderTbody');
 
@@ -283,16 +366,101 @@
     }
 
     function validateTradeNo(value) {
-      return /^bazi-[a-z0-9_-]{4,120}$/i.test(String(value || '').trim());
+      return /^(bazi|hepan)-[a-z0-9_-]{4,140}$/i.test(String(value || '').trim());
     }
 
-    async function loadOrders() {
+    function formatPercent(value) {
+      const num = Number(value);
+      return Number.isFinite(num) ? `${num.toFixed(2)}%` : '-';
+    }
+
+    function metricCard(label, value, sub) {
+      return `
+        <div class="metric-card">
+          <div class="metric-label">${escapeHtml(label)}</div>
+          <div class="metric-value">${escapeHtml(String(value ?? '-'))}</div>
+          <div class="metric-sub">${escapeHtml(sub || '')}</div>
+        </div>
+      `;
+    }
+
+    function mapIssueLabel(issue) {
+      const key = String(issue || '').trim();
+      const map = {
+        payment_not_completed: '支付未完成',
+        paid_not_verified: '已支付但未校验',
+        paid_not_downloaded: '已支付未下载',
+        paid_not_delivered: '已支付未交付',
+      };
+      return map[key] || key || '-';
+    }
+
+    async function loadFunnel() {
+      const days = Math.min(Math.max(Number(funnelDaysSelect?.value || 7), 1), 30);
+      const data = await callAdmin('funnel', { days, max_rows: 2000 });
+      renderFunnel(data);
+      return data;
+    }
+
+    function renderFunnel(data) {
+      const summary = data?.summary || {};
+      const conversion = data?.conversion || {};
+      const byService = data?.by_service || {};
+      const failures = Array.isArray(data?.failures) ? data.failures : [];
+
+      const totalOrders = Number(summary.total_orders || 0);
+      const paymentCreated = Number(summary.payment_created || 0);
+      const paid = Number(summary.paid || 0);
+      const verified = Number(summary.verified || 0);
+      const delivered = Number(summary.delivered || 0);
+
+      funnelMetricGrid.innerHTML = [
+        metricCard('总订单', totalOrders, `近 ${data?.days || '-'} 天`),
+        metricCard('拉起支付', paymentCreated, `下单→支付页 ${formatPercent(conversion.order_to_payment_created)}`),
+        metricCard('支付成功', paid, `支付页→支付成功 ${formatPercent(conversion.payment_created_to_paid)}`),
+        metricCard('校验成功', verified, `支付成功→校验 ${formatPercent(conversion.paid_to_verified)}`),
+        metricCard('交付成功', delivered, `校验→交付 ${formatPercent(conversion.verified_to_delivered)}`),
+        metricCard('总转化率', formatPercent(conversion.order_to_delivered), '下单→交付'),
+      ].join('');
+
+      const serviceText = ['bazi', 'hepan', 'pdf']
+        .map((name) => {
+          const row = byService[name] || {};
+          const total = Number(row.total || 0);
+          const paidCount = Number(row.paid || 0);
+          const deliveredCount = Number(row.delivered || 0);
+          const paidRate = total > 0 ? `${((paidCount / total) * 100).toFixed(1)}%` : '0.0%';
+          const deliveredRate = total > 0 ? `${((deliveredCount / total) * 100).toFixed(1)}%` : '0.0%';
+          return `${name.toUpperCase()}: ${total}单 / 支付${paidRate} / 交付${deliveredRate}`;
+        })
+        .join(' ｜ ');
+      funnelMeta.textContent = `扫描 ${Number(data?.scanned_rows || 0)} 条订单。${serviceText}`;
+
+      if (!failures.length) {
+        funnelFailureTbody.innerHTML = '<tr><td colspan="6" class="tiny">暂无异常订单</td></tr>';
+      } else {
+        funnelFailureTbody.innerHTML = failures.map((row) => `
+          <tr>
+            <td><span class="tag warn">${escapeHtml(mapIssueLabel(row.issue))}</span></td>
+            <td><code>${escapeHtml(row.trade_no || '-')}</code></td>
+            <td>${escapeHtml(String(row.service || '-').toUpperCase())}</td>
+            <td>${toLocalTime(row.created_at)}</td>
+            <td>${escapeHtml(String(row.age_minutes ?? '-'))}</td>
+            <td>${row.paid ? '<span class="tag ok">Paid</span>' : '<span class="tag bad">Unpaid</span>'}</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    async function loadOrders(options = {}) {
+      const silent = !!options.silent;
       const limit = Math.min(Math.max(Number(limitSelect.value || 50), 1), 100);
-      setStatus('Loading orders...');
+      if (!silent) setStatus('Loading orders...');
       const data = await callAdmin('list', { limit });
       const rows = Array.isArray(data?.orders) ? data.orders : [];
       renderRows(rows);
-      setStatus(`Loaded ${rows.length} orders.`);
+      if (!silent) setStatus(`Loaded ${rows.length} orders.`);
+      return rows.length;
     }
 
     function renderRows(rows) {
@@ -333,7 +501,7 @@
           if (!tradeNo) return;
           tradeNoInput.value = tradeNo;
           await verifyAndReconcile(tradeNo);
-          await loadOrders();
+          await refreshDashboardAndOrders();
         });
       });
     }
@@ -368,6 +536,17 @@
       setStatus(lines.join('\n'));
     }
 
+    async function refreshDashboardAndOrders() {
+      const days = Math.min(Math.max(Number(funnelDaysSelect?.value || 7), 1), 30);
+      setStatus(`Refreshing funnel(${days}d) and orders...`);
+      const [funnelData, orderCount] = await Promise.all([
+        loadFunnel(),
+        loadOrders({ silent: true }),
+      ]);
+      const failCount = Array.isArray(funnelData?.failures) ? funnelData.failures.length : 0;
+      setStatus(`Refresh done: ${orderCount} orders, ${failCount} stuck orders (last ${days} days).`);
+    }
+
     saveAdminTokenBtn.addEventListener('click', () => {
       const token = String(adminTokenInput.value || '').trim();
       if (!token) {
@@ -376,12 +555,15 @@
       }
       setAdminToken(token);
       setStatus('Admin token saved in this tab session.');
+      refreshDashboardAndOrders().catch((err) => {
+        setStatus(`Load failed after save token: ${err instanceof Error ? err.message : String(err)}`);
+      });
     });
 
     verifyOneBtn.addEventListener('click', async () => {
       try {
         await verifyAndReconcile(tradeNoInput.value);
-        await loadOrders();
+        await refreshDashboardAndOrders();
       } catch (err) {
         setStatus(`Verify failed: ${err instanceof Error ? err.message : String(err)}`);
       }
@@ -403,9 +585,25 @@
 
     refreshBtn.addEventListener('click', async () => {
       try {
-        await loadOrders();
+        await refreshDashboardAndOrders();
       } catch (err) {
         setStatus(`Load failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    funnelRefreshBtn.addEventListener('click', async () => {
+      try {
+        await refreshDashboardAndOrders();
+      } catch (err) {
+        setStatus(`Funnel refresh failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    funnelDaysSelect.addEventListener('change', async () => {
+      try {
+        await refreshDashboardAndOrders();
+      } catch (err) {
+        setStatus(`Funnel reload failed: ${err instanceof Error ? err.message : String(err)}`);
       }
     });
 
@@ -413,6 +611,11 @@
       const token = getAdminToken();
       if (token) adminTokenInput.value = token;
       setStatus(token ? 'Token found. Click Refresh Orders.' : 'Save admin token first.');
+      if (token) {
+        refreshDashboardAndOrders().catch((err) => {
+          setStatus(`Initial load failed: ${err instanceof Error ? err.message : String(err)}`);
+        });
+      }
     })();
   </script>
 </body>
