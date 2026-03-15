@@ -2193,28 +2193,52 @@ function buildLocalFreeAnalysis(birthData, bazi, daYunData, specialYears, _reaso
 
 async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
   const currentYear = new Date().getFullYear();
-  const locked  = document.getElementById('analysis-locked');
+  const locked = document.getElementById('analysis-locked');
   const loading = document.getElementById('analysis-loading');
-  if (locked)  locked.style.display  = 'none';
+  const content = document.getElementById('analysis-content');
+  const analysisText = document.getElementById('analysis-text');
+  const payPrompt = document.getElementById('pay-prompt');
+
+  if (locked) locked.style.display = 'none';
   if (loading) loading.style.display = 'block';
 
-  const baziStr = `${bazi.year.tg}${bazi.year.dz}年 ${bazi.month.tg}${bazi.month.dz}月 ${bazi.day.tg}${bazi.day.dz}日 ${bazi.hour.tg}${bazi.hour.dz}时`;
+  const baziStr = `${bazi.year.tg}${bazi.year.dz} ${bazi.month.tg}${bazi.month.dz} ${bazi.day.tg}${bazi.day.dz} ${bazi.hour.tg}${bazi.hour.dz}`;
   const cacheKey = `bazi_${birthData.year}_${birthData.month}_${birthData.day}_${birthData.hour}_${birthData.gender}`;
 
+  const cleanAnalysisText = (raw) => {
+    return String(raw || '')
+      .replace(/#{1,6}\s*/g, '')
+      .replace(/\*{1,3}([^*\n]+)\*{1,3}/g, '$1')
+      .replace(/^\s*[-*>]\s*/gm, '')
+      .replace(/Powered by DeepSeek.*$/gim, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  };
+
+  const renderFinal = (raw) => {
+    const cleaned = cleanAnalysisText(raw);
+    if (!cleaned) return false;
+    localStorage.setItem(cacheKey, cleaned);
+    showAnalysis(cleaned);
+    return true;
+  };
+
   try {
-    // 格式化大运文字
-    const dayunText = daYunData.dayuns.map(d =>
-      `${d.gz}（${d.ageStart}岁起，${d.yearStart}年）`
-    ).join('、');
+    const dayunText = daYunData.dayuns
+      .map((d) => `${d.gz}(ageStart:${d.ageStart},yearStart:${d.yearStart})`)
+      .join(', ');
 
-    // 格式化特殊年份文字
     const specialText = specialYears.length
-      ? specialYears.map(s => `${s.year}年${s.gz}（${s.year < currentYear ? '已过' : s.year === currentYear ? '今年' : '未来'}）：${s.reasons.join('；')}`).join('\n')
-      : '一生中无明显天克地冲或岁运并临年份';
+      ? specialYears
+          .map((s) => `${s.year} ${s.gz} (${s.year < currentYear ? 'past' : s.year === currentYear ? 'current' : 'future'}): ${s.reasons.join('; ')}`)
+          .join('\n')
+      : 'none';
 
-    const payload = {
-      year: birthData.year, month: birthData.month,
-      day: birthData.day, hour: birthData.hour,
+    const basePayload = {
+      year: birthData.year,
+      month: birthData.month,
+      day: birthData.day,
+      hour: birthData.hour,
       gender: birthData.gender,
       birthplace: birthData.birthplace || '',
       bazi_str: baziStr,
@@ -2224,43 +2248,98 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
       free_only: true,
     };
 
-    let lastErr = null;
-    let res = null;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        res = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${SUPABASE_ANON}`,
-          },
-          body: JSON.stringify(payload),
-        });
-        if (res.ok) break;
-        lastErr = new Error(`HTTP ${res.status}`);
-      } catch (err) {
-        lastErr = err;
+    const tryNonStreamFallback = async () => {
+      let lastErr = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${SUPABASE_ANON}`,
+            },
+            body: JSON.stringify({ ...basePayload, stream: false }),
+          });
+
+          if (!res.ok) {
+            lastErr = new Error(`HTTP ${res.status}`);
+          } else {
+            const data = await res.json();
+            if (renderFinal(data?.analysis)) return true;
+            lastErr = new Error('empty analysis');
+          }
+        } catch (err) {
+          lastErr = err;
+        }
+
+        if (attempt < 2) await new Promise((r) => setTimeout(r, 1200));
       }
-      if (attempt < 2) await new Promise((r) => setTimeout(r, 1200));
+
+      if (lastErr) console.warn('free non-stream fallback failed:', lastErr);
+      return false;
+    };
+
+    const streamRes = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${SUPABASE_ANON}`,
+      },
+      body: JSON.stringify({ ...basePayload, stream: true }),
+    });
+
+    const streamContentType = String(streamRes.headers.get('content-type') || '').toLowerCase();
+    const canUseStream =
+      streamRes.ok &&
+      streamRes.body &&
+      typeof streamRes.body.getReader === 'function' &&
+      streamContentType.includes('text/event-stream');
+
+    if (!canUseStream) {
+      const ok = await tryNonStreamFallback();
+      if (!ok) throw new Error(`free_stream_unavailable_${streamRes.status || 'unknown'}`);
+      return;
     }
 
-    if (!res || !res.ok) {
-      throw lastErr || new Error('free_analyze_failed');
+    if (loading) loading.style.display = 'none';
+    if (content) content.style.display = 'block';
+    if (payPrompt) payPrompt.style.display = 'block';
+    togglePaidOneTimeNotice(false);
+    if (analysisText) analysisText.textContent = '';
+
+    const reader = streamRes.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let buffer = '';
+
+    outer: while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (!data) continue;
+        if (data === '[DONE]') break outer;
+
+        try {
+          const delta = JSON.parse(data).choices?.[0]?.delta?.content || '';
+          if (!delta) continue;
+          fullText += delta;
+          if (analysisText) analysisText.textContent = fullText;
+        } catch {
+          // ignore malformed chunks
+        }
+      }
     }
-    const data = await res.json();
-    if (data.analysis) {
-      const cleaned = data.analysis
-        .replace(/#{1,6}\s*/g, '')
-        .replace(/\*{1,3}([^*\n]+)\*{1,3}/g, '$1')
-        .replace(/^\s*[-–—>]\s*/gm, '')
-        .replace(/由\s*DeepSeek\s*生成.*$/gis, '')
-        .replace(/Powered by DeepSeek.*$/gis, '')
-        .replace(/\n{3,}/g, '\n\n')
-        .trim();
-      localStorage.setItem(cacheKey, cleaned);
-      showAnalysis(cleaned);
-    } else {
-      showAnalysis(buildLocalFreeAnalysis(birthData, bazi, daYunData, specialYears, 'empty analysis'));
+
+    if (!renderFinal(fullText)) {
+      const ok = await tryNonStreamFallback();
+      if (!ok) throw new Error('free_stream_empty_and_fallback_failed');
     }
   } catch (err) {
     console.warn('free analyze failed, use local fallback', err);

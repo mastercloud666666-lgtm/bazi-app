@@ -453,8 +453,8 @@ Tier constraint: FREE can output only section 1 to section 2. Do not output sect
 凡做判断，必须给出具体年龄段、干支名称、五行原因，不得用"可能""也许""不会太X""有一定概率"等虚词搪塞。`;
 
 
-    // 合盘默认流式；付费八字在显式请求 stream=true 时也走流式输出。
-    if ((service === 'hepan' && stream === true) || (service === 'bazi' && !free_only && stream === true)) {
+    // 合盘默认流式；八字四档在显式请求 stream=true 时都走流式输出。
+    if ((service === 'hepan' && stream === true) || (service === 'bazi' && stream === true)) {
       const dsStream = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {
