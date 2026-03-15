@@ -2,6 +2,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const ALLOWED_PAYMENT_OPTION_IDS = new Set(['basic', 'pro', 'vip', 'pdf']);
 const DEFAULT_CORS_ORIGINS = ['https://tengyunzi.com', 'https://www.tengyunzi.com'];
+const DEFAULT_SITE_ORIGIN = 'https://tengyunzi.com';
+const DEFAULT_PDF_PATH = 'downloads/八字命理合集.pdf';
 
 type JsonRecord = Record<string, unknown>;
 
@@ -47,6 +49,12 @@ function timingSafeEqual(a: string, b: string): boolean {
 
 function getAdminToken(req: Request): string {
   return (req.headers.get('x-admin-token') || '').trim();
+}
+
+function getInternalAuthHeader(req: Request, fallbackToken: string): string {
+  const forwarded = asString(req.headers.get('authorization'));
+  if (/^Bearer\s+\S+$/i.test(forwarded)) return forwarded;
+  return `Bearer ${fallbackToken}`;
 }
 
 function validateTradeNo(tradeNo: string): boolean {
@@ -99,6 +107,112 @@ function detectService(birth: JsonRecord): 'pdf' | 'hepan' | 'bazi' {
   return 'bazi';
 }
 
+function normalizeSiteOrigin(): string {
+  const env = asString(Deno.env.get('PUBLIC_SITE_ORIGIN'));
+  const base = env || DEFAULT_SITE_ORIGIN;
+  return base.replace(/\/+$/, '');
+}
+
+function buildPdfDownloadUrl(siteOrigin: string, pathValue: unknown): string {
+  const path = asString(pathValue) || DEFAULT_PDF_PATH;
+  const normalizedPath = path.replace(/^\/+/, '');
+  return encodeURI(`${siteOrigin}/${normalizedPath}`);
+}
+
+function buildResumeLinks(siteOrigin: string, tradeNo: string, service: 'pdf' | 'hepan' | 'bazi', birth: JsonRecord) {
+  const encodedTradeNo = encodeURIComponent(tradeNo);
+  const defaultResultUrl = `${siteOrigin}/result.html?trade_no=${encodedTradeNo}&paid=true`;
+  const hepanResultUrl = `${siteOrigin}/hepan.html?trade_no=${encodedTradeNo}`;
+  const pdfResumeUrl = `${siteOrigin}/index.html?pdf_paid=1&trade_no=${encodedTradeNo}`;
+  const pdfDownloadUrl = buildPdfDownloadUrl(siteOrigin, birth.pdf_download_path);
+  const resultUrl = service === 'hepan' ? hepanResultUrl : defaultResultUrl;
+  const resumeUrl = service === 'pdf' ? pdfResumeUrl : resultUrl;
+
+  return {
+    result_url: resultUrl,
+    resume_url: resumeUrl,
+    pdf_download_url: service === 'pdf' ? pdfDownloadUrl : '',
+  };
+}
+
+function buildOrderViewPayload(order: JsonRecord, tradeNo: string) {
+  const birth = parseBirthInput(order.birth_input);
+  const service = detectService(birth);
+  const siteOrigin = normalizeSiteOrigin();
+  const links = buildResumeLinks(siteOrigin, tradeNo, service, birth);
+  const hasAnalysis = hasText(order.analysis);
+  const paid = Boolean(order.paid);
+  const deliveryState = !paid
+    ? 'unpaid'
+    : service === 'pdf'
+      ? 'download_ready'
+      : hasAnalysis
+        ? 'report_ready'
+        : 'report_generating';
+
+  return {
+    trade_no: tradeNo,
+    created_at: asString(order.created_at),
+    paid,
+    analysis_exists: hasAnalysis,
+    service,
+    payment_option_id: normalizePaymentOptionId(parseBirthInput(birth.payment_option).id, 'basic'),
+    delivery_state: deliveryState,
+    result_url: links.result_url,
+    resume_url: links.resume_url,
+    download_url: links.pdf_download_url || null,
+    birth_input: birth,
+  };
+}
+
+async function triggerAnalyzeForPaidOrder(
+  supabaseUrl: string,
+  authHeader: string,
+  tradeNo: string,
+  service: 'pdf' | 'hepan' | 'bazi',
+  birth: JsonRecord,
+): Promise<boolean> {
+  if (service === 'pdf') return false;
+
+  const basePayload: JsonRecord = {
+    trade_no: tradeNo,
+    service: service === 'hepan' ? 'hepan' : 'bazi',
+    free_only: false,
+    payment_option_id: normalizePaymentOptionId(parseBirthInput(birth.payment_option).id, 'basic'),
+  };
+
+  if (service === 'hepan') {
+    basePayload.man_bazi_str = birth.man_bazi_str;
+    basePayload.woman_bazi_str = birth.woman_bazi_str;
+    basePayload.man_dayun = birth.man_dayun;
+    basePayload.woman_dayun = birth.woman_dayun;
+    basePayload.current_year = birth.current_year;
+  } else {
+    basePayload.year = birth.year;
+    basePayload.month = birth.month;
+    basePayload.day = birth.day;
+    basePayload.hour = birth.hour;
+    basePayload.gender = birth.gender;
+    basePayload.bazi_str = birth.bazi_str;
+    basePayload.dayun_text = birth.dayun_text;
+    basePayload.special_years_text = birth.special_years_text;
+    basePayload.start_age = birth.start_age;
+  }
+
+  fetch(`${supabaseUrl}/functions/v1/analyze`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: authHeader,
+    },
+    body: JSON.stringify(basePayload),
+  }).catch((err) => {
+    console.error('admin resend analyze trigger failed:', err);
+  });
+
+  return true;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 200, headers: corsHeaders(req) });
   if (req.method !== 'POST') return json(req, { error: 'method_not_allowed' }, 405);
@@ -117,6 +231,7 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (!supabaseUrl || !serviceKey) return json(req, { error: 'missing_supabase_env' }, 500);
     const supabase = createClient(supabaseUrl, serviceKey);
+    const internalAuthHeader = getInternalAuthHeader(req, serviceKey);
 
     const action = String((body as JsonRecord).action || '').trim();
     if (!action) return json(req, { error: 'action_required' }, 400);
@@ -136,14 +251,11 @@ Deno.serve(async (req) => {
       const tradeNo = String((body as JsonRecord).trade_no || '').trim();
       if (!validateTradeNo(tradeNo)) return json(req, { error: 'invalid_trade_no' }, 400);
 
-      const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
-      if (!anonKey) return json(req, { error: 'missing_anon_key' }, 500);
-
       const reconcileRes = await fetch(`${supabaseUrl}/functions/v1/reconcile-payment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${anonKey}`,
+          Authorization: internalAuthHeader,
         },
         body: JSON.stringify({ trade_no: tradeNo }),
       });
@@ -218,14 +330,11 @@ Deno.serve(async (req) => {
       const lockedOptionId = normalizePaymentOptionId(paymentOption.id, '');
       const paymentOptionId = lockedOptionId || requestedOptionId;
 
-      const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
-      if (!anonKey) return json(req, { error: 'missing_anon_key' }, 500);
-
       const createRes = await fetch(`${supabaseUrl}/functions/v1/create-payment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${anonKey}`,
+          Authorization: internalAuthHeader,
         },
         body: JSON.stringify({
           trade_no: tradeNo,
@@ -243,6 +352,86 @@ Deno.serve(async (req) => {
       }
 
       return json(req, { ok: true, ...data });
+    }
+
+    if (action === 'query_order') {
+      const tradeNo = String((body as JsonRecord).trade_no || '').trim();
+      if (!validateTradeNo(tradeNo)) return json(req, { error: 'invalid_trade_no' }, 400);
+
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .select('trade_no,paid,analysis,created_at,birth_input')
+        .eq('trade_no', tradeNo)
+        .maybeSingle();
+      if (orderError) return json(req, { error: 'order_query_failed', details: orderError.message }, 500);
+      if (!order) return json(req, { error: 'order_not_found' }, 404);
+
+      const payload = buildOrderViewPayload(order as JsonRecord, tradeNo);
+      return json(req, {
+        ok: true,
+        order: payload,
+      });
+    }
+
+    if (action === 'resend_delivery') {
+      const tradeNo = String((body as JsonRecord).trade_no || '').trim();
+      if (!validateTradeNo(tradeNo)) return json(req, { error: 'invalid_trade_no' }, 400);
+
+      let reconcileData: JsonRecord = {};
+      let reconcileFailed = false;
+      let reconcileStatus = 0;
+      try {
+        const reconcileRes = await fetch(`${supabaseUrl}/functions/v1/reconcile-payment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: internalAuthHeader,
+          },
+          body: JSON.stringify({ trade_no: tradeNo }),
+        });
+        reconcileStatus = reconcileRes.status;
+        reconcileData = await reconcileRes.json().catch(() => ({} as JsonRecord));
+        if (!reconcileRes.ok) reconcileFailed = true;
+      } catch (err) {
+        reconcileFailed = true;
+        reconcileData = { error: err instanceof Error ? err.message : String(err) };
+      }
+
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .select('trade_no,paid,analysis,created_at,birth_input')
+        .eq('trade_no', tradeNo)
+        .maybeSingle();
+      if (orderError) return json(req, { error: 'order_query_failed', details: orderError.message }, 500);
+      if (!order) return json(req, { error: 'order_not_found' }, 404);
+
+      const view = buildOrderViewPayload(order as JsonRecord, tradeNo);
+      const birth = parseBirthInput((order as JsonRecord).birth_input);
+      const service = detectService(birth);
+
+      let analysisTriggered = Boolean(reconcileData.analysis_triggered);
+      if (view.paid && !view.analysis_exists && service !== 'pdf') {
+        analysisTriggered = await triggerAnalyzeForPaidOrder(supabaseUrl, internalAuthHeader, tradeNo, service, birth) || analysisTriggered;
+      }
+
+      const message = !view.paid
+        ? '订单尚未支付，无法补发。请先完成支付。'
+        : service === 'pdf'
+          ? 'PDF下载链接已补发，可直接发给客户。'
+          : view.analysis_exists
+            ? '报告已就绪，可直接引导客户打开结果页。'
+            : '已触发报告补发，请稍后再次查询或让客户点继续订单。';
+
+      return json(req, {
+        ok: true,
+        trade_no: tradeNo,
+        message,
+        reconcile_failed: reconcileFailed,
+        reconcile_status: reconcileStatus || null,
+        analysis_triggered: analysisTriggered,
+        reconcile: reconcileData,
+        order: view,
+      });
     }
 
     if (action === 'funnel') {

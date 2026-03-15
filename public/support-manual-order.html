@@ -98,20 +98,54 @@
     }
     .quick-link a { color: var(--brand); text-decoration: none; font-weight: 600; }
     .quick-link a:hover { text-decoration: underline; }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      line-height: 18px;
+      border: 1px solid transparent;
+    }
+    .tag.ok { background: #ecfdf3; color: #166534; border-color: #bbf7d0; }
+    .tag.warn { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+    .tag.bad { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+    .link-list a {
+      color: var(--brand);
+      text-decoration: none;
+      font-weight: 600;
+      margin-right: 10px;
+    }
+    .link-list a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>Manual Order Console</h1>
+      <h1>Support Recovery Console</h1>
       <div class="muted">
-        For customer support only. Create missing order first, then create payment URL.
-        After payment, verify in <code>/support-orders.html</code>.
+        Customer-support fast lane: input trade no, query status, then one-click resend report/download link.
       </div>
 
       <div class="row">
         <input id="adminTokenInput" type="password" style="min-width:280px;flex:1;" placeholder="ADMIN_DASHBOARD_TOKEN" />
         <button class="primary" id="saveAdminTokenBtn">Save Token (Session)</button>
+      </div>
+
+      <div class="row">
+        <input id="repairTradeNoInput" type="text" style="min-width:320px;flex:1;" placeholder="Trade no: bazi-... / hepan-..." />
+        <button class="primary" id="queryOrderBtn">Query Status</button>
+        <button class="primary" id="resendDeliveryBtn">One-click Resend</button>
+        <button id="copyRecoveryLinkBtn">Copy Recovery Link</button>
+      </div>
+
+      <div id="repairResultBox" class="output">Save token first, then input trade no to query.</div>
+      <div id="repairLinks" class="link-list" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="card">
+      <h1>Manual Order Console</h1>
+      <div class="muted">
+        Use this section only when an order row is missing. Create order first, then create payment URL.
       </div>
 
       <div class="grid">
@@ -171,14 +205,66 @@
     const resultBox = document.getElementById('resultBox');
     const resultLink = document.getElementById('resultLink');
     const tradeNoInput = document.getElementById('tradeNoInput');
+    const repairTradeNoInput = document.getElementById('repairTradeNoInput');
+    const repairResultBox = document.getElementById('repairResultBox');
+    const repairLinks = document.getElementById('repairLinks');
     const adminTokenInput = document.getElementById('adminTokenInput');
     const saveAdminTokenBtn = document.getElementById('saveAdminTokenBtn');
+    const queryOrderBtn = document.getElementById('queryOrderBtn');
+    const resendDeliveryBtn = document.getElementById('resendDeliveryBtn');
+    const copyRecoveryLinkBtn = document.getElementById('copyRecoveryLinkBtn');
 
     let currentTradeNo = '';
     let currentPayUrl = '';
+    let latestRecoveryLink = '';
 
     function setResult(msg) {
       resultBox.textContent = msg;
+    }
+
+    function setRepairResult(msg) {
+      repairResultBox.textContent = msg;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function tagByState(state) {
+      if (state === 'report_ready' || state === 'download_ready') return 'READY';
+      if (state === 'report_generating') return 'GENERATING';
+      return 'UNPAID';
+    }
+
+    function renderRecoveryLinks(order) {
+      const links = [];
+      if (order?.resume_url) links.push(`<a href="${escapeHtml(order.resume_url)}" target="_blank" rel="noopener">Open Resume Page</a>`);
+      if (order?.result_url && order.result_url !== order.resume_url) links.push(`<a href="${escapeHtml(order.result_url)}" target="_blank" rel="noopener">Open Result Page</a>`);
+      if (order?.download_url) links.push(`<a href="${escapeHtml(order.download_url)}" target="_blank" rel="noopener">Open PDF Download</a>`);
+      repairLinks.innerHTML = links.join('');
+      latestRecoveryLink = String(order?.download_url || order?.resume_url || order?.result_url || '').trim();
+    }
+
+    function renderRecoveryState(title, payload) {
+      const order = payload?.order || {};
+      const lines = [
+        `${title}`,
+        `Trade no: ${order.trade_no || '-'}`,
+        `Service: ${String(order.service || '-').toUpperCase()}`,
+        `Paid: ${order.paid ? 'YES' : 'NO'}`,
+        `Delivery: ${tagByState(order.delivery_state || '')}`,
+        `Analysis exists: ${order.analysis_exists ? 'YES' : 'NO'}`,
+        `Created: ${order.created_at || '-'}`,
+      ];
+      if (payload?.message) lines.push(`Message: ${payload.message}`);
+      if (payload?.analysis_triggered) lines.push('Action: analysis trigger sent');
+      setRepairResult(lines.join('\n'));
+      renderRecoveryLinks(order);
     }
 
     function getAdminToken() {
@@ -199,7 +285,7 @@
     }
 
     function validateTradeNo(value) {
-      return /^bazi-[a-z0-9_-]{4,120}$/i.test(String(value || '').trim());
+      return /^(bazi|hepan)-[a-z0-9_-]{4,140}$/i.test(String(value || '').trim());
     }
 
     async function callAdmin(action, payload = {}) {
@@ -354,14 +440,61 @@
       );
     }
 
+    async function queryOrderStatus() {
+      const tradeNo = String(repairTradeNoInput.value || '').trim();
+      if (!validateTradeNo(tradeNo)) throw new Error('Invalid trade no format.');
+      const data = await callAdmin('query_order', { trade_no: tradeNo });
+      renderRecoveryState('Order status', data);
+    }
+
+    async function resendDelivery() {
+      const tradeNo = String(repairTradeNoInput.value || '').trim();
+      if (!validateTradeNo(tradeNo)) throw new Error('Invalid trade no format.');
+      const data = await callAdmin('resend_delivery', { trade_no: tradeNo });
+      renderRecoveryState('Resend done', data);
+    }
+
     saveAdminTokenBtn.addEventListener('click', () => {
       const token = String(adminTokenInput.value || '').trim();
       if (!token) {
         setResult('Input admin token first.');
+        setRepairResult('Input admin token first.');
         return;
       }
       setAdminToken(token);
       setResult('Admin token saved in this tab session.');
+      setRepairResult('Admin token saved. You can now query or resend by trade no.');
+    });
+
+    queryOrderBtn.addEventListener('click', async () => {
+      try {
+        setRepairResult('Querying order...');
+        await queryOrderStatus();
+      } catch (err) {
+        setRepairResult(`Query failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    resendDeliveryBtn.addEventListener('click', async () => {
+      try {
+        setRepairResult('Triggering resend...');
+        await resendDelivery();
+      } catch (err) {
+        setRepairResult(`Resend failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    copyRecoveryLinkBtn.addEventListener('click', async () => {
+      if (!latestRecoveryLink) {
+        setRepairResult('No recovery link to copy yet. Query order first.');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(latestRecoveryLink);
+        setRepairResult(`Copied recovery link:\n${latestRecoveryLink}`);
+      } catch {
+        setRepairResult(`Copy failed. Link:\n${latestRecoveryLink}`);
+      }
     });
 
     document.getElementById('createOrderBtn').addEventListener('click', async () => {
@@ -413,6 +546,7 @@
       const token = getAdminToken();
       if (token) adminTokenInput.value = token;
       setResult(token ? 'Token found. You can create orders now.' : 'Save admin token first.');
+      setRepairResult(token ? 'Token found. Enter trade no to query or resend.' : 'Save admin token first.');
     })();
   </script>
 </body>
