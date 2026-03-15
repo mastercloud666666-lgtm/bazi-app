@@ -6,7 +6,7 @@ const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
 const PENDING_BIRTH_INPUT_KEY = 'bazi_pending_birth_input';
 const PDF_PENDING_TRADE_KEY = 'bazi_pdf_pending_trade_no';
-const APP_BUILD = '20260316-home-pdf-tip-fix-v1';
+const APP_BUILD = '20260316-pay-error-fix-v1';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -2041,31 +2041,45 @@ async function startPayment(birthData, bazi, paymentOption) {
     loadingSection.innerHTML = '<p class="price-desc">正在跳转支付页面…</p>';
   }
 
-  // 先在 Supabase 插入订单记录（失败也不影响跳转）
-  try {
-    await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+  const orderPayload = {
+    trade_no: tradeNo,
+    birth_input: JSON.stringify({
+      ...birthData,
+      bazi_str: baziStr,
+      dayun_text: dayunText,
+      special_years_text: specialYearsText,
+      start_age: daYunData.startAge,
+      payment_option: chosenOption,
+    }),
+  };
+
+  const upsertOrderSnapshot = async () => {
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/orders?on_conflict=trade_no`, {
       method: 'POST',
       headers: {
         apikey: SUPABASE_ANON,
         Authorization: `Bearer ${SUPABASE_ANON}`,
         'Content-Type': 'application/json',
-        Prefer: 'return=minimal',
+        Prefer: 'resolution=merge-duplicates,return=minimal',
       },
-      body: JSON.stringify({
-        trade_no: tradeNo,
-        birth_input: JSON.stringify({
-          ...birthData,
-          bazi_str: baziStr,
-          dayun_text: dayunText,
-          special_years_text: specialYearsText,
-          start_age: daYunData.startAge,
-          payment_option: chosenOption,
-        }),
-      }),
+      body: JSON.stringify(orderPayload),
     });
-    console.log('订单创建成功');
+    if (!resp.ok) {
+      const raw = await resp.text().catch(() => '');
+      throw new Error(`order_upsert_failed_${resp.status}:${raw || resp.statusText || 'unknown'}`);
+    }
+  };
+
+  try {
+    await upsertOrderSnapshot();
+    console.log('订单创建/更新成功');
   } catch (err) {
-    console.error('订单创建失败，继续跳转支付:', err);
+    console.error('订单创建失败:', err);
+    alert('支付请求失败：订单创建失败，请检查网络后重试');
+    clearPendingTradeNo();
+    clearPendingPaymentOptionId();
+    resetPayButtons();
+    return;
   }
 
   console.log('调用后端代理创建支付...');
@@ -2075,30 +2089,64 @@ async function startPayment(birthData, bazi, paymentOption) {
 
   // 调用后端代理创建支付
   try {
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${SUPABASE_ANON}`,
+    const createPaymentPayload = {
+      trade_no: tradeNo,
+      birth_input: { ...birthData, bazi_str: baziStr },
+      payment_option_id: chosenOption.id,
+      payment_option_title: chosenOption.title,
+      total_fee: chosenOption.fee,
+      client_env: {
+        user_agent: ua,
+        is_mobile: isMobile,
+        is_wechat: isWeChat,
       },
-      body: JSON.stringify({
-        trade_no: tradeNo,
-        birth_input: { ...birthData, bazi_str: baziStr },
-        payment_option_id: chosenOption.id,
-        payment_option_title: chosenOption.title,
-        total_fee: chosenOption.fee,
-        client_env: {
-          user_agent: ua,
-          is_mobile: isMobile,
-          is_wechat: isWeChat,
-        },
-      }),
-    });
+    };
 
-    const result = await response.json();
+    const requestCreatePayment = async () => {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_ANON}`,
+        },
+        body: JSON.stringify(createPaymentPayload),
+      });
+      const raw = await response.text();
+      let result = null;
+      try {
+        result = raw ? JSON.parse(raw) : null;
+      } catch {
+        result = { raw };
+      }
+      return { response, result, raw };
+    };
+
+    const getPaymentErrorMessage = (result, response, raw = '') => {
+      const msg =
+        result?.errmsg
+        || result?.error
+        || result?.message
+        || result?.details
+        || (typeof result?.msg === 'string' ? result.msg : '')
+        || '';
+      if (msg) return String(msg);
+      if (response && !response.ok) return `HTTP ${response.status}`;
+      if (raw) return String(raw).slice(0, 120);
+      return '支付网关暂时不可用';
+    };
+
+    let { response, result, raw } = await requestCreatePayment();
+    const errorText = `${getPaymentErrorMessage(result, response, raw)} ${raw || ''}`.toLowerCase();
+    if ((!response.ok || result?.errcode !== 0) && errorText.includes('order not found')) {
+      // 订单偶发同步延迟，补一次 upsert 后重试
+      await upsertOrderSnapshot();
+      await sleep(450);
+      ({ response, result, raw } = await requestCreatePayment());
+    }
+
     console.log('支付API返回:', result);
 
-    if (result.errcode === 0) {
+    if (response.ok && result?.errcode === 0) {
       const payUrl = result.url || result.url_qrcode || '';
       const jsapiPayload = normalizeWeChatJsapiPayload(result);
       console.log('支付信息:', {
@@ -2143,11 +2191,12 @@ async function startPayment(birthData, bazi, paymentOption) {
 
       window.location.href = payUrl;
     } else {
-      console.error('支付API错误:', result.errmsg);
+      const errMsg = getPaymentErrorMessage(result, response, raw);
+      console.error('支付API错误:', errMsg, result);
       if (loadingSection) {
         renderPaymentDebugInfo(loadingSection, result, null);
       }
-      alert(`支付请求失败：${result.errmsg}`);
+      alert(`支付请求失败：${errMsg}`);
       clearPendingTradeNo();
       clearPendingPaymentOptionId();
       resetPayButtons();
