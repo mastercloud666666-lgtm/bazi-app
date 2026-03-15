@@ -6,7 +6,7 @@ const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
 const PENDING_BIRTH_INPUT_KEY = 'bazi_pending_birth_input';
 const PDF_PENDING_TRADE_KEY = 'bazi_pdf_pending_trade_no';
-const APP_BUILD = '20260316-home-pdf-wechat-guard-v1';
+const APP_BUILD = '20260316-home-pdf-verify-fix-v1';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -327,6 +327,46 @@ async function fetchOrderByTradeNo(tradeNo) {
     console.warn('fetch order failed:', err);
     return null;
   }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function verifyPdfOrderWithPolling(tradeNo, options = {}) {
+  if (!tradeNo) return { paid: false, isPdfOrder: false };
+  const attempts = Math.max(1, Number(options.attempts || 1));
+  const intervalMs = Math.max(300, Number(options.intervalMs || 1800));
+  const quiet = options.quiet !== false;
+
+  for (let i = 0; i < attempts; i++) {
+    const reconcileResult = await reconcilePaymentStatus(tradeNo, { quiet });
+    const paidByReconcile = Boolean(reconcileResult?.paid) || String(reconcileResult?.status || '').toUpperCase() === 'OD';
+    if (paidByReconcile && (reconcileResult?.pdf_ready || reconcileResult?.pdf_download_path)) {
+      return {
+        paid: true,
+        isPdfOrder: true,
+        downloadPath: String(reconcileResult?.pdf_download_path || PDF_PRODUCT.downloadPath),
+      };
+    }
+
+    const order = await fetchOrderByTradeNo(tradeNo);
+    const birth = parseBirthInputSafe(order?.birth_input);
+    const isPdfOrder = birth?.order_service === 'pdf' || birth?.payment_option?.id === PDF_PRODUCT.id;
+    if (!isPdfOrder) return { paid: false, isPdfOrder: false };
+
+    if (order?.paid) {
+      return {
+        paid: true,
+        isPdfOrder: true,
+        downloadPath: String(birth?.pdf_download_path || PDF_PRODUCT.downloadPath),
+      };
+    }
+
+    if (i < attempts - 1) await sleep(intervalMs);
+  }
+
+  return { paid: false, isPdfOrder: true };
 }
 
 function normalizeWeChatJsapiPayload(result) {
@@ -717,40 +757,59 @@ function showPdfDownloadBox(tradeNo, downloadPath = PDF_PRODUCT.downloadPath) {
   clearPdfSearchParams();
 }
 
-async function tryResumePdfOrder(tradeNo) {
+async function tryResumePdfOrder(tradeNo, options = {}) {
   if (!tradeNo) return false;
 
   const ui = ensurePdfPurchaseUI();
   if (!ui) return false;
 
-  try {
-    const reconcileResult = await reconcilePaymentStatus(tradeNo, { quiet: true });
-    const paidByReconcile = Boolean(reconcileResult?.paid) || String(reconcileResult?.status || '').toUpperCase() === 'OD';
-    if (paidByReconcile && (reconcileResult?.pdf_ready || reconcileResult?.pdf_download_path)) {
-      const path = reconcileResult?.pdf_download_path || PDF_PRODUCT.downloadPath;
-      showPdfDownloadBox(tradeNo, path);
-      return true;
-    }
-  } catch {}
-
-  const order = await fetchOrderByTradeNo(tradeNo);
-  const birth = parseBirthInputSafe(order?.birth_input);
-  const isPdfOrder = birth?.order_service === 'pdf' || birth?.payment_option?.id === PDF_PRODUCT.id;
-  if (!isPdfOrder) return false;
-
-  if (order?.paid) {
-    const path = birth?.pdf_download_path || PDF_PRODUCT.downloadPath;
-    showPdfDownloadBox(tradeNo, path);
+  const aggressive = Boolean(options?.aggressive);
+  const verifyResult = await verifyPdfOrderWithPolling(tradeNo, {
+    attempts: aggressive ? 14 : 1,
+    intervalMs: 1800,
+    quiet: true,
+  });
+  if (verifyResult?.paid) {
+    showPdfDownloadBox(tradeNo, verifyResult?.downloadPath || PDF_PRODUCT.downloadPath);
     return true;
   }
+  if (!verifyResult?.isPdfOrder) return false;
 
   if (ui.resumeBox) {
     ui.resumeBox.style.display = 'block';
     ui.resumeBox.innerHTML = `
       <div style="padding:10px 12px;border:1px solid #bfdbfe;border-radius:10px;background:#eff6ff;color:#1e3a8a;font-size:13px;line-height:1.6;">
-        检测到未完成的 PDF 订单，可继续支付或支付后点“我已完成支付，下载PDF”。
+        检测到未完成的 PDF 订单。若你已完成支付，请点下方按钮主动校验并下载。
+        <div style="margin-top:8px;font-size:12px;color:#475569;">订单号：${tradeNo}</div>
+        <button id="pdf-resume-verify-btn" type="button" style="margin-top:10px;width:100%;padding:10px 12px;border:none;border-radius:8px;background:#1d4ed8;color:#fff;font-weight:600;cursor:pointer;">我已完成支付，立即校验并下载PDF</button>
+        <div id="pdf-resume-verify-msg" style="margin-top:8px;font-size:12px;color:#475569;"></div>
       </div>
     `;
+
+    const verifyBtn = ui.resumeBox.querySelector('#pdf-resume-verify-btn');
+    const verifyMsg = ui.resumeBox.querySelector('#pdf-resume-verify-msg');
+    if (verifyBtn) {
+      verifyBtn.addEventListener('click', async () => {
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = '正在校验支付状态...';
+        if (verifyMsg) verifyMsg.textContent = '支付网关同步可能有延迟，正在重试校验（约10-30秒）...';
+
+        const retryResult = await verifyPdfOrderWithPolling(tradeNo, {
+          attempts: 18,
+          intervalMs: 1800,
+          quiet: true,
+        });
+
+        if (retryResult?.paid) {
+          showPdfDownloadBox(tradeNo, retryResult?.downloadPath || PDF_PRODUCT.downloadPath);
+          return;
+        }
+
+        verifyBtn.disabled = false;
+        verifyBtn.textContent = '我已完成支付，立即校验并下载PDF';
+        if (verifyMsg) verifyMsg.textContent = '暂未检测到支付成功，请稍后再点一次；若仍失败请联系客服并提供订单号。';
+      });
+    }
   }
   return false;
 }
@@ -882,10 +941,11 @@ function initPdfSale() {
 
   const search = new URLSearchParams(window.location.search || '');
   const fromUrl = search.get('trade_no') || search.get('trade_order_id') || '';
+  const fromPaidReturn = search.get('pdf_paid') === '1' || search.get('paid') === 'true';
   const pendingTradeNo = fromUrl || getPendingPdfTradeNo();
   if (!pendingTradeNo) return;
   setPendingPdfTradeNo(pendingTradeNo);
-  tryResumePdfOrder(pendingTradeNo);
+  tryResumePdfOrder(pendingTradeNo, { aggressive: fromPaidReturn });
 }
 
 function pickPaymentOption() {
