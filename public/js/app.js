@@ -6,7 +6,7 @@ const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
 const PENDING_BIRTH_INPUT_KEY = 'bazi_pending_birth_input';
 const PDF_PENDING_TRADE_KEY = 'bazi_pdf_pending_trade_no';
-const APP_BUILD = '20260316-home-pdf-copy-v1';
+const APP_BUILD = '20260316-home-pdf-copy-v2';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -35,6 +35,7 @@ const CUSTOMER_SERVICE_IMAGE = 'images/kefu-wechat.png';
 const CUSTOMER_SERVICE_TITLE = '微信客服';
 const CUSTOMER_SERVICE_SUBTITLE = '长按识别二维码添加客服';
 const PAYMENT_NON_REFUND_NOTICE = '免责条款：命理分析为虚拟服务，支付完成后不支持退款，请确认后再付款。';
+const PDF_NON_REFUND_NOTICE = '免责条款：PDF为虚拟知识文档，支付完成后不支持退款，请确认后再付款。';
 const WECHAT_PAYMENT_CLOSE_NOTICE = '微信浏览器支付完成后，当前页面可能会自动关闭。请重新打开首页点击“继续上次订单”，或选择微信外浏览器完成支付。';
 
 function safeGetLocalStorage(key) {
@@ -511,12 +512,13 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl, options = {}) {
   const successUrl = String(options?.successUrl || resultUrl || '').trim() || resultUrl;
   const doneLabel = String(options?.doneLabel || '我已完成支付，查看报告').trim() || '我已完成支付，查看报告';
   const customTip = String(options?.customTip || '').trim();
+  const nonRefundNotice = String(options?.nonRefundNotice || PAYMENT_NON_REFUND_NOTICE).trim() || PAYMENT_NON_REFUND_NOTICE;
   const isWeChat = isWeChatBrowser();
   const debugAnchorHtml = shouldShowPaymentDebug() ? '<div id="mobile-payment-debug-anchor"></div>' : '';
   const panelHtml = `
     <div style="margin-top:2px;padding:10px 12px;border-radius:10px;border:1px solid #fed7aa;background:#fff7ed;color:#7c2d12;font-size:13px;line-height:1.6;">
       <div style="font-weight:700;color:#9a3412;">支付须知（请先阅读）</div>
-      <div style="margin-top:6px;">1. ${PAYMENT_NON_REFUND_NOTICE}</div>
+      <div style="margin-top:6px;">1. ${nonRefundNotice}</div>
       <div style="margin-top:4px;">2. 微信浏览器支付后页面可能自动关闭（微信机制）。</div>
       <div style="margin-top:4px;">3. 支付完成后请重新打开首页，点击“继续上次订单”；或直接选择“复制链接并去浏览器支付（推荐）”。</div>
     </div>
@@ -858,6 +860,7 @@ async function startPdfPayment() {
     const debugMount = showMobilePayPanel(payUrl, tradeNo, feedback || null, {
       successUrl,
       doneLabel: '我已完成支付，下载PDF',
+      nonRefundNotice: PDF_NON_REFUND_NOTICE,
       customTip: '支付完成后，点击“我已完成支付，下载PDF”即可领取《八字学习入门》PDF。',
     });
     renderPaymentDebugInfo(debugMount, result, jsapiPayload);
