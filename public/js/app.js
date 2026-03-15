@@ -637,16 +637,16 @@ function pickPaymentOption() {
     ].join(';');
 
     const customTitle = document.createElement('div');
-    customTitle.textContent = '个人高端定制版（1对1）';
+    customTitle.textContent = '专属定制版（1对1）';
     customTitle.style.cssText = 'font-size:14px;font-weight:700;color:#0A2540;';
 
     const customSub = document.createElement('div');
-    customSub.textContent = '适合希望获得更细致、个性化解读的用户，专属顾问沟通后定制方案与报价。';
+    customSub.textContent = '适合希望获得更细致、个性化解读的用户，专属命理师1对1沟通后定制方案与报价。';
     customSub.style.cssText = 'margin-top:6px;font-size:12px;line-height:1.6;color:#334155;';
 
     const customBtn = document.createElement('button');
     customBtn.type = 'button';
-    customBtn.textContent = '联系专属顾问（微信）';
+    customBtn.textContent = '联系专属命理师（微信）';
     customBtn.style.cssText = [
       'margin-top:10px',
       'width:100%',
