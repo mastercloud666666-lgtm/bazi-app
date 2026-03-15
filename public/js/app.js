@@ -6,7 +6,7 @@ const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
 const PENDING_BIRTH_INPUT_KEY = 'bazi_pending_birth_input';
 const PDF_PENDING_TRADE_KEY = 'bazi_pdf_pending_trade_no';
-const APP_BUILD = '20260316-home-pdf-copy-v2';
+const APP_BUILD = '20260316-home-pdf-collection-v2';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -15,11 +15,11 @@ const PAYMENT_OPTIONS = [
 const DEFAULT_PAYMENT_OPTION = PAYMENT_OPTIONS[0];
 const PDF_PRODUCT = {
   id: 'pdf',
-  title: '《八字学习入门》PDF',
-  subtitle: '从零到看懂命盘，付款后可直接下载（测试价 0.01 元）',
+  title: '《八字命理合集》PDF',
+  subtitle: '439页系统整理八字核心知识与实用思路，付款后可直接下载（测试价 0.01 元）',
   fee: '0.01',
   downloadPath: '/downloads/yunzi-bazi-guide.pdf',
-  fileName: '云子命理-八字学习入门.pdf',
+  fileName: '云子命理-八字命理合集.pdf',
 };
 const ONE_TIME_PAID_NOTICE = '\u672c\u6b21\u62a5\u544a\u662f\u4e00\u6b21\u6027\u670d\u52a1\uff0c\u8bf7\u81ea\u884c\u622a\u56fe\u4fdd\u5b58\uff0c\u9875\u9762\u5173\u95ed\u540e\u4e0d\u53ef\u518d\u6b21\u67e5\u770b\u3002';
 const PAID_ONE_TIME_NOTICE_HTML = '<p style="margin-top:10px;color:#dc2626;font-weight:700;">' + ONE_TIME_PAID_NOTICE + '</p>';
@@ -628,14 +628,14 @@ function ensurePdfPurchaseUI() {
       'background:#f8fbff',
     ].join(';');
     section.innerHTML = `
-      <div style="font-size:18px;font-weight:700;color:#0a2540;line-height:1.5;">《八字学习入门》PDF｜从零到看懂自己的命盘</div>
-      <p style="margin:8px 0 0;color:#334155;font-size:14px;line-height:1.8;">不再只看“吉凶结论”，30分钟建立八字基础认知，学会看日主、十神、五行与大运节奏。</p>
+      <div style="font-size:18px;font-weight:700;color:#0a2540;line-height:1.5;">《八字命理合集》PDF｜439页系统内容，反复查阅</div>
+      <p style="margin:8px 0 0;color:#334155;font-size:14px;line-height:1.8;">全书 439 页，覆盖八字核心知识与实用分析思路，不只看结论，更帮你建立判断框架。</p>
       <div style="margin-top:8px;color:#1f2937;font-size:13px;line-height:1.8;">
         <div>• 小白友好：核心逻辑讲清楚，一看就懂</div>
         <div>• 决策参考：看清关键年份节奏，少走弯路</div>
         <div>• 可反复查阅：支付后直接下载保存</div>
       </div>
-      <button type="button" id="pdf-pay-btn" class="form-submit" style="margin-top:12px;">0.01元解锁八字入门PDF</button>
+      <button type="button" id="pdf-pay-btn" class="form-submit" style="margin-top:12px;">0.01元解锁八字命理合集PDF</button>
       <p style="margin:8px 0 0;color:#6b7280;font-size:12px;line-height:1.6;">虚拟知识文档，支付后不支持退款，请确认后购买。</p>
       <div id="pdf-pay-feedback" style="margin-top:10px;display:none;"></div>
       <div id="pdf-download-box" style="margin-top:10px;display:none;"></div>
@@ -689,11 +689,11 @@ function showPdfDownloadBox(tradeNo, downloadPath = PDF_PRODUCT.downloadPath) {
   ui.downloadBox.style.display = 'block';
   ui.downloadBox.innerHTML = `
     <div style="padding:12px;border:1px solid #86efac;border-radius:10px;background:#f0fdf4;">
-      <div style="font-size:15px;font-weight:700;color:#166534;">支付成功，可下载《八字学习入门》PDF</div>
+      <div style="font-size:15px;font-weight:700;color:#166534;">支付成功，可下载《八字命理合集》PDF</div>
       <div style="margin-top:6px;font-size:13px;color:#365314;">请保存文档到本地，避免后续丢失。</div>
       ${orderText}
       <div style="margin-top:10px;display:grid;gap:8px;">
-        <a href="${url}" target="_blank" rel="noopener noreferrer" download="${PDF_PRODUCT.fileName}" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 12px;border-radius:8px;background:#166534;color:#fff;text-decoration:none;font-weight:600;">下载《八字学习入门》PDF</a>
+        <a href="${url}" target="_blank" rel="noopener noreferrer" download="${PDF_PRODUCT.fileName}" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 12px;border-radius:8px;background:#166534;color:#fff;text-decoration:none;font-weight:600;">下载《八字命理合集》PDF</a>
         <button id="pdf-copy-link-btn" type="button" style="padding:10px 12px;border:1px solid #bbf7d0;border-radius:8px;background:#fff;color:#166534;font-weight:600;cursor:pointer;">复制下载链接</button>
       </div>
     </div>
@@ -759,7 +759,7 @@ async function startPdfPayment() {
 
   const button = ui.button;
   const feedback = ui.feedback;
-  const defaultText = button.dataset.defaultText || button.textContent || '0.01元解锁八字入门PDF';
+  const defaultText = button.dataset.defaultText || button.textContent || '0.01元解锁八字命理合集PDF';
   button.dataset.defaultText = defaultText;
 
   const setFeedback = (html) => {
@@ -842,7 +842,7 @@ async function startPdfPayment() {
     const jsapiPayload = normalizeWeChatJsapiPayload(result);
     const successUrl = `${window.location.origin}/index.html?pdf_paid=1&trade_no=${encodeURIComponent(tradeNo)}`;
 
-    setFeedback('<p class="price-desc">订单已创建，请完成支付后下载《八字学习入门》PDF。</p>');
+    setFeedback('<p class="price-desc">订单已创建，请完成支付后下载《八字命理合集》PDF。</p>');
 
     if (isWeChat && jsapiPayload) {
       try {
@@ -861,7 +861,7 @@ async function startPdfPayment() {
       successUrl,
       doneLabel: '我已完成支付，下载PDF',
       nonRefundNotice: PDF_NON_REFUND_NOTICE,
-      customTip: '支付完成后，点击“我已完成支付，下载PDF”即可领取《八字学习入门》PDF。',
+      customTip: '支付完成后，点击“我已完成支付，下载PDF”即可领取《八字命理合集》PDF。',
     });
     renderPaymentDebugInfo(debugMount, result, jsapiPayload);
   } catch (err) {
