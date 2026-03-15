@@ -6,7 +6,7 @@ const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
 const PENDING_BIRTH_INPUT_KEY = 'bazi_pending_birth_input';
 const PDF_PENDING_TRADE_KEY = 'bazi_pdf_pending_trade_no';
-const APP_BUILD = '20260316-home-pdf-wechat-tip-v1';
+const APP_BUILD = '20260316-home-pdf-tip-fix-v1';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -556,6 +556,12 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl, options = {}) {
   const disableWeChatInApp = Boolean(options?.disableWeChatInApp);
   const wechatPayWarning = String(options?.wechatPayWarning || '请勿在微信内直接支付，避免支付完成后订单校验失败。建议复制链接到系统浏览器完成支付。').trim();
   const isWeChat = isWeChatBrowser();
+  const step2Text = String(
+    options?.step2Text
+      || (isWeChat && disableWeChatInApp
+        ? wechatPayWarning
+        : '微信浏览器支付后页面可能自动关闭（微信机制）。')
+  ).trim();
   const wechatOpenInBrowserHint = (isWeChat && disableWeChatInApp)
     ? '<div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:#fff;color:#92400e;font-size:12px;line-height:1.6;border:1px solid #fed7aa;">操作提示：请点击右上角“···”，选择“在浏览器打开”后再完成支付。</div>'
     : '';
@@ -564,7 +570,7 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl, options = {}) {
     <div style="margin-top:2px;padding:10px 12px;border-radius:10px;border:1px solid #fed7aa;background:#fff7ed;color:#7c2d12;font-size:13px;line-height:1.6;">
       <div style="font-weight:700;color:#9a3412;">支付须知（请先阅读）</div>
       <div style="margin-top:6px;">1. ${nonRefundNotice}</div>
-      <div style="margin-top:4px;">2. ${isWeChat && disableWeChatInApp ? wechatPayWarning : '微信浏览器支付后页面可能自动关闭（微信机制）。'}</div>
+      <div style="margin-top:4px;">2. ${step2Text}</div>
       <div style="margin-top:4px;">3. 支付完成后请重新打开首页，点击“继续上次订单”；或直接选择“复制链接并去浏览器支付（推荐）”。</div>
       ${wechatOpenInBrowserHint}
     </div>
@@ -919,6 +925,7 @@ async function startPdfPayment() {
       nonRefundNotice: PDF_NON_REFUND_NOTICE,
       disableWeChatInApp: true,
       wechatPayWarning: '请勿在微信浏览器内直接支付，避免支付后订单校验失败。请复制链接到系统浏览器完成支付。',
+      step2Text: '请全程在系统浏览器完成支付，不要切回微信内置浏览器，避免订单校验失败。',
       customTip: '请使用系统浏览器完成支付。支付成功后返回本页，点击“我已完成支付，下载PDF”即可领取《八字命理合集》PDF。',
     });
     renderPaymentDebugInfo(debugMount, result, jsapiPayload);
