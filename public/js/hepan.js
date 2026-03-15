@@ -177,9 +177,7 @@ function clearCachedOrderPayload(tradeNo) {
 function ensurePayButtonDefaults() {
   [payEntryBtn, payBtn].forEach((btn) => {
     if (!btn) return;
-    if (!btn.dataset.defaultText) {
-      btn.dataset.defaultText = btn.textContent.trim();
-    }
+    btn.dataset.defaultText = btn.textContent.trim();
   });
 }
 
