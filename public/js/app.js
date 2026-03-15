@@ -224,6 +224,18 @@ function initCustomerServiceWidget() {
   });
 }
 
+function openCustomerServiceModal() {
+  if (!document.getElementById('kefu-modal')) {
+    initCustomerServiceWidget();
+  }
+  const modal = document.getElementById('kefu-modal');
+  if (modal) {
+    modal.classList.add('show');
+    return;
+  }
+  alert('客服二维码暂时不可用，请稍后重试。');
+}
+
 async function copyTextSafe(text) {
   try {
     if (navigator.clipboard?.writeText) {
@@ -615,6 +627,49 @@ function pickPaymentOption() {
       list.appendChild(btn);
     });
 
+    const customWrap = document.createElement('div');
+    customWrap.style.cssText = [
+      'margin-top:4px',
+      'padding:12px',
+      'border-radius:10px',
+      'border:1px dashed #93C5FD',
+      'background:#F0F7FF',
+    ].join(';');
+
+    const customTitle = document.createElement('div');
+    customTitle.textContent = '个人高端定制版（1对1）';
+    customTitle.style.cssText = 'font-size:14px;font-weight:700;color:#0A2540;';
+
+    const customSub = document.createElement('div');
+    customSub.textContent = '适合高净值与重大决策用户，专属顾问沟通后定制方案与报价。';
+    customSub.style.cssText = 'margin-top:6px;font-size:12px;line-height:1.6;color:#334155;';
+
+    const customBtn = document.createElement('button');
+    customBtn.type = 'button';
+    customBtn.textContent = '联系专属顾问（微信）';
+    customBtn.style.cssText = [
+      'margin-top:10px',
+      'width:100%',
+      'padding:10px 12px',
+      'border:none',
+      'border-radius:8px',
+      'background:#0A2540',
+      'color:#fff',
+      'font-size:13px',
+      'font-weight:600',
+      'cursor:pointer',
+    ].join(';');
+    customBtn.addEventListener('click', () => {
+      cleanup();
+      resolve(null);
+      setTimeout(() => {
+        openCustomerServiceModal();
+      }, 0);
+    });
+    customWrap.appendChild(customTitle);
+    customWrap.appendChild(customSub);
+    customWrap.appendChild(customBtn);
+
     const cancelBtn = document.createElement('button');
     cancelBtn.type = 'button';
     cancelBtn.textContent = '取消';
@@ -658,6 +713,7 @@ function pickPaymentOption() {
     card.appendChild(subtitle);
     card.appendChild(notice);
     card.appendChild(list);
+    card.appendChild(customWrap);
     card.appendChild(cancelBtn);
     overlay.appendChild(card);
     document.body.appendChild(overlay);
