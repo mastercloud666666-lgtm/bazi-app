@@ -1741,11 +1741,11 @@ async function startPayment(birthData, bazi, paymentOption) {
 
 // ── 轮询等待分析结果 ──────────────────────────────────────────────
 async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, specialYears) {
-  // 使用完整版缓存键
+  // use full-report cache key
   const fullCacheKey = cacheKey.replace('bazi_', 'bazi_full_');
-  const pollIntervalMs = 1000;
-  const maxAttempts = 90; // 最长约 90 秒
-  const reconcileIntervalMs = 7000;
+  const pollIntervalMs = 800;
+  const maxAttempts = 150; // up to ~120s
+  const reconcileIntervalMs = 2500;
   let lastReconcileTs = 0;
   let paidSeenCount = 0;
   let streamFallbackTriggered = false;
@@ -1763,16 +1763,49 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
     resolvedPaymentOptionId = pollContext.paymentOptionId;
   }
 
-  // 轮询等待生成完成
+  const startDirectGenerate = async (loadingText = '已确认支付，正在优先直连生成完整报告（通常 20-60 秒）…') => {
+    if (streamFallbackTriggered) return false;
+    if (!resolvedBirthData || !resolvedBazi || !resolvedDaYunData || !resolvedSpecialYears) return false;
+    streamFallbackTriggered = true;
+
+    const loadingEl = document.getElementById('analysis-loading');
+    if (loadingEl) {
+      loadingEl.innerHTML = `<p class="price-desc">${loadingText}</p>` + PAID_ONE_TIME_NOTICE_HTML;
+    }
+
+    await fullAnalyze(resolvedBirthData, resolvedBazi, resolvedDaYunData, resolvedSpecialYears, {
+      tradeNo,
+      paymentOptionId: resolvedPaymentOptionId,
+    });
+    return true;
+  };
+
+  try {
+    const initialReconcile = await reconcilePaymentStatus(tradeNo, { quiet: true });
+    const reconcilePaid = Boolean(initialReconcile?.paid) || String(initialReconcile?.status || '').toUpperCase() === 'OD';
+    if (reconcilePaid) {
+      const started = await startDirectGenerate();
+      if (started) return;
+    }
+  } catch {}
+
+  // poll until report is ready
   for (let i = 0; i < maxAttempts; i++) {
     try {
-      await new Promise(r => setTimeout(r, pollIntervalMs));
-      
+      await new Promise((r) => setTimeout(r, pollIntervalMs));
+
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${tradeNo}&select=paid,analysis,birth_input`,
-        { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` }}
+        `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(tradeNo)}&select=paid,analysis,birth_input&_=${Date.now()}`,
+        {
+          cache: 'no-store',
+          headers: {
+            apikey: SUPABASE_ANON,
+            Authorization: `Bearer ${SUPABASE_ANON}`,
+            'Cache-Control': 'no-cache',
+          },
+        }
       );
-      
+
       const [order] = await res.json();
       const nowTs = Date.now();
       if (
@@ -1781,8 +1814,14 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
         && (!order?.paid || !order?.analysis)
       ) {
         lastReconcileTs = nowTs;
-        await reconcilePaymentStatus(tradeNo, { quiet: true });
+        const reconcileResult = await reconcilePaymentStatus(tradeNo, { quiet: true });
+        const reconcilePaid = Boolean(reconcileResult?.paid) || String(reconcileResult?.status || '').toUpperCase() === 'OD';
+        if (reconcilePaid) {
+          const started = await startDirectGenerate();
+          if (started) return;
+        }
       }
+
       if (!resolvedPaymentOptionId && order?.birth_input) {
         try {
           const birth = JSON.parse(order.birth_input);
@@ -1792,43 +1831,43 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
           }
         } catch {}
       }
-      
+
       if (order?.paid && order?.analysis) {
-        // 保存到完整版缓存
+        // save full report to cache
         localStorage.setItem(fullCacheKey, order.analysis);
         clearPendingTradeNo();
         clearPendingPaymentOptionId();
-        showAnalysis(order.analysis, true); // hidePay = true，隐藏付费提示
+        showAnalysis(order.analysis, true); // hidePay=true: hide pay prompt
         return;
       }
 
       if (order?.paid && !order?.analysis) {
         paidSeenCount += 1;
-        if (!streamFallbackTriggered && paidSeenCount >= 1 && resolvedBirthData && resolvedBazi && resolvedDaYunData && resolvedSpecialYears) {
-          streamFallbackTriggered = true;
-          document.getElementById('analysis-loading').innerHTML = '<p class="price-desc">\u5df2\u786e\u8ba4\u652f\u4ed8\uff0c\u6b63\u5728\u76f4\u63a5\u751f\u6210\u5b8c\u6574\u62a5\u544a\uff0c\u8bf7\u7a0d\u5019\u2026</p>' + PAID_ONE_TIME_NOTICE_HTML;
-          await fullAnalyze(resolvedBirthData, resolvedBazi, resolvedDaYunData, resolvedSpecialYears, {
-            tradeNo,
-            paymentOptionId: resolvedPaymentOptionId,
-          });
-          return;
+        if (!streamFallbackTriggered && paidSeenCount >= 1) {
+          const started = await startDirectGenerate('已确认支付，正在直连生成完整报告，请稍候…');
+          if (started) return;
         }
       }
 
-      // 更新加载提示（每 8 次更新一次）
-      if (i % 8 === 0 && i > 0) {
+      // refresh loading copy every 4 attempts
+      if (i % 4 === 0 && i > 0) {
         const seconds = Math.ceil(((i + 1) * pollIntervalMs) / 1000);
-        document.getElementById('analysis-loading').innerHTML = `<p class="price-desc">\u6b63\u5728\u751f\u6210\u6df1\u5ea6\u547d\u7406\u62a5\u544a\uff08\u5df2\u7b49\u5f85 ${seconds} \u79d2\uff0c\u901a\u5e38 30-90 \u79d2\u5b8c\u6210\uff09</p>` + PAID_ONE_TIME_NOTICE_HTML;
+        document.getElementById('analysis-loading').innerHTML = `<p class="price-desc">正在生成深度命理报告（已等待 ${seconds} 秒，通常 20-60 秒开始显示）</p>` + PAID_ONE_TIME_NOTICE_HTML;
       }
     } catch (err) {
-      console.error('轮询查询失败:', err);
-      if (!streamFallbackTriggered && i % 8 === 0) {
-        await reconcilePaymentStatus(tradeNo, { quiet: true });
+      console.error('poll query failed:', err);
+      if (!streamFallbackTriggered && i % 4 === 0) {
+        const reconcileResult = await reconcilePaymentStatus(tradeNo, { quiet: true });
+        const reconcilePaid = Boolean(reconcileResult?.paid) || String(reconcileResult?.status || '').toUpperCase() === 'OD';
+        if (reconcilePaid) {
+          const started = await startDirectGenerate();
+          if (started) return;
+        }
       }
     }
   }
-  
-  // 超时处理
+
+  // timeout handling
   document.getElementById('analysis-loading').innerHTML = `
     <p class="price-desc">报告生成时间较长，您可以：</p>
     <div style="margin-top:16px;">
@@ -1837,6 +1876,7 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
     </div>
   `;
 }
+
 
 const DISCLAIMER = '\n\n以上内容为传统文化推演，仅供参考，请理性看待，切勿迷信。';
 
