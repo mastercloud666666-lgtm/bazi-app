@@ -6,7 +6,7 @@ const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
 const PENDING_BIRTH_INPUT_KEY = 'bazi_pending_birth_input';
 const PDF_PENDING_TRADE_KEY = 'bazi_pdf_pending_trade_no';
-const APP_BUILD = '20260316-funnel-v1';
+const APP_BUILD = '20260316-pdfsigned-v1';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -19,6 +19,9 @@ const PDF_PRODUCT = {
   subtitle: '439页系统整理八字核心知识与实用思路，付款后可直接下载（测试价 0.01 元）',
   fee: '0.01',
   downloadPath: '/downloads/yunzi-bazi-guide.pdf',
+  storageBucket: 'paid-docs',
+  storagePath: 'pdfs/yunzi-bazi-guide.pdf',
+  signedTtlSeconds: 600,
   fileName: '云子命理-八字命理合集.pdf',
 };
 const ONE_TIME_PAID_NOTICE = '\u672c\u6b21\u62a5\u544a\u662f\u4e00\u6b21\u6027\u670d\u52a1\uff0c\u8bf7\u81ea\u884c\u622a\u56fe\u4fdd\u5b58\uff0c\u9875\u9762\u5173\u95ed\u540e\u4e0d\u53ef\u518d\u6b21\u67e5\u770b\u3002';
@@ -314,6 +317,12 @@ function getAbsolutePdfUrl(downloadPath = PDF_PRODUCT.downloadPath) {
   return `${window.location.origin}${normalized}`;
 }
 
+function resolvePdfDownloadUrl(downloadUrl = '', downloadPath = PDF_PRODUCT.downloadPath) {
+  const direct = String(downloadUrl || '').trim();
+  if (direct) return direct;
+  return getAbsolutePdfUrl(downloadPath);
+}
+
 async function fetchOrderByTradeNo(tradeNo) {
   if (!tradeNo) return null;
   try {
@@ -382,6 +391,8 @@ async function verifyPdfOrderWithPolling(tradeNo, options = {}) {
       return {
         paid: true,
         isPdfOrder: true,
+        downloadUrl: resolvePdfDownloadUrl(reconcileResult?.pdf_download_url, reconcileResult?.pdf_download_path),
+        downloadTtlSeconds: Number(reconcileResult?.pdf_download_expires_in || 0),
         downloadPath: String(reconcileResult?.pdf_download_path || PDF_PRODUCT.downloadPath),
       };
     }
@@ -396,6 +407,8 @@ async function verifyPdfOrderWithPolling(tradeNo, options = {}) {
       return {
         paid: true,
         isPdfOrder: true,
+        downloadUrl: resolvePdfDownloadUrl('', birth?.pdf_download_path || PDF_PRODUCT.downloadPath),
+        downloadTtlSeconds: 0,
         downloadPath: String(birth?.pdf_download_path || PDF_PRODUCT.downloadPath),
       };
     }
@@ -768,10 +781,17 @@ function clearPdfSearchParams() {
   } catch {}
 }
 
-function showPdfDownloadBox(tradeNo, downloadPath = PDF_PRODUCT.downloadPath) {
+function showPdfDownloadBox(tradeNo, downloadOptions = {}) {
   const ui = ensurePdfPurchaseUI();
   if (!ui || !ui.downloadBox) return;
-  const url = getAbsolutePdfUrl(downloadPath);
+  const opts = (downloadOptions && typeof downloadOptions === 'object')
+    ? downloadOptions
+    : { downloadPath: downloadOptions };
+  const url = resolvePdfDownloadUrl(opts.downloadUrl, opts.downloadPath || PDF_PRODUCT.downloadPath);
+  const ttlSeconds = Math.max(0, Number(opts.downloadTtlSeconds || 0));
+  const ttlHint = ttlSeconds > 0
+    ? `<div style="margin-top:6px;font-size:12px;color:#92400e;">下载链接有效期约 ${Math.ceil(ttlSeconds / 60)} 分钟。若链接失效，请点击“我已完成支付，下载PDF”重新获取。</div>`
+    : '';
   const orderText = tradeNo ? `<div style="margin-top:6px;font-size:12px;color:#64748b;">订单号：${tradeNo}</div>` : '';
 
   if (ui.feedback) {
@@ -786,8 +806,9 @@ function showPdfDownloadBox(tradeNo, downloadPath = PDF_PRODUCT.downloadPath) {
   ui.downloadBox.style.display = 'block';
   ui.downloadBox.innerHTML = `
     <div style="padding:12px;border:1px solid #86efac;border-radius:10px;background:#f0fdf4;">
-      <div style="font-size:15px;font-weight:700;color:#166534;">支付成功，可下载《八字命理合集》PDF</div>
-      <div style="margin-top:6px;font-size:13px;color:#365314;">请保存文档到本地，避免后续丢失。</div>
+      <div style="font-size:15px;font-weight:700;color:#166534;">支付校验成功，可下载《八字命理合集》PDF</div>
+      <div style="margin-top:6px;font-size:13px;color:#365314;">请尽快下载并保存到本地，避免链接过期。</div>
+      ${ttlHint}
       ${orderText}
       <div style="margin-top:10px;display:grid;gap:8px;">
         <a id="pdf-download-link-btn" href="${url}" target="_blank" rel="noopener noreferrer" download="${PDF_PRODUCT.fileName}" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 12px;border-radius:8px;background:#166534;color:#fff;text-decoration:none;font-weight:600;">下载《八字命理合集》PDF</a>
@@ -832,7 +853,11 @@ async function tryResumePdfOrder(tradeNo, options = {}) {
     quiet: true,
   });
   if (verifyResult?.paid) {
-    showPdfDownloadBox(tradeNo, verifyResult?.downloadPath || PDF_PRODUCT.downloadPath);
+    showPdfDownloadBox(tradeNo, {
+      downloadUrl: verifyResult?.downloadUrl || '',
+      downloadPath: verifyResult?.downloadPath || PDF_PRODUCT.downloadPath,
+      downloadTtlSeconds: verifyResult?.downloadTtlSeconds || 0,
+    });
     return true;
   }
   if (!verifyResult?.isPdfOrder) return false;
@@ -863,7 +888,11 @@ async function tryResumePdfOrder(tradeNo, options = {}) {
         });
 
         if (retryResult?.paid) {
-          showPdfDownloadBox(tradeNo, retryResult?.downloadPath || PDF_PRODUCT.downloadPath);
+          showPdfDownloadBox(tradeNo, {
+            downloadUrl: retryResult?.downloadUrl || '',
+            downloadPath: retryResult?.downloadPath || PDF_PRODUCT.downloadPath,
+            downloadTtlSeconds: retryResult?.downloadTtlSeconds || 0,
+          });
           return;
         }
 
@@ -911,6 +940,8 @@ async function startPdfPayment() {
       fee: PDF_PRODUCT.fee,
     },
     pdf_download_path: PDF_PRODUCT.downloadPath,
+    pdf_storage_bucket: PDF_PRODUCT.storageBucket,
+    pdf_storage_path: PDF_PRODUCT.storagePath,
   };
 
   try {

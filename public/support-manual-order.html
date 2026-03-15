@@ -261,6 +261,12 @@
         `Analysis exists: ${order.analysis_exists ? 'YES' : 'NO'}`,
         `Created: ${order.created_at || '-'}`,
       ];
+      if (order?.service === 'pdf' && order?.paid) {
+        const signed = order.download_signed === true ? 'YES' : 'NO';
+        const ttl = Number(order.download_expires_in || 0);
+        lines.push(`短时签名链接: ${signed}`);
+        if (ttl > 0) lines.push(`链接有效期: ${Math.ceil(ttl / 60)} 分钟`);
+      }
       if (payload?.message) lines.push(`Message: ${payload.message}`);
       if (payload?.analysis_triggered) lines.push('Action: analysis trigger sent');
       setRepairResult(lines.join('\n'));

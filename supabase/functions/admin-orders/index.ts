@@ -3,7 +3,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const ALLOWED_PAYMENT_OPTION_IDS = new Set(['basic', 'pro', 'vip', 'pdf']);
 const DEFAULT_CORS_ORIGINS = ['https://tengyunzi.com', 'https://www.tengyunzi.com'];
 const DEFAULT_SITE_ORIGIN = 'https://tengyunzi.com';
-const DEFAULT_PDF_PATH = 'downloads/八字命理合集.pdf';
+const DEFAULT_PDF_PATH = 'downloads/yunzi-bazi-guide.pdf';
+const DEFAULT_PDF_STORAGE_BUCKET = 'paid-docs';
+const DEFAULT_PDF_STORAGE_PATH = 'pdfs/yunzi-bazi-guide.pdf';
+const DEFAULT_PDF_SIGNED_TTL_SECONDS = 600;
 
 type JsonRecord = Record<string, unknown>;
 
@@ -113,10 +116,37 @@ function normalizeSiteOrigin(): string {
   return base.replace(/\/+$/, '');
 }
 
-function buildPdfDownloadUrl(siteOrigin: string, pathValue: unknown): string {
-  const path = asString(pathValue) || DEFAULT_PDF_PATH;
-  const normalizedPath = path.replace(/^\/+/, '');
-  return encodeURI(`${siteOrigin}/${normalizedPath}`);
+function normalizeStoragePath(value: unknown): string {
+  const path = asString(value).replace(/^\/+/, '');
+  if (!path) return DEFAULT_PDF_STORAGE_PATH;
+  if (/^https?:\/\//i.test(path)) return DEFAULT_PDF_STORAGE_PATH;
+  if (/^downloads\//i.test(path)) return DEFAULT_PDF_STORAGE_PATH;
+  return path;
+}
+
+function getPdfSignedTtlSeconds(): number {
+  const fromEnv = Number(asString(Deno.env.get('PDF_SIGNED_URL_TTL_SECONDS')));
+  if (!Number.isFinite(fromEnv)) return DEFAULT_PDF_SIGNED_TTL_SECONDS;
+  return Math.min(Math.max(Math.floor(fromEnv), 120), 3600);
+}
+
+async function createPdfSignedUrl(
+  supabase: any,
+  supabaseUrl: string,
+  birth: JsonRecord,
+): Promise<{ url: string | null; expires_in: number; bucket: string; object_path: string; }> {
+  const bucket = asString(birth.pdf_storage_bucket) || asString(Deno.env.get('PDF_STORAGE_BUCKET')) || DEFAULT_PDF_STORAGE_BUCKET;
+  const objectPath = normalizeStoragePath(
+    birth.pdf_storage_path || birth.pdf_storage_object || birth.pdf_download_path || DEFAULT_PDF_PATH,
+  );
+  const expiresIn = getPdfSignedTtlSeconds();
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(objectPath, expiresIn);
+  if (error || !data?.signedUrl) {
+    return { url: null, expires_in: expiresIn, bucket, object_path: objectPath };
+  }
+  const signed = String(data.signedUrl || '').trim();
+  const absolute = /^https?:\/\//i.test(signed) ? signed : `${supabaseUrl}${signed}`;
+  return { url: absolute, expires_in: expiresIn, bucket, object_path: objectPath };
 }
 
 function buildResumeLinks(siteOrigin: string, tradeNo: string, service: 'pdf' | 'hepan' | 'bazi', birth: JsonRecord) {
@@ -124,14 +154,13 @@ function buildResumeLinks(siteOrigin: string, tradeNo: string, service: 'pdf' | 
   const defaultResultUrl = `${siteOrigin}/result.html?trade_no=${encodedTradeNo}&paid=true`;
   const hepanResultUrl = `${siteOrigin}/hepan.html?trade_no=${encodedTradeNo}`;
   const pdfResumeUrl = `${siteOrigin}/index.html?pdf_paid=1&trade_no=${encodedTradeNo}`;
-  const pdfDownloadUrl = buildPdfDownloadUrl(siteOrigin, birth.pdf_download_path);
   const resultUrl = service === 'hepan' ? hepanResultUrl : defaultResultUrl;
   const resumeUrl = service === 'pdf' ? pdfResumeUrl : resultUrl;
 
   return {
     result_url: resultUrl,
     resume_url: resumeUrl,
-    pdf_download_url: service === 'pdf' ? pdfDownloadUrl : '',
+    pdf_download_url: '',
   };
 }
 
@@ -163,6 +192,32 @@ function buildOrderViewPayload(order: JsonRecord, tradeNo: string) {
     download_url: links.pdf_download_url || null,
     birth_input: birth,
   };
+}
+
+async function attachSignedPdfDownloadToView(
+  supabase: any,
+  supabaseUrl: string,
+  view: JsonRecord,
+): Promise<JsonRecord> {
+  const service = asString(view.service);
+  const paid = Boolean(view.paid);
+  if (service !== 'pdf' || !paid) return view;
+
+  const birth = parseBirthInput(view.birth_input);
+  const signed = await createPdfSignedUrl(supabase, supabaseUrl, birth);
+  if (signed.url) {
+    view.download_url = signed.url;
+    view.download_signed = true;
+    view.download_expires_in = signed.expires_in;
+  } else {
+    const fallbackPath = asString(birth.pdf_download_path || DEFAULT_PDF_PATH).replace(/^\/+/, '');
+    view.download_url = encodeURI(`${normalizeSiteOrigin()}/${fallbackPath}`);
+    view.download_signed = false;
+    view.download_expires_in = null;
+  }
+  view.download_bucket = signed.bucket;
+  view.download_object_path = signed.object_path;
+  return view;
 }
 
 async function triggerAnalyzeForPaidOrder(
@@ -366,7 +421,11 @@ Deno.serve(async (req) => {
       if (orderError) return json(req, { error: 'order_query_failed', details: orderError.message }, 500);
       if (!order) return json(req, { error: 'order_not_found' }, 404);
 
-      const payload = buildOrderViewPayload(order as JsonRecord, tradeNo);
+      const payload = await attachSignedPdfDownloadToView(
+        supabase,
+        supabaseUrl,
+        buildOrderViewPayload(order as JsonRecord, tradeNo),
+      );
       return json(req, {
         ok: true,
         order: payload,
@@ -405,7 +464,11 @@ Deno.serve(async (req) => {
       if (orderError) return json(req, { error: 'order_query_failed', details: orderError.message }, 500);
       if (!order) return json(req, { error: 'order_not_found' }, 404);
 
-      const view = buildOrderViewPayload(order as JsonRecord, tradeNo);
+      const view = await attachSignedPdfDownloadToView(
+        supabase,
+        supabaseUrl,
+        buildOrderViewPayload(order as JsonRecord, tradeNo),
+      );
       const birth = parseBirthInput((order as JsonRecord).birth_input);
       const service = detectService(birth);
 
@@ -415,12 +478,12 @@ Deno.serve(async (req) => {
       }
 
       const message = !view.paid
-        ? '订单尚未支付，无法补发。请先完成支付。'
+        ? '订单未支付，请先完成支付后再补发。'
         : service === 'pdf'
-          ? 'PDF下载链接已补发，可直接发给客户。'
+          ? 'PDF 短时下载链接已刷新，可立即发送给客户。'
           : view.analysis_exists
             ? '报告已就绪，可直接引导客户打开结果页。'
-            : '已触发报告补发，请稍后再次查询或让客户点继续订单。';
+            : '已重新触发报告生成，请稍后让客户点击“继续上次订单”。';
 
       return json(req, {
         ok: true,

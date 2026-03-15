@@ -10,6 +10,9 @@ const corsHeaders = {
 const DEFAULT_PRIMARY_API_BASE = 'https://api.xunhupay.com';
 const DEFAULT_BACKUP_API_BASE = 'https://api.dpweixin.com';
 const DEFAULT_PDF_PATH = '/downloads/yunzi-bazi-guide.pdf';
+const DEFAULT_PDF_STORAGE_BUCKET = 'paid-docs';
+const DEFAULT_PDF_STORAGE_PATH = 'pdfs/yunzi-bazi-guide.pdf';
+const DEFAULT_PDF_SIGNED_TTL_SECONDS = 600;
 
 function normalizeApiBase(base: string | undefined, fallback: string) {
   const value = (base || fallback).trim();
@@ -26,6 +29,41 @@ function parseBirthInput(value: unknown): Record<string, any> {
   } catch {
     return {};
   }
+}
+
+function asString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function normalizeStoragePath(value: unknown): string {
+  const path = asString(value).replace(/^\/+/, '');
+  if (!path) return DEFAULT_PDF_STORAGE_PATH;
+  if (/^https?:\/\//i.test(path)) return DEFAULT_PDF_STORAGE_PATH;
+  if (/^downloads\//i.test(path)) return DEFAULT_PDF_STORAGE_PATH;
+  return path;
+}
+
+function getPdfSignedTtlSeconds(): number {
+  const fromEnv = Number(asString(Deno.env.get('PDF_SIGNED_URL_TTL_SECONDS')));
+  if (!Number.isFinite(fromEnv)) return DEFAULT_PDF_SIGNED_TTL_SECONDS;
+  return Math.min(Math.max(Math.floor(fromEnv), 120), 3600);
+}
+
+async function createPdfSignedUrl(
+  supabase: any,
+  supabaseUrl: string,
+  birth: Record<string, any>,
+): Promise<{ url: string | null; expiresIn: number; bucket: string; objectPath: string; }> {
+  const bucket = asString(birth?.pdf_storage_bucket) || asString(Deno.env.get('PDF_STORAGE_BUCKET')) || DEFAULT_PDF_STORAGE_BUCKET;
+  const objectPath = normalizeStoragePath(
+    birth?.pdf_storage_path || birth?.pdf_storage_object || birth?.pdf_download_path || DEFAULT_PDF_PATH,
+  );
+  const expiresIn = getPdfSignedTtlSeconds();
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(objectPath, expiresIn);
+  if (error || !data?.signedUrl) return { url: null, expiresIn, bucket, objectPath };
+  const signed = String(data.signedUrl || '').trim();
+  const absolute = /^https?:\/\//i.test(signed) ? signed : `${supabaseUrl}${signed}`;
+  return { url: absolute, expiresIn, bucket, objectPath };
 }
 
 function applyTrackingEvent(
@@ -257,6 +295,11 @@ Deno.serve(async (req) => {
     const pdfDownloadPath = String(birth?.pdf_download_path || DEFAULT_PDF_PATH);
 
     if (order.paid && (order.analysis || isPdfOrder)) {
+      let signedPdf: { url: string | null; expiresIn: number; bucket: string; objectPath: string } | null = null;
+      if (isPdfOrder) {
+        signedPdf = await createPdfSignedUrl(supabase, supabaseUrl, birth);
+      }
+
       try {
         const trackedBirth = applyTrackingEvent(birth, 'payment_verified', { source: 'order-cache' });
         await supabase
@@ -275,6 +318,10 @@ Deno.serve(async (req) => {
         analysis_triggered: false,
         pdf_ready: isPdfOrder,
         pdf_download_path: isPdfOrder ? pdfDownloadPath : null,
+        pdf_download_url: isPdfOrder ? signedPdf?.url || null : null,
+        pdf_download_expires_in: isPdfOrder ? signedPdf?.expiresIn || null : null,
+        pdf_download_bucket: isPdfOrder ? signedPdf?.bucket || null : null,
+        pdf_download_object_path: isPdfOrder ? signedPdf?.objectPath || null : null,
         source: 'order-cache',
       }), {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -346,6 +393,8 @@ Deno.serve(async (req) => {
         analysis_triggered: false,
         pdf_ready: false,
         pdf_download_path: null,
+        pdf_download_url: null,
+        pdf_download_expires_in: null,
         gateway_meta: {
           attempted_api_bases: candidateApiBases,
           selected_api_base: selectedApiBase,
@@ -365,6 +414,7 @@ Deno.serve(async (req) => {
       .eq('trade_no', tradeNo);
 
     const analysisTriggered = await triggerAnalyzeIfNeeded(order, tradeNo);
+    const signedPdf = isPdfOrder ? await createPdfSignedUrl(supabase, supabaseUrl, trackedBirth) : null;
 
     return new Response(JSON.stringify({
       errcode: 0,
@@ -374,6 +424,10 @@ Deno.serve(async (req) => {
       analysis_triggered: analysisTriggered,
       pdf_ready: isPdfOrder,
       pdf_download_path: isPdfOrder ? pdfDownloadPath : null,
+      pdf_download_url: isPdfOrder ? signedPdf?.url || null : null,
+      pdf_download_expires_in: isPdfOrder ? signedPdf?.expiresIn || null : null,
+      pdf_download_bucket: isPdfOrder ? signedPdf?.bucket || null : null,
+      pdf_download_object_path: isPdfOrder ? signedPdf?.objectPath || null : null,
       gateway_meta: {
         attempted_api_bases: candidateApiBases,
         selected_api_base: selectedApiBase,
