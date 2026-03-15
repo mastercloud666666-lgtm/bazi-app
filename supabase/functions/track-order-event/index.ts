@@ -1,11 +1,16 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-  'Access-Control-Max-Age': '86400',
-};
+import {
+  buildRateLimitIdentifier,
+  consumeRateLimit,
+  corsHeaders,
+  extractClientIp,
+  isAllowedRequestOrigin,
+  json as securityJson,
+  maskIp,
+  recordAbuseLog,
+  resolveAllowedOrigins,
+  tooManyRequestsResponse,
+} from '../_shared/security.ts';
 
 const ALLOWED_EVENTS = new Set([
   'order_created',
@@ -19,14 +24,17 @@ const ALLOWED_EVENTS = new Set([
   'pdf_download_clicked',
 ]);
 
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      'Content-Type': 'application/json',
-      ...corsHeaders,
-    },
-  });
+const DEFAULT_RATE_LIMIT_WINDOW_SECONDS = 60;
+const DEFAULT_RATE_LIMIT_MAX_REQUESTS = 30;
+
+function readEnvNumber(name: string, fallback: number, min: number, max: number): number {
+  const value = Number(String(Deno.env.get(name) || '').trim());
+  if (!Number.isFinite(value)) return fallback;
+  return Math.min(Math.max(Math.floor(value), min), max);
+}
+
+function json(req: Request, body: unknown, status = 200, allowedOrigins = resolveAllowedOrigins()) {
+  return securityJson(req, body, status, allowedOrigins);
 }
 
 function validateTradeNo(value: string): boolean {
@@ -98,11 +106,19 @@ function applyTrackingEvent(birth: Record<string, any>, event: string, meta: Rec
 }
 
 Deno.serve(async (req) => {
+  const allowedOrigins = resolveAllowedOrigins();
   if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers: corsHeaders });
+    return new Response(null, { status: 200, headers: corsHeaders(req, allowedOrigins) });
   }
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405, headers: corsHeaders });
+    return new Response('Method not allowed', { status: 405, headers: corsHeaders(req, allowedOrigins) });
+  }
+
+  if (!isAllowedRequestOrigin(req, allowedOrigins)) {
+    return json(req, {
+      error: 'origin_not_allowed',
+      message: '非法来源请求已被拒绝。',
+    }, 403, allowedOrigins);
   }
 
   try {
@@ -110,18 +126,47 @@ Deno.serve(async (req) => {
     const tradeNo = String(body?.trade_no || '').trim();
     const event = String(body?.event || '').trim();
     if (!tradeNo || !validateTradeNo(tradeNo)) {
-      return json({ error: 'invalid_trade_no' }, 400);
+      return json(req, { error: 'invalid_trade_no' }, 400, allowedOrigins);
     }
     if (!event || !ALLOWED_EVENTS.has(event)) {
-      return json({ error: 'invalid_event' }, 400);
+      return json(req, { error: 'invalid_event' }, 400, allowedOrigins);
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (!supabaseUrl || !serviceRoleKey) {
-      return json({ error: 'missing_supabase_env' }, 500);
+      return json(req, { error: 'missing_supabase_env' }, 500, allowedOrigins);
     }
     const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const rateWindowSeconds = readEnvNumber('RATE_LIMIT_TRACK_EVENT_WINDOW_SECONDS', DEFAULT_RATE_LIMIT_WINDOW_SECONDS, 10, 3600);
+    const rateMaxRequests = readEnvNumber('RATE_LIMIT_TRACK_EVENT_MAX_REQUESTS', DEFAULT_RATE_LIMIT_MAX_REQUESTS, 2, 1000);
+    const rateIdentifier = await buildRateLimitIdentifier(req);
+    const rateResult = await consumeRateLimit(supabase, {
+      scope: 'track-order-event',
+      identifier: rateIdentifier,
+      windowSeconds: rateWindowSeconds,
+      maxRequests: rateMaxRequests,
+    });
+    if (!rateResult.allowed) {
+      await recordAbuseLog(supabase, {
+        scope: 'track-order-event',
+        identifier: rateIdentifier,
+        event: 'rate_limited',
+        meta: {
+          ip_masked: maskIp(extractClientIp(req)),
+          current_count: rateResult.currentCount,
+          max_requests: rateMaxRequests,
+          window_seconds: rateWindowSeconds,
+          event,
+        },
+      });
+      return tooManyRequestsResponse(req, allowedOrigins, {
+        message: '事件上报过于频繁，请稍后再试。',
+        retryAfterSeconds: rateResult.retryAfterSeconds,
+        scope: 'track-order-event',
+        currentCount: rateResult.currentCount,
+      });
+    }
 
     const { data: order, error: orderError } = await supabase
       .from('orders')
@@ -129,10 +174,10 @@ Deno.serve(async (req) => {
       .eq('trade_no', tradeNo)
       .maybeSingle();
     if (orderError) {
-      return json({ error: 'order_query_failed', details: orderError.message }, 500);
+      return json(req, { error: 'order_query_failed', details: orderError.message }, 500, allowedOrigins);
     }
     if (!order) {
-      return json({ error: 'order_not_found' }, 404);
+      return json(req, { error: 'order_not_found' }, 404, allowedOrigins);
     }
 
     const meta = sanitizeMeta(body?.meta);
@@ -145,11 +190,11 @@ Deno.serve(async (req) => {
       .update({ birth_input: JSON.stringify(nextBirth) })
       .eq('trade_no', tradeNo);
     if (updateError) {
-      return json({ error: 'order_update_failed', details: updateError.message }, 500);
+      return json(req, { error: 'order_update_failed', details: updateError.message }, 500, allowedOrigins);
     }
 
-    return json({ ok: true, trade_no: tradeNo, event, at: atIso });
+    return json(req, { ok: true, trade_no: tradeNo, event, at: atIso }, 200, allowedOrigins);
   } catch (err) {
-    return json({ error: err instanceof Error ? err.message : String(err) }, 500);
+    return json(req, { error: err instanceof Error ? err.message : String(err) }, 500, allowedOrigins);
   }
 });

@@ -1,16 +1,30 @@
 // supabase/functions/analyze/index.ts
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import {
+  buildRateLimitIdentifier,
+  consumeRateLimit,
+  corsHeaders,
+  extractClientIp,
+  isAllowedRequestOrigin,
+  maskIp,
+  recordAbuseLog,
+  resolveAllowedOrigins,
+  tooManyRequestsResponse,
+} from '../_shared/security.ts';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 );
+const DEFAULT_RATE_LIMIT_WINDOW_SECONDS = 60;
+const DEFAULT_RATE_LIMIT_MAX_REQUESTS_FREE = 8;
+const DEFAULT_RATE_LIMIT_MAX_REQUESTS_PAID = 24;
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+function readEnvNumber(name: string, fallback: number, min: number, max: number): number {
+  const raw = Number(String(Deno.env.get(name) || '').trim());
+  if (!Number.isFinite(raw)) return fallback;
+  return Math.min(Math.max(Math.floor(raw), min), max);
+}
 
 function chineseDigitsToNumber(input: string): number {
   const raw = String(input || '').trim();
@@ -132,13 +146,64 @@ async function requestDeepSeekCompletion(prompt: string, maxTokens: number, syst
 }
 
 Deno.serve(async (req) => {
+  const allowedOrigins = resolveAllowedOrigins();
+  const CORS = corsHeaders(req, allowedOrigins);
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS });
+  }
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405, headers: CORS });
+  }
+
+  if (!isAllowedRequestOrigin(req, allowedOrigins)) {
+    return new Response(JSON.stringify({
+      error: 'origin_not_allowed',
+      message: '非法来源请求已被拒绝。',
+    }), {
+      status: 403,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
   }
 
   try {
     const body = await req.json();
     const { trade_no, service = 'bazi', free_only, payment_option_id, stream, section_start, section_end } = body;
+
+    const rateScope = `analyze:${String(service || 'bazi')}:${free_only ? 'free' : 'paid'}`;
+    const rateWindowSeconds = readEnvNumber('RATE_LIMIT_ANALYZE_WINDOW_SECONDS', DEFAULT_RATE_LIMIT_WINDOW_SECONDS, 10, 3600);
+    const rateMaxRequests = free_only
+      ? readEnvNumber('RATE_LIMIT_ANALYZE_MAX_REQUESTS_FREE', DEFAULT_RATE_LIMIT_MAX_REQUESTS_FREE, 1, 200)
+      : readEnvNumber('RATE_LIMIT_ANALYZE_MAX_REQUESTS_PAID', DEFAULT_RATE_LIMIT_MAX_REQUESTS_PAID, 2, 500);
+    const rateIdentifier = await buildRateLimitIdentifier(req);
+    const rateResult = await consumeRateLimit(supabase, {
+      scope: rateScope,
+      identifier: rateIdentifier,
+      windowSeconds: rateWindowSeconds,
+      maxRequests: rateMaxRequests,
+    });
+    if (!rateResult.allowed) {
+      await recordAbuseLog(supabase, {
+        scope: rateScope,
+        identifier: rateIdentifier,
+        event: 'rate_limited',
+        meta: {
+          ip_masked: maskIp(extractClientIp(req)),
+          current_count: rateResult.currentCount,
+          max_requests: rateMaxRequests,
+          window_seconds: rateWindowSeconds,
+          free_only: Boolean(free_only),
+          service: String(service || 'bazi'),
+        },
+      });
+      return tooManyRequestsResponse(req, allowedOrigins, {
+        message: free_only
+          ? '免费解读请求过于频繁，请稍后再试。'
+          : '报告生成请求过于频繁，请稍后再试。',
+        retryAfterSeconds: rateResult.retryAfterSeconds,
+        scope: rateScope,
+        currentCount: rateResult.currentCount,
+      });
+    }
 
     let prompt = '';
     let maxTokens = free_only ? 1500 : 8192;
@@ -609,9 +674,7 @@ Tier constraint: FREE can output only section 1 to section 2. Do not output sect
         headers: {
           'Content-Type': 'text/event-stream',
           'Cache-Control': 'no-cache',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'authorization, content-type',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          ...CORS,
         },
       });
     }
@@ -656,7 +719,7 @@ Tier constraint: FREE can output only section 1 to section 2. Do not output sect
     }
 
     return new Response(JSON.stringify({ ok: true, analysis }), {
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: { 'Content-Type': 'application/json', ...CORS },
     });
   } catch (err) {
     return new Response(JSON.stringify({ ok: false, error: String(err) }), {

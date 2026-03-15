@@ -1,11 +1,16 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS, GET',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-  'Access-Control-Max-Age': '86400',
-};
+import {
+  buildRateLimitIdentifier,
+  consumeRateLimit,
+  corsHeaders,
+  extractClientIp,
+  isAllowedRequestOrigin,
+  json,
+  maskIp,
+  recordAbuseLog,
+  resolveAllowedOrigins,
+  tooManyRequestsResponse,
+} from '../_shared/security.ts';
 
 const PAYMENT_OPTION_MAP: Record<'basic' | 'pro' | 'vip' | 'pdf', { title: string; total_fee: string }> = {
   basic: { title: 'Basic Bazi Report', total_fee: '0.01' },
@@ -16,10 +21,18 @@ const PAYMENT_OPTION_MAP: Record<'basic' | 'pro' | 'vip' | 'pdf', { title: strin
 
 const DEFAULT_PRIMARY_API_BASE = 'https://api.xunhupay.com';
 const DEFAULT_BACKUP_API_BASE = 'https://api.dpweixin.com';
+const DEFAULT_RATE_LIMIT_WINDOW_SECONDS = 60;
+const DEFAULT_RATE_LIMIT_MAX_REQUESTS = 18;
 
 function normalizeApiBase(base: string | undefined, fallback: string) {
   const value = (base || fallback).trim();
   return value.replace(/\/+$/, '');
+}
+
+function readEnvNumber(name: string, fallback: number, min: number, max: number): number {
+  const value = Number(Deno.env.get(name));
+  if (!Number.isFinite(value)) return fallback;
+  return Math.min(Math.max(Math.floor(value), min), max);
 }
 
 function validateTradeNo(value: string): boolean {
@@ -242,22 +255,24 @@ function md5(input: string): string {
   return hex;
 }
 
-function jsonResponse(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      'Content-Type': 'application/json',
-      ...corsHeaders,
-    },
-  });
+function jsonResponse(req: Request, body: unknown, status = 200, allowedOrigins = resolveAllowedOrigins()) {
+  return json(req, body, status, allowedOrigins);
 }
 
 Deno.serve(async (req) => {
+  const allowedOrigins = resolveAllowedOrigins();
   if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers: corsHeaders });
+    return new Response(null, { status: 200, headers: corsHeaders(req, allowedOrigins) });
   }
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405, headers: corsHeaders });
+    return new Response('Method not allowed', { status: 405, headers: corsHeaders(req, allowedOrigins) });
+  }
+
+  if (!isAllowedRequestOrigin(req, allowedOrigins)) {
+    return jsonResponse(req, {
+      error: 'origin_not_allowed',
+      message: '非法来源请求已被拒绝。',
+    }, 403, allowedOrigins);
   }
 
   try {
@@ -267,10 +282,10 @@ Deno.serve(async (req) => {
     const clientEnv = body?.client_env && typeof body.client_env === 'object' ? body.client_env : {};
 
     if (!tradeNo || !validateTradeNo(tradeNo)) {
-      return jsonResponse({
+      return jsonResponse(req, {
         error: 'Invalid request',
         details: 'trade_no is invalid',
-      }, 400);
+      }, 400, allowedOrigins);
     }
 
     const appSecret = Deno.env.get('HUPI_APPSECRET');
@@ -280,14 +295,46 @@ Deno.serve(async (req) => {
 
     if (!appSecret || !appId || !supabaseUrl || !serviceRoleKey) {
       console.error('Missing environment variables');
-      return jsonResponse({
+      return jsonResponse(req, {
         error: 'Server configuration error',
         details: 'Missing required environment variables',
-      }, 500);
+      }, 500, allowedOrigins);
     }
 
     // Security: only existing unpaid orders can create payment URL.
     const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const rateWindowSeconds = readEnvNumber('RATE_LIMIT_CREATE_PAYMENT_WINDOW_SECONDS', DEFAULT_RATE_LIMIT_WINDOW_SECONDS, 10, 3600);
+    const rateMaxRequests = readEnvNumber('RATE_LIMIT_CREATE_PAYMENT_MAX_REQUESTS', DEFAULT_RATE_LIMIT_MAX_REQUESTS, 2, 500);
+    const rateIdentifier = await buildRateLimitIdentifier(req);
+    const rateResult = await consumeRateLimit(supabase, {
+      scope: 'create-payment',
+      identifier: rateIdentifier,
+      windowSeconds: rateWindowSeconds,
+      maxRequests: rateMaxRequests,
+    });
+    const clientIp = extractClientIp(req);
+    const maskedIp = maskIp(clientIp);
+
+    if (!rateResult.allowed) {
+      await recordAbuseLog(supabase, {
+        scope: 'create-payment',
+        identifier: rateIdentifier,
+        event: 'rate_limited',
+        meta: {
+          ip_masked: maskedIp,
+          current_count: rateResult.currentCount,
+          max_requests: rateMaxRequests,
+          window_seconds: rateWindowSeconds,
+        },
+      });
+      return tooManyRequestsResponse(req, allowedOrigins, {
+        message: '支付请求过于频繁，请稍后再试。',
+        retryAfterSeconds: rateResult.retryAfterSeconds,
+        scope: 'create-payment',
+        currentCount: rateResult.currentCount,
+      });
+    }
+
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select('paid,birth_input')
@@ -295,13 +342,13 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (orderError) {
-      return jsonResponse({
+      return jsonResponse(req, {
         error: 'Order query failed',
         details: orderError.message,
-      }, 500);
+      }, 500, allowedOrigins);
     }
-    if (!order) return jsonResponse({ error: 'Order not found' }, 404);
-    if (order.paid) return jsonResponse({ error: 'Order already paid' }, 409);
+    if (!order) return jsonResponse(req, { error: 'Order not found' }, 404, allowedOrigins);
+    if (order.paid) return jsonResponse(req, { error: 'Order already paid' }, 409, allowedOrigins);
 
     // Lock payment option to the one stored in order if present.
     const birth = parseBirthInput(order.birth_input);
@@ -395,20 +442,20 @@ Deno.serve(async (req) => {
     };
 
     if (!response) {
-      return jsonResponse({
+      return jsonResponse(req, {
         error: 'Payment API unavailable',
         details: transportError || 'no_response',
         gateway_meta: gatewayMetaWithRuntime,
-      }, 500);
+      }, 500, allowedOrigins);
     }
 
     if (!response.ok) {
-      return jsonResponse({
+      return jsonResponse(req, {
         error: 'Payment API error',
         status: response.status,
         response: responseText,
         gateway_meta: gatewayMetaWithRuntime,
-      }, 500);
+      }, 500, allowedOrigins);
     }
 
     let parsed: unknown = {};
@@ -437,11 +484,11 @@ Deno.serve(async (req) => {
       console.warn('create-payment tracking update failed', trackErr);
     }
 
-    return jsonResponse(result);
+    return jsonResponse(req, result, 200, allowedOrigins);
   } catch (error) {
     console.error('create-payment error', error);
-    return jsonResponse({
+    return jsonResponse(req, {
       error: error instanceof Error ? error.message : String(error),
-    }, 500);
+    }, 500, allowedOrigins);
   }
 });

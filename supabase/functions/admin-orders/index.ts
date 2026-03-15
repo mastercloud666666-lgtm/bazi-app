@@ -603,6 +603,99 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === 'security_overview') {
+      const hours = Math.min(Math.max(Number((body as JsonRecord).hours || 24), 1), 168);
+      const sinceMs = Date.now() - (hours * 60 * 60 * 1000);
+      const sinceIso = new Date(sinceMs).toISOString();
+
+      const { data: abuseRows, error: abuseError } = await supabase
+        .from('api_abuse_logs')
+        .select('scope,event,created_at,meta')
+        .gte('created_at', sinceIso)
+        .order('created_at', { ascending: false })
+        .limit(400);
+      if (abuseError) {
+        return json(req, { error: 'security_abuse_query_failed', details: abuseError.message }, 500);
+      }
+
+      const { data: rateRows, error: rateError } = await supabase
+        .from('api_rate_limits')
+        .select('scope,request_count,updated_at,window_start')
+        .gte('updated_at', sinceIso)
+        .order('updated_at', { ascending: false })
+        .limit(1500);
+      if (rateError) {
+        return json(req, { error: 'security_rate_query_failed', details: rateError.message }, 500);
+      }
+
+      const abuseList = Array.isArray(abuseRows) ? abuseRows as JsonRecord[] : [];
+      const rateList = Array.isArray(rateRows) ? rateRows as JsonRecord[] : [];
+
+      const blockedByScope: Record<string, number> = {};
+      for (const row of abuseList) {
+        const scope = asString(row.scope) || 'unknown';
+        blockedByScope[scope] = Number(blockedByScope[scope] || 0) + 1;
+      }
+      const blockedTopScopes = Object.entries(blockedByScope)
+        .map(([scope, count]) => ({ scope, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+
+      const peakByScope: Record<string, number> = {};
+      const sumByScope: Record<string, number> = {};
+      const windowsByScope: Record<string, number> = {};
+      for (const row of rateList) {
+        const scope = asString(row.scope) || 'unknown';
+        const count = Number(row.request_count || 0);
+        peakByScope[scope] = Math.max(Number(peakByScope[scope] || 0), count);
+        sumByScope[scope] = Number(sumByScope[scope] || 0) + count;
+        windowsByScope[scope] = Number(windowsByScope[scope] || 0) + 1;
+      }
+      const trafficScopes = Object.keys(sumByScope)
+        .map((scope) => ({
+          scope,
+          total_requests_in_windows: sumByScope[scope],
+          sampled_windows: windowsByScope[scope],
+          peak_window_requests: peakByScope[scope],
+        }))
+        .sort((a, b) => b.total_requests_in_windows - a.total_requests_in_windows)
+        .slice(0, 12);
+
+      const latestBlocked = abuseList.slice(0, 50).map((row) => ({
+        scope: asString(row.scope) || 'unknown',
+        event: asString(row.event) || 'unknown',
+        created_at: asString(row.created_at),
+        ip_masked: asString((row.meta as JsonRecord)?.ip_masked || ''),
+        current_count: Number((row.meta as JsonRecord)?.current_count || 0),
+      }));
+
+      return json(req, {
+        ok: true,
+        hours,
+        since: sinceIso,
+        summary: {
+          blocked_events: abuseList.length,
+          sampled_rate_windows: rateList.length,
+        },
+        blocked_top_scopes: blockedTopScopes,
+        traffic_top_scopes: trafficScopes,
+        latest_blocked: latestBlocked,
+      });
+    }
+
+    if (action === 'cleanup_rate_limits') {
+      const keepHours = Math.min(Math.max(Number((body as JsonRecord).keep_hours || 24), 1), 720);
+      const { data, error } = await supabase.rpc('cleanup_api_rate_limits', {
+        p_keep_hours: keepHours,
+      });
+      if (error) return json(req, { error: 'cleanup_rate_limits_failed', details: error.message }, 500);
+      return json(req, {
+        ok: true,
+        keep_hours: keepHours,
+        deleted_rows: Number(data || 0),
+      });
+    }
+
     return json(req, { error: 'unsupported_action' }, 400);
   } catch (err) {
     return json(req, { error: err instanceof Error ? err.message : String(err) }, 500);

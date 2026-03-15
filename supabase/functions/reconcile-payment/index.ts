@@ -1,11 +1,16 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-  'Access-Control-Max-Age': '86400',
-};
+﻿import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import {
+  buildRateLimitIdentifier,
+  consumeRateLimit,
+  corsHeaders,
+  extractClientIp,
+  isAllowedRequestOrigin,
+  json,
+  maskIp,
+  recordAbuseLog,
+  resolveAllowedOrigins,
+  tooManyRequestsResponse,
+} from '../_shared/security.ts';
 
 const DEFAULT_PRIMARY_API_BASE = 'https://api.xunhupay.com';
 const DEFAULT_BACKUP_API_BASE = 'https://api.dpweixin.com';
@@ -13,6 +18,8 @@ const DEFAULT_PDF_PATH = '/downloads/yunzi-bazi-guide.pdf';
 const DEFAULT_PDF_STORAGE_BUCKET = 'paid-docs';
 const DEFAULT_PDF_STORAGE_PATH = 'pdfs/yunzi-bazi-guide.pdf';
 const DEFAULT_PDF_SIGNED_TTL_SECONDS = 600;
+const DEFAULT_RATE_LIMIT_WINDOW_SECONDS = 60;
+const DEFAULT_RATE_LIMIT_MAX_REQUESTS = 36;
 
 function normalizeApiBase(base: string | undefined, fallback: string) {
   const value = (base || fallback).trim();
@@ -33,6 +40,12 @@ function parseBirthInput(value: unknown): Record<string, any> {
 
 function asString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
+}
+
+function readEnvNumber(name: string, fallback: number, min: number, max: number): number {
+  const value = Number(asString(Deno.env.get(name)));
+  if (!Number.isFinite(value)) return fallback;
+  return Math.min(Math.max(Math.floor(value), min), max);
 }
 
 function normalizeStoragePath(value: unknown): string {
@@ -89,7 +102,7 @@ function applyTrackingEvent(
   return next;
 }
 
-// 纯 JS MD5 实现（Web Crypto API 不支持 MD5）
+// Pure JS MD5 implementation (Web Crypto API does not support MD5)
 function md5(input: string): string {
   const str = unescape(encodeURIComponent(input));
   const bytes = new Uint8Array(str.length);
@@ -247,22 +260,31 @@ async function triggerAnalyzeIfNeeded(order: { analysis: string | null; birth_in
   return true;
 }
 
+function jsonResponse(req: Request, body: unknown, status = 200, allowedOrigins = resolveAllowedOrigins()) {
+  return json(req, body, status, allowedOrigins);
+}
+
 Deno.serve(async (req) => {
+  const allowedOrigins = resolveAllowedOrigins();
   if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers: corsHeaders });
+    return new Response(null, { status: 200, headers: corsHeaders(req, allowedOrigins) });
   }
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405, headers: corsHeaders });
+    return new Response('Method not allowed', { status: 405, headers: corsHeaders(req, allowedOrigins) });
+  }
+
+  if (!isAllowedRequestOrigin(req, allowedOrigins)) {
+    return jsonResponse(req, {
+      error: 'origin_not_allowed',
+      message: '非法来源请求已被拒绝。',
+    }, 403, allowedOrigins);
   }
 
   try {
     const body = await req.json().catch(() => ({}));
     const tradeNo = String(body?.trade_no || '').trim();
     if (!tradeNo) {
-      return new Response(JSON.stringify({ error: 'trade_no is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      });
+      return jsonResponse(req, { error: 'trade_no is required' }, 400, allowedOrigins);
     }
 
     const appId = Deno.env.get('HUPI_APPID');
@@ -270,24 +292,48 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (!appId || !appSecret || !supabaseUrl || !serviceKey) {
-      return new Response(JSON.stringify({ error: 'Missing required environment variables' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      });
+      return jsonResponse(req, { error: 'Missing required environment variables' }, 500, allowedOrigins);
     }
 
     const supabase = createClient(supabaseUrl, serviceKey);
+
+    const rateWindowSeconds = readEnvNumber('RATE_LIMIT_RECONCILE_WINDOW_SECONDS', DEFAULT_RATE_LIMIT_WINDOW_SECONDS, 10, 3600);
+    const rateMaxRequests = readEnvNumber('RATE_LIMIT_RECONCILE_MAX_REQUESTS', DEFAULT_RATE_LIMIT_MAX_REQUESTS, 2, 1000);
+    const rateIdentifier = await buildRateLimitIdentifier(req);
+    const rateResult = await consumeRateLimit(supabase, {
+      scope: 'reconcile-payment',
+      identifier: rateIdentifier,
+      windowSeconds: rateWindowSeconds,
+      maxRequests: rateMaxRequests,
+    });
+    if (!rateResult.allowed) {
+      await recordAbuseLog(supabase, {
+        scope: 'reconcile-payment',
+        identifier: rateIdentifier,
+        event: 'rate_limited',
+        meta: {
+          ip_masked: maskIp(extractClientIp(req)),
+          current_count: rateResult.currentCount,
+          max_requests: rateMaxRequests,
+          window_seconds: rateWindowSeconds,
+        },
+      });
+      return tooManyRequestsResponse(req, allowedOrigins, {
+        message: '订单校验请求过于频繁，请稍后再试。',
+        retryAfterSeconds: rateResult.retryAfterSeconds,
+        scope: 'reconcile-payment',
+        currentCount: rateResult.currentCount,
+      });
+    }
+
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select('paid,analysis,birth_input')
       .eq('trade_no', tradeNo)
-      .single();
+      .maybeSingle();
 
     if (orderError || !order) {
-      return new Response(JSON.stringify({ error: 'order not found', details: orderError?.message || null }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      });
+      return jsonResponse(req, { error: 'order_not_found', details: orderError?.message || null }, 404, allowedOrigins);
     }
 
     const birth = parseBirthInput(order.birth_input);
@@ -310,7 +356,7 @@ Deno.serve(async (req) => {
         console.warn('reconcile cache tracking failed:', trackErr);
       }
 
-      return new Response(JSON.stringify({
+      return jsonResponse(req, {
         errcode: 0,
         status: 'OD',
         paid: true,
@@ -323,9 +369,7 @@ Deno.serve(async (req) => {
         pdf_download_bucket: isPdfOrder ? signedPdf?.bucket || null : null,
         pdf_download_object_path: isPdfOrder ? signedPdf?.objectPath || null : null,
         source: 'order-cache',
-      }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      });
+      }, 200, allowedOrigins);
     }
 
     const primaryApiBase = normalizeApiBase(Deno.env.get('HUPI_API_BASE'), DEFAULT_PRIMARY_API_BASE);
@@ -370,22 +414,19 @@ Deno.serve(async (req) => {
     }
 
     if (!queryResult) {
-      return new Response(JSON.stringify({
-        error: 'query payment status failed',
+      return jsonResponse(req, {
+        error: 'query_payment_status_failed',
         details: lastError,
         gateway_meta: {
           attempted_api_bases: candidateApiBases,
           selected_api_base: selectedApiBase,
         },
-      }), {
-        status: 502,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      });
+      }, 502, allowedOrigins);
     }
 
     const status = String((queryResult as any)?.data?.status || '');
     if (status !== 'OD') {
-      return new Response(JSON.stringify({
+      return jsonResponse(req, {
         errcode: 0,
         status,
         paid: false,
@@ -399,9 +440,7 @@ Deno.serve(async (req) => {
           attempted_api_bases: candidateApiBases,
           selected_api_base: selectedApiBase,
         },
-      }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      });
+      }, 200, allowedOrigins);
     }
 
     const trackedBirth = applyTrackingEvent(birth, 'payment_verified', {
@@ -416,7 +455,7 @@ Deno.serve(async (req) => {
     const analysisTriggered = await triggerAnalyzeIfNeeded(order, tradeNo);
     const signedPdf = isPdfOrder ? await createPdfSignedUrl(supabase, supabaseUrl, trackedBirth) : null;
 
-    return new Response(JSON.stringify({
+    return jsonResponse(req, {
       errcode: 0,
       status: 'OD',
       paid: true,
@@ -432,15 +471,10 @@ Deno.serve(async (req) => {
         attempted_api_bases: candidateApiBases,
         selected_api_base: selectedApiBase,
       },
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    });
+    }, 200, allowedOrigins);
   } catch (error) {
-    return new Response(JSON.stringify({
+    return jsonResponse(req, {
       error: error instanceof Error ? error.message : String(error),
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    });
+    }, 500, allowedOrigins);
   }
 });

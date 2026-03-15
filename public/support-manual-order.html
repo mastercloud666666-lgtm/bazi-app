@@ -143,6 +143,24 @@
     </div>
 
     <div class="card">
+      <h1>Security Overview</h1>
+      <div class="muted">
+        Real-time anti-abuse panel: blocked requests, hotspot API scopes, and latest suspicious traffic.
+      </div>
+      <div class="row">
+        <select id="securityHoursSelect" style="height:40px;border-radius:10px;border:1px solid var(--line);padding:0 10px;">
+          <option value="1">Last 1 hour</option>
+          <option value="6">Last 6 hours</option>
+          <option value="24" selected>Last 24 hours</option>
+          <option value="72">Last 72 hours</option>
+        </select>
+        <button class="primary" id="refreshSecurityBtn">Refresh Security Metrics</button>
+        <button id="cleanupRateLimitBtn">Cleanup Old Rate Data</button>
+      </div>
+      <div id="securityResultBox" class="output">Save token first, then click refresh.</div>
+    </div>
+
+    <div class="card">
       <h1>Manual Order Console</h1>
       <div class="muted">
         Use this section only when an order row is missing. Create order first, then create payment URL.
@@ -213,6 +231,10 @@
     const queryOrderBtn = document.getElementById('queryOrderBtn');
     const resendDeliveryBtn = document.getElementById('resendDeliveryBtn');
     const copyRecoveryLinkBtn = document.getElementById('copyRecoveryLinkBtn');
+    const securityHoursSelect = document.getElementById('securityHoursSelect');
+    const refreshSecurityBtn = document.getElementById('refreshSecurityBtn');
+    const cleanupRateLimitBtn = document.getElementById('cleanupRateLimitBtn');
+    const securityResultBox = document.getElementById('securityResultBox');
 
     let currentTradeNo = '';
     let currentPayUrl = '';
@@ -224,6 +246,10 @@
 
     function setRepairResult(msg) {
       repairResultBox.textContent = msg;
+    }
+
+    function setSecurityResult(msg) {
+      securityResultBox.textContent = msg;
     }
 
     function escapeHtml(value) {
@@ -313,6 +339,47 @@
         throw new Error(data?.error ? `${data.error}${details}` : `HTTP ${res.status}`);
       }
       return data;
+    }
+
+    function renderSecurityOverview(payload) {
+      const summary = payload?.summary || {};
+      const blockedTop = Array.isArray(payload?.blocked_top_scopes) ? payload.blocked_top_scopes : [];
+      const trafficTop = Array.isArray(payload?.traffic_top_scopes) ? payload.traffic_top_scopes : [];
+      const latestBlocked = Array.isArray(payload?.latest_blocked) ? payload.latest_blocked : [];
+
+      const lines = [
+        `Window: last ${payload?.hours || '-'} hours`,
+        `Since: ${payload?.since || '-'}`,
+        `Blocked events: ${summary.blocked_events || 0}`,
+        `Sampled rate windows: ${summary.sampled_rate_windows || 0}`,
+        '',
+        'Top blocked scopes:',
+      ];
+
+      if (!blockedTop.length) {
+        lines.push('- none');
+      } else {
+        blockedTop.forEach((row) => lines.push(`- ${row.scope}: ${row.count}`));
+      }
+
+      lines.push('', 'Top traffic scopes:');
+      if (!trafficTop.length) {
+        lines.push('- none');
+      } else {
+        trafficTop.forEach((row) => {
+          lines.push(`- ${row.scope}: total=${row.total_requests_in_windows}, peak_window=${row.peak_window_requests}, windows=${row.sampled_windows}`);
+        });
+      }
+
+      lines.push('', 'Latest blocked events:');
+      if (!latestBlocked.length) {
+        lines.push('- none');
+      } else {
+        latestBlocked.slice(0, 12).forEach((row) => {
+          lines.push(`- [${row.created_at}] ${row.scope} | ip=${row.ip_masked || '-'} | count=${row.current_count || 0}`);
+        });
+      }
+      setSecurityResult(lines.join('\n'));
     }
 
     function genTradeNo() {
@@ -500,6 +567,28 @@
         setRepairResult(`Copied recovery link:\n${latestRecoveryLink}`);
       } catch {
         setRepairResult(`Copy failed. Link:\n${latestRecoveryLink}`);
+      }
+    });
+
+    refreshSecurityBtn.addEventListener('click', async () => {
+      try {
+        setSecurityResult('Loading security metrics...');
+        const hours = Number(securityHoursSelect.value || 24);
+        const payload = await callAdmin('security_overview', { hours });
+        renderSecurityOverview(payload);
+      } catch (err) {
+        setSecurityResult(`Security query failed: ${err.message || err}`);
+      }
+    });
+
+    cleanupRateLimitBtn.addEventListener('click', async () => {
+      try {
+        const keepHours = Number(securityHoursSelect.value || 24);
+        setSecurityResult(`Cleaning rate-limit data older than ${keepHours}h...`);
+        const payload = await callAdmin('cleanup_rate_limits', { keep_hours: keepHours });
+        setSecurityResult(`Cleanup done.\nDeleted rows: ${payload?.deleted_rows || 0}\nKeep recent hours: ${payload?.keep_hours || keepHours}`);
+      } catch (err) {
+        setSecurityResult(`Cleanup failed: ${err.message || err}`);
       }
     });
 
