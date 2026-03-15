@@ -641,7 +641,7 @@ function pickPaymentOption() {
     customTitle.style.cssText = 'font-size:14px;font-weight:700;color:#0A2540;';
 
     const customSub = document.createElement('div');
-    customSub.textContent = '适合高净值与重大决策用户，专属顾问沟通后定制方案与报价。';
+    customSub.textContent = '适合希望获得更细致、个性化解读的用户，专属顾问沟通后定制方案与报价。';
     customSub.style.cssText = 'margin-top:6px;font-size:12px;line-height:1.6;color:#334155;';
 
     const customBtn = document.createElement('button');
