@@ -579,6 +579,70 @@
     /* ══════════════════════════════════════════
        STATS SECTION
        ══════════════════════════════════════════ */
+
+    /* =====================================================
+       TESTIMONIALS SECTION
+       ===================================================== */
+    .testimonials {
+      padding: 80px 24px;
+      background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .testimonials-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .testimonial-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(10, 37, 64, 0.06);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .testimonial-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgba(10, 37, 64, 0.12);
+      border-color: #b8cce4;
+    }
+
+    .testimonial-stars {
+      color: #f59e0b;
+      font-size: 15px;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+
+    .testimonial-text {
+      color: var(--text-dark);
+      font-size: 15px;
+      line-height: 1.8;
+      margin-bottom: 16px;
+    }
+
+    .testimonial-meta {
+      color: var(--text-gray);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .testimonials-note {
+      margin-top: 18px;
+      text-align: center;
+      color: var(--text-light);
+      font-size: 12px;
+    }
+
     .stats {
       padding: 80px 24px;
       background: var(--primary);
@@ -766,6 +830,10 @@
         grid-template-columns: repeat(2, 1fr);
       }
 
+      .testimonials-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
       .stats-inner {
         grid-template-columns: repeat(2, 1fr);
       }
@@ -819,6 +887,10 @@
       }
 
       .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .testimonials-grid {
         grid-template-columns: 1fr;
       }
 
@@ -1098,6 +1170,39 @@
   <!-- ══════════════════════════════════════════
        STATS SECTION
        ══════════════════════════════════════════ -->
+
+  <section class="testimonials">
+    <div class="testimonials-inner">
+      <div class="section-header">
+        <span class="section-tag">User Voices</span>
+        <h2 class="section-title">用户好评反馈</h2>
+        <p class="section-subtitle">真实使用后的感受，帮助你更放心地做决策。</p>
+      </div>
+
+      <div class="testimonials-grid">
+        <article class="testimonial-card">
+          <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <p class="testimonial-text">“报告不是空话，事业和感情都讲得很细。尤其是时间点提醒，帮我避开了一个冲动决策。”</p>
+          <p class="testimonial-meta">杭州 · 王先生 · 完整版用户</p>
+        </article>
+
+        <article class="testimonial-card">
+          <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <p class="testimonial-text">“先用免费版看了基础分析，再解锁完整版。15个维度非常全面，读完就知道下一步该怎么做。”</p>
+          <p class="testimonial-meta">深圳 · 李女士 · 进阶版用户</p>
+        </article>
+
+        <article class="testimonial-card">
+          <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <p class="testimonial-text">“以前看过很多命理内容，这个站的结构最清晰，重点明确，建议也能落地，值得反复参考。”</p>
+          <p class="testimonial-meta">上海 · 陈先生 · 标准版用户</p>
+        </article>
+      </div>
+
+      <p class="testimonials-note">注：评价已做匿名脱敏处理，内容来自历史用户反馈节选。</p>
+    </div>
+  </section>
+
   <section class="stats">
     <div class="stats-inner">
       <div class="stat-item">
