@@ -6,7 +6,7 @@ const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
 const PENDING_BIRTH_INPUT_KEY = 'bazi_pending_birth_input';
 const PDF_PENDING_TRADE_KEY = 'bazi_pdf_pending_trade_no';
-const APP_BUILD = '20260316-home-pdf-collection-v2';
+const APP_BUILD = '20260316-home-pdf-wechat-guard-v1';
 const PAYMENT_OPTIONS = [
   { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
   { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
@@ -513,19 +513,21 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl, options = {}) {
   const doneLabel = String(options?.doneLabel || '我已完成支付，查看报告').trim() || '我已完成支付，查看报告';
   const customTip = String(options?.customTip || '').trim();
   const nonRefundNotice = String(options?.nonRefundNotice || PAYMENT_NON_REFUND_NOTICE).trim() || PAYMENT_NON_REFUND_NOTICE;
+  const disableWeChatInApp = Boolean(options?.disableWeChatInApp);
+  const wechatPayWarning = String(options?.wechatPayWarning || '请勿在微信内直接支付，避免支付完成后订单校验失败。建议复制链接到系统浏览器完成支付。').trim();
   const isWeChat = isWeChatBrowser();
   const debugAnchorHtml = shouldShowPaymentDebug() ? '<div id="mobile-payment-debug-anchor"></div>' : '';
   const panelHtml = `
     <div style="margin-top:2px;padding:10px 12px;border-radius:10px;border:1px solid #fed7aa;background:#fff7ed;color:#7c2d12;font-size:13px;line-height:1.6;">
       <div style="font-weight:700;color:#9a3412;">支付须知（请先阅读）</div>
       <div style="margin-top:6px;">1. ${nonRefundNotice}</div>
-      <div style="margin-top:4px;">2. 微信浏览器支付后页面可能自动关闭（微信机制）。</div>
+      <div style="margin-top:4px;">2. ${isWeChat && disableWeChatInApp ? wechatPayWarning : '微信浏览器支付后页面可能自动关闭（微信机制）。'}</div>
       <div style="margin-top:4px;">3. 支付完成后请重新打开首页，点击“继续上次订单”；或直接选择“复制链接并去浏览器支付（推荐）”。</div>
     </div>
     <div style="margin-top:12px;display:grid;gap:10px;">
       <button id="mobile-open-pay-btn" type="button" style="padding:12px 14px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">${isWeChat ? '复制链接并去浏览器支付（推荐）' : '打开支付页面'}</button>
       <button id="mobile-copy-pay-btn" type="button" style="padding:12px 14px;background:#fff;color:#1f2937;border:1px solid #d1d5db;border-radius:8px;font-weight:600;cursor:pointer;">复制支付链接</button>
-      ${isWeChat ? '<button id="mobile-open-pay-risk-btn" type="button" style="padding:12px 14px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">仍在微信内打开（可能关闭）</button>' : ''}
+      ${(isWeChat && !disableWeChatInApp) ? '<button id="mobile-open-pay-risk-btn" type="button" style="padding:12px 14px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">仍在微信内打开（可能关闭）</button>' : ''}
       <button id="mobile-paid-back-btn" type="button" style="padding:12px 14px;background:#111827;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">${doneLabel}</button>
     </div>
     <p style="margin-top:10px;color:#6b7280;font-size:13px;">${customTip || (isWeChat ? '如页面被关闭，重新打开首页后点击“继续上次订单”。' : '手机支付请在新窗口完成，当前页面将保留用于继续查看报告。')}</p>
@@ -844,15 +846,6 @@ async function startPdfPayment() {
 
     setFeedback('<p class="price-desc">订单已创建，请完成支付后下载《八字命理合集》PDF。</p>');
 
-    if (isWeChat && jsapiPayload) {
-      try {
-        await invokeWeChatJsapiPay(jsapiPayload, tradeNo, successUrl);
-        return;
-      } catch (wxErr) {
-        console.warn('pdf jsapi pay failed, fallback to h5:', wxErr);
-      }
-    }
-
     if (!payUrl) {
       throw new Error('payment_url_missing');
     }
@@ -861,7 +854,9 @@ async function startPdfPayment() {
       successUrl,
       doneLabel: '我已完成支付，下载PDF',
       nonRefundNotice: PDF_NON_REFUND_NOTICE,
-      customTip: '支付完成后，点击“我已完成支付，下载PDF”即可领取《八字命理合集》PDF。',
+      disableWeChatInApp: true,
+      wechatPayWarning: '请勿在微信浏览器内直接支付，避免支付后订单校验失败。请复制链接到系统浏览器完成支付。',
+      customTip: '请使用系统浏览器完成支付。支付成功后返回本页，点击“我已完成支付，下载PDF”即可领取《八字命理合集》PDF。',
     });
     renderPaymentDebugInfo(debugMount, result, jsapiPayload);
   } catch (err) {
