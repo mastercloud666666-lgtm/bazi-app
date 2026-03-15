@@ -12,6 +12,125 @@ const CORS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
+function chineseDigitsToNumber(input: string): number {
+  const raw = String(input || '').trim();
+  if (!raw) return 0;
+  if (/^\d+$/.test(raw)) return Number(raw);
+
+  const digitMap: Record<string, number> = {
+    零: 0,
+    一: 1,
+    二: 2,
+    三: 3,
+    四: 4,
+    五: 5,
+    六: 6,
+    七: 7,
+    八: 8,
+    九: 9,
+  };
+
+  let total = 0;
+  let current = 0;
+  for (const ch of raw) {
+    if (ch === '百') {
+      total += (current || 1) * 100;
+      current = 0;
+    } else if (ch === '十') {
+      total += (current || 1) * 10;
+      current = 0;
+    } else if (ch in digitMap) {
+      current = digitMap[ch];
+    }
+  }
+  return total + current;
+}
+
+function countReportSections(text: string): number {
+  if (!text) return 0;
+  const pattern = /Section\s*(\d{1,2})\s*:|第([一二三四五六七八九十百零\d]{1,3})段[：:]/g;
+  let maxSection = 0;
+  let match: RegExpExecArray | null = null;
+  while ((match = pattern.exec(text))) {
+    const numeric = match[1] ? Number(match[1]) : chineseDigitsToNumber(match[2] || '');
+    if (Number.isFinite(numeric) && numeric > maxSection) {
+      maxSection = numeric;
+    }
+  }
+  return maxSection;
+}
+
+function buildSectionRangeConstraint(sectionStart: number, sectionEnd: number): string {
+  return `\n\nRange constraint: Only output section ${sectionStart} to section ${sectionEnd}. Start directly from section ${sectionStart}: and end immediately after section ${sectionEnd}. Do not repeat, preview, summarize, or mention sections outside this range. If output budget feels tight, compress each section slightly, but never skip a section in this range.`;
+}
+
+function getVipRangeMaxTokens(sectionStart: number, sectionEnd: number): number {
+  const count = Math.max(1, sectionEnd - sectionStart + 1);
+  return Math.min(4800, 900 + count * 430);
+}
+
+function cleanAnalysisText(rawAnalysis: string): string {
+  let analysis = String(rawAnalysis || '')
+    .replace(/#{1,6}\s*/g, '')
+    .replace(/\*{1,3}([^*\n]+)\*{1,3}/g, '$1')
+    .replace(/^\s*[-–—>]\s*/gm, '')
+    .replace(/由\s*DeepSeek\s*生成.*$/gis, '')
+    .replace(/Powered by DeepSeek.*$/gis, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  const isPoemLine = (line: string) => {
+    const t = line.trim();
+    if (!t || t.includes('你') || t.length < 4) return false;
+    return t.includes('；') ||
+      /^[\u4e00-\u9fa5]{4,8}[，。][\u4e00-\u9fa5]{4,8}[，。！？]?$/.test(t) ||
+      /[风云雷龙凤星月玉霞鹤雁花霜雪].{0,6}[；，。]/.test(t);
+  };
+
+  const lines = analysis.split('\n');
+  while (lines.length && isPoemLine(lines[0])) lines.shift();
+  while (lines.length) {
+    const last = lines[lines.length - 1].trim();
+    if (!last) {
+      lines.pop();
+      continue;
+    }
+    if (isPoemLine(last)) {
+      lines.pop();
+      continue;
+    }
+    break;
+  }
+
+  return lines.join('\n').trim();
+}
+
+async function requestDeepSeekCompletion(prompt: string, maxTokens: number, systemMessage: string) {
+  const dsRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${Deno.env.get('DEEPSEEK_API_KEY')}`,
+    },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      max_tokens: maxTokens,
+      temperature: 0.2,
+      messages: [
+        { role: 'system', content: systemMessage },
+        { role: 'user', content: prompt }
+      ],
+    }),
+  });
+  if (!dsRes.ok) {
+    const errorText = await dsRes.text();
+    throw new Error(`deepseek_nonstream_failed_${dsRes.status}: ${errorText}`);
+  }
+  const dsData = await dsRes.json();
+  const rawAnalysis = dsData.choices?.[0]?.message?.content || '';
+  return { analysis: cleanAnalysisText(rawAnalysis) };
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS });
@@ -19,11 +138,18 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { trade_no, service = 'bazi', free_only, payment_option_id, stream } = body;
+    const { trade_no, service = 'bazi', free_only, payment_option_id, stream, section_start, section_end } = body;
 
     let prompt = '';
     let maxTokens = free_only ? 1500 : 8192;
     let resolvedPaymentOptionId = typeof payment_option_id === 'string' ? payment_option_id : '';
+    const requestedSectionStart = Number.isInteger(section_start) ? Number(section_start) : Number.parseInt(String(section_start || ''), 10);
+    const requestedSectionEnd = Number.isInteger(section_end) ? Number(section_end) : Number.parseInt(String(section_end || ''), 10);
+    const hasSectionRange =
+      Number.isFinite(requestedSectionStart) &&
+      Number.isFinite(requestedSectionEnd) &&
+      requestedSectionStart >= 1 &&
+      requestedSectionEnd >= requestedSectionStart;
     let tradeOrder: { paid?: boolean; birth_input?: string | null } | null = null;
     let tradeBirth: Record<string, any> = {};
 
@@ -433,6 +559,13 @@ Tier constraint: BASIC can output only section 1 to section 3. Do not output sec
 
 Tier constraint: FREE can output only section 1 to section 2. Do not output section 3 or later. Total target 500-900 Chinese characters.`;
       }
+
+      if (hasSectionRange) {
+        prompt += buildSectionRangeConstraint(requestedSectionStart, requestedSectionEnd);
+        if (baziTier === 'vip') {
+          maxTokens = Math.min(maxTokens, getVipRangeMaxTokens(requestedSectionStart, requestedSectionEnd));
+        }
+      }
     }
 
     const SYSTEM_MSG = `你是一位经验丰富的民间命理师。只输出纯文字，不用任何Markdown格式，不写诗，不引用古文，不说套话，直接用口语和"你"称呼对方说结论。
@@ -483,62 +616,42 @@ Tier constraint: FREE can output only section 1 to section 2. Do not output sect
       });
     }
 
-    const dsRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${Deno.env.get('DEEPSEEK_API_KEY')}`,
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        max_tokens: maxTokens,
-        temperature: 0.2,
-        messages: [
-          { role: 'system', content: SYSTEM_MSG },
-          { role: 'user', content: prompt }
-        ],
-      }),
-    });
-    const dsData = await dsRes.json();
-    const rawAnalysis = dsData.choices?.[0]?.message?.content || '';
+    const isVipBazi = service === 'bazi' && !free_only && (resolvedPaymentOptionId || 'basic') === 'vip';
+    let analysis = '';
 
-    // 过滤Markdown格式和DeepSeek版权声明
-    let analysis = rawAnalysis
-      .replace(/#{1,6}\s*/g, '')
-      .replace(/\*{1,3}([^*\n]+)\*{1,3}/g, '$1')
-      .replace(/^\s*[-–—>]\s*/gm, '')
-      .replace(/由\s*DeepSeek\s*生成.*$/gis, '')
-      .replace(/Powered by DeepSeek.*$/gis, '')
-      .replace(/\n{3,}/g, '\n\n')
-      .trim();
+    if (isVipBazi && !hasSectionRange) {
+      const firstPass = await requestDeepSeekCompletion(
+        prompt + buildSectionRangeConstraint(1, 8),
+        getVipRangeMaxTokens(1, 8),
+        SYSTEM_MSG
+      );
+      const secondPass = await requestDeepSeekCompletion(
+        prompt + buildSectionRangeConstraint(9, 15),
+        getVipRangeMaxTokens(9, 15),
+        SYSTEM_MSG
+      );
 
-    // 去掉开头和结尾的诗句
-    const isPoemLine = (line: string) => {
-      const t = line.trim();
-      if (!t || t.includes('你') || t.length < 4) return false;
-      // 含"；"的对仗句、四字以内短句含古文意象、押韵特征
-      return t.includes('；') ||
-        /^[\u4e00-\u9fa5]{4,8}[，。][\u4e00-\u9fa5]{4,8}[，。！]?$/.test(t) ||
-        /[鳞韵潜翠玉辉渊云霞风雷龙凤].{0,6}[；，。]/.test(t);
-    };
+      analysis = [firstPass.analysis, secondPass.analysis].filter(Boolean).join('\n\n').trim();
 
-    const lines = analysis.split('\n');
-
-    // 去开头诗句
-    while (lines.length && isPoemLine(lines[0])) lines.shift();
-
-    // 去结尾诗句（连续检查末尾非空行）
-    while (lines.length) {
-      const last = lines[lines.length - 1].trim();
-      if (!last) { lines.pop(); continue; }
-      if (isPoemLine(last)) { lines.pop(); continue; }
-      break;
+      const maxSection = countReportSections(analysis);
+      if (maxSection < 15) {
+        const repairStart = Math.max(1, maxSection + 1);
+        const repairPass = await requestDeepSeekCompletion(
+          prompt +
+            buildSectionRangeConstraint(repairStart, 15) +
+            `\n\nRepair constraint: Previous content has already completed through section ${repairStart - 1}. Only write the missing section ${repairStart} to section 15. Do not repeat earlier sections.`,
+          getVipRangeMaxTokens(repairStart, 15),
+          SYSTEM_MSG
+        );
+        analysis = [analysis, repairPass.analysis].filter(Boolean).join('\n\n').trim();
+      }
+    } else {
+      const singlePass = await requestDeepSeekCompletion(prompt, maxTokens, SYSTEM_MSG);
+      analysis = singlePass.analysis;
     }
 
-    analysis = lines.join('\n').trim();
-
     // 有 trade_no 时才写数据库（付费流程用），免费模式跳过
-    if (trade_no) {
+    if (trade_no && !hasSectionRange) {
       await supabase.from('orders').update({ analysis }).eq('trade_no', trade_no);
     }
 

@@ -2079,6 +2079,8 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext
   if (paidContext?.tradeNo) basePayload.trade_no = paidContext.tradeNo;
   if (paidContext?.paymentOptionId) basePayload.payment_option_id = paidContext.paymentOptionId;
 
+  const isVipPaid = String(paidContext?.paymentOptionId || '').toLowerCase() === 'vip';
+
   const cleanAnalysisText = (raw) => {
     return String(raw || '')
       .replace(/#{1,6}\s*/g, '')
@@ -2089,6 +2091,47 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext
       .trim();
   };
 
+  const chineseDigitsToNumber = (raw) => {
+    const text = String(raw || '').trim();
+    if (!text) return 0;
+    if (/^\d+$/.test(text)) return Number(text);
+    const digitMap = { 零: 0, 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
+    let total = 0;
+    let current = 0;
+    for (const ch of text) {
+      if (ch === '百') {
+        total += (current || 1) * 100;
+        current = 0;
+      } else if (ch === '十') {
+        total += (current || 1) * 10;
+        current = 0;
+      } else if (digitMap[ch] !== undefined) {
+        current = digitMap[ch];
+      }
+    }
+    return total + current;
+  };
+
+  const countReportSections = (raw) => {
+    const text = String(raw || '');
+    const regex = /Section\s*(\d{1,2})\s*:|第([一二三四五六七八九十百零\d]{1,3})段[：:]/g;
+    let maxSection = 0;
+    let match;
+    while ((match = regex.exec(text))) {
+      const current = match[1] ? Number(match[1]) : chineseDigitsToNumber(match[2] || '');
+      if (Number.isFinite(current) && current > maxSection) maxSection = current;
+    }
+    return maxSection;
+  };
+
+  const joinAnalysisParts = (...parts) =>
+    parts
+      .map((part) => cleanAnalysisText(part))
+      .filter(Boolean)
+      .join('\n\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+
   const renderFinal = (raw) => {
     const cleaned = cleanAnalysisText(raw);
     if (!cleaned) return false;
@@ -2098,6 +2141,17 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext
     return true;
   };
 
+  const fetchNonStreamAnalysis = async (extraPayload = {}) => {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON}` },
+      body: JSON.stringify({ ...basePayload, ...extraPayload, stream: false }),
+    });
+    if (!res.ok) return '';
+    const data = await res.json();
+    return cleanAnalysisText(data?.analysis);
+  };
+
   const tryNonStreamFallback = async () => {
     try {
       if (loading) {
@@ -2105,43 +2159,50 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext
         loading.innerHTML = '<p class="price-desc">支付已确认，正在切换备用通道生成完整报告，请稍候…</p>' + PAID_ONE_TIME_NOTICE_HTML;
       }
 
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON}` },
-        body: JSON.stringify({ ...basePayload, stream: false }),
-      });
-      if (!res.ok) return false;
+      if (!isVipPaid) {
+        return renderFinal(await fetchNonStreamAnalysis());
+      }
 
-      const data = await res.json();
-      return renderFinal(data?.analysis);
+      let combined = joinAnalysisParts(
+        await fetchNonStreamAnalysis({ section_start: 1, section_end: 8 }),
+        await fetchNonStreamAnalysis({ section_start: 9, section_end: 15 })
+      );
+
+      const maxSection = countReportSections(combined);
+      if (maxSection < 15) {
+        combined = joinAnalysisParts(
+          combined,
+          await fetchNonStreamAnalysis({ section_start: Math.max(1, maxSection + 1), section_end: 15 })
+        );
+      }
+
+      return renderFinal(combined);
     } catch (err) {
       console.warn('non-stream fallback failed:', err);
       return false;
     }
   };
 
-  try {
+  const streamSinglePart = async (extraPayload = {}, append = false) => {
     const streamRes = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON}` },
-      body: JSON.stringify({ ...basePayload, stream: true }),
+      body: JSON.stringify({ ...basePayload, ...extraPayload, stream: true }),
     });
 
     const canUseStream = streamRes.ok && streamRes.body && typeof streamRes.body.getReader === 'function';
-    if (!canUseStream) {
-      const ok = await tryNonStreamFallback();
-      if (!ok && loading) loading.innerHTML = '<p>报告生成失败，请刷新后重试。</p>';
-      return;
-    }
+    if (!canUseStream) return null;
 
     if (loading) loading.style.display = 'none';
     if (content) content.style.display = 'block';
     togglePaidOneTimeNotice(true);
-    if (analysisText) analysisText.textContent = '';
+    if (analysisText && !append) analysisText.textContent = '';
 
     const reader = streamRes.body.getReader();
     const decoder = new TextDecoder();
-    let fullText = '';
+    const existingText = append && analysisText ? analysisText.textContent || '' : '';
+    const renderedPrefix = append && existingText ? `${existingText.replace(/\s*$/, '')}\n\n` : '';
+    let partText = '';
     let buffer = '';
 
     outer: while (true) {
@@ -2157,11 +2218,50 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext
         try {
           const delta = JSON.parse(data).choices?.[0]?.delta?.content || '';
           if (delta) {
-            fullText += delta;
-            if (analysisText) analysisText.textContent = fullText;
+            partText += delta;
+            if (analysisText) analysisText.textContent = renderedPrefix + partText;
           }
         } catch {}
       }
+    }
+
+    return cleanAnalysisText(partText);
+  };
+
+  try {
+    let fullText = '';
+
+    if (isVipPaid) {
+      const firstHalf = await streamSinglePart({ section_start: 1, section_end: 8 }, false);
+      if (firstHalf == null) {
+        const ok = await tryNonStreamFallback();
+        if (!ok && loading) loading.innerHTML = '<p>报告生成失败，请刷新后重试。</p>';
+        return;
+      }
+
+      const secondHalf = await streamSinglePart({ section_start: 9, section_end: 15 }, true);
+      if (secondHalf == null) {
+        const ok = await tryNonStreamFallback();
+        if (!ok && loading) loading.innerHTML = '<p>报告生成失败，请刷新后重试。</p>';
+        return;
+      }
+
+      fullText = joinAnalysisParts(firstHalf, secondHalf);
+      const maxSection = countReportSections(fullText);
+      if (maxSection < 15) {
+        fullText = joinAnalysisParts(
+          fullText,
+          await fetchNonStreamAnalysis({ section_start: Math.max(1, maxSection + 1), section_end: 15 })
+        );
+      }
+    } else {
+      const singlePart = await streamSinglePart({}, false);
+      if (singlePart == null) {
+        const ok = await tryNonStreamFallback();
+        if (!ok && loading) loading.innerHTML = '<p>报告生成失败，请刷新后重试。</p>';
+        return;
+      }
+      fullText = singlePart;
     }
 
     if (!renderFinal(fullText)) {
