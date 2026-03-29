@@ -1,4 +1,10 @@
 User-agent: *
 Allow: /
+Disallow: /support-orders.html
+Disallow: /support-manual-order.html
+Disallow: /koc-dashboard.html
+Disallow: /order-recovery.html
+Disallow: /payment-fallback.html
 
 Sitemap: https://www.tengyunzi.com/sitemap.xml
+Sitemap: https://www.tengyunzi.com/sitemap-priority.xml

@@ -226,6 +226,29 @@
       gap: 16px;
     }
 
+    .mobile-blog-link,
+    .mobile-hepan-link {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid #bfd7ff;
+      background: #f2f7ff;
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-decoration: none;
+    }
+
+    .mobile-blog-link:hover,
+    .mobile-hepan-link:hover {
+      text-decoration: none;
+      background: #e8f1ff;
+    }
+
     .navbar-lang {
       font-size: 13px;
       color: var(--text-gray);
@@ -281,6 +304,10 @@
 
     .hero-content {
       animation: fadeInUp 0.8s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      min-width: 0;
     }
 
     .hero-badge {
@@ -319,6 +346,93 @@
       margin-bottom: 32px;
       max-width: 500px;
     }
+
+    .hero-quick-entry {
+      margin: -6px 0 22px;
+    }
+
+    .hero-hepan-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid #bfdbfe;
+      background: linear-gradient(180deg, #f8fbff 0%, #edf5ff 100%);
+      color: #1e40af;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 8px 20px rgba(30, 64, 175, 0.12);
+    }
+
+    .hero-hepan-link::before {
+      content: "\2197";
+      font-size: 14px;
+      line-height: 1;
+      color: #1d4ed8;
+    }
+
+    .hero-sales-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0 0 16px;
+    }
+
+    .hero-sales-card {
+      border: 1px solid #dbeafe;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      border-radius: 12px;
+      padding: 14px 16px;
+      box-shadow: 0 8px 24px rgba(15, 59, 130, 0.08);
+    }
+
+    .hero-sales-title {
+      margin: 0 0 8px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f3b82;
+      line-height: 1.4;
+    }
+
+    .hero-sales-list {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 6px;
+      color: #334155;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .hero-dimensions-shell {
+      border: 1px solid #dbeafe;
+      background: linear-gradient(180deg, #ffffff 0%, #f3f8ff 100%);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 28px rgba(15, 59, 130, 0.08);
+    }
+
+    .hero-dimensions-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f3b82;
+      line-height: 1.35;
+    }
+
+    .hero-dimensions-sub {
+      margin: 6px 0 0;
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.7;
+    }
+
+    .hero-left-dimensions {
+      margin-top: 14px;
+    }
+
 
     .hero-cta {
       display: flex;
@@ -531,6 +645,72 @@
       background: var(--accent-hover);
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(0, 102, 204, 0.3);
+    }
+
+    .pay-card {
+      margin-top: 16px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    }
+
+    .pay-card-title {
+      margin: 14px 0 6px;
+      font-size: 32px;
+      line-height: 1.35;
+      font-weight: 700;
+      color: #111827;
+      letter-spacing: 0.2px;
+    }
+
+    .pay-card-sub {
+      margin: 0 0 12px;
+      font-size: 17px;
+      line-height: 1.75;
+      color: #334155;
+    }
+
+    .pay-features {
+      display: grid;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .pay-features span {
+      display: block;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #1f3f6f;
+    }
+
+    .pay-dimensions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .pay-dimension-item {
+      border: 1px solid #dbeafe;
+      background: #f8fbff;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .pay-dimension-item h4 {
+      margin: 0 0 6px;
+      font-size: 14px;
+      line-height: 1.4;
+      font-weight: 700;
+      color: #0f3b82;
+    }
+
+    .pay-dimension-item p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.75;
+      color: #334155;
     }
 
     .form-features {
@@ -890,10 +1070,89 @@
     /* ══════════════════════════════════════════
        RESPONSIVE
        ══════════════════════════════════════════ */
+    
+
+    .seo-topics {
+      padding: 68px 20px;
+      background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+      border-top: 1px solid #e8effa;
+      border-bottom: 1px solid #e8effa;
+    }
+
+    .seo-topics-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    .seo-topics-grid {
+      margin-top: 26px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .seo-topic-card {
+      text-decoration: none;
+      border: 1px solid #d7e5fb;
+      border-radius: 14px;
+      background: #ffffff;
+      padding: 16px 18px;
+      transition: all .18s ease;
+      box-shadow: 0 6px 18px rgba(10, 37, 64, .04);
+    }
+
+    .seo-topic-card:hover {
+      transform: translateY(-2px);
+      border-color: #9cc0f7;
+      box-shadow: 0 10px 22px rgba(37, 99, 235, .12);
+      text-decoration: none;
+    }
+
+    .seo-topic-card h3 {
+      margin: 0 0 6px;
+      font-size: 18px;
+      line-height: 1.45;
+      color: #0a2540;
+    }
+
+    .seo-topic-card p {
+      margin: 0;
+      color: #5b6679;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .seo-topics-foot {
+      margin-top: 18px;
+      color: #4c5d78;
+      font-size: 14px;
+    }
+
+    .seo-topics-foot a {
+      color: #1d4ed8;
+      font-weight: 600;
+      margin-right: 14px;
+      text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+      .seo-topics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     @media (max-width: 1200px) {
       .hero-inner {
         grid-template-columns: 1fr;
         gap: 60px;
+      }
+
+      .hero-content {
+        order: 2;
+      }
+
+      .hero-form-card {
+        order: 1;
       }
 
       .hero-title {
@@ -927,6 +1186,11 @@
         display: none;
       }
 
+      .mobile-blog-link,
+      .mobile-hepan-link {
+        display: inline-flex;
+      }
+
       .hero-inner {
         padding: 40px 16px;
       }
@@ -937,6 +1201,31 @@
 
       .hero-subtitle {
         font-size: 16px;
+      }
+
+      .hero-quick-entry {
+        margin: -2px 0 18px;
+      }
+
+      .hero-hepan-link {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .hero-sales-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-sales-card {
+        padding: 12px 14px;
+      }
+
+      .hero-dimensions-shell {
+        padding: 12px;
+      }
+
+      .hero-dimensions-title {
+        font-size: 17px;
       }
 
       .hero-cta {
@@ -954,6 +1243,23 @@
 
       .form-features {
         grid-template-columns: repeat(3, 1fr);
+      }
+
+      .pay-card-title {
+        font-size: 28px;
+      }
+
+      .pay-card-sub {
+        font-size: 16px;
+      }
+
+      .pay-dimensions {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .pay-dimension-item {
+        padding: 10px;
       }
 
       .features {
@@ -1013,9 +1319,12 @@
       <div class="navbar-nav">
         <a href="index.html" class="active">八字排盘</a>
         <a href="hepan.html">合盘分析</a>
+        <a href="blog/">命理知识</a>
       </div>
   
       <div class="navbar-right">
+        <a href="/hepan.html" class="mobile-hepan-link" aria-label="合盘分析">合盘分析</a>
+        <a href="/blog/" class="mobile-blog-link" aria-label="命理知识">命理知识</a>
         <span class="navbar-lang">EN</span>
       </div>
     </div>
@@ -1037,6 +1346,33 @@
           以专业八字命理为核心，深度拆解先天格局、用神喜忌与未来运势节奏，精准看清财运起伏、事业机会与婚恋关键点。
           不搞玄学套路，只做靠谱参考，帮你看清趋势、把握时机、少走弯路。
         </p>
+        <div class="hero-sales-grid">
+          <article class="hero-sales-card">
+            <h3 class="hero-sales-title" id="hero-audience-title">Ideal if you are currently:</h3>
+            <ul class="hero-sales-list" id="hero-audience-list">
+              <li>Unsure whether to focus on job, business, or side-income</li>
+              <li>Income has plateaued and you need the next growth window</li>
+              <li>Relationship feels draining and you need clear direction</li>
+              <li>Facing relocation/career switch and afraid of wrong timing</li>
+            </ul>
+          </article>
+          <article class="hero-sales-card">
+            <h3 class="hero-sales-title" id="hero-problem-title">You may be stuck on these questions:</h3>
+            <ul class="hero-sales-list" id="hero-problem-list">
+              <li>Why do key decisions always end in hesitation or regret?</li>
+              <li>Which year is best for switching jobs or starting a business?</li>
+              <li>Why does hard work repeat the same bottleneck?</li>
+              <li>How to handle career, relationship, and money pressure together?</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="hero-dimensions-shell">
+          <h3 class="hero-dimensions-title" id="hero-dimensions-title">Full 24-Dimension System Analysis</h3>
+          <p class="hero-dimensions-sub" id="hero-dimensions-sub">Covers personality, career, wealth, relationships, risk alerts, and key-year guidance.</p>
+          <div class="pay-dimensions hero-left-dimensions" id="hero-dimensions-grid"></div>
+        </div>
+
       </div>
   
       <div class="hero-form-card" id="form-section">
@@ -1137,25 +1473,21 @@
           <div class="pay-card" style="margin-top:16px;">
             <button type="button" id="paid-btn" class="form-submit">立即解锁完整命理报告</button>
             <p class="pay-card-title">解锁完整深度命理报告</p>
-            <p class="pay-card-sub">免费版仅含基础排盘，完整报告涵盖 15 大维度 · 深度解析约 5000 字</p>
+            <p class="pay-card-sub">免费版仅含基础排盘，完整报告涵盖 24 大维度 · 深度解析约 7000-9000 字</p>
+            
             <div class="pay-features">
-              <span>▸ 用神喜忌 · 五行扶抑精解</span>
-              <span>▸ 事业财运 · 适合行业与黄金期</span>
-              <span>▸ 感情婚姻 · 配偶特征与感情走势</span>
-              <span>▸ 二婚出轨 · 感情隐患深度剖析</span>
-              <span>▸ 健康注意 · 五行薄弱对应身体</span>
-              <span>▸ 神煞分析 · 贵人文昌驿马桃花</span>
-              <span>▸ 子女缘分 · 数量时机与亲子关系</span>
-              <span>▸ 地支刑冲 · 六合六冲三合三会</span>
-              <span>▸ 空亡分析 · 日柱年柱旬空填实</span>
-              <span>▸ 财库分析 · 辰戌丑未开库时机</span>
-              <span>▸ 大运详解 · 当前及未来三步大运</span>
-              <span>▸ 特殊流年 · 冲克应对逐年建议</span>
-              <span class="span-full">▸ 后五年逐年流年 · 事业财运 × 感情健康 × 家宅运势，精准到年</span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
             </div>
           </div>
 
           <div class="form-features">
+
             <div class="form-feature">
               <span class="form-feature-icon">☯</span>
               <span class="form-feature-text">格局定命</span>
@@ -1298,10 +1630,40 @@
     </div>
   </section>
   
+
+
+  <section class="seo-topics">
+    <div class="seo-topics-inner">
+      <div class="section-header">
+        <span class="section-tag">命理专题入口</span>
+        <h2 class="section-title">高意图问题，一页直达答案</h2>
+        <p class="section-subtitle">围绕财运、事业、婚恋、流年与风水拆解，先读专题再免费排盘，决策更稳。</p>
+      </div>
+
+      <div class="seo-topics-grid">
+        <a class="seo-topic-card" href="/bazi-caiyun.html"><h3>八字看财运</h3><p>判断来财路径、收入窗口与风险年份，少走赚钱弯路。</p></a>
+        <a class="seo-topic-card" href="/bazi-shiye.html"><h3>八字看事业</h3><p>看行业匹配、跳槽转行时机与职业上升节奏。</p></a>
+        <a class="seo-topic-card" href="/bazi-hunyin.html"><h3>八字看婚姻</h3><p>分析婚恋模式、关系压力点与推进/止损时间点。</p></a>
+        <a class="seo-topic-card" href="/liunian-yunshi.html"><h3>2026流年运势</h3><p>今年财运、事业、感情与风险月份一页看清。</p></a>
+        <a class="seo-topic-card" href="/dayun-fenxi.html"><h3>八字大运分析</h3><p>十年运势主旋律与人生阶段关键转折窗口。</p></a>
+        <a class="seo-topic-card" href="/buzhidao-shichen.html"><h3>不知道时辰还能算吗</h3><p>时辰不准时如何看命盘，准确度与可用结论说明。</p></a>
+        <a class="seo-topic-card" href="/shihe-shenme-gongzuo.html"><h3>八字适合什么工作</h3><p>上班、管理、销售、内容、自由职业方向匹配。</p></a>
+        <a class="seo-topic-card" href="/shihe-chuangye-ma.html"><h3>八字适合创业吗</h3><p>判断单干、合伙、先副业试水的更优路径。</p></a>
+        <a class="seo-topic-card" href="/shenme-shihou-you-shouru.html"><h3>什么时候能有收入</h3><p>识别财运启动年与进账提速窗口，优先抓高杠杆动作。</p></a>
+        <a class="seo-topic-card" href="/jiaju-fengshui.html"><h3>家居风水布局</h3><p>住宅财位、卧室与客厅布局建议，兼顾财运与关系稳定。</p></a>
+      </div>
+
+      <div class="seo-topics-foot">
+        <a href="/blog/">进入命理知识库</a>
+        <a href="/index.html#form-section">返回首页免费排盘</a>
+      </div>
+    </div>
+  </section>
+
   <!-- ══════════════════════════════════════════
        FAQ SECTION — SEO关键词内容
        ══════════════════════════════════════════ -->
-  <section style="padding:80px 20px;background:#F8F9FA;" itemscope itemtype="https://schema.org/FAQPage">
+  <section style="padding:80px 20px;background:#F8F9FA;">
     <div style="max-width:860px;margin:0 auto;">
       <div class="section-header">
         <span class="section-tag">常见问题</span>
@@ -1310,41 +1672,99 @@
       </div>
       <div style="display:flex;flex-direction:column;gap:16px;margin-top:40px;">
 
-        <details style="background:#fff;border-radius:12px;padding:24px;border:1px solid #DEE2E6;" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <summary style="font-weight:600;font-size:16px;cursor:pointer;list-style:none;" itemprop="name">八字算命是什么？准确吗？</summary>
-          <div style="margin-top:12px;color:#555;line-height:1.8;" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-            <p itemprop="text">八字算命，又称四柱命理，是中国传统玄学中历史最悠久、体系最完整的命理学分支。通过分析出生年月日时对应的天干地支——即"四柱八字"，结合阴阳五行（金木水火土）的生克制化规律，推算人的先天格局与后天运势。经过数千年验证，八字算命在预测性格特质、财运起伏、婚姻缘分与事业机遇方面有较高参考价值。</p>
+        <details style="background:#fff;border-radius:12px;padding:24px;border:1px solid #DEE2E6;">
+          <summary style="font-weight:600;font-size:16px;cursor:pointer;list-style:none;">八字算命是什么？准确吗？</summary>
+          <div style="margin-top:12px;color:#555;line-height:1.8;">
+            <p>八字算命，又称四柱命理，是中国传统玄学中历史最悠久、体系最完整的命理学分支。通过分析出生年月日时对应的天干地支——即"四柱八字"，结合阴阳五行（金木水火土）的生克制化规律，推算人的先天格局与后天运势。经过数千年验证，八字算命在预测性格特质、财运起伏、婚姻缘分与事业机遇方面有较高参考价值。</p>
           </div>
         </details>
 
-        <details style="background:#fff;border-radius:12px;padding:24px;border:1px solid #DEE2E6;" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <summary style="font-weight:600;font-size:16px;cursor:pointer;list-style:none;" itemprop="name">免费八字算命和付费命理解读有什么区别？</summary>
-          <div style="margin-top:12px;color:#555;line-height:1.8;" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-            <p itemprop="text">免费八字排盘提供四柱结构、五行强弱、用神判断等基础信息，适合入门了解。付费的深度命理解读则由资深命理师逐字解析您的日主特性、十神关系、大运流年走势，结合当前时间节点，给出财运、婚恋、事业的精准建议，并附完整文字报告，适合需要重要人生决策参考的用户。</p>
+        <details style="background:#fff;border-radius:12px;padding:24px;border:1px solid #DEE2E6;">
+          <summary style="font-weight:600;font-size:16px;cursor:pointer;list-style:none;">免费八字算命和付费命理解读有什么区别？</summary>
+          <div style="margin-top:12px;color:#555;line-height:1.8;">
+            <p>免费八字排盘提供四柱结构、五行强弱、用神判断等基础信息，适合入门了解。付费的深度命理解读则由资深命理师逐字解析您的日主特性、十神关系、大运流年走势，结合当前时间节点，给出财运、婚恋、事业的精准建议，并附完整文字报告，适合需要重要人生决策参考的用户。</p>
           </div>
         </details>
 
-        <details style="background:#fff;border-radius:12px;padding:24px;border:1px solid #DEE2E6;" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <summary style="font-weight:600;font-size:16px;cursor:pointer;list-style:none;" itemprop="name">玄学命理能解决哪些人生问题？</summary>
-          <div style="margin-top:12px;color:#555;line-height:1.8;" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-            <p itemprop="text">玄学命理体系（包括八字、紫微斗数、六爻、梅花易数、奇门遁甲）可以辅助解答：①财运何时旺盛，适合投资或创业的时间窗口；②感情婚姻的最佳时机与配偶方向；③事业发展的适合行业与贵人出现时机；④家宅风水布局与改运建议；⑤宝宝起名、公司命名的五行搭配。</p>
+        <details style="background:#fff;border-radius:12px;padding:24px;border:1px solid #DEE2E6;">
+          <summary style="font-weight:600;font-size:16px;cursor:pointer;list-style:none;">玄学命理能解决哪些人生问题？</summary>
+          <div style="margin-top:12px;color:#555;line-height:1.8;">
+            <p>玄学命理体系（包括八字、紫微斗数、六爻、梅花易数、奇门遁甲）可以辅助解答：①财运何时旺盛，适合投资或创业的时间窗口；②感情婚姻的最佳时机与配偶方向；③事业发展的适合行业与贵人出现时机；④家宅风水布局与改运建议；⑤宝宝起名、公司命名的五行搭配。</p>
           </div>
         </details>
 
-        <details style="background:#fff;border-radius:12px;padding:24px;border:1px solid #DEE2E6;" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <summary style="font-weight:600;font-size:16px;cursor:pointer;list-style:none;" itemprop="name">不知道出生时辰怎么算命？</summary>
-          <div style="margin-top:12px;color:#555;line-height:1.8;" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-            <p itemprop="text">出生时辰（时柱）对命理影响较大，建议向父母或查询医院出生记录确认。若实在无法得知，命理师通常采用"时辰推算"（通过已知事件反推时柱）或按"日主法"分析，仅凭年月日三柱也能得到约70%准确度的命理参考。云子命理支持不填时辰直接排盘。</p>
+        <details style="background:#fff;border-radius:12px;padding:24px;border:1px solid #DEE2E6;">
+          <summary style="font-weight:600;font-size:16px;cursor:pointer;list-style:none;">不知道出生时辰怎么算命？</summary>
+          <div style="margin-top:12px;color:#555;line-height:1.8;">
+            <p>出生时辰（时柱）对命理影响较大，建议向父母或查询医院出生记录确认。若实在无法得知，命理师通常采用"时辰推算"（通过已知事件反推时柱）或按"日主法"分析，仅凭年月日三柱也能得到约70%准确度的命理参考。云子命理支持不填时辰直接排盘。</p>
           </div>
         </details>
 
-        <details style="background:#fff;border-radius:12px;padding:24px;border:1px solid #DEE2E6;" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <summary style="font-weight:600;font-size:16px;cursor:pointer;list-style:none;" itemprop="name">大运和流年有什么区别？</summary>
-          <div style="margin-top:12px;color:#555;line-height:1.8;" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-            <p itemprop="text">大运是以10年为周期的运势阶段，代表人生不同阶段的整体格局，影响深远而稳定；流年是每一年的具体运势，反映该年事业、财运、感情等方面的变化。看命理既要看大运判断整体走向，也要结合流年分析具体时间点的机会与风险，两者结合才能得出精准的命理解读。</p>
+        <details style="background:#fff;border-radius:12px;padding:24px;border:1px solid #DEE2E6;">
+          <summary style="font-weight:600;font-size:16px;cursor:pointer;list-style:none;">大运和流年有什么区别？</summary>
+          <div style="margin-top:12px;color:#555;line-height:1.8;">
+            <p>大运是以10年为周期的运势阶段，代表人生不同阶段的整体格局，影响深远而稳定；流年是每一年的具体运势，反映该年事业、财运、感情等方面的变化。看命理既要看大运判断整体走向，也要结合流年分析具体时间点的机会与风险，两者结合才能得出精准的命理解读。</p>
           </div>
         </details>
 
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       RECENT ARTICLES SECTION
+       ══════════════════════════════════════════ -->
+  <section style="padding:80px 20px;background:var(--bg-light);border-top:1px solid var(--border);">
+    <div style="max-width:1120px;margin:0 auto;">
+      <div class="section-header">
+        <span class="section-tag">命理干货</span>
+        <h2 class="section-title">近期文章</h2>
+        <p class="section-subtitle">从八字命理角度，解读财运、情感、事业与健康的实用指南</p>
+      </div>
+      <div class="seo-topics-grid" style="margin-top:40px;">
+        <a class="seo-topic-card" href="/blog/zhongnian-weiji.html">
+          <h3>40岁感觉什么都没做到：命理看中年危机与人生下半场</h3>
+          <p>从命理视角解读中年危机的根源，以及如何在人生下半场找到新的方向。</p>
+        </a>
+        <a class="seo-topic-card" href="/blog/rensheng-mimang.html">
+          <h3>人生感到迷茫怎么办：八字命理帮你找到真正适合的方向</h3>
+          <p>不知道自己想要什么，对未来毫无头绪？命理视角帮你找到命中真正适合的人生方向。</p>
+        </a>
+        <a class="seo-topic-card" href="/blog/caiyun-cha-zenmeban.html">
+          <h3>为什么我总是缺钱：八字解读财运差的根本原因</h3>
+          <p>总是存不住钱、月月光或生意亏损？从命理角度分析财运差的根因及改善突破口。</p>
+        </a>
+        <a class="seo-topic-card" href="/blog/hunyin-weiji.html">
+          <h3>婚姻出现危机怎么办：夫妻缘分深浅命理解析</h3>
+          <p>婚姻冷漠或争吵不断，从八字命理角度解读婚姻危机的化解之道。</p>
+        </a>
+        <a class="seo-topic-card" href="/blog/shilian-zenmeban.html">
+          <h3>失恋了怎么办：用八字命理看感情何时会好转</h3>
+          <p>失恋后从命理角度解读感情运势在哪个阶段，下一段缘分什么时候来。</p>
+        </a>
+        <a class="seo-topic-card" href="/blog/jiaolv-yazhong.html">
+          <h3>焦虑压力太大怎么办：八字看你的天生抗压能力</h3>
+          <p>为什么有人天生抗压能力强，有人特别容易焦虑？命理帮你找到适合自己的减压方式。</p>
+        </a>
+        <a class="seo-topic-card" href="/blog/ganqing-wanhui.html">
+          <h3>感情能挽回吗：命理怎么看分分合合的缘分走势</h3>
+          <p>分手后想挽回，命理分析感情能否挽回的信号及什么时候采取行动最有效。</p>
+        </a>
+        <a class="seo-topic-card" href="/blog/shiye-bushun.html">
+          <h3>事业一直不顺怎么办：命理分析低谷原因与突破时机</h3>
+          <p>事业总是不顺、升职无望？命理解读事业运低谷的原因，以及何时是突破的最佳时机。</p>
+        </a>
+        <a class="seo-topic-card" href="/blog/jiating-maodun.html">
+          <h3>家庭矛盾不断怎么办：八字看六亲关系的根源</h3>
+          <p>和父母、兄弟姐妹或伴侣长期冲突？命理帮你找到家庭矛盾的深层原因和化解方向。</p>
+        </a>
+        <a class="seo-topic-card" href="/blog/shenti-zong-buhao.html">
+          <h3>身体总是不好怎么办：八字看你的健康弱点在哪里</h3>
+          <p>总是失眠、容易生病、长期疲惫？命局中的健康弱点在哪里，以及对应的调整方法。</p>
+        </a>
+      </div>
+      <div style="margin-top:36px;text-align:center;">
+        <a href="/blog/" style="display:inline-block;padding:12px 36px;background:#0066CC;color:#fff;border-radius:8px;font-weight:600;font-size:15px;text-decoration:none;transition:background .2s;" onmouseover="this.style.background='#0052A3'" onmouseout="this.style.background='#0066CC'">查看全部文章 →</a>
       </div>
     </div>
   </section>
@@ -1373,7 +1793,8 @@
           <h4 class="footer-title">服务项目</h4>
           <ul class="footer-links">
             <li><a href="index.html">八字排盘</a></li>
-            <li><a href="hepan.html">合盘分析</a></li>
+            <li><a href="hepan.html">合盘分析</a>
+        <a href="blog/">命理知识</a></li>
             <li><a href="qiming.html">起名服务</a></li>
             <li><a href="zhanbu.html">占卜咨询</a></li>
             <li><a href="fengshui.html">风水调理</a></li>
@@ -1427,7 +1848,7 @@
 <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
 <script src="js/bazi.js"></script>
 <script src="js/config.js"></script>
-<script src="js/app.js?v=20260316pdfsignedv1"></script>
+  <script src="js/app.js?v=20260329-langsync-v1"></script>
 <script>
 // ── Navigation Scroll Effect ─────────────────────────────────────────────
 (function initNavbarScroll() {
@@ -1482,6 +1903,6 @@
   });
 })();
 </script>
-<script src="js/site-lang.js"></script>
+<script src="js/site-lang.js?v=20260329-langsync-v1"></script>
 </body>
 </html>

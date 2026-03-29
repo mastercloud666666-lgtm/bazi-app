@@ -145,6 +145,29 @@ body {
   gap: 16px;
 }
 
+.mobile-blog-link,
+.mobile-hepan-link {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid #bfd7ff;
+  background: #f2f7ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-decoration: none;
+}
+
+.mobile-blog-link:hover,
+.mobile-hepan-link:hover {
+  text-decoration: none;
+  background: #e8f1ff;
+}
+
 .navbar-lang {
   font-size: 13px;
   color: var(--text-gray);
@@ -1213,6 +1236,11 @@ body {
 
   .navbar-nav {
     display: none;
+  }
+
+  .mobile-blog-link,
+  .mobile-hepan-link {
+    display: inline-flex;
   }
 
   /* Page layout */

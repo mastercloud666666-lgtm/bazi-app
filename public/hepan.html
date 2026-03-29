@@ -105,17 +105,136 @@
       flex-wrap: wrap;
       margin-top: 4px;
     }
+    .hepan-pay-brief {
+      width: 100%;
+      margin: 0;
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px solid #bfd7ff;
+      background:
+        radial-gradient(circle at top right, rgba(37, 99, 235, 0.18), transparent 42%),
+        linear-gradient(180deg, #f9fcff 0%, #edf5ff 100%);
+      box-shadow: 0 12px 28px rgba(30, 58, 138, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    .hepan-pay-brief::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+    }
+    .hepan-pay-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+    .hepan-pay-brief-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .hepan-pay-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #fecaca;
+      background: #fff1f2;
+      color: #be123c;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .4px;
+    }
+    .hepan-pay-headline {
+      color: #0f3b8f;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .hepan-pay-main {
+      margin: 8px 0 0;
+      color: #0f172a;
+      font-size: 15px;
+      line-height: 1.65;
+      font-weight: 600;
+    }
+    .hepan-pay-points {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .hepan-pay-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid #dbeafe;
+      color: #1e40af;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .hepan-pay-prices {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #ffffff;
+      border: 1px solid #dbeafe;
+      box-shadow: 0 6px 16px rgba(30, 58, 138, 0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      min-width: 132px;
+    }
+    .hepan-pay-price-label {
+      color: #475569;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .hepan-pay-old {
+      color: #94a3b8;
+      font-size: 13px;
+      text-decoration: line-through;
+    }
+    .hepan-pay-now {
+      color: #dc2626;
+      font-size: 30px;
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: .3px;
+    }
+    .hepan-pay-footnote {
+      margin-top: 8px;
+      color: #475569;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .hepan-pay-footnote strong {
+      color: #1d4ed8;
+    }
     .hepan-action-row .form-submit {
       flex: 1;
       min-width: 220px;
     }
     .form-submit.pay-entry-btn {
-      background: #0b2a50;
+      background: linear-gradient(90deg, #0b2a50 0%, #12417a 100%);
       border-color: #0b2a50;
+      box-shadow: 0 10px 24px rgba(11, 42, 80, 0.28);
+      font-size: 17px;
+      letter-spacing: .2px;
     }
     .form-submit.pay-entry-btn:hover {
-      background: #081f3a;
+      background: linear-gradient(90deg, #081f3a 0%, #0f3663 100%);
       border-color: #081f3a;
+      transform: translateY(-1px);
     }
     .disclaimer {
       font-size: 12px;
@@ -141,6 +260,9 @@
       .persons-grid { grid-template-columns: 1fr; }
       .bazi-overview { grid-template-columns: 1fr; }
       .hepan-action-row .form-submit { width: 100%; }
+      .hepan-pay-grid { grid-template-columns: 1fr; }
+      .hepan-pay-prices { min-width: 0; width: 100%; }
+      .hepan-pay-now { font-size: 24px; }
     }
   </style>
 </head>
@@ -163,8 +285,10 @@
       <div class="navbar-nav">
         <a href="index.html">八字排盘</a>
         <a href="hepan.html" class="active">合盘分析</a>
+        <a href="blog/">命理知识</a>
       </div>
       <div class="navbar-right">
+        <a href="/blog/" class="mobile-blog-link" aria-label="命理知识">命理知识</a>
         <span class="navbar-lang">EN</span>
       </div>
     </div>
@@ -315,7 +439,29 @@
         </div>
 
         <div class="hepan-action-row">
-          <button type="button" class="form-submit pay-entry-btn" id="hepan-pay-entry-btn">立即付费解锁合盘报告</button>
+          <div class="hepan-pay-brief">
+            <div class="hepan-pay-grid">
+              <div class="hepan-pay-copy">
+                <div class="hepan-pay-brief-top">
+                  <span class="hepan-pay-badge" id="hepan-pay-badge">限时活动</span>
+                  <span class="hepan-pay-headline" id="hepan-pay-headline">10大维度深度合盘 · 约4000+字</span>
+                </div>
+                <p class="hepan-pay-main" id="hepan-pay-brief">不只看“合不合”，更看“能不能走长久”</p>
+                <div class="hepan-pay-points">
+                  <span class="hepan-pay-chip" id="hepan-pay-chip-1">日主关系</span>
+                  <span class="hepan-pay-chip" id="hepan-pay-chip-2">婚姻宫/婚姻星</span>
+                  <span class="hepan-pay-chip" id="hepan-pay-chip-3">大运走势</span>
+                </div>
+              </div>
+              <div class="hepan-pay-prices">
+                <span class="hepan-pay-price-label" id="hepan-pay-price-label">限时优惠价</span>
+                <span class="hepan-pay-old" id="hepan-pay-old-price">原价268元</span>
+                <span class="hepan-pay-now" id="hepan-pay-now-price">限时价199元</span>
+              </div>
+            </div>
+            <div class="hepan-pay-footnote" id="hepan-pay-footnote">先看清关系底层逻辑，再决定是否继续投入。<strong>少走弯路，少做错判。</strong></div>
+          </div>
+          <button type="button" class="form-submit pay-entry-btn" id="hepan-pay-entry-btn">立即解锁合盘报告（原价268元｜限时价199元）</button>
         </div>
       </form>
 
@@ -339,8 +485,8 @@
 
         <!-- 付费卡 -->
         <div class="pay-card" id="pay-card">
-          <p class="pay-card-title">解锁完整合盘报告</p>
-          <p class="pay-card-sub">以上为命理速览 · 完整合盘深度分析两命相合程度<br>涵盖 10 大维度 · 约 3000 字精准解读</p>
+          <p class="pay-card-title">至尊完整版合盘报告（10大维度·约4000+字）</p>
+          <p class="pay-card-sub">原价268元，限时优惠价199元</p>
           <div class="pay-features">
             <span>▸ 日主五行 · 相生相克关系</span>
             <span>▸ 五行互补 · 扶持与消耗</span>
@@ -353,8 +499,8 @@
             <span>▸ 大运配合 · 缘分旺衰节点</span>
             <span class="span-full">▸ 综合评分与合婚建议 · 五行调整方向</span>
           </div>
-          <button class="pay-btn" id="hepan-pay-btn">立即解锁合盘报告</button>
-          <p class="pay-marketing-copy">完整版合盘报告（约 4000+）将按 10 大项逐条展开：日主关系、五行互补、婚姻宫、婚姻星、性格契合、财运配合、感情隐患、子女缘分、大运走势、综合评价。不是空泛套话，而是可执行的关系决策参考。</p>
+          <button class="pay-btn" id="hepan-pay-btn">立即解锁合盘报告（原价268元｜限时价199元）</button>
+          <p class="pay-marketing-copy">看清这段关系能不能走得长久：从日主关系到大运走势，给你可执行的相处建议与决策参考。原价268元，限时优惠199元。</p>
         </div>
 
         <!-- 加载中 -->
@@ -408,7 +554,7 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
   <script src="js/bazi.js"></script>
-  <script src="js/site-lang.js"></script>
-  <script src="js/hepan.js"></script>
+  <script src="js/site-lang.js?v=20260329-langsync-v1"></script>
+  <script src="js/hepan.js?v=20260317hepanbeautyv5"></script>
 </body>
 </html>

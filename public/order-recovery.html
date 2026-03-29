@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>订单找回中心 · 云子命理</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --line: #dbe5f1;
+      --text: #0f172a;
+      --muted: #64748b;
+      --brand: #1d4ed8;
+      --brand-dark: #123a94;
+      --ok: #166534;
+      --warn: #92400e;
+      --bad: #991b1b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top right, #eef4ff 0%, var(--bg) 45%, var(--bg) 100%);
+      min-height: 100vh;
+    }
+    .wrap {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 18px 14px 36px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+      margin-bottom: 12px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      color: #0b2a50;
+    }
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+      margin-top: 8px;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      align-items: center;
+    }
+    input, button, a.button-link {
+      height: 42px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+    }
+    input {
+      flex: 1;
+      min-width: 260px;
+      padding: 0 12px;
+      color: var(--text);
+      background: #fff;
+    }
+    button, a.button-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 14px;
+      background: #fff;
+      color: #0b2a50;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    button.primary, a.button-link.primary {
+      background: var(--brand);
+      color: #fff;
+      border-color: var(--brand);
+      font-weight: 700;
+    }
+    button.primary:hover, a.button-link.primary:hover {
+      background: var(--brand-dark);
+      border-color: var(--brand-dark);
+    }
+    button.dark {
+      background: #0b1a3a;
+      color: #fff;
+      border-color: #0b1a3a;
+      font-weight: 700;
+    }
+    button.ghost {
+      border-color: #bfd3f4;
+      color: #1e3a8a;
+      background: #f8fbff;
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid transparent;
+    }
+    .tag.ok { color: var(--ok); border-color: #bbf7d0; background: #ecfdf3; }
+    .tag.warn { color: var(--warn); border-color: #fde68a; background: #fffbeb; }
+    .tag.bad { color: var(--bad); border-color: #fecaca; background: #fff1f2; }
+    .status-box {
+      margin-top: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      padding: 10px 12px;
+      white-space: pre-wrap;
+      line-height: 1.6;
+      color: #334155;
+      font-size: 14px;
+      min-height: 70px;
+    }
+    .timeline {
+      margin-top: 10px;
+      display: grid;
+      gap: 8px;
+    }
+    .timeline-item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 9px 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+    }
+    .timeline-title {
+      font-size: 13px;
+      color: #1e293b;
+      font-weight: 600;
+    }
+    .timeline-meta {
+      font-size: 12px;
+      color: #64748b;
+    }
+    .tips {
+      margin-top: 10px;
+      border: 1px solid #fecaca;
+      background: #fff1f2;
+      color: #9f1239;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    @media (max-width: 640px) {
+      h1 { font-size: 20px; }
+      .row > * { width: 100%; }
+      input { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>订单找回中心</h1>
+      <div class="muted">
+        支付后页面关闭、网络中断、未自动出报告，都可以在这里恢复。
+        输入订单号后点击“校验支付并继续”即可。
+      </div>
+      <div class="row">
+        <input id="tradeNoInput" type="text" placeholder="请输入订单号，例如 bazi-xxxx-177..." />
+        <button class="primary" id="verifyBtn">校验支付并继续</button>
+      </div>
+      <div class="row">
+        <button class="ghost" id="queryBtn">查询订单状态</button>
+        <button class="ghost" id="createPayBtn">继续支付</button>
+        <button class="dark" id="continueBtn">继续查看结果</button>
+      </div>
+      <div id="statusBox" class="status-box">等待操作…</div>
+      <div id="timeline" class="timeline"></div>
+      <div class="tips">
+        提醒：若你在微信内完成支付后页面被关闭，重新打开官网进入本页，输入订单号即可继续。
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="muted">
+        没有订单号？可回到首页点击“继续上次订单”，系统会尝试自动恢复最近一次订单。
+      </div>
+      <div class="row">
+        <a class="button-link primary" href="/index.html">返回首页</a>
+        <a class="button-link" id="resultLink" href="/result.html">打开结果页</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://rcyssrsnalefzhzsvswm.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
+
+    const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
+    const PDF_PENDING_TRADE_KEY = 'bazi_pdf_pending_trade_no';
+    const PENDING_BIRTH_INPUT_KEY = 'bazi_pending_birth_input';
+    const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
+
+    const tradeNoInput = document.getElementById('tradeNoInput');
+    const statusBox = document.getElementById('statusBox');
+    const timeline = document.getElementById('timeline');
+    const resultLink = document.getElementById('resultLink');
+    const queryBtn = document.getElementById('queryBtn');
+    const verifyBtn = document.getElementById('verifyBtn');
+    const createPayBtn = document.getElementById('createPayBtn');
+    const continueBtn = document.getElementById('continueBtn');
+
+    function setStatus(text) {
+      statusBox.textContent = text;
+    }
+
+    function asString(v) {
+      return typeof v === 'string' ? v.trim() : '';
+    }
+
+    function parseBirthInput(raw) {
+      if (!raw) return {};
+      if (typeof raw === 'object' && !Array.isArray(raw)) return raw;
+      if (typeof raw !== 'string') return {};
+      try {
+        const obj = JSON.parse(raw);
+        return obj && typeof obj === 'object' && !Array.isArray(obj) ? obj : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function isTradeNoValid(value) {
+      return /^(bazi|hepan)-[a-z0-9_-]{4,140}$/i.test(asString(value));
+    }
+
+    function getService(birth) {
+      const service = asString(birth?.order_service).toLowerCase();
+      if (service === 'pdf') return 'pdf';
+      if (service === 'hepan') return 'hepan';
+      if (service === 'consult') return 'consult';
+      if (asString(birth?.payment_option?.id) === 'pdf') return 'pdf';
+      if (asString(birth?.payment_option?.id) === 'consult') return 'consult';
+      return 'bazi';
+    }
+
+    function savePendingBirthInput(tradeNo, birthInput) {
+      if (!tradeNo || !birthInput || typeof birthInput !== 'object') return;
+      try {
+        localStorage.setItem(PENDING_BIRTH_INPUT_KEY, JSON.stringify({
+          trade_no: tradeNo,
+          birth_input: { ...birthInput },
+          saved_at: Date.now(),
+        }));
+      } catch {}
+    }
+
+    function setPending(tradeNo, birth = null) {
+      try { localStorage.setItem(PENDING_TRADE_KEY, tradeNo); } catch {}
+      if (birth && typeof birth === 'object') savePendingBirthInput(tradeNo, birth);
+      const optionId = asString(birth?.payment_option?.id);
+      if (optionId) {
+        try { localStorage.setItem(PENDING_PAYMENT_OPTION_KEY, optionId); } catch {}
+      }
+      if (getService(birth || {}) === 'pdf') {
+        try { localStorage.setItem(PDF_PENDING_TRADE_KEY, tradeNo); } catch {}
+      }
+    }
+
+    function getTradeNoFromContext() {
+      const p = new URLSearchParams(location.search || '');
+      const q = asString(p.get('trade_no'));
+      if (q) return q;
+      try {
+        return asString(localStorage.getItem(PENDING_TRADE_KEY))
+          || asString(localStorage.getItem(PDF_PENDING_TRADE_KEY));
+      } catch {
+        return '';
+      }
+    }
+
+    function toLocalTime(v) {
+      const text = asString(v);
+      if (!text) return '-';
+      const d = new Date(text);
+      if (Number.isNaN(d.getTime())) return '-';
+      return d.toLocaleString('zh-CN', { hour12: false });
+    }
+
+    function renderTimeline(order, reconcile = null) {
+      const birth = parseBirthInput(order?.birth_input);
+      const tracking = birth?.tracking && typeof birth.tracking === 'object' ? birth.tracking : {};
+      const paid = Boolean(order?.paid) || Boolean(reconcile?.paid);
+      const analysisText = asString(order?.analysis);
+      const service = getService(birth);
+      const delivered = service === 'pdf'
+        ? Boolean(asString(tracking.pdf_download_clicked_at))
+        : service === 'consult'
+          ? Boolean(asString(tracking.consult_confirmed_at)) || paid
+        : Boolean(analysisText);
+
+      const steps = [
+        { label: '订单创建', ok: Boolean(order?.created_at), meta: toLocalTime(order?.created_at) },
+        { label: '支付页拉起', ok: Boolean(asString(tracking.payment_created_at)), meta: toLocalTime(tracking.payment_created_at) },
+        { label: '支付完成', ok: paid, meta: paid ? (toLocalTime(tracking.payment_paid_at) || '已确认') : '-' },
+        { label: '支付校验', ok: Boolean(asString(tracking.payment_verified_at)) || Boolean(reconcile?.paid), meta: toLocalTime(tracking.payment_verified_at) },
+        { label: service === 'pdf' ? '文档下载' : (service === 'consult' ? '咨询预约确认' : '报告生成'), ok: delivered, meta: delivered ? '已就绪' : '处理中' },
+      ];
+
+      timeline.innerHTML = steps.map((item) => `
+        <div class="timeline-item">
+          <div>
+            <div class="timeline-title">${item.label}</div>
+            <div class="timeline-meta">${item.meta || '-'}</div>
+          </div>
+          <span class="tag ${item.ok ? 'ok' : 'warn'}">${item.ok ? '完成' : '等待'}</span>
+        </div>
+      `).join('');
+    }
+
+    async function fetchOrder(tradeNo) {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(tradeNo)}&select=trade_no,paid,analysis,created_at,birth_input&limit=1`,
+        { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } },
+      );
+      if (!res.ok) throw new Error(`订单查询失败 HTTP ${res.status}`);
+      const rows = await res.json();
+      return Array.isArray(rows) ? (rows[0] || null) : null;
+    }
+
+    async function reconcile(tradeNo) {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/reconcile-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_ANON}`,
+        },
+        body: JSON.stringify({ trade_no: tradeNo }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = asString(data?.message || data?.error) || `HTTP ${res.status}`;
+        throw new Error(`支付校验失败：${msg}`);
+      }
+      return data || {};
+    }
+
+    function buildContinueUrl(tradeNo, birth) {
+      const service = getService(birth);
+      const id = encodeURIComponent(tradeNo);
+      if (service === 'pdf') return `/index.html?pdf_paid=1&trade_no=${id}`;
+      if (service === 'hepan') return `/hepan.html?trade_no=${id}`;
+      if (service === 'consult') return `/result.html?trade_no=${id}&paid=true&consult=1`;
+      return `/result.html?trade_no=${id}&paid=true`;
+    }
+
+    async function createPaymentUrl(tradeNo, birth) {
+      const optionId = asString(birth?.payment_option?.id) || 'basic';
+      const returnPath = '/payment-fallback.html';
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_ANON}`,
+        },
+        body: JSON.stringify({
+          trade_no: tradeNo,
+          payment_option_id: optionId,
+          return_path: returnPath,
+          client_env: {
+            user_agent: navigator.userAgent || '',
+            is_wechat: /MicroMessenger/i.test(navigator.userAgent || ''),
+          },
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || Number(data?.errcode) !== 0) {
+        const msg = asString(data?.errmsg || data?.error) || `HTTP ${res.status}`;
+        throw new Error(`创建支付链接失败：${msg}`);
+      }
+      const payUrl = asString(data?.url || data?.pay_url || data?.mweb_url);
+      if (!payUrl) throw new Error('支付链接为空');
+      return payUrl;
+    }
+
+    async function loadAndRenderOrder(tradeNo) {
+      const order = await fetchOrder(tradeNo);
+      if (!order) throw new Error('未找到该订单，请确认订单号是否正确。');
+      const birth = parseBirthInput(order.birth_input);
+      setPending(tradeNo, birth);
+      const continueUrl = buildContinueUrl(tradeNo, birth);
+      resultLink.href = continueUrl;
+      renderTimeline(order, null);
+      const paid = Boolean(order.paid);
+      const reportReady = getService(birth) === 'pdf'
+        ? Boolean(asString(birth?.tracking?.pdf_download_clicked_at))
+        : getService(birth) === 'consult'
+          ? Boolean(asString(birth?.tracking?.consult_confirmed_at)) || paid
+        : Boolean(asString(order.analysis));
+      const lines = [
+        `订单号：${tradeNo}`,
+        `服务：${getService(birth).toUpperCase()}`,
+        `支付状态：${paid ? '已支付' : '未支付'}`,
+        `交付状态：${reportReady ? '已可查看' : '待生成/待下载'}`,
+      ];
+      setStatus(lines.join('\n'));
+      return { order, birth, continueUrl };
+    }
+
+    async function handleVerifyAndContinue() {
+      const tradeNo = asString(tradeNoInput.value);
+      if (!isTradeNoValid(tradeNo)) {
+        setStatus('请输入有效订单号。');
+        return;
+      }
+      queryBtn.disabled = true;
+      verifyBtn.disabled = true;
+      createPayBtn.disabled = true;
+      continueBtn.disabled = true;
+      try {
+        setStatus('正在校验支付状态，请稍候…');
+        const reconcileData = await reconcile(tradeNo);
+        const loaded = await loadAndRenderOrder(tradeNo);
+        renderTimeline(loaded.order, reconcileData);
+        if (reconcileData?.paid || loaded.order?.paid) {
+          setStatus('支付已确认，正在跳转到结果页…');
+          location.href = loaded.continueUrl;
+          return;
+        }
+        setStatus('订单尚未完成支付。你可以点击“继续支付”。');
+      } catch (err) {
+        setStatus(`校验失败：${err instanceof Error ? err.message : String(err)}`);
+      } finally {
+        queryBtn.disabled = false;
+        verifyBtn.disabled = false;
+        createPayBtn.disabled = false;
+        continueBtn.disabled = false;
+      }
+    }
+
+    queryBtn.addEventListener('click', async () => {
+      const tradeNo = asString(tradeNoInput.value);
+      if (!isTradeNoValid(tradeNo)) {
+        setStatus('请输入有效订单号。');
+        return;
+      }
+      try {
+        setStatus('正在查询订单…');
+        await loadAndRenderOrder(tradeNo);
+      } catch (err) {
+        setStatus(err instanceof Error ? err.message : String(err));
+      }
+    });
+
+    verifyBtn.addEventListener('click', handleVerifyAndContinue);
+
+    createPayBtn.addEventListener('click', async () => {
+      const tradeNo = asString(tradeNoInput.value);
+      if (!isTradeNoValid(tradeNo)) {
+        setStatus('请输入有效订单号。');
+        return;
+      }
+      try {
+        const { order, birth } = await loadAndRenderOrder(tradeNo);
+        if (order?.paid) {
+          setStatus('该订单已支付，请直接点击“继续查看结果”或“校验支付并继续”。');
+          return;
+        }
+        setStatus('正在创建支付链接…');
+        const payUrl = await createPaymentUrl(tradeNo, birth);
+        setStatus('已生成支付链接，正在跳转支付页…');
+        location.href = payUrl;
+      } catch (err) {
+        setStatus(err instanceof Error ? err.message : String(err));
+      }
+    });
+
+    continueBtn.addEventListener('click', async () => {
+      const tradeNo = asString(tradeNoInput.value);
+      if (!isTradeNoValid(tradeNo)) {
+        setStatus('请输入有效订单号。');
+        return;
+      }
+      try {
+        const { order, birth, continueUrl } = await loadAndRenderOrder(tradeNo);
+        if (!order?.paid) {
+          setStatus('该订单尚未支付，正在为你跳转支付页面...');
+          const payUrl = await createPaymentUrl(tradeNo, birth);
+          location.href = payUrl;
+          return;
+        }
+        location.href = continueUrl;
+      } catch (err) {
+        setStatus(err instanceof Error ? err.message : String(err));
+      }
+    });
+
+    (function init() {
+      const initialTradeNo = getTradeNoFromContext();
+      if (initialTradeNo) {
+        tradeNoInput.value = initialTradeNo;
+        loadAndRenderOrder(initialTradeNo).catch((err) => {
+          setStatus(err instanceof Error ? err.message : String(err));
+        });
+      } else {
+        setStatus('请输入订单号后开始找回。');
+      }
+    })();
+  </script>
+</body>
+</html>

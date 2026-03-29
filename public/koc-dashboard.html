@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>KOC Dashboard</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --line: #dbe4f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --brand: #1d4ed8;
+      --ok: #166534;
+      --warn: #92400e;
+      --bad: #991b1b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 16px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+    }
+    h1 { margin: 0 0 6px; font-size: 24px; color: #0b2a50; }
+    h2 { margin: 0; font-size: 18px; color: #0b2a50; }
+    .muted { color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
+    }
+    input, select, button {
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+    }
+    input, select {
+      background: #fff;
+      color: var(--text);
+      padding: 0 12px;
+    }
+    button {
+      background: #fff;
+      color: #0b2a50;
+      padding: 0 14px;
+      cursor: pointer;
+    }
+    button.primary {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
+      font-weight: 600;
+    }
+    button.danger {
+      background: #fff1f2;
+      border-color: #fecdd3;
+      color: var(--bad);
+    }
+    .status {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f8fafc;
+      white-space: pre-wrap;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f8fafc;
+      padding: 10px 12px;
+    }
+    .metric .label { color: var(--muted); font-size: 12px; }
+    .metric .value { color: #0b2a50; font-size: 22px; font-weight: 700; margin-top: 4px; }
+    .metric .sub { color: #475569; font-size: 12px; margin-top: 4px; }
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      margin-top: 10px;
+      background: #fff;
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 980px; }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #edf2f7;
+      font-size: 13px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: #f8fafc; color: #1e293b; }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .tag.ok { background: #ecfdf3; border-color: #bbf7d0; color: var(--ok); }
+    .tag.warn { background: #fffbeb; border-color: #fde68a; color: var(--warn); }
+    .tag.bad { background: #fef2f2; border-color: #fecaca; color: var(--bad); }
+    .hidden { display: none !important; }
+    .tiny { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .head-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .lang-switch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .lang-switch select {
+      min-width: 130px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      padding: 0 10px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="head-row">
+        <h1 id="pageTitle">KOC Dashboard</h1>
+        <div class="lang-switch">
+          <span id="langLabel" class="tiny">Language</span>
+          <select id="langSelect">
+            <option value="zh">Chinese</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+      </div>
+      <div class="muted" id="pageHint">Only your own KOC data is visible. Keep your password private.</div>
+      <div class="row" id="loginRow">
+        <input id="kocIdInput" type="text" style="min-width:220px;" placeholder="koc_id" />
+        <input id="kocPasswordInput" type="password" style="min-width:220px;" placeholder="password" />
+        <button class="primary" id="loginBtn">Login</button>
+      </div>
+      <div class="row hidden" id="viewerRow">
+        <span id="viewerInfo" class="tiny"></span>
+        <button class="danger" id="logoutBtn">Logout</button>
+      </div>
+      <div id="statusBox" class="status">Please login first.</div>
+    </div>
+
+    <div class="card hidden" id="dashboardCard">
+      <h2 id="dashboardTitle">My Settlement Data</h2>
+      <div class="row">
+        <select id="daysSelect">
+          <option value="7">Last 7 days</option>
+          <option value="30" selected>Last 30 days</option>
+          <option value="60">Last 60 days</option>
+          <option value="90">Last 90 days</option>
+        </select>
+        <select id="settlementStatusSelect">
+          <option value="">All settlement status</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="paid">Paid</option>
+          <option value="disputed">Disputed</option>
+          <option value="invalid">Invalid</option>
+          <option value="unpaid">Unpaid</option>
+        </select>
+        <button class="primary" id="refreshBtn">Refresh</button>
+      </div>
+      <div id="metaLine" class="tiny" style="margin-top:8px;">No data.</div>
+      <div id="metricGrid" class="metric-grid">
+        <div class="metric"><div class="label">Attributed Orders</div><div class="value">-</div><div class="sub">Waiting</div></div>
+        <div class="metric"><div class="label">Paid Orders</div><div class="value">-</div><div class="sub">Waiting</div></div>
+        <div class="metric"><div class="label">Delivered</div><div class="value">-</div><div class="sub">Waiting</div></div>
+        <div class="metric"><div class="label">Paid GMV</div><div class="value">-</div><div class="sub">Waiting</div></div>
+        <div class="metric"><div class="label">Commission Pending</div><div class="value">-</div><div class="sub">Waiting</div></div>
+        <div class="metric"><div class="label">Commission Paid</div><div class="value">-</div><div class="sub">Waiting</div></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th id="colCreated">Created</th>
+              <th id="colTradeNo">Trade No</th>
+              <th id="colService">Service</th>
+              <th id="colTier">Tier</th>
+              <th id="colPaid">Paid</th>
+              <th id="colDelivered">Delivered</th>
+              <th id="colGmv">GMV</th>
+              <th id="colCommission">Commission</th>
+              <th id="colSettlement">Settlement</th>
+            </tr>
+          </thead>
+          <tbody id="orderTbody">
+            <tr><td colspan="9" class="tiny">No orders</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://rcyssrsnalefzhzsvswm.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
+    const API_URL = `${SUPABASE_URL}/functions/v1/admin-orders`;
+    const KOC_SESSION_KEY = 'koc_dashboard_session_v1';
+    const KOC_LANG_KEY = 'koc_dashboard_lang_v1';
+    const LANG_TEXT = {
+      zh: {
+        pageTitle: 'KOC 数据看板',
+        langLabel: '语言',
+        pageHint: '仅展示你自己的 KOC 数据，请妥善保管密码。',
+        loginBtn: '登录',
+        logoutBtn: '退出登录',
+        statusLoginFirst: '请先登录。',
+        dashboardTitle: '我的结算数据',
+        refreshBtn: '刷新',
+        metaNoData: '暂无数据。',
+      },
+      en: {
+        pageTitle: 'KOC Dashboard',
+        langLabel: 'Language',
+        pageHint: 'Only your own KOC data is visible. Keep your password private.',
+        loginBtn: 'Login',
+        logoutBtn: 'Logout',
+        statusLoginFirst: 'Please login first.',
+        dashboardTitle: 'My Settlement Data',
+        refreshBtn: 'Refresh',
+        metaNoData: 'No data.',
+      },
+    };
+
+    const loginRow = document.getElementById('loginRow');
+    const viewerRow = document.getElementById('viewerRow');
+    const langSelect = document.getElementById('langSelect');
+    const pageTitle = document.getElementById('pageTitle');
+    const pageHint = document.getElementById('pageHint');
+    const langLabel = document.getElementById('langLabel');
+    const dashboardTitle = document.getElementById('dashboardTitle');
+    const kocIdInput = document.getElementById('kocIdInput');
+    const kocPasswordInput = document.getElementById('kocPasswordInput');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const viewerInfo = document.getElementById('viewerInfo');
+    const statusBox = document.getElementById('statusBox');
+    const dashboardCard = document.getElementById('dashboardCard');
+    const daysSelect = document.getElementById('daysSelect');
+    const settlementStatusSelect = document.getElementById('settlementStatusSelect');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const metricGrid = document.getElementById('metricGrid');
+    const metaLine = document.getElementById('metaLine');
+    const orderTbody = document.getElementById('orderTbody');
+    const colCreated = document.getElementById('colCreated');
+    const colTradeNo = document.getElementById('colTradeNo');
+    const colService = document.getElementById('colService');
+    const colTier = document.getElementById('colTier');
+    const colPaid = document.getElementById('colPaid');
+    const colDelivered = document.getElementById('colDelivered');
+    const colGmv = document.getElementById('colGmv');
+    const colCommission = document.getElementById('colCommission');
+    const colSettlement = document.getElementById('colSettlement');
+    let currentLang = 'zh';
+
+    function setStatus(text) {
+      statusBox.textContent = text;
+    }
+
+    function getSavedLang() {
+      const cached = String(localStorage.getItem(KOC_LANG_KEY) || '').toLowerCase();
+      if (cached === 'zh' || cached === 'en') return cached;
+      const htmlLang = String(document.documentElement.getAttribute('lang') || '').toLowerCase();
+      return htmlLang.startsWith('en') ? 'en' : 'zh';
+    }
+
+    function t(key) {
+      return (LANG_TEXT[currentLang] || LANG_TEXT.en)[key] || LANG_TEXT.en[key] || key;
+    }
+
+    function setOptions(selectEl, options) {
+      const current = String(selectEl.value || '');
+      selectEl.innerHTML = options.map((item) => `<option value="${escapeHtml(item.value)}"${item.value === current ? ' selected' : ''}>${escapeHtml(item.label)}</option>`).join('');
+      if (!options.some((x) => x.value === current)) {
+        selectEl.value = options[0]?.value || '';
+      }
+    }
+
+    function applyLanguage() {
+      pageTitle.textContent = t('pageTitle');
+      pageHint.textContent = t('pageHint');
+      langLabel.textContent = t('langLabel');
+      loginBtn.textContent = t('loginBtn');
+      logoutBtn.textContent = t('logoutBtn');
+      dashboardTitle.textContent = t('dashboardTitle');
+      refreshBtn.textContent = t('refreshBtn');
+      setOptions(daysSelect, [
+        { value: '7', label: currentLang === 'zh' ? '最近 7 天' : 'Last 7 days' },
+        { value: '30', label: currentLang === 'zh' ? '最近 30 天' : 'Last 30 days' },
+        { value: '60', label: currentLang === 'zh' ? '最近 60 天' : 'Last 60 days' },
+        { value: '90', label: currentLang === 'zh' ? '最近 90 天' : 'Last 90 days' },
+      ]);
+      setOptions(settlementStatusSelect, [
+        { value: '', label: currentLang === 'zh' ? '全部结算状态' : 'All settlement status' },
+        { value: 'pending', label: currentLang === 'zh' ? '待处理' : 'Pending' },
+        { value: 'approved', label: currentLang === 'zh' ? '已审核' : 'Approved' },
+        { value: 'paid', label: currentLang === 'zh' ? '已打款' : 'Paid' },
+        { value: 'disputed', label: currentLang === 'zh' ? '争议' : 'Disputed' },
+        { value: 'invalid', label: currentLang === 'zh' ? '无效' : 'Invalid' },
+        { value: 'unpaid', label: currentLang === 'zh' ? '未支付' : 'Unpaid' },
+      ]);
+      kocIdInput.placeholder = 'koc_id';
+      kocPasswordInput.placeholder = currentLang === 'zh' ? '密码' : 'password';
+      colCreated.textContent = currentLang === 'zh' ? '创建时间' : 'Created';
+      colTradeNo.textContent = currentLang === 'zh' ? '订单号' : 'Trade No';
+      colService.textContent = currentLang === 'zh' ? '服务' : 'Service';
+      colTier.textContent = currentLang === 'zh' ? '档位' : 'Tier';
+      colPaid.textContent = currentLang === 'zh' ? '已支付' : 'Paid';
+      colDelivered.textContent = currentLang === 'zh' ? '已交付' : 'Delivered';
+      colGmv.textContent = 'GMV';
+      colCommission.textContent = currentLang === 'zh' ? '佣金' : 'Commission';
+      colSettlement.textContent = currentLang === 'zh' ? '结算' : 'Settlement';
+      if (!metaLine.dataset.loaded) metaLine.textContent = t('metaNoData');
+      if (!readSession()?.token) setStatus(t('statusLoginFirst'));
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function toLocalTime(ts) {
+      if (!ts) return '-';
+      const d = new Date(ts);
+      if (Number.isNaN(d.getTime())) return '-';
+      return d.toLocaleString(currentLang === 'zh' ? 'zh-CN' : 'en-US', { hour12: false });
+    }
+
+    function formatMoney(value) {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return '0.00';
+      return n.toFixed(2);
+    }
+
+    function statusTag(status) {
+      const key = String(status || '').toLowerCase();
+      if (key === 'paid') return `<span class="tag ok">${currentLang === 'zh' ? '已打款' : 'Paid'}</span>`;
+      if (key === 'approved') return `<span class="tag warn">${currentLang === 'zh' ? '已审核' : 'Approved'}</span>`;
+      if (key === 'invalid') return `<span class="tag bad">${currentLang === 'zh' ? '无效' : 'Invalid'}</span>`;
+      if (key === 'disputed') return `<span class="tag warn">${currentLang === 'zh' ? '争议' : 'Disputed'}</span>`;
+      if (key === 'unpaid') return `<span class="tag bad">${currentLang === 'zh' ? '未支付' : 'Unpaid'}</span>`;
+      return `<span class="tag warn">${currentLang === 'zh' ? '待处理' : 'Pending'}</span>`;
+    }
+
+    function renderMetrics(data) {
+      const summary = data?.summary || {};
+      const cards = [
+        [currentLang === 'zh' ? '归因订单' : 'Attributed Orders', Number(summary.total_attributed_orders || 0), currentLang === 'zh' ? `最近 ${Number(data?.days || 0)} 天` : `Last ${Number(data?.days || 0)} days`],
+        [currentLang === 'zh' ? '已支付订单' : 'Paid Orders', Number(summary.paid_orders || 0), currentLang === 'zh' ? '仅统计已支付' : 'Only paid orders'],
+        [currentLang === 'zh' ? '已交付' : 'Delivered', Number(summary.delivered_orders || 0), currentLang === 'zh' ? '已交付订单' : 'Delivered orders'],
+        [currentLang === 'zh' ? '支付 GMV' : 'Paid GMV', `CNY ${formatMoney(summary.paid_gmv || 0)}`, currentLang === 'zh' ? '支付金额' : 'Paid amount'],
+        [currentLang === 'zh' ? '待结算佣金' : 'Commission Pending', `CNY ${formatMoney(summary.commission_pending || 0)}`, currentLang === 'zh' ? '待处理' : 'To settle'],
+        [currentLang === 'zh' ? '已结算佣金' : 'Commission Paid', `CNY ${formatMoney(summary.commission_paid || 0)}`, currentLang === 'zh' ? '已打款' : 'Settled'],
+      ];
+      metricGrid.innerHTML = cards.map((x) => `
+        <div class="metric">
+          <div class="label">${escapeHtml(x[0])}</div>
+          <div class="value">${escapeHtml(String(x[1]))}</div>
+          <div class="sub">${escapeHtml(String(x[2]))}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderOrders(rows) {
+      if (!Array.isArray(rows) || !rows.length) {
+        orderTbody.innerHTML = `<tr><td colspan="9" class="tiny">${currentLang === 'zh' ? '暂无订单' : 'No orders'}</td></tr>`;
+        return;
+      }
+      orderTbody.innerHTML = rows.map((row) => `
+        <tr>
+          <td>${toLocalTime(row.created_at)}</td>
+          <td><code>${escapeHtml(row.trade_no || '-')}</code></td>
+          <td>${escapeHtml(String(row.service || '-').toUpperCase())}</td>
+          <td>${escapeHtml(row.payment_option_id || '-')}</td>
+          <td>${row.paid ? `<span class="tag ok">${currentLang === 'zh' ? '是' : 'YES'}</span>` : `<span class="tag bad">${currentLang === 'zh' ? '否' : 'NO'}</span>`}</td>
+          <td>${row.delivered ? `<span class="tag ok">${currentLang === 'zh' ? '是' : 'YES'}</span>` : `<span class="tag warn">${currentLang === 'zh' ? '否' : 'NO'}</span>`}</td>
+          <td>CNY ${formatMoney(row.total_fee || 0)}</td>
+          <td>CNY ${formatMoney(row.commission_amount || 0)}</td>
+          <td>${statusTag(row.settlement_status)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function readSession() {
+      try {
+        const raw = sessionStorage.getItem(KOC_SESSION_KEY) || '';
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function saveSession(session) {
+      sessionStorage.setItem(KOC_SESSION_KEY, JSON.stringify(session || {}));
+    }
+
+    function clearSession() {
+      sessionStorage.removeItem(KOC_SESSION_KEY);
+    }
+
+    async function callApi(action, payload = {}, token = '') {
+      const headers = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${SUPABASE_ANON}`,
+      };
+      if (token) headers['x-koc-token'] = token;
+
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ action, ...payload }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data?.error) {
+        throw new Error(data?.error || `HTTP ${res.status}`);
+      }
+      return data;
+    }
+
+    function applyViewer(session) {
+      const loggedIn = !!(session?.token && session?.koc_id);
+      loginRow.classList.toggle('hidden', loggedIn);
+      viewerRow.classList.toggle('hidden', !loggedIn);
+      dashboardCard.classList.toggle('hidden', !loggedIn);
+      if (loggedIn) {
+        const expText = session?.exp ? toLocalTime(new Date(Number(session.exp) * 1000).toISOString()) : '-';
+        viewerInfo.textContent = currentLang === 'zh'
+          ? `已登录：${session.koc_id}${session.name ? `（${session.name}）` : ''}，过期时间：${expText}`
+          : `Logged in: ${session.koc_id}${session.name ? ` (${session.name})` : ''}, expire: ${expText}`;
+      } else {
+        viewerInfo.textContent = '';
+      }
+    }
+
+    async function loadDashboard() {
+      const session = readSession();
+      if (!session?.token) {
+        applyViewer(null);
+        setStatus(t('statusLoginFirst'));
+        return;
+      }
+
+      const days = Math.min(Math.max(Number(daysSelect.value || 30), 1), 120);
+      const settlementStatus = String(settlementStatusSelect.value || '').trim().toLowerCase();
+      setStatus(currentLang === 'zh' ? '正在加载看板...' : 'Loading dashboard...');
+      try {
+        const data = await callApi('koc_partner_dashboard', {
+          days,
+          settlement_status: settlementStatus,
+          max_rows: 3000,
+          order_limit: 500,
+        }, session.token);
+
+        renderMetrics(data);
+        renderOrders(data.orders || []);
+        metaLine.dataset.loaded = '1';
+        metaLine.textContent = currentLang === 'zh'
+          ? `已扫描 ${Number(data.scanned_rows || 0)} 条数据（${data.viewer?.koc_id || session.koc_id}）。`
+          : `Scanned ${Number(data.scanned_rows || 0)} rows for ${data.viewer?.koc_id || session.koc_id}.`;
+
+        const exp = Number(data?.viewer?.exp || 0);
+        const nextSession = {
+          ...session,
+          koc_id: data?.viewer?.koc_id || session.koc_id,
+          name: data?.viewer?.name || session.name || '',
+          exp: Number.isFinite(exp) ? exp : session.exp || 0,
+        };
+        saveSession(nextSession);
+        applyViewer(nextSession);
+        const ownOrders = Number(data?.summary?.total_attributed_orders || 0);
+        const scannedRows = Number(data?.scanned_rows || 0);
+        if (ownOrders === 0 && scannedRows > 0) {
+          const idText = nextSession.koc_id || session.koc_id || '-';
+          setStatus(currentLang === 'zh'
+            ? `???? ${idText} ?????????????? 0?????????? koc_id ?????????? koc_id / content_id / koc_code??`
+            : `No attributed orders for ${idText}. If scanned rows are > 0, your links may be using placeholder params (koc_id/content_id/koc_code).`);
+        } else {
+          setStatus(currentLang === 'zh' ? '??????' : 'Dashboard refreshed.');
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes('invalid_or_expired_koc_token')) {
+          clearSession();
+          applyViewer(null);
+          setStatus(currentLang === 'zh' ? '会话已过期，请重新登录。' : 'Session expired, please login again.');
+          return;
+        }
+        setStatus(currentLang === 'zh' ? `加载失败：${msg}` : `Load failed: ${msg}`);
+      }
+    }
+
+    loginBtn.addEventListener('click', async () => {
+      const kocId = String(kocIdInput.value || '').trim().toLowerCase();
+      const password = String(kocPasswordInput.value || '').trim();
+      if (!kocId || !password) {
+        setStatus(currentLang === 'zh' ? '请输入 koc_id 和密码。' : 'Please input koc_id and password.');
+        return;
+      }
+
+      setStatus(currentLang === 'zh' ? '正在登录...' : 'Logging in...');
+      try {
+        const data = await callApi('koc_partner_login', { koc_id: kocId, password });
+        const session = {
+          token: data.token,
+          koc_id: data.koc_id,
+          name: data.name || '',
+          exp: Math.floor(Date.now() / 1000) + Number(data.expires_in || 0),
+        };
+        saveSession(session);
+        applyViewer(session);
+        setStatus(currentLang === 'zh' ? '登录成功。' : 'Login success.');
+        await loadDashboard();
+      } catch (err) {
+        setStatus(currentLang === 'zh'
+          ? `登录失败：${err instanceof Error ? err.message : String(err)}`
+          : `Login failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      clearSession();
+      applyViewer(null);
+      orderTbody.innerHTML = `<tr><td colspan="9" class="tiny">${currentLang === 'zh' ? '暂无订单' : 'No orders'}</td></tr>`;
+      metaLine.textContent = t('metaNoData');
+      delete metaLine.dataset.loaded;
+      setStatus(currentLang === 'zh' ? '已退出登录。' : 'Logged out.');
+    });
+
+    refreshBtn.addEventListener('click', async () => { await loadDashboard(); });
+    daysSelect.addEventListener('change', async () => { await loadDashboard(); });
+    settlementStatusSelect.addEventListener('change', async () => { await loadDashboard(); });
+
+    langSelect.addEventListener('change', async () => {
+      currentLang = String(langSelect.value || 'zh') === 'en' ? 'en' : 'zh';
+      localStorage.setItem(KOC_LANG_KEY, currentLang);
+      applyLanguage();
+      const session = readSession();
+      if (session?.token) {
+        await loadDashboard();
+      }
+    });
+
+    (() => {
+      currentLang = getSavedLang();
+      langSelect.value = currentLang;
+      applyLanguage();
+      const session = readSession();
+      applyViewer(session);
+      if (session?.token) {
+        loadDashboard().catch((err) => {
+          setStatus(currentLang === 'zh'
+            ? `初始化失败：${err instanceof Error ? err.message : String(err)}`
+            : `Init failed: ${err instanceof Error ? err.message : String(err)}`);
+        });
+      } else {
+        setStatus(t('statusLoginFirst'));
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -136,11 +136,34 @@
     .tag.ok { background: #ecfdf3; color: var(--ok); border-color: #bbf7d0; }
     .tag.warn { background: #fffbeb; color: var(--warn); border-color: #fde68a; }
     .tag.bad { background: #fef2f2; color: var(--bad); border-color: #fecaca; }
+    .owner-device-badge {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      line-height: 18px;
+      font-weight: 700;
+      white-space: nowrap;
+      color: #ffffff;
+      background: #1d4ed8;
+      border: 1px solid #1e40af;
+      vertical-align: middle;
+    }
     .tiny {
       font-size: 12px;
       color: var(--muted);
       line-height: 1.5;
       word-break: break-word;
+    }
+    .order-row-highlight {
+      background: linear-gradient(90deg, #fffbeb 0%, #fff7d6 100%);
+      animation: orderRowPulse 1.2s ease-in-out 3;
+    }
+    @keyframes orderRowPulse {
+      0% { box-shadow: inset 0 0 0 0 rgba(245, 158, 11, 0.2); }
+      50% { box-shadow: inset 0 0 0 9999px rgba(245, 158, 11, 0.12); }
+      100% { box-shadow: inset 0 0 0 0 rgba(245, 158, 11, 0.0); }
     }
     .metric-grid {
       display: grid;
@@ -170,19 +193,241 @@
       color: #475569;
       margin-top: 4px;
     }
+    .koc-tier-progress-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .koc-tier-card {
+      border: 1px solid #dbeafe;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+      padding: 10px 12px;
+    }
+    .koc-tier-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0b2a50;
+    }
+    .koc-tier-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 62%;
+    }
+    .koc-tier-stage {
+      color: #1d4ed8;
+      white-space: nowrap;
+    }
+    .koc-tier-line {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #475569;
+    }
+    .koc-tier-bar {
+      margin-top: 8px;
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      overflow: hidden;
+    }
+    .koc-tier-bar > span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #2563eb 0%, #0ea5e9 100%);
+    }
+    .koc-tier-next {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #1e293b;
+    }
+    .koc-growth-wrap {
+      margin-top: 12px;
+      border: 1px solid #dbeafe;
+      border-radius: 10px;
+      background: #f8fbff;
+      padding: 10px 12px;
+    }
+    .koc-growth-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0b2a50;
+    }
+    .koc-growth-bars {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+    }
+    .koc-growth-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px;
+      min-height: 92px;
+    }
+    .koc-growth-month {
+      font-size: 12px;
+      color: #334155;
+      font-weight: 700;
+    }
+    .koc-growth-bar-bg {
+      margin-top: 6px;
+      height: 7px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      overflow: hidden;
+    }
+    .koc-growth-bar-bg > span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #38bdf8 0%, #2563eb 100%);
+    }
+    .koc-growth-meta {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #475569;
+      line-height: 1.45;
+    }
     .failure-table table {
       min-width: 780px;
+    }
+    .koc-table table {
+      min-width: 1280px;
+    }
+    .koc-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .btn-mini {
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #0b2a50;
+      padding: 0 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btn-mini.primary {
+      background: #eff6ff;
+      border-color: #93c5fd;
+      color: #1d4ed8;
+    }
+    .btn-mini.good {
+      background: #ecfdf3;
+      border-color: #bbf7d0;
+      color: #166534;
+    }
+    .btn-mini.bad {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #991b1b;
+    }
+    .koc-builder-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      resize: vertical;
+      min-height: 110px;
+    }
+    .koc-link-table table {
+      min-width: 1100px;
+    }
+    .head-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .lang-switch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .lang-switch select {
+      min-width: 140px;
+      height: 36px;
+    }
+    .board-card-tools {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .board-card-tools .tool-order {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .board-card-tools .tool-order input {
+      width: 62px;
+      height: 30px;
+      border-radius: 8px;
+      padding: 0 8px;
+      font-size: 13px;
+    }
+    .board-card-tools .tool-export {
+      height: 30px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 600;
+    }
+    .board-card-tools .tool-export:hover {
+      background: #dbeafe;
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="card">
-      <h1>Support Order Console</h1>
-      <div class="muted">
+    <div class="card" id="consoleHeaderCard">
+      <div class="head-row">
+        <h1 id="pageTitle">Support Order Console</h1>
+        <div class="lang-switch">
+          <span id="langLabel" class="tiny">Language</span>
+          <select id="langSelect">
+            <option value="zh">Chinese</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+      </div>
+      <div class="muted" id="pageIntro">
         Backend truth source: payment gateway + order status only.
         Manual order page:
-        <a href="/support-manual-order.html" target="_blank" rel="noopener">/support-manual-order.html</a>
+        <a id="manualPageLink" href="/support-manual-order.html" target="_blank" rel="noopener">/support-manual-order.html</a>
       </div>
       <div class="row">
         <input id="adminTokenInput" type="password" style="min-width:280px;flex:1;" placeholder="ADMIN_DASHBOARD_TOKEN" />
@@ -204,49 +449,287 @@
       <div id="statusBar" class="status-bar">Save admin token first.</div>
     </div>
 
-    <div class="card">
-      <h2>支付成功率看板</h2>
+    <div class="card board-card" id="kocBuilderCard" data-card-key="koc_builder">
+      <h2 id="kocBuilderTitle">KOC Batch Link + QR Generator</h2>
+      <div id="kocBuilderHint" class="muted" style="margin-top:6px;">
+        One KOC per line. Supports comma or tab split. Format: <code>name,koc_id,content_id,koc_code,parent_koc_id(optional)</code>
+      </div>
+      <div class="koc-builder-grid">
+        <input id="kocBuilderBaseUrl" type="text" placeholder="Site origin, e.g. https://tengyunzi.com" value="https://tengyunzi.com" />
+        <input id="kocBuilderLandingPath" type="text" placeholder="Landing path, e.g. /" value="/" />
+        <input id="kocBuilderChannel" type="text" placeholder="Channel, e.g. xiaohongshu / douyin" value="xiaohongshu" />
+      </div>
+      <div class="row">
+        <textarea id="kocBuilderInput" placeholder="Example:
+LinLin,koc_linlin01,note_0317,LL01,koc_team_a
+Momo,koc_momo02,note_0318,MM02,"></textarea>
+      </div>
+      <div class="row">
+        <button class="primary" id="kocBuilderGenerateBtn">Generate Links + QR</button>
+        <button id="kocBuilderCopyAllBtn">Copy All Links</button>
+      </div>
+      <div id="kocBuilderStatus" class="tiny" style="margin-top:8px;">Waiting to generate.</div>
+      <div class="table-wrap koc-link-table" style="margin-top:10px;">
+        <table>
+          <thead>
+            <tr>
+              <th id="kocColName">Name</th>
+              <th id="kocColId">KOC ID</th>
+              <th id="kocColLink">Link</th>
+              <th id="kocColQr">QR</th>
+              <th id="kocColAction">Action</th>
+            </tr>
+          </thead>
+          <tbody id="kocBuilderTbody">
+            <tr><td colspan="5" class="tiny">No data</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card board-card" id="funnelCard" data-card-key="funnel">
+      <h2>Payment Funnel Dashboard</h2>
       <div class="muted" style="margin-top:6px;">
-        追踪关键节点：下单 → 拉起支付 → 支付完成 → 校验成功 → 交付成功。
+        Track key steps: order created -> payment page opened -> paid -> verified -> delivered.
       </div>
       <div class="row">
         <select id="funnelDaysSelect">
-          <option value="7" selected>最近 7 天</option>
-          <option value="14">最近 14 天</option>
-          <option value="30">最近 30 天</option>
+          <option value="7" selected>Last 7 days</option>
+          <option value="14">Last 14 days</option>
+          <option value="30">Last 30 days</option>
         </select>
-        <button class="primary" id="funnelRefreshBtn">刷新看板</button>
+        <button class="primary" id="funnelRefreshBtn">Refresh Funnel</button>
       </div>
-      <div id="funnelMeta" class="tiny" style="margin-top:8px;">暂无统计数据</div>
+      <div id="funnelMeta" class="tiny" style="margin-top:8px;">No stats yet.</div>
       <div id="funnelMetricGrid" class="metric-grid">
-        <div class="metric-card"><div class="metric-label">总订单</div><div class="metric-value">-</div><div class="metric-sub">等待加载</div></div>
-        <div class="metric-card"><div class="metric-label">拉起支付</div><div class="metric-value">-</div><div class="metric-sub">等待加载</div></div>
-        <div class="metric-card"><div class="metric-label">支付成功</div><div class="metric-value">-</div><div class="metric-sub">等待加载</div></div>
-        <div class="metric-card"><div class="metric-label">校验成功</div><div class="metric-value">-</div><div class="metric-sub">等待加载</div></div>
-        <div class="metric-card"><div class="metric-label">交付成功</div><div class="metric-value">-</div><div class="metric-sub">等待加载</div></div>
-        <div class="metric-card"><div class="metric-label">总转化率</div><div class="metric-value">-</div><div class="metric-sub">下单→交付</div></div>
+        <div class="metric-card"><div class="metric-label">Total Orders</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+        <div class="metric-card"><div class="metric-label">Payment Opened</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+        <div class="metric-card"><div class="metric-label">Paid</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+        <div class="metric-card"><div class="metric-label">Verified</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+        <div class="metric-card"><div class="metric-label">Delivered</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+        <div class="metric-card"><div class="metric-label">Overall CVR</div><div class="metric-value">-</div><div class="metric-sub">Order -> Delivered</div></div>
+      </div>
+      <div class="table-wrap" style="margin-top:12px;">
+        <table>
+          <thead>
+            <tr>
+              <th>A/B Variant</th>
+              <th>Total Orders</th>
+              <th>Paid</th>
+              <th>Delivered</th>
+              <th>Order -> Paid</th>
+              <th>Order -> Delivered</th>
+            </tr>
+          </thead>
+          <tbody id="funnelAbTbody">
+            <tr><td colspan="6" class="tiny">No A/B data</td></tr>
+          </tbody>
+        </table>
       </div>
 
       <div class="table-wrap failure-table" style="margin-top:12px;">
         <table>
           <thead>
             <tr>
-              <th>问题类型</th>
+              <th>Issue</th>
               <th>Trade No</th>
-              <th>服务</th>
-              <th>创建时间</th>
-              <th>耗时(分钟)</th>
-              <th>支付状态</th>
+              <th>Service</th>
+              <th>Created At</th>
+              <th>Age (min)</th>
+              <th>Payment</th>
             </tr>
           </thead>
           <tbody id="funnelFailureTbody">
-            <tr><td colspan="6" class="tiny">暂无异常订单</td></tr>
+            <tr><td colspan="6" class="tiny">No abnormal orders</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <div class="card">
+
+    <div class="card board-card" id="trafficCard" data-card-key="traffic">
+      <h2 id="trafficTitle">Traffic Dashboard</h2>
+      <div class="muted" style="margin-top:6px;" id="trafficHint">
+        View visits, masked IP, and device type for key pages.
+      </div>
+      <div class="row">
+        <select id="trafficHoursSelect">
+          <option value="1">Last 1 hour</option>
+          <option value="6">Last 6 hours</option>
+          <option value="24" selected>Last 24 hours</option>
+          <option value="72">Last 72 hours</option>
+          <option value="168">Last 7 days</option>
+        </select>
+        <button class="primary" id="trafficRefreshBtn">Refresh Traffic</button>
+      </div>
+      <div id="trafficMeta" class="tiny" style="margin-top:8px;">No traffic data yet.</div>
+      <div id="trafficMetricGrid" class="metric-grid">
+        <div class="metric-card"><div class="metric-label">Total Visits</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+        <div class="metric-card"><div class="metric-label">Unique IP</div><div class="metric-value">-</div><div class="metric-sub">Masked IP count</div></div>
+        <div class="metric-card"><div class="metric-label">Unique Visitors</div><div class="metric-value">-</div><div class="metric-sub">By visitor id</div></div>
+        <div class="metric-card"><div class="metric-label">Mobile</div><div class="metric-value">-</div><div class="metric-sub">Device split</div></div>
+        <div class="metric-card"><div class="metric-label">Desktop</div><div class="metric-value">-</div><div class="metric-sub">Device split</div></div>
+        <div class="metric-card"><div class="metric-label">Bot</div><div class="metric-value">-</div><div class="metric-sub">Crawler / script</div></div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:12px;">
+        <table>
+          <thead>
+            <tr>
+              <th id="trafficPageColPath">Page</th>
+              <th id="trafficPageColCount">Visits</th>
+              <th id="trafficPageColIp">Unique IP</th>
+            </tr>
+          </thead>
+          <tbody id="trafficPageTbody">
+            <tr><td colspan="3" class="tiny">No page stats</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap" style="margin-top:12px;">
+        <table>
+          <thead>
+            <tr>
+              <th id="trafficRecentColTime">Time</th>
+              <th id="trafficRecentColPage">Page</th>
+              <th id="trafficRecentColIp">IP</th>
+              <th id="trafficRecentColDevice">Device</th>
+              <th id="trafficRecentColLang">Lang</th>
+              <th id="trafficRecentColUa">User-Agent</th>
+            </tr>
+          </thead>
+          <tbody id="trafficRecentTbody">
+            <tr><td colspan="6" class="tiny">No visit logs</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card board-card" id="overallSettlementCard" data-card-key="overall_settlement">
+      <h2 id="settlementOverviewTitle">Overall Settlement Dashboard</h2>
+      <div class="muted" style="margin-top:6px;" id="settlementOverviewHint">
+        全站结算总览：净利润 = GMV - 支付平台费(2%) - KOC佣金（按档位）。
+      </div>
+      <div class="row">
+        <select id="settlementDaysSelect">
+          <option value="7">Last 7 days</option>
+          <option value="30" selected>Last 30 days</option>
+          <option value="60">Last 60 days</option>
+          <option value="90">Last 90 days</option>
+        </select>
+        <button class="primary" id="settlementRefreshBtn">Refresh Settlement</button>
+      </div>
+      <div id="settlementMeta" class="tiny" style="margin-top:8px;">No settlement data.</div>
+      <div id="settlementMetricGrid" class="metric-grid">
+        <div class="metric-card"><div class="metric-label">Total Orders</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+        <div class="metric-card"><div class="metric-label">Paid Orders</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+        <div class="metric-card"><div class="metric-label">Delivered</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+        <div class="metric-card"><div class="metric-label">Paid GMV</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+        <div class="metric-card"><div class="metric-label">Paid Not Delivered</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+        <div class="metric-card"><div class="metric-label">Paid -> Delivered Rate</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+      </div>
+      <div class="table-wrap" style="margin-top:12px;">
+        <table>
+          <thead>
+            <tr>
+              <th id="settlementSvcColName">Service</th>
+              <th id="settlementSvcColTotal">Total Orders</th>
+              <th id="settlementSvcColPaid">Paid</th>
+              <th id="settlementSvcColDelivered">Delivered</th>
+              <th id="settlementSvcColGmv">Paid GMV</th>
+              <th id="settlementSvcColRate">Paid -> Delivered</th>
+            </tr>
+          </thead>
+          <tbody id="settlementServiceTbody">
+            <tr><td colspan="6" class="tiny">No service settlement data</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card board-card" id="kocSettlementCard" data-card-key="koc_settlement">
+      <h2>KOC Settlement Dashboard</h2>
+      <div class="muted" style="margin-top:6px;">
+        Attribution source uses `koc_id/channel/content_id` stored in order `birth_input`.
+        Update settlement status here for monthly reconciliation.
+      </div>
+      <div class="row">
+        <select id="kocDaysSelect">
+          <option value="7">Last 7 days</option>
+          <option value="30" selected>Last 30 days</option>
+          <option value="60">Last 60 days</option>
+          <option value="90">Last 90 days</option>
+        </select>
+        <input id="kocIdFilterInput" type="text" style="min-width:180px;" placeholder="koc_id (optional)" />
+        <input id="kocChannelFilterInput" type="text" style="min-width:180px;" placeholder="channel (optional)" />
+        <select id="kocStatusSelect">
+          <option value="">All settlement</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="paid">Paid</option>
+          <option value="disputed">Disputed</option>
+          <option value="invalid">Invalid</option>
+          <option value="unpaid">Unpaid</option>
+        </select>
+        <select id="kocRoleSelect">
+          <option value="">All roles</option>
+          <option value="direct">Direct</option>
+          <option value="parent">Parent</option>
+        </select>
+        <button class="primary" id="kocRefreshBtn">Refresh KOC</button>
+      </div>
+      <div class="row">
+        <button class="btn-mini primary" id="kocBatchApproveBtn">Batch Approve (Filtered)</button>
+        <button class="btn-mini good" id="kocBatchPaidBtn">Batch Mark Paid (Delivered)</button>
+        <button class="btn-mini bad" id="kocBatchInvalidBtn">Batch Invalid (Filtered)</button>
+        <button id="kocExportCsvBtn">Export Settlement CSV</button>
+        <button id="kocExportGrowthBtn">Export Growth Excel</button>
+      </div>
+      <div id="kocBatchHint" class="tiny" style="margin-top:4px;">
+        Batch action uses current filter and only updates eligible orders.
+      </div>
+      <div id="kocMeta" class="tiny" style="margin-top:8px;">No KOC data.</div>
+      <div id="kocMetricGrid" class="metric-grid">
+        <div class="metric-card"><div class="metric-label">Attributed Orders</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+        <div class="metric-card"><div class="metric-label">Paid Orders</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+        <div class="metric-card"><div class="metric-label">Delivered</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+        <div class="metric-card"><div class="metric-label">Paid GMV</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+        <div class="metric-card"><div class="metric-label">Commission Pending</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+        <div class="metric-card"><div class="metric-label">Commission Paid</div><div class="metric-value">-</div><div class="metric-sub">Waiting</div></div>
+      </div>
+      <div id="kocTierProgress" class="koc-tier-progress-grid">
+        <div class="tiny">No KOC tier progress data.</div>
+      </div>
+      <div id="kocGrowthWrap" class="koc-growth-wrap">
+        <div class="tiny">Enter a `koc_id` above to view monthly growth chart.</div>
+      </div>
+      <div class="table-wrap koc-table" style="margin-top:12px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Created</th>
+              <th>Trade No</th>
+              <th>KOC Name / ID</th>
+              <th>Role</th>
+              <th>Channel</th>
+              <th>Service</th>
+              <th>Tier</th>
+              <th>Paid</th>
+              <th>Delivered</th>
+              <th>GMV</th>
+              <th>Commission</th>
+              <th>Settlement</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="kocOrderTbody">
+            <tr><td colspan="13" class="tiny">No KOC orders</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card board-card" id="orderListCard" data-card-key="orders">
       <div class="muted">
         If customer says "paid but no report", click "Verify + Trigger", then ask customer to reopen order result page.
       </div>
@@ -257,18 +740,19 @@
               <th>Created At</th>
               <th>Trade No</th>
               <th>Tier/Fee</th>
-              <th>Paid</th>
-              <th>Report</th>
-              <th>Birth Info</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="orderTbody">
-            <tr><td colspan="7" class="tiny">No data</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+	              <th>Paid</th>
+	              <th>Report</th>
+	              <th>Birth Info</th>
+	              <th id="orderColConsult">Consult Intake</th>
+	              <th>Action</th>
+	            </tr>
+	          </thead>
+	          <tbody id="orderTbody">
+	            <tr><td colspan="8" class="tiny">No data</td></tr>
+	          </tbody>
+	        </table>
+	      </div>
+	    </div>
   </div>
 
   <script>
@@ -280,8 +764,138 @@
     const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
     const ADMIN_TOOL_URL = `${SUPABASE_URL}/functions/v1/admin-orders`;
     const ADMIN_TOKEN_KEY = 'bazi_support_admin_token';
+	    const ADMIN_LANG_KEY = 'support_admin_lang_v1';
+	    const KOC_BUILDER_CACHE_KEY = 'koc_builder_cache_v1';
+	    const CARD_ORDER_KEY = 'support_card_order_v1';
+	    const SUPPORT_ORDER_FOCUS_KEY = 'bazi_support_focus_trade_no';
+	    const CONSULT_RECENT_HIGHLIGHT_MINUTES = 180;
+	    const LANG_TEXT = {
+	      zh: {
+	        pageTitle: '后台订单管理台',
+	        langLabel: '语言',
+	        pageIntroPrefix: '后台真实数据来源：支付网关 + 订单状态。手动补单页面：',
+	        saveTokenBtn: '保存 Token（当前会话）',
+	        tradeNoPlaceholder: 'trade_no，例如 bazi-xxxx-177...',
+	        verifyBtn: '核验并触发',
+	        verifySummaryBtn: '反诈摘要',
+	        copyTradeBtn: '复制订单号',
+	        refreshAllBtn: '刷新全部',
+	        statusSaveTokenFirst: '请先保存管理员 Token。',
+	        kocBuilderTitle: 'KOC 批量链接 / 二维码生成',
+	        kocBuilderHint: '每行一个 KOC，支持逗号或 Tab 分隔，格式：name,koc_id,content_id,koc_code,parent_koc_id(可选)',
+	        kocBasePlaceholder: '站点域名，例如 https://tengyunzi.com',
+	        kocPathPlaceholder: '落地路径，例如 /',
+	        kocChannelPlaceholder: '渠道，例如 xiaohongshu / douyin',
+	        kocInputPlaceholder: '示例:\nLinLin,koc_linlin01,note_0317,LL01,koc_team_a\nMomo,koc_momo02,note_0318,MM02,',
+	        kocGenBtn: '生成链接 + 二维码',
+	        kocCopyAllBtn: '复制全部链接',
+	        kocWaiting: '等待生成。',
+	        kocColName: '名称',
+	        kocColId: 'KOC ID',
+	        kocColLink: '链接',
+	        kocColQr: '二维码',
+	        kocColAction: '操作',
+	        kocNoData: '暂无数据',
+	        funnelTitle: '支付漏斗看板',
+	        funnelHint: '追踪关键步骤：下单 -> 打开支付 -> 已支付 -> 已核验 -> 已交付。',
+	        funnelRefreshBtn: '刷新漏斗',
+	        funnelNoData: '暂无统计。',
+	        trafficTitle: '访问统计看板',
+	        trafficHint: '查看访问量、访问 IP（脱敏）与访问设备类型。',
+	        trafficRefreshBtn: '刷新访问统计',
+	        trafficNoData: '暂无访问数据。',
+	        kocDashboardTitle: 'KOC 结算看板',
+	        kocDashboardHint: '订单 birth_input 中的 koc_id/channel/content_id 作为归因来源，可在此更新结算状态。',
+	        kocRefreshBtn: '刷新 KOC',
+	        orderHint: '若客户反馈“已付款但无报告”，请点“核验并触发”，再让客户重新打开结果页。',
+	        yes: '是',
+	        no: '否',
+	        paid: '已支付',
+	        unpaid: '未支付',
+	        ready: '已生成',
+	        pending: '待生成',
+	        copyLink: '复制链接',
+	        delete: '删除',
+	        viewQr: '查看二维码',
+	        openQr: '打开二维码',
+	        trafficPageNoData: '暂无页面统计',
+	        trafficRecentNoData: '暂无访问日志',
+	        trafficTopPagesEmpty: '暂无页面访问数据',
+	        trafficRecentEmpty: '暂无最近访问记录',
+	      },
+      en: {
+        pageTitle: 'Support Order Console',
+        langLabel: 'Language',
+        pageIntroPrefix: 'Backend truth source: payment gateway + order status only. Manual order page:',
+        saveTokenBtn: 'Save Token (Session)',
+        tradeNoPlaceholder: 'trade_no, e.g. bazi-xxxx-177...',
+        verifyBtn: 'Verify + Trigger',
+        verifySummaryBtn: 'Anti-Fraud Summary',
+        copyTradeBtn: 'Copy Trade No',
+        refreshAllBtn: 'Refresh All',
+        statusSaveTokenFirst: 'Save admin token first.',
+        kocBuilderTitle: 'KOC Batch Link + QR Generator',
+        kocBuilderHint: 'One KOC per line. Supports comma or tab split. Format: name,koc_id,content_id,koc_code,parent_koc_id(optional)',
+        kocBasePlaceholder: 'Site origin, e.g. https://tengyunzi.com',
+        kocPathPlaceholder: 'Landing path, e.g. /',
+        kocChannelPlaceholder: 'Channel, e.g. xiaohongshu / douyin',
+        kocInputPlaceholder: 'Example:\nLinLin,koc_linlin01,note_0317,LL01,koc_team_a\nMomo,koc_momo02,note_0318,MM02,',
+        kocGenBtn: 'Generate Links + QR',
+        kocCopyAllBtn: 'Copy All Links',
+        kocWaiting: 'Waiting to generate.',
+        kocColName: 'Name',
+        kocColId: 'KOC ID',
+        kocColLink: 'Link',
+        kocColQr: 'QR',
+        kocColAction: 'Action',
+        kocNoData: 'No data',
+        funnelTitle: 'Payment Funnel Dashboard',
+        funnelHint: 'Track key steps: order created -> payment page opened -> paid -> verified -> delivered.',
+        funnelRefreshBtn: 'Refresh Funnel',
+        funnelNoData: 'No stats yet.',
+        trafficTitle: 'Traffic Dashboard',
+        trafficHint: 'View visits, masked IP, and device type for key pages.',
+        trafficRefreshBtn: 'Refresh Traffic',
+        trafficNoData: 'No traffic data yet.',
+        settlementOverviewTitle: 'Overall Settlement Dashboard',
+        settlementOverviewHint: 'Net Profit = GMV - Platform Fee (2%) - KOC Commission (tier based).',
+        settlementRefreshBtn: 'Refresh Settlement',
+        settlementNoData: 'No settlement data.',
+        settlementServiceNoData: 'No service settlement data',
+        kocDashboardTitle: 'KOC Settlement Dashboard',
+        kocDashboardHint: 'Attribution source uses koc_id/channel/content_id stored in order birth_input. Update settlement status here.',
+        kocRefreshBtn: 'Refresh KOC',
+        kocNoData: 'No KOC data.',
+        orderHint: 'If customer says "paid but no report", click "Verify + Trigger", then ask customer to reopen order result page.',
+        yes: 'YES',
+        no: 'NO',
+        paid: 'Paid',
+        unpaid: 'Unpaid',
+        ready: 'Ready',
+        pending: 'Pending',
+        copyLink: 'Copy Link',
+        delete: 'Delete',
+        viewQr: 'View QR',
+        openQr: 'Open QR',
+        trafficPageNoData: 'No page stats',
+        trafficRecentNoData: 'No visit logs',
+        trafficTopPagesEmpty: 'No page traffic',
+        trafficRecentEmpty: 'No recent visits',
+        cardMoveUp: 'Move Up',
+        cardMoveDown: 'Move Down',
+        cardOrderLabel: 'Order',
+        cardExportExcel: 'Export Excel',
+        cardExportNoTable: 'No table found in this section.',
+        cardExportDone: 'Exported: {name}',
+      },
+    };
 
     const adminTokenInput = document.getElementById('adminTokenInput');
+    const langSelect = document.getElementById('langSelect');
+    const pageTitleEl = document.getElementById('pageTitle');
+    const langLabelEl = document.getElementById('langLabel');
+    const pageIntroEl = document.getElementById('pageIntro');
+    const manualPageLink = document.getElementById('manualPageLink');
     const saveAdminTokenBtn = document.getElementById('saveAdminTokenBtn');
     const tradeNoInput = document.getElementById('tradeNoInput');
     const verifyOneBtn = document.getElementById('verifyOneBtn');
@@ -293,11 +907,530 @@
     const funnelMeta = document.getElementById('funnelMeta');
     const funnelMetricGrid = document.getElementById('funnelMetricGrid');
     const funnelFailureTbody = document.getElementById('funnelFailureTbody');
-    const statusBar = document.getElementById('statusBar');
-    const orderTbody = document.getElementById('orderTbody');
+    const funnelAbTbody = document.getElementById('funnelAbTbody');
+    const settlementDaysSelect = document.getElementById('settlementDaysSelect');
+    const settlementRefreshBtn = document.getElementById('settlementRefreshBtn');
+	    const settlementMeta = document.getElementById('settlementMeta');
+	    const settlementMetricGrid = document.getElementById('settlementMetricGrid');
+	    const settlementServiceTbody = document.getElementById('settlementServiceTbody');
+    const settlementOverviewTitleEl = document.getElementById('settlementOverviewTitle');
+    const settlementOverviewHintEl = document.getElementById('settlementOverviewHint');
+    const settlementSvcColName = document.getElementById('settlementSvcColName');
+    const settlementSvcColTotal = document.getElementById('settlementSvcColTotal');
+    const settlementSvcColPaid = document.getElementById('settlementSvcColPaid');
+    const settlementSvcColDelivered = document.getElementById('settlementSvcColDelivered');
+    const settlementSvcColGmv = document.getElementById('settlementSvcColGmv');
+    const settlementSvcColRate = document.getElementById('settlementSvcColRate');
+	    const statusBar = document.getElementById('statusBar');
+	    const orderTbody = document.getElementById('orderTbody');
+	    const orderColConsult = document.getElementById('orderColConsult');
+	    const kocDaysSelect = document.getElementById('kocDaysSelect');
+    const kocIdFilterInput = document.getElementById('kocIdFilterInput');
+    const kocChannelFilterInput = document.getElementById('kocChannelFilterInput');
+    const kocStatusSelect = document.getElementById('kocStatusSelect');
+    const kocRoleSelect = document.getElementById('kocRoleSelect');
+    const kocRefreshBtn = document.getElementById('kocRefreshBtn');
+    const kocBatchApproveBtn = document.getElementById('kocBatchApproveBtn');
+    const kocBatchPaidBtn = document.getElementById('kocBatchPaidBtn');
+    const kocBatchInvalidBtn = document.getElementById('kocBatchInvalidBtn');
+    const kocExportCsvBtn = document.getElementById('kocExportCsvBtn');
+    const kocExportGrowthBtn = document.getElementById('kocExportGrowthBtn');
+    const kocBatchHint = document.getElementById('kocBatchHint');
+    const kocMeta = document.getElementById('kocMeta');
+    const kocMetricGrid = document.getElementById('kocMetricGrid');
+    const kocTierProgress = document.getElementById('kocTierProgress');
+    const kocGrowthWrap = document.getElementById('kocGrowthWrap');
+    const kocOrderTbody = document.getElementById('kocOrderTbody');
+    const kocBuilderBaseUrl = document.getElementById('kocBuilderBaseUrl');
+    const kocBuilderLandingPath = document.getElementById('kocBuilderLandingPath');
+    const kocBuilderChannel = document.getElementById('kocBuilderChannel');
+    const kocBuilderInput = document.getElementById('kocBuilderInput');
+    const kocBuilderGenerateBtn = document.getElementById('kocBuilderGenerateBtn');
+    const kocBuilderCopyAllBtn = document.getElementById('kocBuilderCopyAllBtn');
+    const kocBuilderStatus = document.getElementById('kocBuilderStatus');
+    const kocBuilderTbody = document.getElementById('kocBuilderTbody');
+    const trafficHoursSelect = document.getElementById('trafficHoursSelect');
+    const trafficRefreshBtn = document.getElementById('trafficRefreshBtn');
+    const trafficMeta = document.getElementById('trafficMeta');
+    const trafficMetricGrid = document.getElementById('trafficMetricGrid');
+    const trafficPageTbody = document.getElementById('trafficPageTbody');
+    const trafficRecentTbody = document.getElementById('trafficRecentTbody');
+    const kocBuilderTitleEl = document.getElementById('kocBuilderTitle');
+    const kocBuilderHintEl = document.getElementById('kocBuilderHint');
+    const kocColName = document.getElementById('kocColName');
+    const kocColId = document.getElementById('kocColId');
+    const kocColLink = document.getElementById('kocColLink');
+    const kocColQr = document.getElementById('kocColQr');
+    const kocColAction = document.getElementById('kocColAction');
+    const trafficTitleEl = document.getElementById('trafficTitle');
+    const trafficHintEl = document.getElementById('trafficHint');
+    const trafficPageColPath = document.getElementById('trafficPageColPath');
+    const trafficPageColCount = document.getElementById('trafficPageColCount');
+    const trafficPageColIp = document.getElementById('trafficPageColIp');
+    const trafficRecentColTime = document.getElementById('trafficRecentColTime');
+    const trafficRecentColPage = document.getElementById('trafficRecentColPage');
+    const trafficRecentColIp = document.getElementById('trafficRecentColIp');
+    const trafficRecentColDevice = document.getElementById('trafficRecentColDevice');
+    const trafficRecentColLang = document.getElementById('trafficRecentColLang');
+    const trafficRecentColUa = document.getElementById('trafficRecentColUa');
+    const consoleHeaderCard = document.getElementById('consoleHeaderCard');
+    const kocBuilderCard = document.getElementById('kocBuilderCard');
+    const funnelCard = document.getElementById('funnelCard');
+    const trafficCard = document.getElementById('trafficCard');
+    const overallSettlementCard = document.getElementById('overallSettlementCard');
+    const kocSettlementCard = document.getElementById('kocSettlementCard');
+    const orderListCard = document.getElementById('orderListCard');
+
+    let kocBuilderRows = [];
+    let kocDashboardRows = [];
+    let kocGrowthSnapshot = { koc_id: '', months: [] };
+    let currentLang = 'zh';
+    const OWNER_UA_FINGERPRINTS = [
+      'micromessenger/8.0.69(0x18004539)',
+      'chrome/146.0.0.0 safari/537.36',
+    ];
+
+    function isOwnerUa(uaRaw) {
+      const ua = String(uaRaw || '').toLowerCase();
+      if (!ua) return false;
+      return OWNER_UA_FINGERPRINTS.some((fingerprint) => ua.includes(fingerprint));
+    }
 
     function setStatus(msg) {
       statusBar.textContent = msg;
+    }
+
+    async function copyTextSafe(text) {
+      const value = String(text || '');
+      if (!value) return false;
+      try {
+        await navigator.clipboard.writeText(value);
+        return true;
+      } catch {}
+      try {
+        const input = document.createElement('textarea');
+        input.value = value;
+        input.style.position = 'fixed';
+        input.style.left = '-9999px';
+        document.body.appendChild(input);
+        input.select();
+        const ok = document.execCommand('copy');
+        input.remove();
+        return !!ok;
+      } catch {
+        return false;
+      }
+    }
+
+    function buildAntiFraudSummary(tradeNo, verifyData) {
+      const data = verifyData && typeof verifyData === 'object' ? verifyData : {};
+      const order = data.order && typeof data.order === 'object' ? data.order : {};
+      const reconcile = data.reconcile && typeof data.reconcile === 'object' ? data.reconcile : {};
+      const paid = Boolean(data.paid || order.paid);
+      const reportReady = Boolean(data.analysis_exists || order.analysis_exists);
+      const gatewayStatus = String(order.gateway_status || data.reconcile_status || reconcile.status || '').trim();
+      const gatewayTxn = String(order.gateway_transaction_id || reconcile.transaction_id || '').trim();
+      const gatewayOpenOrder = String(order.gateway_open_order_id || reconcile.open_order_id || '').trim();
+      const paidAt = String(order.payment_paid_at || '').trim();
+      const verifiedAt = String(order.payment_verified_at || '').trim();
+      const optionId = String(order.payment_option_id || '').trim();
+      const birth = order.birth_input && typeof order.birth_input === 'object' ? order.birth_input : {};
+      const paymentOption = birth.payment_option && typeof birth.payment_option === 'object' ? birth.payment_option : {};
+
+      const paidAmount = Number(order.gateway_total_fee || reconcile.total_fee || 0);
+      const expectedAmount = Number(paymentOption.fee || 0);
+      const hasPaidAmount = Number.isFinite(paidAmount) && paidAmount > 0;
+      const hasExpectedAmount = Number.isFinite(expectedAmount) && expectedAmount > 0;
+      const amountMismatch = hasPaidAmount && hasExpectedAmount && Math.abs(paidAmount - expectedAmount) > 0.01;
+
+      let riskLevel = currentLang === 'zh' ? '低风险' : 'LOW';
+      const riskReasons = [];
+      if (!paid) {
+        riskLevel = currentLang === 'zh' ? '高风险' : 'HIGH';
+        riskReasons.push(currentLang === 'zh' ? '订单未支付，不能补发。' : 'Order is unpaid. No delivery should be triggered.');
+      }
+      if (paid && !gatewayTxn) {
+        if (riskLevel !== (currentLang === 'zh' ? '高风险' : 'HIGH')) {
+          riskLevel = currentLang === 'zh' ? '中风险' : 'MEDIUM';
+        }
+        riskReasons.push(currentLang === 'zh' ? '已支付但缺少交易号，建议人工复核。' : 'Paid but gateway transaction id missing. Manual review suggested.');
+      }
+      if (amountMismatch) {
+        riskLevel = currentLang === 'zh' ? '高风险' : 'HIGH';
+        riskReasons.push(
+          currentLang === 'zh'
+            ? `金额不一致：网关 ${paidAmount.toFixed(2)} vs 期望 ${expectedAmount.toFixed(2)}`
+            : `Amount mismatch: gateway ${paidAmount.toFixed(2)} vs expected ${expectedAmount.toFixed(2)}`
+        );
+      }
+
+      const nextAction = !paid
+        ? (currentLang === 'zh' ? '请让客户完成付款后再处理。' : 'Ask customer to complete payment first.')
+        : reportReady
+          ? (currentLang === 'zh' ? '报告已就绪，可让客户继续上次订单查看。' : 'Report ready. Ask customer to continue previous order.')
+          : (currentLang === 'zh' ? '已付款未出报告，建议点击“核验并触发”后等待30-60秒复查。' : 'Paid but report missing. Click verify/trigger then recheck in 30-60s.');
+
+      const lines = [
+        currentLang === 'zh' ? `【反诈核验摘要】订单：${tradeNo}` : `[Anti-Fraud Summary] Trade: ${tradeNo}`,
+        currentLang === 'zh' ? `风险等级：${riskLevel}` : `Risk Level: ${riskLevel}`,
+        currentLang === 'zh' ? `支付状态：${paid ? '已支付' : '未支付'}` : `Paid: ${paid ? 'YES' : 'NO'}`,
+        currentLang === 'zh' ? `报告状态：${reportReady ? '已生成' : '未生成'}` : `Report: ${reportReady ? 'READY' : 'MISSING'}`,
+        currentLang === 'zh' ? `档位：${optionId || '-'}` : `Tier: ${optionId || '-'}`,
+        currentLang === 'zh' ? `交易号：${gatewayTxn || '-'}` : `Txn ID: ${gatewayTxn || '-'}`,
+        currentLang === 'zh' ? `网关订单号：${gatewayOpenOrder || '-'}` : `Gateway Order: ${gatewayOpenOrder || '-'}`,
+        currentLang === 'zh' ? `网关状态：${gatewayStatus || '-'}` : `Gateway Status: ${gatewayStatus || '-'}`,
+        currentLang === 'zh' ? `支付金额：${hasPaidAmount ? `CNY ${paidAmount.toFixed(2)}` : '-'}` : `Gateway Amount: ${hasPaidAmount ? `CNY ${paidAmount.toFixed(2)}` : '-'}`,
+        currentLang === 'zh' ? `应付金额：${hasExpectedAmount ? `CNY ${expectedAmount.toFixed(2)}` : '-'}` : `Expected Amount: ${hasExpectedAmount ? `CNY ${expectedAmount.toFixed(2)}` : '-'}`,
+        currentLang === 'zh' ? `支付时间：${paidAt || '-'}` : `Paid At: ${paidAt || '-'}`,
+        currentLang === 'zh' ? `核验时间：${verifiedAt || '-'}` : `Verified At: ${verifiedAt || '-'}`,
+      ];
+      if (riskReasons.length) {
+        lines.push(currentLang === 'zh' ? '风险说明：' : 'Risk Notes:');
+        riskReasons.forEach((line, idx) => lines.push(`${idx + 1}. ${line}`));
+      }
+      lines.push(currentLang === 'zh' ? `建议动作：${nextAction}` : `Next Action: ${nextAction}`);
+      return lines.join('\n');
+    }
+
+    function getBoardCards() {
+      return Array.from(document.querySelectorAll('.board-card'));
+    }
+
+    function getSavedCardOrder() {
+      const raw = String(localStorage.getItem(CARD_ORDER_KEY) || '');
+      if (!raw) return [];
+      try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed.map((x) => String(x || '').trim()).filter(Boolean) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveCardOrder() {
+      const keys = getBoardCards()
+        .map((card) => String(card.dataset.cardKey || '').trim())
+        .filter(Boolean);
+      localStorage.setItem(CARD_ORDER_KEY, JSON.stringify(keys));
+    }
+
+    function applySavedCardOrder() {
+      const wrap = document.querySelector('.wrap');
+      if (!wrap) return;
+      const cards = getBoardCards();
+      if (!cards.length) return;
+      const byKey = new Map(cards.map((card) => [String(card.dataset.cardKey || '').trim(), card]));
+      const saved = getSavedCardOrder();
+      const ordered = [];
+      for (const key of saved) {
+        const card = byKey.get(key);
+        if (!card) continue;
+        ordered.push(card);
+        byKey.delete(key);
+      }
+      byKey.forEach((card) => ordered.push(card));
+      ordered.forEach((card) => wrap.appendChild(card));
+    }
+
+    function moveBoardCard(card, step) {
+      const wrap = document.querySelector('.wrap');
+      if (!wrap) return;
+      const cards = getBoardCards();
+      const idx = cards.indexOf(card);
+      if (idx < 0) return;
+      const target = idx + step;
+      if (target < 0 || target >= cards.length) return;
+      if (step < 0) {
+        wrap.insertBefore(card, cards[target]);
+      } else {
+        wrap.insertBefore(cards[target], card);
+      }
+      saveCardOrder();
+      renderBoardCardControls();
+    }
+
+    function sortBoardCardByIndex(card, indexZeroBased) {
+      const wrap = document.querySelector('.wrap');
+      if (!wrap) return;
+      const cards = getBoardCards();
+      const from = cards.indexOf(card);
+      if (from < 0) return;
+      const target = Math.max(0, Math.min(cards.length - 1, Number(indexZeroBased) || 0));
+      if (target === from) return;
+      const next = [...cards];
+      next.splice(from, 1);
+      next.splice(target, 0, card);
+      next.forEach((item) => wrap.appendChild(item));
+      saveCardOrder();
+      renderBoardCardControls();
+    }
+
+    function exportBoardCardTables(card) {
+      const tables = Array.from(card.querySelectorAll('table'));
+      if (!tables.length) {
+        setStatus(t('cardExportNoTable'));
+        return;
+      }
+      const title = String(card.querySelector('h2')?.textContent || 'dashboard').trim() || 'dashboard';
+      const stamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12);
+      const fileName = `${title.replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, '_')}-${stamp}.xls`;
+      const body = tables.map((table, idx) => {
+        const clone = table.cloneNode(true);
+        clone.querySelectorAll('button').forEach((btn) => btn.remove());
+        return `<h3>${escapeHtml(title)} #${idx + 1}</h3>${clone.outerHTML}`;
+      }).join('<br/>');
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>${body}</body></html>`;
+      const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setStatus(tFormat('cardExportDone', { name: fileName }));
+    }
+
+    function renderBoardCardControls() {
+      const cards = getBoardCards();
+      cards.forEach((card, index) => {
+        let tools = card.querySelector('.board-card-tools');
+        if (!tools) {
+          tools = document.createElement('div');
+          tools.className = 'board-card-tools';
+          tools.innerHTML = `
+            <button type="button" class="btn-mini" data-role="move-up"></button>
+            <button type="button" class="btn-mini" data-role="move-down"></button>
+            <label class="tool-order">
+              <span data-role="order-label"></span>
+              <input type="number" min="1" step="1" data-role="order-input" />
+            </label>
+            <button type="button" class="tool-export" data-role="export"></button>
+          `;
+          card.insertBefore(tools, card.firstChild);
+
+          const upBtn = tools.querySelector('[data-role="move-up"]');
+          const downBtn = tools.querySelector('[data-role="move-down"]');
+          const exportBtn = tools.querySelector('[data-role="export"]');
+          const orderInput = tools.querySelector('[data-role="order-input"]');
+          upBtn?.addEventListener('click', () => moveBoardCard(card, -1));
+          downBtn?.addEventListener('click', () => moveBoardCard(card, 1));
+          exportBtn?.addEventListener('click', () => exportBoardCardTables(card));
+          orderInput?.addEventListener('change', () => {
+            const nextPos = Math.round(Number(orderInput.value || 1));
+            sortBoardCardByIndex(card, nextPos - 1);
+          });
+          orderInput?.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter') return;
+            event.preventDefault();
+            orderInput.blur();
+          });
+        }
+
+        const upBtn = tools.querySelector('[data-role="move-up"]');
+        const downBtn = tools.querySelector('[data-role="move-down"]');
+        const exportBtn = tools.querySelector('[data-role="export"]');
+        const orderLabel = tools.querySelector('[data-role="order-label"]');
+        const orderInput = tools.querySelector('[data-role="order-input"]');
+        if (upBtn) {
+          upBtn.textContent = t('cardMoveUp');
+          upBtn.disabled = index === 0;
+        }
+        if (downBtn) {
+          downBtn.textContent = t('cardMoveDown');
+          downBtn.disabled = index === cards.length - 1;
+        }
+        if (orderLabel) {
+          orderLabel.textContent = t('cardOrderLabel');
+        }
+        if (orderInput) {
+          orderInput.value = String(index + 1);
+          orderInput.max = String(cards.length);
+        }
+        if (exportBtn) {
+          exportBtn.textContent = t('cardExportExcel');
+        }
+      });
+    }
+
+    function pinSettlementCardsToTop() {
+      const saved = getSavedCardOrder();
+      if (saved.length) return;
+      const wrap = document.querySelector('.wrap');
+      if (!wrap || !consoleHeaderCard || !overallSettlementCard || !kocSettlementCard) return;
+      const anchor = consoleHeaderCard.nextElementSibling;
+      if (anchor === overallSettlementCard && overallSettlementCard.nextElementSibling === kocSettlementCard) return;
+      if (anchor) {
+        wrap.insertBefore(kocSettlementCard, anchor);
+        wrap.insertBefore(overallSettlementCard, kocSettlementCard);
+      } else {
+        wrap.appendChild(overallSettlementCard);
+        wrap.appendChild(kocSettlementCard);
+      }
+    }
+
+    function getSavedLang() {
+      const cached = String(localStorage.getItem(ADMIN_LANG_KEY) || '').toLowerCase();
+      if (cached === 'zh' || cached === 'en') return cached;
+      const htmlLang = String(document.documentElement.getAttribute('lang') || '').toLowerCase();
+      return htmlLang.startsWith('en') ? 'en' : 'zh';
+    }
+
+    function t(key) {
+      const langPack = LANG_TEXT[currentLang] || LANG_TEXT.en;
+      return langPack[key] ?? LANG_TEXT.en[key] ?? key;
+    }
+
+    function tFormat(key, vars = {}) {
+      return String(t(key)).replace(/\{(\w+)\}/g, (_, name) => String(vars?.[name] ?? ''));
+    }
+
+    function setOptions(selectEl, options) {
+      if (!selectEl) return;
+      const currentValue = String(selectEl.value || '');
+      selectEl.innerHTML = options.map((item) => `<option value="${escapeHtml(item.value)}"${item.value === currentValue ? ' selected' : ''}>${escapeHtml(item.label)}</option>`).join('');
+      if (!options.some((x) => x.value === currentValue)) {
+        selectEl.value = options[0]?.value || '';
+      }
+    }
+
+    function applyLanguage() {
+      pageTitleEl.textContent = t('pageTitle');
+      langLabelEl.textContent = t('langLabel');
+      pageIntroEl.innerHTML = `${escapeHtml(t('pageIntroPrefix'))} <a id="manualPageLink" href="/support-manual-order.html" target="_blank" rel="noopener">/support-manual-order.html</a>`;
+      saveAdminTokenBtn.textContent = t('saveTokenBtn');
+      tradeNoInput.placeholder = t('tradeNoPlaceholder');
+      verifyOneBtn.textContent = t('verifyBtn');
+      copyOneBtn.textContent = t('copyTradeBtn');
+      refreshBtn.textContent = t('refreshAllBtn');
+      kocBuilderTitleEl.textContent = t('kocBuilderTitle');
+      kocBuilderHintEl.innerHTML = `${escapeHtml(t('kocBuilderHint'))} <code>name,koc_id,content_id,koc_code,parent_koc_id(optional)</code>`;
+      kocBuilderBaseUrl.placeholder = t('kocBasePlaceholder');
+      kocBuilderLandingPath.placeholder = t('kocPathPlaceholder');
+      kocBuilderChannel.placeholder = t('kocChannelPlaceholder');
+      kocBuilderInput.placeholder = t('kocInputPlaceholder');
+      kocBuilderGenerateBtn.textContent = t('kocGenBtn');
+      kocBuilderCopyAllBtn.textContent = t('kocCopyAllBtn');
+      if (!kocBuilderRows.length) kocBuilderStatus.textContent = t('kocWaiting');
+      kocColName.textContent = t('kocColName');
+      kocColId.textContent = t('kocColId');
+      kocColLink.textContent = t('kocColLink');
+      kocColQr.textContent = t('kocColQr');
+      kocColAction.textContent = t('kocColAction');
+      trafficTitleEl.textContent = t('trafficTitle');
+      trafficHintEl.textContent = t('trafficHint');
+      trafficRefreshBtn.textContent = t('trafficRefreshBtn');
+      settlementOverviewTitleEl.textContent = t('settlementOverviewTitle');
+      settlementOverviewHintEl.textContent = t('settlementOverviewHint');
+      settlementRefreshBtn.textContent = t('settlementRefreshBtn');
+      settlementSvcColName.textContent = currentLang === 'zh' ? '服务' : 'Service';
+      settlementSvcColTotal.textContent = currentLang === 'zh' ? '总订单' : 'Total Orders';
+      settlementSvcColPaid.textContent = currentLang === 'zh' ? '已支付' : 'Paid';
+      settlementSvcColDelivered.textContent = currentLang === 'zh' ? '已交付' : 'Delivered';
+      settlementSvcColGmv.textContent = currentLang === 'zh' ? '支付 GMV' : 'Paid GMV';
+      settlementSvcColRate.textContent = currentLang === 'zh' ? '支付 -> 交付' : 'Paid -> Delivered';
+      trafficPageColPath.textContent = currentLang === 'zh' ? '页面' : 'Page';
+      trafficPageColCount.textContent = currentLang === 'zh' ? '访问量' : 'Visits';
+      trafficPageColIp.textContent = currentLang === 'zh' ? '独立IP' : 'Unique IP';
+      trafficRecentColTime.textContent = currentLang === 'zh' ? '时间' : 'Time';
+      trafficRecentColPage.textContent = currentLang === 'zh' ? '页面' : 'Page';
+      trafficRecentColIp.textContent = 'IP';
+      trafficRecentColDevice.textContent = currentLang === 'zh' ? '设备' : 'Device';
+      trafficRecentColLang.textContent = currentLang === 'zh' ? '语言' : 'Lang';
+      trafficRecentColUa.textContent = 'User-Agent';
+
+      const funnelCard = funnelRefreshBtn.closest('.card');
+      const funnelTitle = funnelCard?.querySelector('h2');
+      const funnelHint = funnelCard?.querySelector('.muted');
+      if (funnelTitle) funnelTitle.textContent = t('funnelTitle');
+      if (funnelHint) funnelHint.textContent = t('funnelHint');
+      funnelRefreshBtn.textContent = t('funnelRefreshBtn');
+
+      const kocCard = kocRefreshBtn.closest('.card');
+      const kocTitle = kocCard?.querySelector('h2');
+      const kocHint = kocCard?.querySelector('.muted');
+      if (kocTitle) kocTitle.textContent = t('kocDashboardTitle');
+      if (kocHint) kocHint.textContent = t('kocDashboardHint');
+      kocRefreshBtn.textContent = t('kocRefreshBtn');
+      if (kocBatchApproveBtn) kocBatchApproveBtn.textContent = currentLang === 'zh' ? '\u6279\u91cf\u5ba1\u6838\uff08\u5f53\u524d\u7b5b\u9009\uff09' : 'Batch Approve (Filtered)';
+      if (kocBatchPaidBtn) kocBatchPaidBtn.textContent = currentLang === 'zh' ? '\u6279\u91cf\u6807\u8bb0\u6253\u6b3e\uff08\u5df2\u4ea4\u4ed8\uff09' : 'Batch Mark Paid (Delivered)';
+      if (kocBatchInvalidBtn) kocBatchInvalidBtn.textContent = currentLang === 'zh' ? '\u6279\u91cf\u6807\u8bb0\u65e0\u6548\uff08\u5f53\u524d\u7b5b\u9009\uff09' : 'Batch Invalid (Filtered)';
+      if (kocExportCsvBtn) kocExportCsvBtn.textContent = currentLang === 'zh' ? '\u5bfc\u51fa\u7ed3\u7b97 CSV' : 'Export Settlement CSV';
+      if (kocExportGrowthBtn) kocExportGrowthBtn.textContent = currentLang === 'zh' ? '导出成长 Excel' : 'Export Growth Excel';
+      if (kocBatchHint) kocBatchHint.textContent = currentLang === 'zh'
+        ? '\u6279\u91cf\u64cd\u4f5c\u57fa\u4e8e\u5f53\u524d\u7b5b\u9009\u7ed3\u679c\uff0c\u53ea\u66f4\u65b0\u7b26\u5408\u6761\u4ef6\u7684\u8ba2\u5355\u3002'
+        : 'Batch action uses current filter and only updates eligible orders.';
+
+      const orderHintEl = orderTbody.closest('.card')?.querySelector('.muted');
+      if (orderHintEl) orderHintEl.textContent = t('orderHint');
+      if (orderColConsult) orderColConsult.textContent = currentLang === 'zh' ? '预约信息' : 'Consult Intake';
+      if (funnelMeta.dataset.loaded !== '1') funnelMeta.textContent = t('funnelNoData');
+      if (settlementMeta.dataset.loaded !== '1') settlementMeta.textContent = t('settlementNoData');
+      if (kocMeta.dataset.loaded !== '1') kocMeta.textContent = t('kocNoData');
+      if (kocTierProgress && kocTierProgress.dataset.loaded !== '1') {
+        kocTierProgress.innerHTML = `<div class="tiny">${currentLang === 'zh' ? '暂无 KOC 档位进度数据。' : 'No KOC tier progress data yet.'}</div>`;
+      }
+      if (kocGrowthWrap && kocGrowthWrap.dataset.loaded !== '1') {
+        kocGrowthWrap.innerHTML = `<div class="tiny">${currentLang === 'zh' ? '请先输入 koc_id 后查看按月成长图。' : 'Enter koc_id above to view monthly growth chart.'}</div>`;
+      }
+      if (trafficMeta.dataset.loaded !== '1') trafficMeta.textContent = t('trafficNoData');
+      if (!kocBuilderRows.length) kocBuilderTbody.innerHTML = `<tr><td colspan="5" class="tiny">${escapeHtml(t('kocNoData'))}</td></tr>`;
+      if (settlementServiceTbody.dataset.loaded !== '1') settlementServiceTbody.innerHTML = `<tr><td colspan="6" class="tiny">${escapeHtml(t('settlementServiceNoData'))}</td></tr>`;
+      if (trafficPageTbody.dataset.loaded !== '1') trafficPageTbody.innerHTML = `<tr><td colspan="3" class="tiny">${escapeHtml(t('trafficPageNoData'))}</td></tr>`;
+      if (trafficRecentTbody.dataset.loaded !== '1') trafficRecentTbody.innerHTML = `<tr><td colspan="6" class="tiny">${escapeHtml(t('trafficRecentNoData'))}</td></tr>`;
+
+      setOptions(limitSelect, [
+        { value: '20', label: currentLang === 'zh' ? '最近 20 条' : 'Last 20' },
+        { value: '50', label: currentLang === 'zh' ? '最近 50 条' : 'Last 50' },
+        { value: '100', label: currentLang === 'zh' ? '最近 100 条' : 'Last 100' },
+      ]);
+      setOptions(funnelDaysSelect, [
+        { value: '7', label: currentLang === 'zh' ? '最近 7 天' : 'Last 7 days' },
+        { value: '14', label: currentLang === 'zh' ? '最近 14 天' : 'Last 14 days' },
+        { value: '30', label: currentLang === 'zh' ? '最近 30 天' : 'Last 30 days' },
+      ]);
+      setOptions(trafficHoursSelect, [
+        { value: '1', label: currentLang === 'zh' ? '最近 1 小时' : 'Last 1 hour' },
+        { value: '6', label: currentLang === 'zh' ? '最近 6 小时' : 'Last 6 hours' },
+        { value: '24', label: currentLang === 'zh' ? '最近 24 小时' : 'Last 24 hours' },
+        { value: '72', label: currentLang === 'zh' ? '最近 72 小时' : 'Last 72 hours' },
+        { value: '168', label: currentLang === 'zh' ? '最近 7 天' : 'Last 7 days' },
+      ]);
+      setOptions(settlementDaysSelect, [
+        { value: '7', label: currentLang === 'zh' ? '最近 7 天' : 'Last 7 days' },
+        { value: '30', label: currentLang === 'zh' ? '最近 30 天' : 'Last 30 days' },
+        { value: '60', label: currentLang === 'zh' ? '最近 60 天' : 'Last 60 days' },
+        { value: '90', label: currentLang === 'zh' ? '最近 90 天' : 'Last 90 days' },
+      ]);
+      setOptions(kocDaysSelect, [
+        { value: '7', label: currentLang === 'zh' ? '最近 7 天' : 'Last 7 days' },
+        { value: '30', label: currentLang === 'zh' ? '最近 30 天' : 'Last 30 days' },
+        { value: '60', label: currentLang === 'zh' ? '最近 60 天' : 'Last 60 days' },
+        { value: '90', label: currentLang === 'zh' ? '最近 90 天' : 'Last 90 days' },
+      ]);
+      setOptions(kocStatusSelect, [
+        { value: '', label: currentLang === 'zh' ? '全部结算状态' : 'All settlement' },
+        { value: 'pending', label: currentLang === 'zh' ? '待处理' : 'Pending' },
+        { value: 'approved', label: currentLang === 'zh' ? '已审核' : 'Approved' },
+        { value: 'paid', label: currentLang === 'zh' ? '已打款' : 'Paid' },
+        { value: 'disputed', label: currentLang === 'zh' ? '争议' : 'Disputed' },
+        { value: 'invalid', label: currentLang === 'zh' ? '无效' : 'Invalid' },
+        { value: 'unpaid', label: currentLang === 'zh' ? '未支付' : 'Unpaid' },
+      ]);
+
+      setOptions(kocRoleSelect, [
+        { value: '', label: currentLang === 'zh' ? '\u5168\u90e8\u89d2\u8272' : 'All roles' },
+        { value: 'direct', label: currentLang === 'zh' ? '\u76f4\u63a8' : 'Direct' },
+        { value: 'parent', label: currentLang === 'zh' ? '\u4e0a\u7ea7' : 'Parent' },
+      ]);
+      kocIdFilterInput.placeholder = currentLang === 'zh' ? 'koc_id（可选）' : 'koc_id (optional)';
+      kocChannelFilterInput.placeholder = currentLang === 'zh' ? 'channel（可选）' : 'channel (optional)';
+      renderBoardCardControls();
+
+      if (!getAdminToken() && !String(adminTokenInput.value || '').trim()) {
+        setStatus(t('statusSaveTokenFirst'));
+      }
     }
 
     function escapeHtml(value) {
@@ -326,9 +1459,118 @@
       return getAdminToken();
     }
 
+    function saveKocBuilderCache() {
+      const payload = {
+        base_url: String(kocBuilderBaseUrl.value || '').trim(),
+        landing_path: String(kocBuilderLandingPath.value || '').trim(),
+        channel: String(kocBuilderChannel.value || '').trim(),
+        input_text: String(kocBuilderInput.value || ''),
+        rows: Array.isArray(kocBuilderRows) ? kocBuilderRows : [],
+      };
+      localStorage.setItem(KOC_BUILDER_CACHE_KEY, JSON.stringify(payload));
+    }
+
+    function loadKocBuilderCache() {
+      const raw = String(localStorage.getItem(KOC_BUILDER_CACHE_KEY) || '');
+      if (!raw) return false;
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          if (typeof parsed.base_url === 'string') kocBuilderBaseUrl.value = parsed.base_url;
+          if (typeof parsed.landing_path === 'string') kocBuilderLandingPath.value = parsed.landing_path;
+          if (typeof parsed.channel === 'string') kocBuilderChannel.value = parsed.channel;
+          if (typeof parsed.input_text === 'string') kocBuilderInput.value = parsed.input_text;
+          if (Array.isArray(parsed.rows)) {
+            const baseOrigin = normalizeBaseOrigin(kocBuilderBaseUrl.value);
+            const landingPath = normalizeLandingPath(kocBuilderLandingPath.value);
+            const channel = normalizeBuilderId(kocBuilderChannel.value);
+            kocBuilderRows = parsed.rows
+              .filter((row) => row && typeof row === 'object')
+              .map((row) => {
+                const normalized = normalizeBuilderRowFields(
+                  row.name,
+                  row.koc_id,
+                  row.content_id,
+                  row.koc_code,
+                  row.parent_koc_id,
+                );
+                return {
+                  ...normalized,
+                  link: normalized.koc_id
+                    ? buildKocTrackLink(baseOrigin, landingPath, channel, normalized)
+                    : '',
+                };
+              })
+              .filter((row) => row.koc_id && row.link);
+          }
+        }
+        return kocBuilderRows.length > 0;
+      } catch {
+        return false;
+      }
+    }
+
+    function buildKocBuilderPayload() {
+      return {
+        base_url: String(kocBuilderBaseUrl.value || '').trim(),
+        landing_path: String(kocBuilderLandingPath.value || '').trim(),
+        channel: String(kocBuilderChannel.value || '').trim(),
+        input_text: String(kocBuilderInput.value || ''),
+        rows: Array.isArray(kocBuilderRows) ? kocBuilderRows : [],
+      };
+    }
+
+    async function loadKocBuilderCloud() {
+      const data = await callAdmin('koc_builder_get');
+      const cfg = data?.config && typeof data.config === 'object' ? data.config : {};
+      if (typeof cfg.base_url === 'string') kocBuilderBaseUrl.value = cfg.base_url;
+      if (typeof cfg.landing_path === 'string') kocBuilderLandingPath.value = cfg.landing_path;
+      if (typeof cfg.channel === 'string') kocBuilderChannel.value = cfg.channel;
+      if (typeof cfg.input_text === 'string') kocBuilderInput.value = cfg.input_text;
+      if (Array.isArray(cfg.rows)) {
+        const baseOrigin = normalizeBaseOrigin(kocBuilderBaseUrl.value);
+        const landingPath = normalizeLandingPath(kocBuilderLandingPath.value);
+        const channel = normalizeBuilderId(kocBuilderChannel.value);
+        kocBuilderRows = cfg.rows
+          .filter((row) => row && typeof row === 'object')
+          .map((row) => {
+            const normalized = normalizeBuilderRowFields(
+              row.name,
+              row.koc_id,
+              row.content_id,
+              row.koc_code,
+              row.parent_koc_id,
+            );
+            return {
+              ...normalized,
+              link: normalized.koc_id
+                ? buildKocTrackLink(baseOrigin, landingPath, channel, normalized)
+                : '',
+            };
+          })
+          .filter((row) => row.koc_id && row.link);
+      } else {
+        kocBuilderRows = [];
+      }
+      saveKocBuilderCache();
+      renderKocBuilderRows();
+      const count = kocBuilderRows.length;
+      kocBuilderStatus.textContent = currentLang === 'zh'
+        ? `已从云端恢复 ${count} 条 KOC 链接（全设备可见）`
+        : `Restored ${count} KOC links from cloud (shared across devices).`;
+      return count;
+    }
+
+    async function saveKocBuilderCloud() {
+      await callAdmin('koc_builder_set', { config: buildKocBuilderPayload() });
+      kocBuilderStatus.textContent = currentLang === 'zh'
+        ? `已同步云端：${kocBuilderRows.length} 条（全设备可见）`
+        : `Synced to cloud (${kocBuilderRows.length} rows, visible on all devices).`;
+    }
+
     async function callAdmin(action, payload = {}) {
       const token = getActiveAdminToken();
-      if (!token) throw new Error('Missing admin token. Save token first.');
+      if (!token) throw new Error(currentLang === 'zh' ? '请先保存 Token 后再操作。' : 'Missing admin token. Save token first.');
 
       const res = await fetch(ADMIN_TOOL_URL, {
         method: 'POST',
@@ -347,25 +1589,146 @@
       return data;
     }
 
-    function parseBirthInput(raw) {
-      if (!raw) return {};
-      try { return JSON.parse(raw); } catch (_) { return {}; }
-    }
+	    function parseBirthInput(raw) {
+	      if (!raw) return {};
+	      if (typeof raw === 'object' && !Array.isArray(raw)) return raw;
+	      if (typeof raw !== 'string') return {};
+	      try { return JSON.parse(raw); } catch (_) { return {}; }
+	    }
 
     function toLocalTime(ts) {
       if (!ts) return '-';
       const d = new Date(ts);
       if (Number.isNaN(d.getTime())) return '-';
-      return d.toLocaleString('zh-CN', { hour12: false });
+      return d.toLocaleString(currentLang === 'zh' ? 'zh-CN' : 'en-US', { hour12: false });
     }
 
     function statusTag(paid, hasAnalysis) {
-      if (paid && hasAnalysis) return '<span class="tag ok">Paid + Report</span>';
-      if (paid && !hasAnalysis) return '<span class="tag warn">Paid no report</span>';
-      return '<span class="tag bad">Not paid</span>';
+      if (paid && hasAnalysis) return `<span class="tag ok">${currentLang === 'zh' ? '已支付 + 已出报告' : 'Paid + Report'}</span>`;
+      if (paid && !hasAnalysis) return `<span class="tag warn">${currentLang === 'zh' ? '已支付未出报告' : 'Paid no report'}</span>`;
+      return `<span class="tag bad">${currentLang === 'zh' ? '未支付' : 'Not paid'}</span>`;
+    }
+
+    function normalizeConsultGenderDisplay(value) {
+      const raw = String(value || '').trim().toLowerCase();
+      if (!raw) return '';
+      if (raw === 'male' || raw === 'm' || raw.includes('\u7537')) return currentLang === 'zh' ? '\u7537' : 'Male';
+      if (raw === 'female' || raw === 'f' || raw.includes('\u5973')) return currentLang === 'zh' ? '\u5973' : 'Female';
+      return String(value || '').trim();
+    }
+
+    function fallbackBirthDatetime(birth) {
+      const y = Number(birth?.year);
+      const m = Number(birth?.month);
+      const d = Number(birth?.day);
+      const h = Number(birth?.hour);
+      if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d) || !Number.isFinite(h)) return '';
+      return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')} ${String(h).padStart(2, '0')}:00`;
+    }
+
+    function renderConsultLine(label, value, required = false) {
+      const val = String(value || '').trim();
+      const emptyText = currentLang === 'zh' ? '\u672a\u586b\u5199' : 'Empty';
+      const requiredText = currentLang === 'zh' ? '\u5fc5\u586b\u7f3a\u5931' : 'Required missing';
+      const shownValue = val
+        ? escapeHtml(val)
+        : `<span style="color:#94a3b8;">${emptyText}</span>`;
+      const requiredBadge = (!val && required)
+        ? ` <span class="tag bad" style="margin-left:6px;">${requiredText}</span>`
+        : '';
+      return `<div><span style="color:#64748b;">${escapeHtml(label)}:</span> ${shownValue}${requiredBadge}</div>`;
+    }
+
+    function renderConsultIntakeCell(birth) {
+      const orderService = String(birth?.order_service || '').trim().toLowerCase();
+      const optionId = String(birth?.payment_option?.id || '').trim().toLowerCase();
+      const isConsultOrder = orderService === 'consult' || optionId === 'consult';
+      const intake = birth?.consult_intake && typeof birth.consult_intake === 'object' && !Array.isArray(birth.consult_intake)
+        ? birth.consult_intake
+        : {};
+      if (!isConsultOrder && !Object.keys(intake).length) {
+        return '<span class="tiny">-</span>';
+      }
+
+      const nickname = String(intake.nickname || '').trim();
+      const contact = String(intake.contact || '').trim();
+      const birthDatetime = String(intake.birth_datetime || '').trim() || fallbackBirthDatetime(birth);
+      const gender = normalizeConsultGenderDisplay(intake.gender || birth?.gender || '');
+      const birthplace = String(intake.birthplace || birth?.birthplace || '').trim();
+      const question = String(intake.question || '').trim();
+      const preferredTime = String(intake.preferred_time || '').trim();
+      const updatedAt = String(intake.updated_at || '').trim();
+      const filled = [nickname, contact, birthDatetime, gender, birthplace, question, preferredTime].filter(Boolean).length;
+      const total = 7;
+      const summary = currentLang === 'zh'
+        ? `\u9884\u7ea6\u8d44\u6599 ${filled}/${total}`
+        : `Consult intake ${filled}/${total}`;
+
+      const labels = currentLang === 'zh'
+        ? {
+            nickname: '\u79f0\u547c',
+            contact: '\u8054\u7cfb\u65b9\u5f0f',
+            birthDatetime: '\u51fa\u751f\u5e74\u6708\u65e5\u65f6\u95f4',
+            gender: '\u6027\u522b',
+            birthplace: '\u51fa\u751f\u5730',
+            question: '\u95ee\u9898\u63cf\u8ff0',
+            preferredTime: '\u9884\u7ea6\u65f6\u95f4\u504f\u597d',
+            updatedAt: '\u63d0\u4ea4\u65f6\u95f4',
+          }
+        : {
+            nickname: 'Name',
+            contact: 'Contact',
+            birthDatetime: 'Birth Datetime',
+            gender: 'Gender',
+            birthplace: 'Birthplace',
+            question: 'Question',
+            preferredTime: 'Preferred Time',
+            updatedAt: 'Updated At',
+          };
+
+      return `
+        <details class="tiny">
+          <summary>${escapeHtml(summary)}</summary>
+          <div style="margin-top:6px;display:grid;gap:3px;line-height:1.6;">
+            ${renderConsultLine(labels.nickname, nickname, false)}
+            ${renderConsultLine(labels.contact, contact, true)}
+            ${renderConsultLine(labels.birthDatetime, birthDatetime, false)}
+            ${renderConsultLine(labels.gender, gender, false)}
+            ${renderConsultLine(labels.birthplace, birthplace, false)}
+            ${renderConsultLine(labels.question, question, false)}
+            ${renderConsultLine(labels.preferredTime, preferredTime, false)}
+            ${updatedAt ? renderConsultLine(labels.updatedAt, toLocalTime(updatedAt), false) : ''}
+          </div>
+        </details>
+      `;
+    }
+
+    function getSupportFocusTradeNo() {
+      try {
+        const raw = String(localStorage.getItem(SUPPORT_ORDER_FOCUS_KEY) || '').trim();
+        return raw;
+      } catch {
+        return '';
+      }
+    }
+
+    function clearSupportFocusTradeNo() {
+      try {
+        localStorage.removeItem(SUPPORT_ORDER_FOCUS_KEY);
+      } catch {}
+    }
+
+    function isRecentConsultUpdate(updatedAt) {
+      const iso = String(updatedAt || '').trim();
+      if (!iso) return false;
+      const ts = new Date(iso).getTime();
+      if (!Number.isFinite(ts)) return false;
+      const ageMs = Date.now() - ts;
+      return ageMs >= 0 && ageMs <= CONSULT_RECENT_HIGHLIGHT_MINUTES * 60 * 1000;
     }
 
     function validateTradeNo(value) {
+
       return /^(bazi|hepan)-[a-z0-9_-]{4,140}$/i.test(String(value || '').trim());
     }
 
@@ -384,15 +1747,849 @@
       `;
     }
 
+    function normalizeBuilderId(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]/g, '')
+        .slice(0, 64);
+    }
+
+    function isBuilderPlaceholderId(value) {
+      const id = normalizeBuilderId(value);
+      return ['koc_id', 'parent_koc_id', 'parent', 'parentid', 'content_id', 'koc_code', 'kocid', 'contentid', 'code', 'id', 'name', 'ref', 'koc', 'content'].includes(id);
+    }
+
+    function normalizeBuilderRowFields(nameRaw, kocIdRaw, contentRaw, codeRaw, parentRaw = '') {
+      const name = String(nameRaw || '').trim();
+      const nameAsId = normalizeBuilderId(name);
+      let koc_id = normalizeBuilderId(kocIdRaw);
+      let content_id = normalizeBuilderId(contentRaw);
+      let koc_code = String(codeRaw || '').trim().slice(0, 64);
+      let parent_koc_id = normalizeBuilderId(parentRaw);
+      const codeAsId = normalizeBuilderId(koc_code);
+
+      // Skip CSV header line: name,koc_id,content_id,koc_code
+      if (nameAsId === 'name' && koc_id === 'koc_id') {
+        return { skip: true, name: '', koc_id: '', content_id: '', koc_code: '', parent_koc_id: '' };
+      }
+
+      // Auto-correct common placeholder usage:
+      // guoyuan,koc_id,content_id,koc_code -> koc_id should be "guoyuan"
+      if ((koc_id === 'koc_id' || !koc_id) && nameAsId && nameAsId !== 'name') {
+        koc_id = nameAsId;
+      }
+      if (content_id === 'content_id' || content_id === 'content') {
+        content_id = '';
+      }
+      if (codeAsId === 'koc_code' || codeAsId === 'code') {
+        koc_code = '';
+      }
+      if (isBuilderPlaceholderId(koc_id)) {
+        koc_id = '';
+      }
+      if (isBuilderPlaceholderId(content_id)) {
+        content_id = '';
+      }
+      if (isBuilderPlaceholderId(parent_koc_id)) {
+        parent_koc_id = '';
+      }
+      if (parent_koc_id && parent_koc_id === koc_id) {
+        parent_koc_id = '';
+      }
+
+      return {
+        skip: !koc_id,
+        name: name || koc_id,
+        koc_id,
+        content_id,
+        koc_code,
+        parent_koc_id,
+      };
+    }
+
+    function normalizeBaseOrigin(value) {
+      let text = String(value || '').trim();
+      if (!text) text = 'https://tengyunzi.com';
+      if (!/^https?:\/\//i.test(text)) text = `https://${text}`;
+      try {
+        return new URL(text).origin;
+      } catch {
+        return 'https://tengyunzi.com';
+      }
+    }
+
+    function normalizeLandingPath(value) {
+      const text = String(value || '').trim() || '/';
+      if (text.startsWith('http://') || text.startsWith('https://')) return '/';
+      return text.startsWith('/') ? text : `/${text}`;
+    }
+
+    function buildKocTrackLink(baseOrigin, landingPath, channel, row) {
+      const url = new URL(landingPath, `${baseOrigin}/`);
+      url.searchParams.set('koc_id', row.koc_id);
+      if (channel) url.searchParams.set('channel', channel);
+      if (row.content_id) url.searchParams.set('content_id', row.content_id);
+      if (row.koc_code) url.searchParams.set('koc_code', row.koc_code);
+      if (row.parent_koc_id) url.searchParams.set('parent_koc_id', row.parent_koc_id);
+      return url.toString();
+    }
+
+    function parseKocBuilderInput(raw) {
+      const lines = String(raw || '')
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+      const rows = [];
+      for (const line of lines) {
+        const cols = line.includes('\t')
+          ? line.split('\t').map((x) => x.trim())
+          : line.split(',').map((x) => x.trim());
+        const [nameRaw = '', kocIdRaw = '', contentRaw = '', codeRaw = '', parentRaw = ''] = cols;
+        const normalized = normalizeBuilderRowFields(nameRaw, kocIdRaw, contentRaw, codeRaw, parentRaw);
+        if (normalized.skip || !normalized.koc_id) continue;
+        rows.push({
+          name: normalized.name,
+          koc_id: normalized.koc_id,
+          content_id: normalized.content_id,
+          koc_code: normalized.koc_code,
+          parent_koc_id: normalized.parent_koc_id,
+        });
+      }
+      return rows;
+    }
+
+    function renderKocBuilderRows() {
+      if (!kocBuilderRows.length) {
+        kocBuilderTbody.innerHTML = `<tr><td colspan="5" class="tiny">${escapeHtml(t('kocNoData'))}</td></tr>`;
+        return;
+      }
+
+      kocBuilderTbody.innerHTML = kocBuilderRows.map((row, idx) => {
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=0&data=${encodeURIComponent(row.link)}`;
+        return `
+          <tr>
+            <td>${escapeHtml(row.name)}</td>
+            <td><code>${escapeHtml(row.koc_id)}</code><div class="tiny">Parent: ${escapeHtml(row.parent_koc_id || '-')}</div><div class="tiny">Content: ${escapeHtml(row.content_id || '-')}</div></td>
+            <td class="tiny"><a href="${escapeHtml(row.link)}" target="_blank" rel="noopener">${escapeHtml(row.link)}</a></td>
+            <td><a href="${qrUrl}" target="_blank" rel="noopener">${escapeHtml(t('openQr'))}</a></td>
+            <td>
+              <div class="koc-actions">
+                <button class="btn-mini primary koc-builder-copy-btn" data-idx="${idx}">${escapeHtml(t('copyLink'))}</button>
+                <button class="btn-mini bad koc-builder-delete-btn" data-idx="${idx}">${escapeHtml(t('delete'))}</button>
+                <a class="btn-mini" style="display:inline-flex;align-items:center;text-decoration:none;" href="${qrUrl}" target="_blank" rel="noopener">${escapeHtml(t('viewQr'))}</a>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      document.querySelectorAll('.koc-builder-copy-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const idx = Number(btn.getAttribute('data-idx') || -1);
+          const row = Number.isInteger(idx) ? kocBuilderRows[idx] : null;
+          if (!row) return;
+          try {
+            await navigator.clipboard.writeText(row.link);
+            kocBuilderStatus.textContent = currentLang === 'zh' ? `已复制：${row.koc_id}` : `Copied: ${row.koc_id}`;
+          } catch {
+            kocBuilderStatus.textContent = currentLang === 'zh' ? `复制失败：${row.koc_id}` : `Copy failed: ${row.koc_id}`;
+          }
+        });
+      });
+
+      document.querySelectorAll('.koc-builder-delete-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const idx = Number(btn.getAttribute('data-idx') || -1);
+          const row = Number.isInteger(idx) ? kocBuilderRows[idx] : null;
+          if (!row) return;
+          const ok = window.confirm(currentLang === 'zh' ? `\u786e\u8ba4\u5220\u9664 KOC\uff1a${row.koc_id}\uff1f` : `Delete KOC row: ${row.koc_id} ?`);
+          if (!ok) return;
+          kocBuilderRows = kocBuilderRows.filter((_, i) => i !== idx);
+          renderKocBuilderRows();
+          saveKocBuilderCache();
+          try {
+            await saveKocBuilderCloud();
+          } catch (err) {
+            kocBuilderStatus.textContent = currentLang === 'zh'
+              ? `\u672c\u5730\u5df2\u5220\u9664 ${row.koc_id}\uff0c\u4f46\u4e91\u7aef\u540c\u6b65\u5931\u8d25\uff1a${err instanceof Error ? err.message : String(err)}`
+              : `Deleted ${row.koc_id} locally, but cloud sync failed: ${err instanceof Error ? err.message : String(err)}`;
+            return;
+          }
+          kocBuilderStatus.textContent = currentLang === 'zh' ? `\u5df2\u5220\u9664\u5e76\u540c\u6b65\uff1a${row.koc_id}` : `Deleted and synced: ${row.koc_id}`;
+        });
+      });
+    }
+
+    function generateKocLinks() {
+      const baseOrigin = normalizeBaseOrigin(kocBuilderBaseUrl.value);
+      const landingPath = normalizeLandingPath(kocBuilderLandingPath.value);
+      const channel = normalizeBuilderId(kocBuilderChannel.value);
+      const parsedRows = parseKocBuilderInput(kocBuilderInput.value);
+
+      kocBuilderRows = parsedRows.map((row) => ({
+        ...row,
+        link: buildKocTrackLink(baseOrigin, landingPath, channel, row),
+      }));
+
+      renderKocBuilderRows();
+      saveKocBuilderCache();
+      kocBuilderStatus.textContent = kocBuilderRows.length
+        ? (currentLang === 'zh'
+          ? `已生成 ${kocBuilderRows.length} 条链接（渠道：${channel || 'none'}）`
+          : `Generated ${kocBuilderRows.length} links (channel: ${channel || 'none'}).`)
+        : (currentLang === 'zh'
+          ? '未解析到有效行，请用 name,koc_id,content_id,koc_code 格式'
+          : 'No valid rows. Use format: name,koc_id,content_id,koc_code,parent_koc_id(optional)');
+    }
+
     function mapIssueLabel(issue) {
       const key = String(issue || '').trim();
-      const map = {
-        payment_not_completed: '支付未完成',
-        paid_not_verified: '已支付但未校验',
-        paid_not_downloaded: '已支付未下载',
-        paid_not_delivered: '已支付未交付',
-      };
+      const map = currentLang === 'zh'
+        ? {
+          payment_not_completed: '未完成支付',
+          paid_not_verified: '已支付未核验',
+          paid_not_downloaded: '已支付未下载',
+          paid_not_delivered: '已支付未交付',
+        }
+        : {
+          payment_not_completed: 'Payment not completed',
+          paid_not_verified: 'Paid but not verified',
+          paid_not_downloaded: 'Paid but not downloaded',
+          paid_not_delivered: 'Paid but not delivered',
+        };
       return map[key] || key || '-';
+    }
+
+    function formatMoney(value) {
+      const num = Number(value);
+      if (!Number.isFinite(num)) return '0.00';
+      return num.toFixed(2);
+    }
+
+    function settlementTag(status) {
+      const key = String(status || '').trim().toLowerCase();
+      if (key === 'paid') return `<span class="tag ok">${currentLang === 'zh' ? '已打款' : 'Paid'}</span>`;
+      if (key === 'approved') return `<span class="tag warn">${currentLang === 'zh' ? '已审核' : 'Approved'}</span>`;
+      if (key === 'invalid') return `<span class="tag bad">${currentLang === 'zh' ? '无效' : 'Invalid'}</span>`;
+      if (key === 'disputed') return `<span class="tag warn">${currentLang === 'zh' ? '争议' : 'Disputed'}</span>`;
+      if (key === 'unpaid') return `<span class="tag bad">${currentLang === 'zh' ? '未支付' : 'Unpaid'}</span>`;
+      return `<span class="tag warn">${currentLang === 'zh' ? '待处理' : 'Pending'}</span>`;
+    }
+
+    function csvCell(value) {
+      const text = String(value ?? '');
+      return `"${text.replace(/"/g, '""')}"`;
+    }
+
+    function collectKocBatchTradeNos(targetStatus, beneficiaryRole) {
+      const target = String(targetStatus || '').trim().toLowerCase();
+      const role = String(beneficiaryRole || '').trim().toLowerCase();
+      const rows = Array.isArray(kocDashboardRows) ? kocDashboardRows : [];
+      const out = [];
+      const seen = new Set();
+      for (const row of rows) {
+        if (role && String(row?.beneficiary_role || '').trim().toLowerCase() !== role) continue;
+        const tradeNo = String(row?.trade_no || '').trim();
+        if (!validateTradeNo(tradeNo) || seen.has(tradeNo)) continue;
+        const status = String(row?.settlement_status || '').trim().toLowerCase();
+        const paid = !!row?.paid;
+        const delivered = !!row?.delivered;
+        if (status === target) continue;
+        if ((target === 'approved' || target === 'paid') && !paid) continue;
+        if (target === 'paid' && !delivered) continue;
+        if (status === 'invalid' && target !== 'invalid') continue;
+        out.push(tradeNo);
+        seen.add(tradeNo);
+      }
+      return out;
+    }
+
+    async function batchUpdateKocSettlement(status) {
+      const target = String(status || '').trim().toLowerCase();
+      const beneficiaryRole = String(kocRoleSelect?.value || '').trim().toLowerCase();
+      if (beneficiaryRole !== 'direct' && beneficiaryRole !== 'parent') {
+        setStatus(currentLang === 'zh'
+          ? '\u6279\u91cf\u7ed3\u7b97\u524d\u8bf7\u5148\u9009\u62e9\u89d2\u8272\uff08\u76f4\u63a8\u6216\u4e0a\u7ea7\uff09\u3002'
+          : 'Select settlement role (Direct or Parent) before batch update.');
+        return;
+      }
+      const tradeNos = collectKocBatchTradeNos(target, beneficiaryRole);
+      if (!tradeNos.length) {
+        setStatus(currentLang === 'zh'
+          ? '\u6279\u91cf\u64cd\u4f5c\u65e0\u53ef\u7528\u8ba2\u5355\uff0c\u8bf7\u5148\u8c03\u6574\u7b5b\u9009\u6761\u4ef6\u3002'
+          : 'No eligible orders for this batch action. Adjust filters first.');
+        return;
+      }
+
+      let note = '';
+      if (target === 'invalid' || target === 'disputed') {
+        note = prompt(currentLang === 'zh'
+          ? '\u53ef\u9009\u5907\u6ce8\uff08\u7528\u4e8e\u6279\u91cf\u7ed3\u7b97\u8bb0\u5f55\uff09'
+          : 'Optional note for this batch update') || '';
+      }
+
+      const actionLabel = target === 'paid'
+        ? (currentLang === 'zh' ? '\u6807\u8bb0\u6253\u6b3e' : 'mark paid')
+        : target === 'approved'
+          ? (currentLang === 'zh' ? '\u5ba1\u6838\u901a\u8fc7' : 'approve')
+          : (currentLang === 'zh' ? '\u6807\u8bb0\u65e0\u6548' : 'mark invalid');
+
+      const confirmed = window.confirm(currentLang === 'zh'
+        ? `\u786e\u8ba4\u5bf9 ${tradeNos.length} \u7b14\u8ba2\u5355\u6267\u884c\u201c${actionLabel}\u201d\uff1f`
+        : `Confirm batch ${actionLabel} for ${tradeNos.length} orders?`);
+      if (!confirmed) return;
+
+      setStatus(currentLang === 'zh'
+        ? `\u6279\u91cf\u6267\u884c\u4e2d\uff1a${actionLabel}...`
+        : `Running batch action: ${actionLabel}...`);
+      const result = await callAdmin('koc_settlement_batch_update', {
+        status: target,
+        role: beneficiaryRole,
+        note,
+        trade_nos: tradeNos,
+      });
+      await loadKocDashboard();
+      setStatus(currentLang === 'zh'
+        ? `\u6279\u91cf\u5b8c\u6210\uff1a\u66f4\u65b0 ${Number(result?.updated_count || 0)} \u7b14\uff0c\u8df3\u8fc7\u672a\u652f\u4ed8 ${Number(result?.skipped_unpaid_count || 0)} \u7b14\uff0c\u672a\u627e\u5230 ${Number(result?.not_found_count || 0)} \u7b14\uff0c\u5931\u8d25 ${Number(result?.failed_count || 0)} \u7b14\u3002`
+        : `Batch completed: updated ${Number(result?.updated_count || 0)}, skipped unpaid ${Number(result?.skipped_unpaid_count || 0)}, not found ${Number(result?.not_found_count || 0)}, failed ${Number(result?.failed_count || 0)}.`);
+    }
+
+    function exportKocSettlementCsv() {
+      const rows = Array.isArray(kocDashboardRows) ? kocDashboardRows : [];
+      if (!rows.length) {
+        setStatus(currentLang === 'zh' ? '\u6ca1\u6709\u53ef\u5bfc\u51fa\u7684 KOC \u7ed3\u7b97\u6570\u636e\u3002' : 'No KOC settlement rows to export.');
+        return;
+      }
+      const header = [
+        'created_at',
+        'trade_no',
+        'beneficiary_role',
+        'beneficiary_koc_id',
+        'koc_id',
+        'parent_koc_id',
+        'content_id',
+        'koc_code',
+        'channel',
+        'service',
+        'tier',
+        'paid',
+        'delivered',
+        'total_fee',
+        'commission_amount',
+        'settlement_status',
+        'settlement_note',
+      ];
+      const lines = [header.map(csvCell).join(',')];
+      for (const row of rows) {
+        lines.push([
+          row?.created_at || '',
+          row?.trade_no || '',
+          row?.beneficiary_role || '',
+          row?.beneficiary_koc_id || '',
+          row?.koc_id || '',
+          row?.parent_koc_id || '',
+          row?.content_id || '',
+          row?.koc_code || '',
+          row?.channel || '',
+          row?.service || '',
+          row?.payment_option_id || '',
+          row?.paid ? '1' : '0',
+          row?.delivered ? '1' : '0',
+          Number(row?.total_fee || 0).toFixed(2),
+          Number(row?.commission_amount || 0).toFixed(2),
+          row?.settlement_status || '',
+          row?.settlement_note || '',
+        ].map(csvCell).join(','));
+      }
+      const stamp = new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').slice(0, 15);
+      const fileName = `koc-settlement-${stamp}.csv`;
+      const blob = new Blob([`\uFEFF${lines.join('\n')}`], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setStatus(currentLang === 'zh'
+        ? `\u5df2\u5bfc\u51fa\uff1a${fileName}\uff08${rows.length} \u884c\uff09`
+        : `Exported: ${fileName} (${rows.length} rows)`);
+    }
+
+    function exportKocGrowthExcel() {
+      const growth = kocGrowthSnapshot && typeof kocGrowthSnapshot === 'object' ? kocGrowthSnapshot : { koc_id: '', months: [] };
+      const kocId = String(growth?.koc_id || '').trim();
+      const months = Array.isArray(growth?.months) ? growth.months : [];
+      if (!kocId) {
+        setStatus(currentLang === 'zh'
+          ? '请先输入 KOC 筛选的 koc_id，并刷新 KOC 看板后再导出成长。'
+          : 'Input koc_id and refresh KOC before exporting growth.');
+        return;
+      }
+      if (!months.length) {
+        setStatus(currentLang === 'zh'
+          ? `KOC ${kocId} 暂无可导出的按月成长数据`
+          : `No monthly growth rows to export for KOC ${kocId}.`);
+        return;
+      }
+
+      const rowsHtml = months.map((row) => {
+        const month = escapeHtml(String(row?.month || '-'));
+        const paidOrders = Number(row?.paid_orders || 0);
+        const paidGmv = `CNY ${formatMoney(row?.paid_gmv || 0)}`;
+        const cumulative = `CNY ${formatMoney(row?.cumulative_paid_gmv || 0)}`;
+        const tierName = escapeHtml(String(row?.tier_name || '-'));
+        const autoRate = `${formatMoney(Number(row?.auto_rate || 0) * 100)}%`;
+        const consultRate = `${formatMoney(Number(row?.consult_rate || 0) * 100)}%`;
+        return `
+          <tr>
+            <td>${month}</td>
+            <td>${paidOrders}</td>
+            <td>${paidGmv}</td>
+            <td>${cumulative}</td>
+            <td>${tierName}</td>
+            <td>${autoRate}</td>
+            <td>${consultRate}</td>
+          </tr>
+        `;
+      }).join('');
+
+      const html = `
+        <html>
+          <head>
+            <meta charset="utf-8" />
+            <style>
+              table { border-collapse: collapse; width: 100%; font-family: Arial, 'Microsoft YaHei', sans-serif; }
+              th, td { border: 1px solid #dbe3ef; padding: 6px 8px; font-size: 12px; text-align: left; }
+              th { background: #f8fafc; }
+              caption { text-align: left; font-weight: 700; margin-bottom: 8px; color: #0b2a50; }
+            </style>
+          </head>
+          <body>
+            <table>
+              <caption>${escapeHtml(`KOC Growth - ${kocId}`)}</caption>
+              <thead>
+                <tr>
+                  <th>${currentLang === 'zh' ? '月份' : 'Month'}</th>
+                  <th>${currentLang === 'zh' ? '支付订单' : 'Paid Orders'}</th>
+                  <th>${currentLang === 'zh' ? '当月支付GMV' : 'Monthly Paid GMV'}</th>
+                  <th>${currentLang === 'zh' ? '累计支付GMV' : 'Cumulative Paid GMV'}</th>
+                  <th>${currentLang === 'zh' ? '档位' : 'Tier'}</th>
+                  <th>${currentLang === 'zh' ? '自动交付佣金' : 'Auto Rate'}</th>
+                  <th>${currentLang === 'zh' ? '咨询佣金' : 'Consult Rate'}</th>
+                </tr>
+              </thead>
+              <tbody>${rowsHtml}</tbody>
+            </table>
+          </body>
+        </html>
+      `;
+
+      const stamp = new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').slice(0, 15);
+      const fileName = `koc-growth-${kocId}-${stamp}.xls`;
+      const blob = new Blob([`\uFEFF${html}`], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setStatus(currentLang === 'zh'
+        ? `已导出 ${fileName}（${months.length} 行）`
+        : `Exported: ${fileName} (${months.length} rows)`);
+    }
+
+    async function updateKocSettlement(tradeNo, status, role = 'direct') {
+      const value = String(tradeNo || '').trim();
+      if (!validateTradeNo(value)) {
+        setStatus(currentLang === 'zh' ? '结算更新失败：trade_no 格式无效。' : 'Invalid trade_no for settlement update.');
+        return;
+      }
+      const nextStatus = String(status || '').trim().toLowerCase();
+      const nextRole = String(role || '').trim().toLowerCase() === 'parent' ? 'parent' : 'direct';
+      let note = '';
+      if (nextStatus === 'invalid' || nextStatus === 'disputed') {
+        note = prompt(currentLang === 'zh' ? '可选备注（用于记录本次结算状态）' : 'Optional note for this settlement status:') || '';
+      }
+      await callAdmin('koc_settlement_update', {
+        trade_no: value,
+        role: nextRole,
+        status: nextStatus,
+        note,
+      });
+      await loadKocDashboard();
+      setStatus(currentLang === 'zh' ? `结算状态已更新：${value} -> ${nextStatus}` : `Settlement updated: ${value} -> ${nextStatus}`);
+    }
+
+    function bindKocRowActions() {
+      document.querySelectorAll('.koc-settle-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const tradeNo = btn.getAttribute('data-trade') || '';
+          const nextStatus = btn.getAttribute('data-status') || '';
+          const role = btn.getAttribute('data-role') || 'direct';
+          if (!tradeNo || !nextStatus) return;
+          try {
+            await updateKocSettlement(tradeNo, nextStatus, role);
+          } catch (err) {
+            setStatus(currentLang === 'zh'
+              ? `KOC 结算更新失败：${err instanceof Error ? err.message : String(err)}`
+              : `KOC settlement update failed: ${err instanceof Error ? err.message : String(err)}`);
+          }
+        });
+      });
+    }
+
+    function renderKocDashboard(data) {
+      const summary = data?.summary || {};
+      const rows = Array.isArray(data?.orders) ? data.orders : [];
+      kocDashboardRows = rows;
+      kocGrowthSnapshot = data?.growth && typeof data.growth === 'object'
+        ? {
+          koc_id: String(data.growth.koc_id || '').trim(),
+          months: Array.isArray(data.growth.months) ? data.growth.months : [],
+        }
+        : { koc_id: '', months: [] };
+      const byKoc = Array.isArray(data?.by_koc) ? data.by_koc : [];
+      const kocLookupRows = Array.isArray(kocBuilderRows) ? kocBuilderRows : [];
+      const normalizeId = (value) => String(value || '').trim().toLowerCase();
+      const placeholderSet = new Set(['koc_id', 'content_id', 'koc_code', 'kocid', 'contentid', 'code', 'id', 'name', 'ref', 'koc', 'content']);
+      const findKocName = (rawKocId, rawContentId) => {
+        const kocIdNorm = normalizeId(rawKocId);
+        const contentNorm = normalizeId(rawContentId);
+        if (!kocIdNorm && !contentNorm) return '';
+        const hit = kocLookupRows.find((item) => {
+          const itemKocId = normalizeId(item?.koc_id);
+          const itemContent = normalizeId(item?.content_id);
+          const itemCode = normalizeId(item?.koc_code);
+          return (kocIdNorm && (itemKocId === kocIdNorm || itemCode === kocIdNorm))
+            || (contentNorm && itemContent === contentNorm);
+        });
+        return String(hit?.name || '').trim();
+      };
+      kocMeta.dataset.loaded = '1';
+
+      kocMetricGrid.innerHTML = [
+        metricCard(currentLang === 'zh' ? '归因订单' : 'Attributed Orders', Number(summary.total_attributed_orders || 0), currentLang === 'zh' ? `最近 ${Number(data?.days || 0)} 天` : `last ${Number(data?.days || 0)} days`),
+        metricCard(currentLang === 'zh' ? '已支付订单' : 'Paid Orders', Number(summary.paid_orders || 0), currentLang === 'zh' ? `支付率 ${formatPercent((Number(summary.paid_orders || 0) / Math.max(Number(summary.total_attributed_orders || 1), 1)) * 100)}` : `paid ratio ${formatPercent((Number(summary.paid_orders || 0) / Math.max(Number(summary.total_attributed_orders || 1), 1)) * 100)}`),
+        metricCard(currentLang === 'zh' ? '已交付订单' : 'Delivered', Number(summary.delivered_orders || 0), currentLang === 'zh' ? `交付率 ${formatPercent((Number(summary.delivered_orders || 0) / Math.max(Number(summary.paid_orders || 1), 1)) * 100)}` : `delivery ratio ${formatPercent((Number(summary.delivered_orders || 0) / Math.max(Number(summary.paid_orders || 1), 1)) * 100)}`),
+        metricCard(currentLang === 'zh' ? '支付 GMV' : 'Paid GMV', `CNY ${formatMoney(summary.paid_gmv || 0)}`, currentLang === 'zh' ? '仅统计已支付' : 'only paid orders'),
+        metricCard(currentLang === 'zh' ? '待结算佣金' : 'Commission Pending', `CNY ${formatMoney(summary.commission_pending || 0)}`, currentLang === 'zh' ? '待处理' : 'to settle'),
+        metricCard(currentLang === 'zh' ? '已结算佣金' : 'Commission Paid', `CNY ${formatMoney(summary.commission_paid || 0)}`, currentLang === 'zh' ? '已打款' : 'already settled'),
+      ].join('');
+
+      if (kocTierProgress) {
+        const progressRows = byKoc.slice(0, 12);
+        if (!progressRows.length) {
+          kocTierProgress.dataset.loaded = '1';
+          kocTierProgress.innerHTML = `<div class="tiny">${currentLang === 'zh' ? '暂无 KOC 档位进度数据。' : 'No KOC tier progress data yet.'}</div>`;
+        } else {
+          kocTierProgress.dataset.loaded = '1';
+          kocTierProgress.innerHTML = progressRows.map((row) => {
+            const rawId = String(row?.koc_id || '').trim();
+            const rawCode = String(row?.koc_code || '').trim();
+            const safeId = (!placeholderSet.has(normalizeId(rawId)) && rawId)
+              || (!placeholderSet.has(normalizeId(rawCode)) && rawCode)
+              || '-';
+            const matchedName = findKocName(safeId, String(row?.content_id || '').trim());
+            const displayName = matchedName || safeId;
+            const tierName = String(row?.tier_name || (currentLang === 'zh' ? '内容伙伴' : 'Content Partner'));
+            const lifetimeGmv = Number(row?.cumulative_paid_gmv || 0);
+            const autoRatePct = Number(row?.auto_rate || 0) * 100;
+            const consultRatePct = Number(row?.consult_rate || 0) * 100;
+            const consultPromoFee = Number(row?.consult_promo_fee || 499);
+            const consultFormalFee = Number(row?.consult_formal_fee || 699);
+            const consultExample = consultPromoFee * (consultRatePct / 100);
+            const progressPct = Math.max(0, Math.min(100, Number(row?.tier_progress_pct || 0)));
+            const amountToNext = Number(row?.amount_to_next_tier || 0);
+            const nextTierName = String(row?.next_tier_name || '');
+            const nextThreshold = Number(row?.next_tier_threshold || 0);
+            const nextText = amountToNext > 0 && nextThreshold > 0
+              ? (currentLang === 'zh'
+                ? `距 ${nextTierName || '下一档'} 还差 CNY ${formatMoney(amountToNext)}（目标 CNY ${formatMoney(nextThreshold)}）`
+                : `CNY ${formatMoney(amountToNext)} to ${nextTierName || 'next tier'} (target CNY ${formatMoney(nextThreshold)})`)
+              : (currentLang === 'zh'
+                ? '已到最高档（核心伙伴）'
+                : 'Top tier reached (Core Partner)');
+            return `
+              <div class="koc-tier-card">
+                <div class="koc-tier-head">
+                  <span class="koc-tier-name">${escapeHtml(displayName)}</span>
+                  <span class="koc-tier-stage">${escapeHtml(tierName)}</span>
+                </div>
+                <div class="koc-tier-line">${currentLang === 'zh' ? '累计成交' : 'Lifetime GMV'}: <strong>CNY ${formatMoney(lifetimeGmv)}</strong></div>
+                <div class="koc-tier-line">${currentLang === 'zh' ? '当前佣金' : 'Current rate'}: ${formatMoney(autoRatePct)}% / ${formatMoney(consultRatePct)}% (${currentLang === 'zh' ? '自动交付/咨询' : 'Auto/Consult'})</div>
+                <div class="koc-tier-line">${currentLang === 'zh'
+                  ? `1对1咨询示例：CNY ${formatMoney(consultPromoFee)} × ${formatMoney(consultRatePct)}% = CNY ${formatMoney(consultExample)}（原价 CNY ${formatMoney(consultFormalFee)}）`
+                  : `1-to-1 consult example: CNY ${formatMoney(consultPromoFee)} × ${formatMoney(consultRatePct)}% = CNY ${formatMoney(consultExample)} (list CNY ${formatMoney(consultFormalFee)})`}</div>
+                <div class="koc-tier-bar"><span style="width:${progressPct.toFixed(2)}%"></span></div>
+                <div class="koc-tier-next">${escapeHtml(nextText)}</div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      if (kocGrowthWrap) {
+        const growth = data?.growth || {};
+        const growthKocId = String(growth?.koc_id || '').trim();
+        const monthsRaw = Array.isArray(growth?.months) ? growth.months : [];
+        const months = monthsRaw.slice(-12);
+        const targetInput = String(kocIdFilterInput?.value || '').trim().toLowerCase();
+
+        if (!growthKocId) {
+          kocGrowthWrap.dataset.loaded = '1';
+          kocGrowthWrap.innerHTML = `<div class="tiny">${currentLang === 'zh' ? '请先输入 koc_id，再点击刷新KOC查看按月成长。' : 'Input koc_id above and click Refresh KOC to view monthly growth.'}</div>`;
+        } else if (!months.length) {
+          kocGrowthWrap.dataset.loaded = '1';
+          kocGrowthWrap.innerHTML = `<div class="tiny">${currentLang === 'zh' ? `KOC ${escapeHtml(growthKocId)} 暂无已支付的按月成长数据。` : `No paid monthly growth data for KOC ${escapeHtml(growthKocId)}.`}</div>`;
+        } else {
+          const maxMonthly = Math.max(...months.map((item) => Number(item?.paid_gmv || 0)), 1);
+          const latest = months[months.length - 1] || {};
+          const latestTierName = String(latest?.tier_name || (currentLang === 'zh' ? '内容伙伴' : 'Content Partner'));
+          const latestCum = Number(latest?.cumulative_paid_gmv || 0);
+          const barsHtml = months.map((item) => {
+            const month = String(item?.month || '-');
+            const paidGmv = Number(item?.paid_gmv || 0);
+            const paidOrders = Number(item?.paid_orders || 0);
+            const cumulative = Number(item?.cumulative_paid_gmv || 0);
+            const tierName = String(item?.tier_name || '');
+            const widthPct = Math.max(3, Math.min(100, (paidGmv / maxMonthly) * 100));
+            return `
+              <div class="koc-growth-item">
+                <div class="koc-growth-month">${escapeHtml(month)}</div>
+                <div class="koc-growth-bar-bg"><span style="width:${widthPct.toFixed(2)}%"></span></div>
+                <div class="koc-growth-meta">
+                  ${currentLang === 'zh' ? '当月支付' : 'Monthly paid'}: CNY ${formatMoney(paidGmv)}<br/>
+                  ${currentLang === 'zh' ? '订单' : 'Orders'}: ${paidOrders}<br/>
+                  ${currentLang === 'zh' ? '累计' : 'Cumulative'}: CNY ${formatMoney(cumulative)}<br/>
+                  ${currentLang === 'zh' ? '档位' : 'Tier'}: ${escapeHtml(tierName || '-')}
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          const displayKoc = targetInput || growthKocId;
+          kocGrowthWrap.dataset.loaded = '1';
+          kocGrowthWrap.innerHTML = `
+            <div class="koc-growth-head">
+              <span>${currentLang === 'zh' ? 'KOC 按月成长（最近12个月）' : 'KOC Monthly Growth (Last 12 Months)'}</span>
+              <span>${escapeHtml(displayKoc)} · ${escapeHtml(latestTierName)} · ${currentLang === 'zh' ? '累计' : 'Cum'} CNY ${formatMoney(latestCum)}</span>
+            </div>
+            <div class="koc-growth-bars">${barsHtml}</div>
+          `;
+        }
+      }
+
+      const topKocText = byKoc.slice(0, 5).map((row) => {
+        const rawId = String(row?.koc_id || '').trim();
+        const rawCode = String(row?.koc_code || '').trim();
+        const id = (!placeholderSet.has(normalizeId(rawId)) && rawId)
+          || (!placeholderSet.has(normalizeId(rawCode)) && rawCode)
+          || '-';
+        return currentLang === 'zh'
+          ? `${id}: 待结算 CNY ${formatMoney(row?.commission_pending || 0)}`
+          : `${id}: pending CNY ${formatMoney(row?.commission_pending || 0)}`;
+      }).join(' | ');
+      kocMeta.textContent = topKocText
+        ? (currentLang === 'zh'
+          ? `已扫描 ${Number(data?.scanned_rows || 0)} 条数据，待结算 TOP -> ${topKocText}`
+          : `Scanned ${Number(data?.scanned_rows || 0)} rows. Top pending -> ${topKocText}`)
+        : (currentLang === 'zh'
+          ? `已扫描 ${Number(data?.scanned_rows || 0)} 条数据，暂无 KOC 归因`
+          : `Scanned ${Number(data?.scanned_rows || 0)} rows. No KOC attribution rows.`);
+
+      if (!rows.length) {
+        kocOrderTbody.innerHTML = `<tr><td colspan="13" class="tiny">${currentLang === 'zh' ? '当前筛选条件下暂无 KOC 订单' : 'No KOC orders for current filter'}</td></tr>`;
+        return;
+      }
+
+      kocOrderTbody.innerHTML = rows.map((row) => {
+        const tradeNoRaw = String(row.trade_no || '').trim();
+        const tradeNo = escapeHtml(tradeNoRaw || '-');
+        const beneficiaryRole = String(row.beneficiary_role || '').trim().toLowerCase() === 'parent' ? 'parent' : 'direct';
+        const roleTag = beneficiaryRole === 'parent'
+          ? `<span class="tag warn">${currentLang === 'zh' ? '\u4e0a\u7ea7' : 'Parent'}</span>`
+          : `<span class="tag ok">${currentLang === 'zh' ? '\u76f4\u63a8' : 'Direct'}</span>`;
+
+        const rawBeneficiaryId = String(row.beneficiary_koc_id || '').trim();
+        const rawDirectKocId = String(row.koc_id || '').trim();
+        const rawParentKocId = String(row.parent_koc_id || '').trim();
+        const rawContentId = String(row.content_id || '').trim();
+        const rawKocCode = String(row.koc_code || '').trim();
+
+        const safeBeneficiaryId = placeholderSet.has(normalizeId(rawBeneficiaryId)) ? '' : rawBeneficiaryId;
+        const safeDirectKocId = placeholderSet.has(normalizeId(rawDirectKocId)) ? '' : rawDirectKocId;
+        const safeParentKocId = placeholderSet.has(normalizeId(rawParentKocId)) ? '' : rawParentKocId;
+        const safeContentId = placeholderSet.has(normalizeId(rawContentId)) ? '' : rawContentId;
+        const safeKocCode = placeholderSet.has(normalizeId(rawKocCode)) ? '' : rawKocCode;
+
+        const matchedName = findKocName(safeBeneficiaryId || safeKocCode || safeDirectKocId, safeContentId);
+        const hasPlaceholder = placeholderSet.has(normalizeId(rawBeneficiaryId))
+          || placeholderSet.has(normalizeId(rawDirectKocId))
+          || placeholderSet.has(normalizeId(rawParentKocId))
+          || placeholderSet.has(normalizeId(rawContentId))
+          || placeholderSet.has(normalizeId(rawKocCode));
+
+        const primaryLabel = matchedName
+          || safeBeneficiaryId
+          || safeKocCode
+          || (hasPlaceholder ? (currentLang === 'zh' ? '未知参数KOC' : 'Unknown KOC') : '-');
+        const warningText = hasPlaceholder
+          ? (currentLang === 'zh' ? '疑似占位参数，请修正 KOC 链接参数' : 'Placeholder params detected, please fix KOC link')
+          : '';
+
+        const kocInfoHtml = `
+          <div style="font-weight:600;">${escapeHtml(primaryLabel)}</div>
+          <div class="tiny">ID: ${escapeHtml(safeBeneficiaryId || '-')}</div>
+          <div class="tiny">Direct: ${escapeHtml(safeDirectKocId || '-')}</div>
+          <div class="tiny">Parent: ${escapeHtml(safeParentKocId || '-')}</div>
+          <div class="tiny">Content: ${escapeHtml(safeContentId || '-')}</div>
+          <div class="tiny">Code: ${escapeHtml(safeKocCode || '-')}</div>
+          ${warningText ? `<div class="tiny" style="color:#dc2626;">${escapeHtml(warningText)}</div>` : ''}
+        `;
+
+        const channel = escapeHtml(row.channel || '-');
+        const service = escapeHtml(String(row.service || '-').toUpperCase());
+        const tier = escapeHtml(row.payment_option_id || '-');
+        const paidTag = row.paid ? `<span class="tag ok">${t('yes')}</span>` : `<span class="tag bad">${t('no')}</span>`;
+        const deliveredTag = row.delivered ? `<span class="tag ok">${t('yes')}</span>` : `<span class="tag warn">${t('no')}</span>`;
+        const settlement = settlementTag(row.settlement_status);
+        const gmv = `CNY ${formatMoney(row.total_fee || 0)}`;
+        const commission = `CNY ${formatMoney(row.commission_amount || 0)}`;
+        const note = escapeHtml(row.settlement_note || '');
+
+        return `
+          <tr>
+            <td>${toLocalTime(row.created_at)}</td>
+            <td><code>${tradeNo}</code></td>
+            <td>${kocInfoHtml}</td>
+            <td>${roleTag}</td>
+            <td>${channel}</td>
+            <td>${service}</td>
+            <td>${tier}</td>
+            <td>${paidTag}</td>
+            <td>${deliveredTag}</td>
+            <td>${gmv}</td>
+            <td>${commission}</td>
+            <td>${settlement}<div class="tiny">${note}</div></td>
+            <td>
+              <div class="koc-actions">
+                <button class="btn-mini primary koc-settle-btn" data-trade="${tradeNo}" data-role="${beneficiaryRole}" data-status="approved">${currentLang === 'zh' ? '审核通过' : 'Approve'}</button>
+                <button class="btn-mini good koc-settle-btn" data-trade="${tradeNo}" data-role="${beneficiaryRole}" data-status="paid">${currentLang === 'zh' ? '标记打款' : 'Mark Paid'}</button>
+                <button class="btn-mini bad koc-settle-btn" data-trade="${tradeNo}" data-role="${beneficiaryRole}" data-status="invalid">${currentLang === 'zh' ? '标记无效' : 'Invalid'}</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      bindKocRowActions();
+    }
+
+    function renderSettlementOverview(data) {
+      const summary = data?.summary || {};
+      const conversion = data?.conversion || {};
+      const byService = Array.isArray(data?.by_service) ? data.by_service : [];
+
+      const totalOrders = Number(summary.total_orders || 0);
+      const paidOrders = Number(summary.paid_orders || 0);
+      const deliveredOrders = Number(summary.delivered_orders || 0);
+      const unpaidOrders = Number(summary.unpaid_orders || 0);
+      const paidNotDelivered = Number(summary.paid_not_delivered || 0);
+      const paidGmv = Number(summary.paid_gmv || 0);
+      const platformFeeRatePct = Number(summary.platform_fee_rate || 0) * 100;
+      const platformFeeAmount = Number(summary.platform_fee_amount || 0);
+      const kocCommissionAmount = Number(summary.koc_commission_amount || 0);
+      const netProfit = Number(summary.net_profit || 0);
+      const netMarginRate = Number(summary.net_margin_rate || 0);
+
+      settlementMeta.dataset.loaded = '1';
+      settlementMetricGrid.innerHTML = [
+        metricCard(currentLang === 'zh' ? '总订单' : 'Total Orders', totalOrders, currentLang === 'zh' ? `最近 ${Number(data?.days || 0)} 天` : `Last ${Number(data?.days || 0)} days`),
+        metricCard(currentLang === 'zh' ? '已支付订单' : 'Paid Orders', paidOrders, currentLang === 'zh' ? `支付率 ${formatPercent(conversion.paid_rate)}` : `Paid rate ${formatPercent(conversion.paid_rate)}`),
+        metricCard(currentLang === 'zh' ? '已交付订单' : 'Delivered', deliveredOrders, currentLang === 'zh' ? `交付率 ${formatPercent(conversion.delivered_rate_total)}` : `Delivered rate ${formatPercent(conversion.delivered_rate_total)}`),
+        metricCard(currentLang === 'zh' ? '支付 GMV' : 'Paid GMV', `CNY ${formatMoney(paidGmv)}`, currentLang === 'zh' ? '仅统计已支付' : 'Paid only'),
+        metricCard(currentLang === 'zh' ? '已支付未交付' : 'Paid Not Delivered', paidNotDelivered, currentLang === 'zh' ? `未支付 ${unpaidOrders}` : `Unpaid ${unpaidOrders}`),
+        metricCard(currentLang === 'zh' ? '支付->交付' : 'Paid -> Delivered', formatPercent(conversion.delivered_rate_from_paid), currentLang === 'zh' ? '用于结算节奏判断' : 'For settlement pacing'),
+        metricCard(
+          currentLang === 'zh' ? '平台手续费' : 'Platform Fee',
+          `CNY ${formatMoney(platformFeeAmount)}`,
+          currentLang === 'zh' ? `GMV × ${platformFeeRatePct.toFixed(2)}%` : `GMV × ${platformFeeRatePct.toFixed(2)}%`,
+        ),
+        metricCard(
+          currentLang === 'zh' ? 'KOC佣金支出' : 'KOC Commission',
+          `CNY ${formatMoney(kocCommissionAmount)}`,
+          currentLang === 'zh' ? '按KOC档位估算佣金' : 'Estimated by KOC tier rates',
+        ),
+        metricCard(
+          currentLang === 'zh' ? '净利润' : 'Net Profit',
+          `CNY ${formatMoney(netProfit)}`,
+          currentLang === 'zh' ? `净利率 ${formatPercent(netMarginRate)}` : `Net margin ${formatPercent(netMarginRate)}`,
+        ),
+      ].join('');
+
+      settlementMeta.textContent = currentLang === 'zh'
+        ? `已扫描 ${Number(data?.scanned_rows || 0)} 条订单：支付 ${paidOrders}，交付 ${deliveredOrders}，GMV CNY ${formatMoney(paidGmv)}，平台费 CNY ${formatMoney(platformFeeAmount)}，KOC佣金 CNY ${formatMoney(kocCommissionAmount)}，净利润 CNY ${formatMoney(netProfit)}`
+        : `Scanned ${Number(data?.scanned_rows || 0)} orders: paid ${paidOrders}, delivered ${deliveredOrders}, GMV CNY ${formatMoney(paidGmv)}, platform fee CNY ${formatMoney(platformFeeAmount)}, KOC commission CNY ${formatMoney(kocCommissionAmount)}, net profit CNY ${formatMoney(netProfit)}.`;
+
+      if (!byService.length) {
+        settlementServiceTbody.dataset.loaded = '1';
+        settlementServiceTbody.innerHTML = `<tr><td colspan="6" class="tiny">${escapeHtml(t('settlementServiceNoData'))}</td></tr>`;
+        return;
+      }
+
+      settlementServiceTbody.dataset.loaded = '1';
+      settlementServiceTbody.innerHTML = byService.map((row) => {
+        const serviceName = escapeHtml(String(row?.service || '-').toUpperCase());
+        const serviceTotal = Number(row?.total_orders || 0);
+        const servicePaid = Number(row?.paid_orders || 0);
+        const serviceDelivered = Number(row?.delivered_orders || 0);
+        const serviceGmv = `CNY ${formatMoney(row?.paid_gmv || 0)}`;
+        const serviceRate = servicePaid > 0 ? formatPercent((serviceDelivered / servicePaid) * 100) : '0.00%';
+        return `
+          <tr>
+            <td>${serviceName}</td>
+            <td>${serviceTotal}</td>
+            <td>${servicePaid}</td>
+            <td>${serviceDelivered}</td>
+            <td>${serviceGmv}</td>
+            <td>${serviceRate}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function loadSettlementOverview() {
+      const days = Math.min(Math.max(Number(settlementDaysSelect?.value || 30), 1), 120);
+      const data = await callAdmin('settlement_overview', {
+        days,
+        max_rows: 4000,
+      });
+      renderSettlementOverview(data);
+      return data;
+    }
+
+    async function loadKocDashboard() {
+      const days = Math.min(Math.max(Number(kocDaysSelect?.value || 30), 1), 120);
+      const kocId = String(kocIdFilterInput?.value || '').trim().toLowerCase();
+      const channel = String(kocChannelFilterInput?.value || '').trim().toLowerCase();
+      const settlementStatus = String(kocStatusSelect?.value || '').trim().toLowerCase();
+      const beneficiaryRole = String(kocRoleSelect?.value || '').trim().toLowerCase();
+      const data = await callAdmin('koc_dashboard', {
+        days,
+        koc_id: kocId,
+        channel,
+        settlement_status: settlementStatus,
+        beneficiary_role: beneficiaryRole,
+        max_rows: 3000,
+        order_limit: 500,
+      });
+      renderKocDashboard(data);
+      return data;
     }
 
     async function loadFunnel() {
@@ -406,7 +2603,9 @@
       const summary = data?.summary || {};
       const conversion = data?.conversion || {};
       const byService = data?.by_service || {};
+      const byAbVariant = Array.isArray(data?.by_ab_variant) ? data.by_ab_variant : [];
       const failures = Array.isArray(data?.failures) ? data.failures : [];
+      funnelMeta.dataset.loaded = '1';
 
       const totalOrders = Number(summary.total_orders || 0);
       const paymentCreated = Number(summary.payment_created || 0);
@@ -415,12 +2614,12 @@
       const delivered = Number(summary.delivered || 0);
 
       funnelMetricGrid.innerHTML = [
-        metricCard('总订单', totalOrders, `近 ${data?.days || '-'} 天`),
-        metricCard('拉起支付', paymentCreated, `下单→支付页 ${formatPercent(conversion.order_to_payment_created)}`),
-        metricCard('支付成功', paid, `支付页→支付成功 ${formatPercent(conversion.payment_created_to_paid)}`),
-        metricCard('校验成功', verified, `支付成功→校验 ${formatPercent(conversion.paid_to_verified)}`),
-        metricCard('交付成功', delivered, `校验→交付 ${formatPercent(conversion.verified_to_delivered)}`),
-        metricCard('总转化率', formatPercent(conversion.order_to_delivered), '下单→交付'),
+        metricCard(currentLang === 'zh' ? '总订单' : 'Total Orders', totalOrders, currentLang === 'zh' ? `最近 ${data?.days || '-'} 天` : `Last ${data?.days || '-'} days`),
+        metricCard(currentLang === 'zh' ? '拉起支付' : 'Payment Page Opened', paymentCreated, currentLang === 'zh' ? `下单 -> 支付页 ${formatPercent(conversion.order_to_payment_created)}` : `Order -> Pay page ${formatPercent(conversion.order_to_payment_created)}`),
+        metricCard(currentLang === 'zh' ? '支付成功' : 'Payment Success', paid, currentLang === 'zh' ? `支付页 -> 已支付 ${formatPercent(conversion.payment_created_to_paid)}` : `Pay page -> Paid ${formatPercent(conversion.payment_created_to_paid)}`),
+        metricCard(currentLang === 'zh' ? '支付核验' : 'Payment Verified', verified, currentLang === 'zh' ? `已支付 -> 已核验 ${formatPercent(conversion.paid_to_verified)}` : `Paid -> Verified ${formatPercent(conversion.paid_to_verified)}`),
+        metricCard(currentLang === 'zh' ? '已交付' : 'Delivered', delivered, currentLang === 'zh' ? `已核验 -> 已交付 ${formatPercent(conversion.verified_to_delivered)}` : `Verified -> Delivered ${formatPercent(conversion.verified_to_delivered)}`),
+        metricCard(currentLang === 'zh' ? '整体转化' : 'Overall Conversion', formatPercent(conversion.order_to_delivered), currentLang === 'zh' ? '下单 -> 交付' : 'Order -> Delivered'),
       ].join('');
 
       const serviceText = ['bazi', 'hepan', 'pdf']
@@ -431,13 +2630,43 @@
           const deliveredCount = Number(row.delivered || 0);
           const paidRate = total > 0 ? `${((paidCount / total) * 100).toFixed(1)}%` : '0.0%';
           const deliveredRate = total > 0 ? `${((deliveredCount / total) * 100).toFixed(1)}%` : '0.0%';
-          return `${name.toUpperCase()}: ${total}单 / 支付${paidRate} / 交付${deliveredRate}`;
+          return currentLang === 'zh'
+            ? `${name.toUpperCase()}：${total}单 / 支付${paidRate} / 交付${deliveredRate}`
+            : `${name.toUpperCase()}: ${total} orders / paid ${paidRate} / delivered ${deliveredRate}`;
         })
-        .join(' ｜ ');
-      funnelMeta.textContent = `扫描 ${Number(data?.scanned_rows || 0)} 条订单。${serviceText}`;
+        .join(' | ');
+      funnelMeta.textContent = currentLang === 'zh'
+        ? `已扫描 ${Number(data?.scanned_rows || 0)} 条记录。${serviceText}`
+        : `Scanned ${Number(data?.scanned_rows || 0)} rows. ${serviceText}`;
+
+      if (funnelAbTbody) {
+        if (!byAbVariant.length) {
+          funnelAbTbody.innerHTML = `<tr><td colspan="6" class="tiny">${currentLang === 'zh' ? '\u6682\u65e0 A/B \u6570\u636e' : 'No A/B data'}</td></tr>`;
+        } else {
+          funnelAbTbody.innerHTML = byAbVariant.map((row) => {
+            const variant = String(row?.variant || 'A');
+            const total = Number(row?.total_orders || 0);
+            const paidCount = Number(row?.paid || 0);
+            const deliveredCount = Number(row?.delivered || 0);
+            const orderToPaid = Number(row?.order_to_paid || 0);
+            const orderToDelivered = Number(row?.order_to_delivered || 0);
+            return `
+              <tr>
+                <td><span class="tag ${variant === 'B' ? 'warn' : 'ok'}">Variant ${escapeHtml(variant)}</span></td>
+                <td>${escapeHtml(String(total))}</td>
+                <td>${escapeHtml(String(paidCount))}</td>
+                <td>${escapeHtml(String(deliveredCount))}</td>
+                <td>${formatPercent(orderToPaid)}</td>
+                <td>${formatPercent(orderToDelivered)}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
 
       if (!failures.length) {
-        funnelFailureTbody.innerHTML = '<tr><td colspan="6" class="tiny">暂无异常订单</td></tr>';
+        funnelFailureTbody.innerHTML = `<tr><td colspan="6" class="tiny">${currentLang === 'zh' ? '暂无异常订单' : 'No abnormal orders'}</td></tr>`;
       } else {
         funnelFailureTbody.innerHTML = failures.map((row) => `
           <tr>
@@ -446,117 +2675,291 @@
             <td>${escapeHtml(String(row.service || '-').toUpperCase())}</td>
             <td>${toLocalTime(row.created_at)}</td>
             <td>${escapeHtml(String(row.age_minutes ?? '-'))}</td>
-            <td>${row.paid ? '<span class="tag ok">Paid</span>' : '<span class="tag bad">Unpaid</span>'}</td>
+            <td>${row.paid ? `<span class="tag ok">${t('paid')}</span>` : `<span class="tag bad">${t('unpaid')}</span>`}</td>
           </tr>
         `).join('');
       }
     }
 
+
+    function renderTraffic(data) {
+      const summary = data?.summary || {};
+      const deviceCounts = summary?.device_counts || {};
+      trafficMeta.dataset.loaded = '1';
+      trafficPageTbody.dataset.loaded = '1';
+      trafficRecentTbody.dataset.loaded = '1';
+      const totalVisits = Number(summary.total_visits || 0);
+      const uniqueIp = Number(summary.unique_ip || 0);
+      const uniqueVisitor = Number(summary.unique_visitor || 0);
+      const mobileCount = Number(deviceCounts.mobile || 0);
+      const desktopCount = Number(deviceCounts.desktop || 0);
+      const botCount = Number(deviceCounts.bot || 0);
+      const testerCount = Number(summary.tester_visits || 0);
+      const normalCount = Number(summary.normal_visits || 0);
+      const botVisitCount = Number(summary.bot_visits || botCount);
+      const ownerCount = Number(summary.owner_visits || 0);
+
+      trafficMetricGrid.innerHTML = [
+        metricCard(currentLang === 'zh' ? '总访问量' : 'Total Visits', totalVisits, currentLang === 'zh' ? `最近 ${Number(data?.hours || 0)} 小时` : `Last ${Number(data?.hours || 0)} hours`),
+        metricCard(currentLang === 'zh' ? '独立 IP' : 'Unique IP', uniqueIp, currentLang === 'zh' ? '脱敏 IP 数' : 'Masked IP count'),
+        metricCard(currentLang === 'zh' ? '独立访客' : 'Unique Visitors', uniqueVisitor, currentLang === 'zh' ? '按 visitor_id' : 'By visitor id'),
+        metricCard(currentLang === 'zh' ? '移动端' : 'Mobile', mobileCount, currentLang === 'zh' ? '设备分布' : 'Device split'),
+        metricCard(currentLang === 'zh' ? '桌面端' : 'Desktop', desktopCount, currentLang === 'zh' ? '设备分布' : 'Device split'),
+        metricCard(currentLang === 'zh' ? '爬虫/脚本' : 'Bot', botVisitCount, currentLang === 'zh' ? '疑似脚本流量' : 'Crawler / script'),
+        metricCard(currentLang === 'zh' ? '测试访问' : 'Tester Visits', testerCount, currentLang === 'zh' ? `疑似真实 ${normalCount}` : `Likely real ${normalCount}`),
+        metricCard(currentLang === 'zh' ? '我的设备' : 'Owner Device', ownerCount, currentLang === 'zh' ? '按 UA + tester 标记' : 'UA + tester detected'),
+      ].join('');
+
+      const topPages = Array.isArray(data?.top_pages) ? data.top_pages : [];
+      const recent = Array.isArray(data?.recent) ? data.recent : [];
+      const formatVisitType = (row) => {
+        const ownerByUa = isOwnerUa(row?.ua);
+        const ownerByFlag = !!row?.is_owner_device;
+        if (ownerByUa || ownerByFlag) return currentLang === 'zh' ? '我的设备' : 'owner';
+        const rawType = row.visit_type || (row.is_tester ? 'tester' : (row.is_bot ? 'bot' : 'normal'));
+        if (rawType === 'tester') return currentLang === 'zh' ? '测试' : 'tester';
+        if (rawType === 'bot') return currentLang === 'zh' ? '爬虫' : 'bot';
+        return currentLang === 'zh' ? '正常' : 'normal';
+      };
+      trafficMeta.textContent = currentLang === 'zh'
+        ? `已扫描 ${Number(data?.scanned_rows || 0)} 条日志。测试访问 ${testerCount}，爬虫/脚本 ${botVisitCount}，疑似真实 ${normalCount}，我的设备 ${ownerCount}。`
+        : `Scanned ${Number(data?.scanned_rows || 0)} logs. Tester ${testerCount}, bot/script ${botVisitCount}, likely real ${normalCount}.`;
+
+      if (!topPages.length) {
+        trafficPageTbody.innerHTML = `<tr><td colspan="3" class="tiny">${escapeHtml(t('trafficTopPagesEmpty'))}</td></tr>`;
+      } else {
+        trafficPageTbody.innerHTML = topPages.map((row) => `
+          <tr>
+            <td class="tiny">${escapeHtml(row.page_path || '/')}</td>
+            <td>${escapeHtml(String(row.count || 0))}</td>
+            <td>${escapeHtml(String(row.unique_ip || 0))}</td>
+          </tr>
+        `).join('');
+      }
+
+      if (!recent.length) {
+        trafficRecentTbody.innerHTML = `<tr><td colspan="6" class="tiny">${escapeHtml(t('trafficRecentEmpty'))}</td></tr>`;
+      } else {
+        trafficRecentTbody.innerHTML = recent.map((row) => {
+          const ownerDevice = !!row?.is_owner_device || isOwnerUa(row?.ua);
+          const ownerBadge = ownerDevice
+            ? `<span class="owner-device-badge">${currentLang === 'zh' ? '站长设备' : 'Owner Device'}</span>`
+            : '';
+          return `
+          <tr class="${ownerDevice ? 'order-row-highlight' : ''}">
+            <td>${toLocalTime(row.created_at)}</td>
+            <td class="tiny">${escapeHtml(row.page_path || '/')}</td>
+            <td>
+              <code>${escapeHtml(row.ip_masked || '-')}</code>
+              <div class="tiny">${
+                escapeHtml(
+                  `${row.country || (currentLang === 'zh' ? '未知国家' : 'Unknown Country')}${currentLang === 'zh' ? '，' : ', '}${row.province || (currentLang === 'zh' ? '未知省份' : 'Unknown Province')}${currentLang === 'zh' ? '，' : ', '}${row.city || (currentLang === 'zh' ? '未知城市' : 'Unknown City')}`,
+                )
+              }</div>
+            </td>
+            <td>${escapeHtml(row.device || '-')}${ownerBadge}
+              <div class="tiny">${
+                escapeHtml(
+                  currentLang === 'zh'
+                    ? `类型：${formatVisitType(row)}${row.tester_id ? `｜测试ID：${row.tester_id}` : ''}`
+                    : `Type: ${formatVisitType(row)}${row.tester_id ? ` | tester: ${row.tester_id}` : ''}`,
+                )
+              }</div>
+            </td>
+            <td>${escapeHtml(row.lang || '-')}</td>
+            <td class="tiny">${escapeHtml(row.ua || '-')}</td>
+          </tr>
+        `;
+        }).join('');
+      }
+    }
+
+    async function loadTrafficDashboard() {
+      const hours = Math.min(Math.max(Number(trafficHoursSelect?.value || 24), 1), 720);
+      const data = await callAdmin('site_visit_dashboard', {
+        hours,
+        limit: 5000,
+      });
+      renderTraffic(data);
+      return data;
+    }
+
     async function loadOrders(options = {}) {
       const silent = !!options.silent;
       const limit = Math.min(Math.max(Number(limitSelect.value || 50), 1), 100);
-      if (!silent) setStatus('Loading orders...');
+      if (!silent) setStatus(currentLang === 'zh' ? '正在加载订单...' : 'Loading orders...');
       const data = await callAdmin('list', { limit });
       const rows = Array.isArray(data?.orders) ? data.orders : [];
       renderRows(rows);
-      if (!silent) setStatus(`Loaded ${rows.length} orders.`);
+      if (!silent) setStatus(currentLang === 'zh' ? `已加载 ${rows.length} 条订单。` : `Loaded ${rows.length} orders.`);
       return rows.length;
     }
 
-    function renderRows(rows) {
-      if (!rows.length) {
-        orderTbody.innerHTML = '<tr><td colspan="7" class="tiny">No data</td></tr>';
-        return;
-      }
+	    function renderRows(rows) {
+	      if (!rows.length) {
+	        orderTbody.innerHTML = `<tr><td colspan="8" class="tiny">${currentLang === 'zh' ? '\u6682\u65e0\u6570\u636e' : 'No data'}</td></tr>`;
+	        return;
+	      }
 
-      orderTbody.innerHTML = rows.map((row) => {
-        const birth = parseBirthInput(row.birth_input);
-        const option = birth.payment_option || {};
-        const tier = escapeHtml(option.id || '-');
-        const fee = option.fee ? `CNY ${escapeHtml(option.fee)}` : '-';
-        const hasAnalysis = !!String(row.analysis || '').trim();
-        const customer = `${escapeHtml(birth.year || '-')}-${escapeHtml(birth.month || '-')}-${escapeHtml(birth.day || '-')} ${escapeHtml(birth.hour || '-')} / ${escapeHtml(birth.gender || '-')}`;
-        const tradeNo = escapeHtml(row.trade_no || '-');
-        return `
-          <tr>
-            <td>${toLocalTime(row.created_at)}</td>
-            <td><code>${tradeNo}</code></td>
-            <td>${tier} / ${fee}</td>
-            <td>${row.paid ? '<span class="tag ok">Paid</span>' : '<span class="tag bad">No</span>'}</td>
-            <td>${hasAnalysis ? '<span class="tag ok">Ready</span>' : '<span class="tag warn">Pending</span>'}</td>
-            <td class="tiny">${customer}</td>
-            <td>
-              ${statusTag(!!row.paid, hasAnalysis)}
-              <div class="row" style="margin-top:8px;">
-                <button data-trade="${tradeNo}" class="verify-row-btn">Verify</button>
-              </div>
-            </td>
-          </tr>
-        `;
-      }).join('');
+	      const focusTradeNo = getSupportFocusTradeNo();
 
-      document.querySelectorAll('.verify-row-btn').forEach((btn) => {
-        btn.addEventListener('click', async () => {
-          const tradeNo = btn.getAttribute('data-trade') || '';
-          if (!tradeNo) return;
-          tradeNoInput.value = tradeNo;
-          await verifyAndReconcile(tradeNo);
-          await refreshDashboardAndOrders();
-        });
-      });
-    }
+	      orderTbody.innerHTML = rows.map((row) => {
+	        const birth = parseBirthInput(row.birth_input);
+	        const option = birth.payment_option || {};
+	        const tier = escapeHtml(option.id || '-');
+	        const fee = option.fee ? `CNY ${escapeHtml(option.fee)}` : '-';
+	        const hasAnalysis = !!String(row.analysis || '').trim();
+	        const customer = `${escapeHtml(birth.year || '-')}-${escapeHtml(birth.month || '-')}-${escapeHtml(birth.day || '-')} ${escapeHtml(birth.hour || '-')} / ${escapeHtml(birth.gender || '-')}`;
+	        const consultIntakeHtml = renderConsultIntakeCell(birth);
+	        const tradeNoRaw = String(row.trade_no || '').trim();
+	        const tradeNoEscaped = escapeHtml(tradeNoRaw || '-');
+	        const intake = birth?.consult_intake && typeof birth.consult_intake === 'object' && !Array.isArray(birth.consult_intake)
+	          ? birth.consult_intake
+	          : {};
+	        const isRecent = isRecentConsultUpdate(intake?.updated_at);
+	        const isFocused = (focusTradeNo && tradeNoRaw === focusTradeNo) || isRecent;
+	        const rowClass = isFocused ? 'order-row-highlight' : '';
+	        return `
+	          <tr data-trade-no="${tradeNoEscaped}" class="${rowClass}">
+	            <td>${toLocalTime(row.created_at)}</td>
+	            <td><code>${tradeNoEscaped}</code></td>
+	            <td>${tier} / ${fee}</td>
+	            <td>${row.paid ? `<span class="tag ok">${t('paid')}</span>` : `<span class="tag bad">${t('no')}</span>`}</td>
+	            <td>${hasAnalysis ? `<span class="tag ok">${t('ready')}</span>` : `<span class="tag warn">${t('pending')}</span>`}</td>
+	            <td class="tiny">${customer}</td>
+	            <td class="tiny">${consultIntakeHtml}</td>
+	            <td>
+	              ${statusTag(!!row.paid, hasAnalysis)}
+	              <div class="row" style="margin-top:8px;">
+	                <button data-trade="${tradeNoEscaped}" class="verify-row-btn">${currentLang === 'zh' ? '\u6838\u9a8c' : 'Verify'}</button>
+	                <button data-trade="${tradeNoEscaped}" class="verify-summary-row-btn">${t('verifySummaryBtn')}</button>
+	              </div>
+	            </td>
+	          </tr>
+	        `;
+	      }).join('');
 
-    async function verifyAndReconcile(tradeNo) {
+	      if (focusTradeNo) {
+	        const focusedRow = orderTbody.querySelector(`tr[data-trade-no="${focusTradeNo}"]`);
+	        if (focusedRow) {
+	          focusedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+	          setStatus(currentLang === 'zh'
+	            ? `已自动高亮订单：${focusTradeNo}`
+	            : `Order highlighted automatically: ${focusTradeNo}`);
+	          setTimeout(() => focusedRow.classList.remove('order-row-highlight'), 12000);
+	        } else {
+	          setStatus(currentLang === 'zh'
+            ? `已记录高亮目标 ${focusTradeNo}，当前列表未找到（可提高列表条数后重试）。`
+	            : `Stored highlight target ${focusTradeNo}, not found in current list (increase list limit and retry).`);
+	        }
+	        clearSupportFocusTradeNo();
+	      }
+
+	      document.querySelectorAll('.verify-row-btn').forEach((btn) => {
+	        btn.addEventListener('click', async () => {
+	          const tradeNo = btn.getAttribute('data-trade') || '';
+	          if (!tradeNo) return;
+	          tradeNoInput.value = tradeNo;
+	          await verifyAndReconcile(tradeNo);
+	          await refreshDashboardAndOrders();
+	        });
+	      });
+
+	      document.querySelectorAll('.verify-summary-row-btn').forEach((btn) => {
+	        btn.addEventListener('click', async () => {
+	          const tradeNo = btn.getAttribute('data-trade') || '';
+	          if (!tradeNo) return;
+	          tradeNoInput.value = tradeNo;
+	          const result = await verifyAndReconcile(tradeNo, { silentStatus: true });
+	          if (!result || !result.data) return;
+	          const summaryText = buildAntiFraudSummary(tradeNo, result.data || {});
+	          const copied = await copyTextSafe(summaryText);
+	          const tail = copied
+	            ? (currentLang === 'zh' ? '\uff08\u6458\u8981\u5df2\u590d\u5236\uff0c\u53ef\u76f4\u63a5\u53d1\u7ed9\u5ba2\u670d\u5904\u7406\uff09' : '(Summary copied. You can paste to support workflow.)')
+	            : (currentLang === 'zh' ? '\uff08\u590d\u5236\u5931\u8d25\uff0c\u8bf7\u624b\u52a8\u590d\u5236\uff09' : '(Copy failed. Please copy manually.)');
+	          setStatus(`${summaryText}\n\n${tail}`);
+	        });
+	      });
+	    }
+
+    async function verifyAndReconcile(tradeNo, options = {}) {
       const value = String(tradeNo || '').trim();
+      const silentStatus = Boolean(options?.silentStatus);
       if (!validateTradeNo(value)) {
-        setStatus('Invalid trade_no format.');
-        return;
+        const msg = currentLang === 'zh' ? 'trade_no \u683c\u5f0f\u65e0\u6548\u3002' : 'Invalid trade_no format.';
+        if (!silentStatus) setStatus(msg);
+        return { ok: false, error: msg, summaryText: '' };
       }
 
-      setStatus(`Verifying ${value} ...`);
+      if (!silentStatus) {
+        setStatus(currentLang === 'zh' ? `\u6b63\u5728\u6821\u9a8c ${value} ...` : `Verifying ${value} ...`);
+      }
       const data = await callAdmin('verify', { trade_no: value });
       const paid = !!data.paid;
       const analysisExists = !!data.analysis_exists;
       const analysisTriggered = !!data.analysis_triggered;
 
       const lines = [
-        `Trade: ${value}`,
-        `Paid: ${paid ? 'YES' : 'NO'}`,
-        `Report: ${analysisExists ? 'EXISTS' : 'MISSING'}`,
-        `Triggered: ${analysisTriggered ? 'YES' : 'NO'}`,
+        currentLang === 'zh' ? `\u8ba2\u5355\uff1a${value}` : `Trade: ${value}`,
+        currentLang === 'zh' ? `\u652f\u4ed8\uff1a${paid ? '\u662f' : '\u5426'}` : `Paid: ${paid ? 'YES' : 'NO'}`,
+        currentLang === 'zh' ? `\u62a5\u544a\uff1a${analysisExists ? '\u5df2\u5b58\u5728' : '\u7f3a\u5931'}` : `Report: ${analysisExists ? 'EXISTS' : 'MISSING'}`,
+        currentLang === 'zh' ? `\u89e6\u53d1\u751f\u6210\uff1a${analysisTriggered ? '\u662f' : '\u5426'}` : `Triggered: ${analysisTriggered ? 'YES' : 'NO'}`,
       ];
 
       if (!paid) {
-        lines.push('Advice: ask customer to complete payment.');
+        lines.push(currentLang === 'zh' ? '\u5efa\u8bae\uff1a\u63d0\u9192\u5ba2\u6237\u5148\u5b8c\u6210\u652f\u4ed8\u3002' : 'Advice: ask customer to complete payment.');
       } else if (!analysisExists) {
-        lines.push('Advice: payment confirmed, generation triggered. Recheck shortly.');
+        lines.push(currentLang === 'zh' ? '\u5efa\u8bae\uff1a\u5df2\u786e\u8ba4\u652f\u4ed8\u5e76\u89e6\u53d1\u751f\u6210\uff0c\u8bf7\u7a0d\u540e\u590d\u67e5\u3002' : 'Advice: payment confirmed, generation triggered. Recheck shortly.');
       } else {
-        lines.push('Advice: report ready, ask customer to continue previous order.');
+        lines.push(currentLang === 'zh' ? '\u5efa\u8bae\uff1a\u62a5\u544a\u5df2\u5c31\u7eea\uff0c\u63d0\u9192\u5ba2\u6237\u7ee7\u7eed\u4e0a\u6b21\u8ba2\u5355\u3002' : 'Advice: report ready, ask customer to continue previous order.');
       }
-      setStatus(lines.join('\n'));
+      const summaryText = lines.join('\n');
+      if (!silentStatus) setStatus(summaryText);
+      return { ok: true, data, summaryText };
     }
 
     async function refreshDashboardAndOrders() {
       const days = Math.min(Math.max(Number(funnelDaysSelect?.value || 7), 1), 30);
-      setStatus(`Refreshing funnel(${days}d) and orders...`);
-      const [funnelData, orderCount] = await Promise.all([
+      setStatus(currentLang === 'zh'
+        ? `正在刷新最近 ${days} 天漏斗、结算、KOC、访问与订单数据...`
+        : `Refreshing funnel(${days}d), settlement, KOC, traffic and orders...`);
+      const [funnelData, orderCount, settlementData, kocData, trafficData] = await Promise.all([
         loadFunnel(),
         loadOrders({ silent: true }),
+        loadSettlementOverview(),
+        loadKocDashboard(),
+        loadTrafficDashboard(),
       ]);
       const failCount = Array.isArray(funnelData?.failures) ? funnelData.failures.length : 0;
-      setStatus(`Refresh done: ${orderCount} orders, ${failCount} stuck orders (last ${days} days).`);
+      const paidGmv = Number(settlementData?.summary?.paid_gmv || 0);
+      const kocCount = Number(kocData?.summary?.total_attributed_orders || 0);
+      const trafficCount = Number(trafficData?.summary?.total_visits || 0);
+      setStatus(
+        currentLang === 'zh'
+          ? `刷新完成：${orderCount} 条订单，卡单 ${failCount}，支付 GMV CNY ${formatMoney(paidGmv)}，KOC归因 ${kocCount}，访问 ${trafficCount}。`
+          : `Refresh done: ${orderCount} orders, ${failCount} stuck, paid GMV CNY ${formatMoney(paidGmv)}, ${kocCount} KOC-attributed, ${trafficCount} visits.`,
+      );
     }
 
-    saveAdminTokenBtn.addEventListener('click', () => {
+    saveAdminTokenBtn.addEventListener('click', async () => {
       const token = String(adminTokenInput.value || '').trim();
       if (!token) {
-        setStatus('Input admin token first.');
+        setStatus(currentLang === 'zh' ? '请先输入并保存 Token。' : 'Input admin token first.');
         return;
       }
       setAdminToken(token);
-      setStatus('Admin token saved in this tab session.');
+      setStatus(currentLang === 'zh' ? '已保存 Token（仅当前标签页会话）' : 'Admin token saved in this tab session.');
+      try {
+        await loadKocBuilderCloud();
+      } catch (err) {
+        kocBuilderStatus.textContent = currentLang === 'zh'
+          ? `云端 KOC 列表读取失败（已使用本地缓存）：${err instanceof Error ? err.message : String(err)}`
+          : `Cloud KOC list load failed (using local cache): ${err instanceof Error ? err.message : String(err)}`;
+      }
       refreshDashboardAndOrders().catch((err) => {
-        setStatus(`Load failed after save token: ${err instanceof Error ? err.message : String(err)}`);
+        setStatus(currentLang === 'zh'
+          ? `保存后加载失败：${err instanceof Error ? err.message : String(err)}`
+          : `Load failed after save token: ${err instanceof Error ? err.message : String(err)}`);
       });
     });
 
@@ -565,21 +2968,23 @@
         await verifyAndReconcile(tradeNoInput.value);
         await refreshDashboardAndOrders();
       } catch (err) {
-        setStatus(`Verify failed: ${err instanceof Error ? err.message : String(err)}`);
+        setStatus(currentLang === 'zh'
+          ? `核验失败：${err instanceof Error ? err.message : String(err)}`
+          : `Verify failed: ${err instanceof Error ? err.message : String(err)}`);
       }
     });
 
     copyOneBtn.addEventListener('click', async () => {
       const value = String(tradeNoInput.value || '').trim();
       if (!value) {
-        setStatus('No trade no to copy.');
+        setStatus(currentLang === 'zh' ? '没有可复制的订单号。' : 'No trade no to copy.');
         return;
       }
       try {
         await navigator.clipboard.writeText(value);
-        setStatus(`Copied trade no: ${value}`);
+        setStatus(currentLang === 'zh' ? `已复制订单号：${value}` : `Copied trade no: ${value}`);
       } catch {
-        setStatus('Copy failed.');
+        setStatus(currentLang === 'zh' ? '复制失败。' : 'Copy failed.');
       }
     });
 
@@ -587,7 +2992,42 @@
       try {
         await refreshDashboardAndOrders();
       } catch (err) {
-        setStatus(`Load failed: ${err instanceof Error ? err.message : String(err)}`);
+        setStatus(currentLang === 'zh'
+          ? `加载失败：${err instanceof Error ? err.message : String(err)}`
+          : `Load failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    kocBuilderGenerateBtn.addEventListener('click', async () => {
+      generateKocLinks();
+      if (!kocBuilderRows.length) return;
+      try {
+        await saveKocBuilderCloud();
+      } catch (err) {
+        kocBuilderStatus.textContent = currentLang === 'zh'
+          ? `\u672c\u5730\u5df2\u751f\u6210\uff0c\u4f46\u4e91\u7aef\u540c\u6b65\u5931\u8d25\uff1a${err instanceof Error ? err.message : String(err)}`
+          : `Generated locally, but cloud sync failed: ${err instanceof Error ? err.message : String(err)}`;
+      }
+    });
+
+    [kocBuilderBaseUrl, kocBuilderLandingPath, kocBuilderChannel].forEach((input) => {
+      input.addEventListener('change', () => saveKocBuilderCache());
+    });
+    kocBuilderInput.addEventListener('input', () => saveKocBuilderCache());
+
+    kocBuilderCopyAllBtn.addEventListener('click', async () => {
+      if (!kocBuilderRows.length) {
+        kocBuilderStatus.textContent = currentLang === 'zh' ? '请先生成链接。' : 'Please generate links first.';
+        return;
+      }
+      const lines = kocBuilderRows.map((row) => `${row.name}\t${row.koc_id}\t${row.link}`);
+      try {
+        await navigator.clipboard.writeText(lines.join('\n'));
+        kocBuilderStatus.textContent = currentLang === 'zh'
+          ? `已复制 ${kocBuilderRows.length} 条链接。`
+          : `Copied all ${kocBuilderRows.length} links.`;
+      } catch {
+        kocBuilderStatus.textContent = currentLang === 'zh' ? '复制失败，请重试。' : 'Copy failed. Please retry.';
       }
     });
 
@@ -595,7 +3035,9 @@
       try {
         await refreshDashboardAndOrders();
       } catch (err) {
-        setStatus(`Funnel refresh failed: ${err instanceof Error ? err.message : String(err)}`);
+        setStatus(currentLang === 'zh'
+          ? `漏斗刷新失败：${err instanceof Error ? err.message : String(err)}`
+          : `Funnel refresh failed: ${err instanceof Error ? err.message : String(err)}`);
       }
     });
 
@@ -603,20 +3045,188 @@
       try {
         await refreshDashboardAndOrders();
       } catch (err) {
-        setStatus(`Funnel reload failed: ${err instanceof Error ? err.message : String(err)}`);
+        setStatus(currentLang === 'zh'
+          ? `漏斗重载失败：${err instanceof Error ? err.message : String(err)}`
+          : `Funnel reload failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    settlementRefreshBtn.addEventListener('click', async () => {
+      try {
+        await loadSettlementOverview();
+        setStatus(currentLang === 'zh' ? '结算看板已刷新。' : 'Settlement dashboard refreshed.');
+      } catch (err) {
+        setStatus(currentLang === 'zh'
+          ? `结算看板刷新失败：${err instanceof Error ? err.message : String(err)}`
+          : `Settlement dashboard refresh failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    settlementDaysSelect.addEventListener('change', async () => {
+      try {
+        await loadSettlementOverview();
+        setStatus(currentLang === 'zh' ? '结算看板已刷新。' : 'Settlement dashboard refreshed.');
+      } catch (err) {
+        setStatus(currentLang === 'zh'
+          ? `结算看板重载失败：${err instanceof Error ? err.message : String(err)}`
+          : `Settlement dashboard reload failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    kocRefreshBtn.addEventListener('click', async () => {
+      try {
+        await loadKocDashboard();
+        setStatus(currentLang === 'zh' ? 'KOC 看板已刷新。' : 'KOC dashboard refreshed.');
+      } catch (err) {
+        setStatus(currentLang === 'zh'
+          ? `KOC 刷新失败：${err instanceof Error ? err.message : String(err)}`
+          : `KOC refresh failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    kocBatchApproveBtn?.addEventListener('click', async () => {
+      try {
+        await batchUpdateKocSettlement('approved');
+      } catch (err) {
+        setStatus(currentLang === 'zh'
+          ? `\u6279\u91cf\u5ba1\u6838\u5931\u8d25\uff1a${err instanceof Error ? err.message : String(err)}`
+          : `Batch approve failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    kocBatchPaidBtn?.addEventListener('click', async () => {
+      try {
+        await batchUpdateKocSettlement('paid');
+      } catch (err) {
+        setStatus(currentLang === 'zh'
+          ? `\u6279\u91cf\u6807\u8bb0\u6253\u6b3e\u5931\u8d25\uff1a${err instanceof Error ? err.message : String(err)}`
+          : `Batch mark paid failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    kocBatchInvalidBtn?.addEventListener('click', async () => {
+      try {
+        await batchUpdateKocSettlement('invalid');
+      } catch (err) {
+        setStatus(currentLang === 'zh'
+          ? `\u6279\u91cf\u6807\u8bb0\u65e0\u6548\u5931\u8d25\uff1a${err instanceof Error ? err.message : String(err)}`
+          : `Batch invalid failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    kocExportCsvBtn?.addEventListener('click', () => {
+      exportKocSettlementCsv();
+    });
+    kocExportGrowthBtn?.addEventListener('click', () => {
+      exportKocGrowthExcel();
+    });
+
+    kocDaysSelect.addEventListener('change', async () => {
+      try {
+        await loadKocDashboard();
+        setStatus(currentLang === 'zh' ? 'KOC 看板已刷新。' : 'KOC dashboard refreshed.');
+      } catch (err) {
+        setStatus(currentLang === 'zh'
+          ? `KOC 重载失败：${err instanceof Error ? err.message : String(err)}`
+          : `KOC reload failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    kocStatusSelect.addEventListener('change', async () => {
+      try {
+        await loadKocDashboard();
+        setStatus(currentLang === 'zh' ? 'KOC 看板已刷新。' : 'KOC dashboard refreshed.');
+      } catch (err) {
+        setStatus(currentLang === 'zh'
+          ? `KOC 重载失败：${err instanceof Error ? err.message : String(err)}`
+          : `KOC reload failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    [kocIdFilterInput, kocChannelFilterInput].forEach((input) => {
+      input.addEventListener('keydown', async (event) => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        try {
+          await loadKocDashboard();
+          setStatus(currentLang === 'zh' ? 'KOC 看板已刷新。' : 'KOC dashboard refreshed.');
+        } catch (err) {
+          setStatus(currentLang === 'zh'
+            ? `KOC 筛选失败：${err instanceof Error ? err.message : String(err)}`
+            : `KOC filter failed: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      });
+    });
+
+    trafficRefreshBtn.addEventListener('click', async () => {
+      try {
+        await loadTrafficDashboard();
+        setStatus(currentLang === 'zh' ? '访问看板已刷新。' : 'Traffic dashboard refreshed.');
+      } catch (err) {
+        setStatus(currentLang === 'zh'
+          ? `访问看板刷新失败：${err instanceof Error ? err.message : String(err)}`
+          : `Traffic refresh failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    trafficHoursSelect.addEventListener('change', async () => {
+      try {
+        await loadTrafficDashboard();
+        setStatus(currentLang === 'zh' ? '访问看板已刷新。' : 'Traffic dashboard refreshed.');
+      } catch (err) {
+        setStatus(currentLang === 'zh'
+          ? `访问看板重载失败：${err instanceof Error ? err.message : String(err)}`
+          : `Traffic reload failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+
+    langSelect.addEventListener('change', async () => {
+      currentLang = String(langSelect.value || 'zh') === 'en' ? 'en' : 'zh';
+      localStorage.setItem(ADMIN_LANG_KEY, currentLang);
+      applyLanguage();
+      const token = getAdminToken() || String(adminTokenInput.value || '').trim();
+      if (!token) return;
+      try {
+        await refreshDashboardAndOrders();
+      } catch (err) {
+        setStatus(currentLang === 'zh'
+          ? `切换语言后刷新失败：${err instanceof Error ? err.message : String(err)}`
+          : `Refresh failed after language switch: ${err instanceof Error ? err.message : String(err)}`);
       }
     });
 
     (() => {
+      pinSettlementCardsToTop();
+      applySavedCardOrder();
+      currentLang = getSavedLang();
+      langSelect.value = currentLang;
+      applyLanguage();
+      const restored = loadKocBuilderCache();
+      if (restored) {
+        renderKocBuilderRows();
+        kocBuilderStatus.textContent = currentLang === 'zh'
+          ? `已恢复 ${kocBuilderRows.length} 条本地生成链接。`
+          : `Restored ${kocBuilderRows.length} generated links from local cache.`;
+      }
       const token = getAdminToken();
       if (token) adminTokenInput.value = token;
-      setStatus(token ? 'Token found. Click Refresh Orders.' : 'Save admin token first.');
+      setStatus(token
+        ? (currentLang === 'zh' ? '已检测到 Token，点击“刷新订单”开始。' : 'Token found. Click Refresh Orders.')
+        : t('statusSaveTokenFirst'));
       if (token) {
+        loadKocBuilderCloud().catch((err) => {
+          kocBuilderStatus.textContent = currentLang === 'zh'
+            ? `云端 KOC 列表读取失败（已使用本地缓存）：${err instanceof Error ? err.message : String(err)}`
+            : `Cloud KOC list load failed (using local cache): ${err instanceof Error ? err.message : String(err)}`;
+        });
         refreshDashboardAndOrders().catch((err) => {
-          setStatus(`Initial load failed: ${err instanceof Error ? err.message : String(err)}`);
+          setStatus(currentLang === 'zh'
+            ? `初始化加载失败：${err instanceof Error ? err.message : String(err)}`
+            : `Initial load failed: ${err instanceof Error ? err.message : String(err)}`);
         });
       }
     })();
   </script>
 </body>
 </html>
+

@@ -236,6 +236,8 @@
         <a href="hepan.html">合盘分析</a>
       </div>
       <div class="navbar-right">
+        <a href="/hepan.html" class="mobile-hepan-link" aria-label="合盘分析">合盘分析</a>
+        <a href="/blog/" class="mobile-blog-link" aria-label="命理知识">命理知识</a>
         <span class="navbar-lang">EN</span>
       </div>
     </div>
@@ -250,7 +252,7 @@
       <div class="mk-card">
         <div class="mk-card-header">
           <div class="mk-card-dot"></div>
-          <span class="mk-card-title">出生信息</span>
+          <span class="mk-card-title" id="result-birth-title">出生信息</span>
         </div>
         <div class="mk-card-body">
           <div id="birth-info" class="birth-info"></div>
@@ -261,7 +263,7 @@
       <div class="mk-card" id="bazi-table-section" style="display:none">
         <div class="mk-card-header">
           <div class="mk-card-dot"></div>
-          <span class="mk-card-title">四 柱 八 字</span>
+          <span class="mk-card-title" id="result-pillars-title">四 柱 八 字</span>
         </div>
         <div class="mk-card-body">
           <div class="bazi-table">
@@ -337,7 +339,7 @@
       <div class="mk-card" id="analysis-section">
         <div class="mk-card-header">
           <div class="mk-card-dot"></div>
-          <span class="mk-card-title">资 深 命 理 师 解 读</span>
+          <span class="mk-card-title" id="result-analysis-title">资 深 命 理 师 解 读</span>
         </div>
         <div class="mk-card-body">
 
@@ -359,21 +361,20 @@
           <div id="pay-prompt" style="display:none">
             <div class="pay-card">
               <p class="pay-card-title">解锁深度命理报告</p>
-              <p class="pay-card-sub">以上仅为入门性格预览，完整报告涵盖 15 大维度 · 深度解析约 5000 字</p>
+              <p class="pay-card-sub">以上仅为入门性格预览，完整报告涵盖 24 大维度 · 深度解析约 7000-9000 字</p>
               <div class="pay-features">
                 <span>▸ 用神喜忌 · 五行扶抑精解</span>
-                <span>▸ 事业财运 · 适合行业与黄金期</span>
-                <span>▸ 感情婚姻 · 配偶特征与感情走势</span>
-                <span>▸ 二婚出轨 · 感情隐患深度剖析</span>
-                <span>▸ 健康注意 · 五行薄弱对应身体</span>
-                <span>▸ 神煞分析 · 贵人文昌驿马桃花</span>
-                <span>▸ 子女缘分 · 数量时机与亲子关系</span>
-                <span>▸ 地支刑冲 · 六合六冲三合三会</span>
-                <span>▸ 空亡分析 · 日柱年柱旬空填实</span>
-                <span>▸ 财库分析 · 辰戌丑未开库时机</span>
-                <span>▸ 大运详解 · 当前及未来三步大运</span>
-                <span>▸ 特殊流年 · 冲克应对逐年建议</span>
-                <span class="span-full">▸ 后五年逐年流年 · 事业财运 × 感情健康 × 家宅运势，精准到年</span>
+                <span>▸ 性格底层驱动力 · 天赋优势能力画像</span>
+                <span>▸ 事业财运 · 赚钱方式拆解</span>
+                <span>▸ 适合行业与黄金期 · 创业/副业适配度</span>
+                <span>▸ 感情婚姻 · 婚恋相处说明书</span>
+                <span>▸ 二婚/出轨/感情隐患深剖 · 原生家庭影响</span>
+                <span>▸ 子女缘分 · 人际关系与贵人模式</span>
+                <span>▸ 神煞分析 · 地支刑冲合会</span>
+                <span>▸ 空亡分析 · 财库分析</span>
+                <span>▸ 大运详解 · 特殊流年 + 后五年逐年建议</span>
+                <span>▸ 风险预警模块 · 人生关键转折点</span>
+                <span class="span-full">▸ 改运与补运策略 · 人生核心课题总结</span>
               </div>
               <button id="pay-btn" class="pay-btn">立即解锁完整命理报告</button>
             </div>
@@ -386,9 +387,9 @@
   </div>
 
   <script src="js/bazi.js"></script>
-  <script src="js/site-lang.js"></script>
+  <script src="js/site-lang.js?v=20260329-langsync-v1"></script>
   <script src="js/config.js"></script>
-<script src="js/app.js?v=20260316pdfsignedv1"></script>
+  <script src="js/app.js?v=20260329-langsync-v1"></script>
   <script>
     window.addEventListener('scroll', () => {
       document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);

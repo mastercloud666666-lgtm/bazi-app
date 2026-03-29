@@ -2,6 +2,9 @@
 
 const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
+const SITE_LANG_KEY = 'site_lang_pref_v2';
+const SITE_VISITOR_ID_KEY = 'site_visitor_id_v1';
+const SITE_VISIT_SESSION_FLAG_PREFIX = 'site_visit_sent_';
 
 // ── 农历/阳历切换 ─────────────────────────────────────────────────
 ['man', 'woman'].forEach(prefix => {
@@ -128,9 +131,70 @@ let _manBazi = null, _womanBazi = null, _manData = null, _womanData = null;
 const payEntryBtn = document.getElementById('hepan-pay-entry-btn');
 const payBtn = document.getElementById('hepan-pay-btn');
 
-const HEPAN_PAYMENT_OPTION = { id: 'vip', title: '\u5408\u76d8\u5b8c\u6574\u62a5\u544a', fee: '0.01' };
+const HEPAN_PAYMENT_OPTION = { id: 'vip', title: '合盘测算报告', fee: '199' };
 const HEPAN_PENDING_TRADE_KEY = 'hepan_pending_trade_no';
 const HEPAN_ORDER_CACHE_PREFIX = 'hepan_order_';
+const HEPAN_KOC_ATTRIBUTION_KEY = 'hepan_koc_attr_v1';
+const HEPAN_KOC_ATTRIBUTION_TTL_MS = 60 * 60 * 24 * 30 * 1000;
+const HEPAN_KOC_PLACEHOLDER_IDS = new Set(['koc_id', 'content_id', 'koc_code', 'kocid', 'contentid', 'code', 'id', 'name', 'ref', 'koc', 'content']);
+
+function safeGetLocalStorage(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSetLocalStorage(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {}
+}
+
+function detectUiLang() {
+  const htmlLang = String(document?.documentElement?.getAttribute('lang') || '').toLowerCase();
+  if (htmlLang.includes('zh-hant') || htmlLang.includes('zh-tw') || htmlLang.includes('zh-hk')) return 'zh-Hant';
+  if (htmlLang.startsWith('en')) return 'en';
+  const saved = String(safeGetLocalStorage(SITE_LANG_KEY) || '');
+  if (saved === 'en' || saved === 'zh-Hans' || saved === 'zh-Hant') return saved;
+  return 'zh-Hans';
+}
+
+function getSiteVisitorId() {
+  const existing = safeGetLocalStorage(SITE_VISITOR_ID_KEY);
+  if (existing) return existing;
+  const next = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+  safeSetLocalStorage(SITE_VISITOR_ID_KEY, next);
+  return next;
+}
+
+function trackSiteVisitOnce() {
+  try {
+    const path = String(window.location.pathname || '/');
+    const key = `${SITE_VISIT_SESSION_FLAG_PREFIX}${path}`;
+    if (sessionStorage.getItem(key) === '1') return;
+    sessionStorage.setItem(key, '1');
+
+    fetch(`${SUPABASE_URL}/functions/v1/admin-orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${SUPABASE_ANON}`,
+      },
+      body: JSON.stringify({
+        action: 'site_visit_track',
+        page_path: path,
+        page_title: String(document.title || '').slice(0, 120),
+        lang: detectUiLang(),
+        referrer: String(document.referrer || '').slice(0, 260),
+        visitor_id: getSiteVisitorId(),
+        user_agent: String(navigator.userAgent || '').slice(0, 240),
+      }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {}
+}
 
 function getClientId() {
   const key = 'hepan_client_id';
@@ -141,6 +205,132 @@ function getClientId() {
   }
   return id;
 }
+
+function normalizeKocId(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, '')
+    .slice(0, 48);
+}
+
+function normalizeKocText(value, maxLen = 64) {
+  return String(value || '')
+    .trim()
+    .replace(/[\r\n\t]/g, ' ')
+    .slice(0, maxLen);
+}
+
+function parseJsonObject(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeKocSnapshot(raw) {
+  const source = raw && typeof raw === 'object' ? raw : {};
+  let koc_id = normalizeKocId(source.koc_id || source.kocId || source.ref || source.koc || '');
+  let parent_koc_id = normalizeKocId(source.parent_koc_id || source.parentKocId || source.parent || source.pkoc || '');
+  let channel = normalizeKocId(source.channel || source.src || '');
+  let content_id = normalizeKocId(source.content_id || source.contentId || source.cid || '');
+  let koc_code = normalizeKocText(source.koc_code || source.kocCode || source.code || '', 64);
+  const codeAsId = normalizeKocId(koc_code);
+
+  if (HEPAN_KOC_PLACEHOLDER_IDS.has(koc_id)) koc_id = '';
+  if (HEPAN_KOC_PLACEHOLDER_IDS.has(parent_koc_id)) parent_koc_id = '';
+  if (HEPAN_KOC_PLACEHOLDER_IDS.has(channel)) channel = '';
+  if (HEPAN_KOC_PLACEHOLDER_IDS.has(content_id)) content_id = '';
+  if (HEPAN_KOC_PLACEHOLDER_IDS.has(codeAsId)) koc_code = '';
+  if (!koc_id && codeAsId && !HEPAN_KOC_PLACEHOLDER_IDS.has(codeAsId)) {
+    koc_id = codeAsId;
+  }
+  if (parent_koc_id && parent_koc_id === koc_id) {
+    parent_koc_id = '';
+  }
+
+  const first_touch_at = normalizeKocText(source.first_touch_at || source.firstTouchAt || '', 40);
+  const last_touch_at = normalizeKocText(source.last_touch_at || source.lastTouchAt || '', 40);
+  const first_landing_path = normalizeKocText(source.first_landing_path || source.firstLandingPath || '', 180);
+  const last_landing_path = normalizeKocText(source.last_landing_path || source.lastLandingPath || '', 180);
+  const entry_url = normalizeKocText(source.entry_url || source.entryUrl || '', 320);
+
+  if (!koc_id && !koc_code) return null;
+  return {
+    koc_id,
+    parent_koc_id,
+    channel,
+    content_id,
+    koc_code,
+    first_touch_at,
+    last_touch_at,
+    first_landing_path,
+    last_landing_path,
+    entry_url,
+  };
+}
+
+function readKocSnapshot() {
+  const parsed = parseJsonObject(localStorage.getItem(HEPAN_KOC_ATTRIBUTION_KEY) || '');
+  const normalized = normalizeKocSnapshot(parsed);
+  if (!normalized) return null;
+
+  const lastTouch = Date.parse(normalized.last_touch_at || '');
+  if (Number.isFinite(lastTouch) && (Date.now() - lastTouch) > HEPAN_KOC_ATTRIBUTION_TTL_MS) {
+    localStorage.removeItem(HEPAN_KOC_ATTRIBUTION_KEY);
+    return null;
+  }
+  return normalized;
+}
+
+function persistKocSnapshot(snapshot) {
+  if (!snapshot) return;
+  localStorage.setItem(HEPAN_KOC_ATTRIBUTION_KEY, JSON.stringify(snapshot));
+}
+
+function parseKocFromUrl() {
+  const urlParams = new URLSearchParams(window.location.search || '');
+  const hashParams = new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
+  const read = (key) => urlParams.get(key) || hashParams.get(key) || '';
+  return normalizeKocSnapshot({
+    koc_id: read('koc_id') || read('ref') || read('koc'),
+    parent_koc_id: read('parent_koc_id') || read('parent_koc') || read('parent') || read('parent_id') || read('pkoc'),
+    channel: read('channel') || read('utm_source') || read('src'),
+    content_id: read('content_id') || read('content') || read('utm_content'),
+    koc_code: read('koc_code') || read('code'),
+    entry_url: `${window.location.pathname || '/'}${window.location.search || ''}`,
+  });
+}
+
+function captureKocFromUrl() {
+  const incoming = parseKocFromUrl();
+  if (!incoming) return readKocSnapshot();
+
+  const existing = readKocSnapshot();
+  const nowIso = new Date().toISOString();
+  const merged = normalizeKocSnapshot({
+    ...(existing || {}),
+    ...incoming,
+    first_touch_at: existing?.first_touch_at || nowIso,
+    last_touch_at: nowIso,
+    first_landing_path: existing?.first_landing_path || (window.location.pathname || '/'),
+    last_landing_path: window.location.pathname || '/',
+    entry_url: incoming.entry_url || existing?.entry_url || '',
+  });
+
+  if (merged) persistKocSnapshot(merged);
+  return merged;
+}
+
+function getKocSnapshot() {
+  return readKocSnapshot();
+}
+
+captureKocFromUrl();
+trackSiteVisitOnce();
 
 function setPendingTradeNo(tradeNo) {
   localStorage.setItem(HEPAN_PENDING_TRADE_KEY, tradeNo);
@@ -244,6 +434,26 @@ function buildHepanPayload(manBazi, womanBazi, manData, womanData) {
     .slice(0, 6)
     .map((d) => `${d.gz}\uff08${d.ageStart}\u5c81\uff0c${d.yearStart}\u5e74\uff09`)
     .join('\u3001');
+  const kocSnapshot = getKocSnapshot();
+  const tracking = {
+    client_id: getClientId(),
+    attribution_model: 'last_click_30d',
+    service: 'hepan',
+    payment_option_id: HEPAN_PAYMENT_OPTION.id,
+    order_created_client_at: new Date().toISOString(),
+  };
+  if (kocSnapshot) {
+    if (kocSnapshot.koc_id) tracking.koc_id = kocSnapshot.koc_id;
+    if (kocSnapshot.parent_koc_id) tracking.koc_parent_id = kocSnapshot.parent_koc_id;
+    if (kocSnapshot.channel) tracking.koc_channel = kocSnapshot.channel;
+    if (kocSnapshot.content_id) tracking.koc_content_id = kocSnapshot.content_id;
+    if (kocSnapshot.koc_code) tracking.koc_code = kocSnapshot.koc_code;
+    if (kocSnapshot.first_touch_at) tracking.koc_first_touch_at = kocSnapshot.first_touch_at;
+    if (kocSnapshot.last_touch_at) tracking.koc_last_touch_at = kocSnapshot.last_touch_at;
+    if (kocSnapshot.first_landing_path) tracking.koc_first_landing_path = kocSnapshot.first_landing_path;
+    if (kocSnapshot.last_landing_path) tracking.koc_last_landing_path = kocSnapshot.last_landing_path;
+    if (kocSnapshot.entry_url) tracking.koc_entry_url = kocSnapshot.entry_url;
+  }
 
   return {
     order_service: 'hepan',
@@ -255,6 +465,12 @@ function buildHepanPayload(manBazi, womanBazi, manData, womanData) {
     woman_dayun: womanDayunTxt,
     man_birth: manData,
     woman_birth: womanData,
+    tracking,
+    ...(kocSnapshot?.koc_id ? { koc_id: kocSnapshot.koc_id } : {}),
+    ...(kocSnapshot?.parent_koc_id ? { koc_parent_id: kocSnapshot.parent_koc_id } : {}),
+    ...(kocSnapshot?.channel ? { koc_channel: kocSnapshot.channel } : {}),
+    ...(kocSnapshot?.content_id ? { koc_content_id: kocSnapshot.content_id } : {}),
+    ...(kocSnapshot?.koc_code ? { koc_code: kocSnapshot.koc_code } : {}),
   };
 }
 
@@ -401,11 +617,12 @@ async function createHepanPayment(tradeNo, payload) {
       payment_option_id: HEPAN_PAYMENT_OPTION.id,
       payment_option_title: HEPAN_PAYMENT_OPTION.title,
       total_fee: HEPAN_PAYMENT_OPTION.fee,
-      return_path: '/hepan.html',
+      return_path: '/payment-fallback.html',
       client_env: {
         user_agent: ua,
         is_mobile: isMobile,
         is_wechat: isWeChat,
+        koc: getKocSnapshot() || null,
       },
     }),
   });

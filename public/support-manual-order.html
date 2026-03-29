@@ -116,13 +116,41 @@
       margin-right: 10px;
     }
     .link-list a:hover { text-decoration: underline; }
+    .head-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .lang-switch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .lang-switch select {
+      min-width: 130px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      padding: 0 10px;
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>Support Recovery Console</h1>
-      <div class="muted">
+      <div class="head-row">
+        <h1 id="recoveryTitle">Support Recovery Console</h1>
+        <div class="lang-switch">
+          <span id="langLabel" class="muted">Language</span>
+          <select id="langSelect">
+            <option value="zh">Chinese</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+      </div>
+      <div class="muted" id="recoveryHint">
         Customer-support fast lane: input trade no, query status, then one-click resend report/download link.
       </div>
 
@@ -143,8 +171,8 @@
     </div>
 
     <div class="card">
-      <h1>Security Overview</h1>
-      <div class="muted">
+      <h1 id="securityTitle">Security Overview</h1>
+      <div class="muted" id="securityHint">
         Real-time anti-abuse panel: blocked requests, hotspot API scopes, and latest suspicious traffic.
       </div>
       <div class="row">
@@ -161,8 +189,8 @@
     </div>
 
     <div class="card">
-      <h1>Manual Order Console</h1>
-      <div class="muted">
+      <h1 id="manualTitle">Manual Order Console</h1>
+      <div class="muted" id="manualHint">
         Use this section only when an order row is missing. Create order first, then create payment URL.
       </div>
 
@@ -182,9 +210,10 @@
         <div class="field">
           <label>Tier</label>
           <select id="tier">
-            <option value="basic">basic (0.01)</option>
-            <option value="pro">pro (0.01)</option>
-            <option value="vip">vip (0.01)</option>
+            <option value="basic">basic (99)</option>
+            <option value="pro">pro (199)</option>
+            <option value="vip">vip (299)</option>
+            <option value="consult">consult-1v1 (499)</option>
           </select>
         </div>
         <div class="field"><label>Custom Trade No (optional)</label><input id="tradeNoInput" type="text" placeholder="auto if empty" /></div>
@@ -214,15 +243,75 @@
     const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
     const ADMIN_TOOL_URL = `${SUPABASE_URL}/functions/v1/admin-orders`;
     const ADMIN_TOKEN_KEY = 'bazi_support_admin_token';
+    const ADMIN_LANG_KEY = 'support_admin_lang_v1';
     const PAYMENT_OPTIONS = {
-      basic: { id: 'basic', title: 'basic', fee: '0.01' },
-      pro: { id: 'pro', title: 'pro', fee: '0.01' },
-      vip: { id: 'vip', title: 'vip', fee: '0.01' },
+      basic: { id: 'basic', title: 'basic', fee: '99' },
+      pro: { id: 'pro', title: 'pro', fee: '199' },
+      vip: { id: 'vip', title: 'vip', fee: '299' },
+      consult: { id: 'consult', title: 'consult-1v1', fee: '499' },
+    };
+    const LANG_TEXT = {
+      zh: {
+        langLabel: '语言',
+        recoveryTitle: '后台补单控制台',
+        recoveryHint: '客服快速处理：输入订单号查询状态，并一键补发报告 / 下载链接。',
+        saveTokenBtn: '保存 Token（当前会话）',
+        tradeNoPlaceholder: '订单号：bazi-... / hepan-...',
+        queryBtn: '查询状态',
+        resendBtn: '一键补发',
+        copyRecoveryBtn: '复制恢复链接',
+        securityTitle: '安全概览',
+        securityHint: '实时反滥用面板：拦截请求、热点接口、最近异常流量。',
+        refreshSecurityBtn: '刷新安全指标',
+        cleanupBtn: '清理历史限流数据',
+        manualTitle: '手动补单',
+        manualHint: '仅在订单缺失时使用：先创建订单，再创建支付链接。',
+        createOrderBtn: '1）创建订单',
+        createPayBtn: '2）创建支付链接',
+        copyTradeBtn: '复制订单号',
+        copyPayBtn: '复制支付链接',
+        resultLink: '打开结果页',
+        saveTokenFirst: '请先保存管理员 Token。',
+        queryFirst: '请先保存 Token，再输入订单号查询。',
+        securityFirst: '请先保存 Token，再点击刷新。',
+      },
+      en: {
+        langLabel: 'Language',
+        recoveryTitle: 'Support Recovery Console',
+        recoveryHint: 'Customer-support fast lane: input trade no, query status, then one-click resend report/download link.',
+        saveTokenBtn: 'Save Token (Session)',
+        tradeNoPlaceholder: 'Trade no: bazi-... / hepan-...',
+        queryBtn: 'Query Status',
+        resendBtn: 'One-click Resend',
+        copyRecoveryBtn: 'Copy Recovery Link',
+        securityTitle: 'Security Overview',
+        securityHint: 'Real-time anti-abuse panel: blocked requests, hotspot API scopes, and latest suspicious traffic.',
+        refreshSecurityBtn: 'Refresh Security Metrics',
+        cleanupBtn: 'Cleanup Old Rate Data',
+        manualTitle: 'Manual Order Console',
+        manualHint: 'Use this section only when an order row is missing. Create order first, then create payment URL.',
+        createOrderBtn: '1) Create Order',
+        createPayBtn: '2) Create Payment URL',
+        copyTradeBtn: 'Copy Trade No',
+        copyPayBtn: 'Copy Payment URL',
+        resultLink: 'Open Result Page',
+        saveTokenFirst: 'Save admin token first.',
+        queryFirst: 'Save token first, then input trade no to query.',
+        securityFirst: 'Save token first, then click refresh.',
+      },
     };
 
     const resultBox = document.getElementById('resultBox');
     const resultLink = document.getElementById('resultLink');
     const tradeNoInput = document.getElementById('tradeNoInput');
+    const langSelect = document.getElementById('langSelect');
+    const langLabel = document.getElementById('langLabel');
+    const recoveryTitle = document.getElementById('recoveryTitle');
+    const recoveryHint = document.getElementById('recoveryHint');
+    const securityTitle = document.getElementById('securityTitle');
+    const securityHint = document.getElementById('securityHint');
+    const manualTitle = document.getElementById('manualTitle');
+    const manualHint = document.getElementById('manualHint');
     const repairTradeNoInput = document.getElementById('repairTradeNoInput');
     const repairResultBox = document.getElementById('repairResultBox');
     const repairLinks = document.getElementById('repairLinks');
@@ -235,10 +324,16 @@
     const refreshSecurityBtn = document.getElementById('refreshSecurityBtn');
     const cleanupRateLimitBtn = document.getElementById('cleanupRateLimitBtn');
     const securityResultBox = document.getElementById('securityResultBox');
+    const fieldLabels = Array.from(document.querySelectorAll('.field label'));
+    const createOrderBtn = document.getElementById('createOrderBtn');
+    const createPayBtn = document.getElementById('createPayBtn');
+    const copyTradeBtn = document.getElementById('copyTradeBtn');
+    const copyPayBtn = document.getElementById('copyPayBtn');
 
     let currentTradeNo = '';
     let currentPayUrl = '';
     let latestRecoveryLink = '';
+    let currentLang = 'zh';
 
     function setResult(msg) {
       resultBox.textContent = msg;
@@ -252,6 +347,66 @@
       securityResultBox.textContent = msg;
     }
 
+    function getSavedLang() {
+      const cached = String(localStorage.getItem(ADMIN_LANG_KEY) || '').toLowerCase();
+      if (cached === 'zh' || cached === 'en') return cached;
+      const htmlLang = String(document.documentElement.getAttribute('lang') || '').toLowerCase();
+      return htmlLang.startsWith('en') ? 'en' : 'zh';
+    }
+
+    function t(key) {
+      return (LANG_TEXT[currentLang] || LANG_TEXT.en)[key] || LANG_TEXT.en[key] || key;
+    }
+
+    function setOptions(selectEl, options) {
+      const current = String(selectEl.value || '');
+      selectEl.innerHTML = options.map((item) => `<option value="${escapeHtml(item.value)}"${item.value === current ? ' selected' : ''}>${escapeHtml(item.label)}</option>`).join('');
+      if (!options.some((x) => x.value === current)) {
+        selectEl.value = options[0]?.value || '';
+      }
+    }
+
+    function applyLanguage() {
+      langLabel.textContent = t('langLabel');
+      recoveryTitle.textContent = t('recoveryTitle');
+      recoveryHint.textContent = t('recoveryHint');
+      saveAdminTokenBtn.textContent = t('saveTokenBtn');
+      repairTradeNoInput.placeholder = t('tradeNoPlaceholder');
+      queryOrderBtn.textContent = t('queryBtn');
+      resendDeliveryBtn.textContent = t('resendBtn');
+      copyRecoveryLinkBtn.textContent = t('copyRecoveryBtn');
+      securityTitle.textContent = t('securityTitle');
+      securityHint.textContent = t('securityHint');
+      refreshSecurityBtn.textContent = t('refreshSecurityBtn');
+      cleanupRateLimitBtn.textContent = t('cleanupBtn');
+      manualTitle.textContent = t('manualTitle');
+      manualHint.textContent = t('manualHint');
+      createOrderBtn.textContent = t('createOrderBtn');
+      createPayBtn.textContent = t('createPayBtn');
+      copyTradeBtn.textContent = t('copyTradeBtn');
+      copyPayBtn.textContent = t('copyPayBtn');
+      resultLink.textContent = t('resultLink');
+
+      const labelText = currentLang === 'zh'
+        ? ['年份', '月份', '日期', '时辰(0-23)', '性别', '出生地（可选）', '档位', '自定义订单号（可选）']
+        : ['Year', 'Month', 'Day', 'Hour (0-23)', 'Gender', 'Birthplace (optional)', 'Tier', 'Custom Trade No (optional)'];
+      fieldLabels.forEach((el, idx) => {
+        if (labelText[idx]) el.textContent = labelText[idx];
+      });
+
+      setOptions(securityHoursSelect, [
+        { value: '1', label: currentLang === 'zh' ? '最近 1 小时' : 'Last 1 hour' },
+        { value: '6', label: currentLang === 'zh' ? '最近 6 小时' : 'Last 6 hours' },
+        { value: '24', label: currentLang === 'zh' ? '最近 24 小时' : 'Last 24 hours' },
+        { value: '72', label: currentLang === 'zh' ? '最近 72 小时' : 'Last 72 hours' },
+      ]);
+      if (!getAdminToken() && !String(adminTokenInput.value || '').trim()) {
+        setResult(t('saveTokenFirst'));
+        setRepairResult(t('queryFirst'));
+        setSecurityResult(t('securityFirst'));
+      }
+    }
+
     function escapeHtml(value) {
       return String(value ?? '')
         .replace(/&/g, '&amp;')
@@ -262,16 +417,16 @@
     }
 
     function tagByState(state) {
-      if (state === 'report_ready' || state === 'download_ready') return 'READY';
-      if (state === 'report_generating') return 'GENERATING';
-      return 'UNPAID';
+      if (state === 'report_ready' || state === 'download_ready') return currentLang === 'zh' ? '已就绪' : 'READY';
+      if (state === 'report_generating') return currentLang === 'zh' ? '生成中' : 'GENERATING';
+      return currentLang === 'zh' ? '未支付' : 'UNPAID';
     }
 
     function renderRecoveryLinks(order) {
       const links = [];
-      if (order?.resume_url) links.push(`<a href="${escapeHtml(order.resume_url)}" target="_blank" rel="noopener">Open Resume Page</a>`);
-      if (order?.result_url && order.result_url !== order.resume_url) links.push(`<a href="${escapeHtml(order.result_url)}" target="_blank" rel="noopener">Open Result Page</a>`);
-      if (order?.download_url) links.push(`<a href="${escapeHtml(order.download_url)}" target="_blank" rel="noopener">Open PDF Download</a>`);
+      if (order?.resume_url) links.push(`<a href="${escapeHtml(order.resume_url)}" target="_blank" rel="noopener">${currentLang === 'zh' ? '打开恢复页' : 'Open Resume Page'}</a>`);
+      if (order?.result_url && order.result_url !== order.resume_url) links.push(`<a href="${escapeHtml(order.result_url)}" target="_blank" rel="noopener">${currentLang === 'zh' ? '打开结果页' : 'Open Result Page'}</a>`);
+      if (order?.download_url) links.push(`<a href="${escapeHtml(order.download_url)}" target="_blank" rel="noopener">${currentLang === 'zh' ? '打开 PDF 下载' : 'Open PDF Download'}</a>`);
       repairLinks.innerHTML = links.join('');
       latestRecoveryLink = String(order?.download_url || order?.resume_url || order?.result_url || '').trim();
     }
@@ -280,21 +435,35 @@
       const order = payload?.order || {};
       const lines = [
         `${title}`,
-        `Trade no: ${order.trade_no || '-'}`,
-        `Service: ${String(order.service || '-').toUpperCase()}`,
-        `Paid: ${order.paid ? 'YES' : 'NO'}`,
-        `Delivery: ${tagByState(order.delivery_state || '')}`,
-        `Analysis exists: ${order.analysis_exists ? 'YES' : 'NO'}`,
-        `Created: ${order.created_at || '-'}`,
+        currentLang === 'zh' ? `订单号：${order.trade_no || '-'}` : `Trade no: ${order.trade_no || '-'}`,
+        currentLang === 'zh' ? `服务：${String(order.service || '-').toUpperCase()}` : `Service: ${String(order.service || '-').toUpperCase()}`,
+        currentLang === 'zh' ? `支付：${order.paid ? 'YES' : 'NO'}` : `Paid: ${order.paid ? 'YES' : 'NO'}`,
+        currentLang === 'zh' ? `交付：${tagByState(order.delivery_state || '')}` : `Delivery: ${tagByState(order.delivery_state || '')}`,
+        currentLang === 'zh' ? `分析记录：${order.analysis_exists ? 'YES' : 'NO'}` : `Analysis exists: ${order.analysis_exists ? 'YES' : 'NO'}`,
+        currentLang === 'zh' ? `创建时间：${order.created_at || '-'}` : `Created: ${order.created_at || '-'}`,
       ];
+      if (order?.paid) {
+        lines.push('');
+        lines.push(currentLang === 'zh' ? '支付网关凭证：' : 'Gateway payment proof:');
+        if (order?.gateway_status) lines.push(currentLang === 'zh' ? `- 状态：${order.gateway_status}` : `- Status: ${order.gateway_status}`);
+        if (order?.gateway_transaction_id) lines.push(currentLang === 'zh' ? `- 交易号：${order.gateway_transaction_id}` : `- Transaction ID: ${order.gateway_transaction_id}`);
+        if (order?.gateway_open_order_id) lines.push(currentLang === 'zh' ? `- Open 订单号：${order.gateway_open_order_id}` : `- Open Order ID: ${order.gateway_open_order_id}`);
+        if (order?.gateway_trade_order_id) lines.push(currentLang === 'zh' ? `- 商户订单号：${order.gateway_trade_order_id}` : `- Trade Order ID: ${order.gateway_trade_order_id}`);
+        if (order?.gateway_total_fee) lines.push(currentLang === 'zh' ? `- 支付金额：${order.gateway_total_fee}` : `- Paid Fee: ${order.gateway_total_fee}`);
+        if (order?.gateway_appid) lines.push(currentLang === 'zh' ? `- 通道 AppID：${order.gateway_appid}` : `- Channel AppID: ${order.gateway_appid}`);
+        if (order?.gateway_plugins) lines.push(currentLang === 'zh' ? `- 通道插件：${order.gateway_plugins}` : `- Channel Plugin: ${order.gateway_plugins}`);
+        if (order?.gateway_source) lines.push(currentLang === 'zh' ? `- 来源：${order.gateway_source}` : `- Source: ${order.gateway_source}`);
+        if (order?.payment_paid_at) lines.push(currentLang === 'zh' ? `- 回调支付时间：${order.payment_paid_at}` : `- Callback Paid At: ${order.payment_paid_at}`);
+        if (order?.payment_verified_at) lines.push(currentLang === 'zh' ? `- 核验时间：${order.payment_verified_at}` : `- Verified At: ${order.payment_verified_at}`);
+      }
       if (order?.service === 'pdf' && order?.paid) {
         const signed = order.download_signed === true ? 'YES' : 'NO';
         const ttl = Number(order.download_expires_in || 0);
-        lines.push(`短时签名链接: ${signed}`);
-        if (ttl > 0) lines.push(`链接有效期: ${Math.ceil(ttl / 60)} 分钟`);
+        lines.push(currentLang === 'zh' ? `短时签名链接：${signed}` : `Signed short-lived URL: ${signed}`);
+        if (ttl > 0) lines.push(currentLang === 'zh' ? `有效期：${Math.ceil(ttl / 60)} 分钟` : `Link TTL: ${Math.ceil(ttl / 60)} minutes`);
       }
-      if (payload?.message) lines.push(`Message: ${payload.message}`);
-      if (payload?.analysis_triggered) lines.push('Action: analysis trigger sent');
+      if (payload?.message) lines.push(currentLang === 'zh' ? `消息：${payload.message}` : `Message: ${payload.message}`);
+      if (payload?.analysis_triggered) lines.push(currentLang === 'zh' ? '动作：已触发报告生成' : 'Action: analysis trigger sent');
       setRepairResult(lines.join('\n'));
       renderRecoveryLinks(order);
     }
@@ -322,7 +491,7 @@
 
     async function callAdmin(action, payload = {}) {
       const token = getActiveAdminToken();
-      if (!token) throw new Error('Missing admin token. Save token first.');
+      if (!token) throw new Error(currentLang === 'zh' ? '缺少管理员 Token，请先保存。' : 'Missing admin token. Save token first.');
 
       const res = await fetch(ADMIN_TOOL_URL, {
         method: 'POST',
@@ -348,32 +517,32 @@
       const latestBlocked = Array.isArray(payload?.latest_blocked) ? payload.latest_blocked : [];
 
       const lines = [
-        `Window: last ${payload?.hours || '-'} hours`,
-        `Since: ${payload?.since || '-'}`,
-        `Blocked events: ${summary.blocked_events || 0}`,
-        `Sampled rate windows: ${summary.sampled_rate_windows || 0}`,
+        currentLang === 'zh' ? `统计窗口：最近 ${payload?.hours || '-'} 小时` : `Window: last ${payload?.hours || '-'} hours`,
+        currentLang === 'zh' ? `起始时间：${payload?.since || '-'}` : `Since: ${payload?.since || '-'}`,
+        currentLang === 'zh' ? `拦截事件：${summary.blocked_events || 0}` : `Blocked events: ${summary.blocked_events || 0}`,
+        currentLang === 'zh' ? `采样窗口数：${summary.sampled_rate_windows || 0}` : `Sampled rate windows: ${summary.sampled_rate_windows || 0}`,
         '',
-        'Top blocked scopes:',
+        currentLang === 'zh' ? '拦截最多的 scope：' : 'Top blocked scopes:',
       ];
 
       if (!blockedTop.length) {
-        lines.push('- none');
+        lines.push(currentLang === 'zh' ? '- 无' : '- none');
       } else {
         blockedTop.forEach((row) => lines.push(`- ${row.scope}: ${row.count}`));
       }
 
-      lines.push('', 'Top traffic scopes:');
+      lines.push('', currentLang === 'zh' ? '访问量最高的 scope：' : 'Top traffic scopes:');
       if (!trafficTop.length) {
-        lines.push('- none');
+        lines.push(currentLang === 'zh' ? '- 无' : '- none');
       } else {
         trafficTop.forEach((row) => {
           lines.push(`- ${row.scope}: total=${row.total_requests_in_windows}, peak_window=${row.peak_window_requests}, windows=${row.sampled_windows}`);
         });
       }
 
-      lines.push('', 'Latest blocked events:');
+      lines.push('', currentLang === 'zh' ? '最近拦截事件：' : 'Latest blocked events:');
       if (!latestBlocked.length) {
-        lines.push('- none');
+        lines.push(currentLang === 'zh' ? '- 无' : '- none');
       } else {
         latestBlocked.slice(0, 12).forEach((row) => {
           lines.push(`- [${row.created_at}] ${row.scope} | ip=${row.ip_masked || '-'} | count=${row.current_count || 0}`);
@@ -401,10 +570,10 @@
       const tier = String(document.getElementById('tier').value || 'basic');
 
       if (!year || !month || !day || Number.isNaN(hour) || hour < 0 || hour > 23) {
-        throw new Error('Invalid birth date/time.');
+        throw new Error(currentLang === 'zh' ? '出生日期或时辰无效。' : 'Invalid birth date/time.');
       }
       if (!['male', 'female'].includes(gender)) {
-        throw new Error('Invalid gender value.');
+        throw new Error(currentLang === 'zh' ? '性别值无效。' : 'Invalid gender value.');
       }
 
       const bazi = window.BaziCalc.calculateBazi(year, month, day, hour);
@@ -445,14 +614,14 @@
     function updateResultLink(tradeNo) {
       const href = `https://tengyunzi.com/result.html?trade_no=${encodeURIComponent(tradeNo)}&paid=true`;
       resultLink.href = href;
-      resultLink.textContent = `Open Result Page: ${href}`;
+      resultLink.textContent = `${t('resultLink')}: ${href}`;
     }
 
     async function createOrder() {
       const form = getForm();
       const customTradeNo = String(tradeNoInput.value || '').trim();
       const tradeNo = customTradeNo || genTradeNo();
-      if (!validateTradeNo(tradeNo)) throw new Error('Invalid trade_no format.');
+      if (!validateTradeNo(tradeNo)) throw new Error(currentLang === 'zh' ? 'trade_no 格式无效。' : 'Invalid trade_no format.');
 
       const birthInput = {
         year: form.year,
@@ -477,17 +646,17 @@
       tradeNoInput.value = tradeNo;
       updateResultLink(tradeNo);
       setResult(
-        `Order created\n` +
-        `Trade no: ${tradeNo}\n` +
-        `Tier: ${form.option.id} / Fee: CNY ${form.option.fee}\n` +
+        `${currentLang === 'zh' ? '订单创建成功' : 'Order created'}\n` +
+        `${currentLang === 'zh' ? '订单号' : 'Trade no'}: ${tradeNo}\n` +
+        `${currentLang === 'zh' ? '档位' : 'Tier'}: ${form.option.id} / ${currentLang === 'zh' ? '金额' : 'Fee'}: CNY ${form.option.fee}\n` +
         `Bazi: ${form.bazi_str}\n\n` +
-        `Next: click 2) Create Payment URL.`
+        `${currentLang === 'zh' ? '下一步：点击 2）创建支付链接。' : 'Next: click 2) Create Payment URL.'}`
       );
     }
 
     async function createPaymentUrl() {
       const tradeNo = String(tradeNoInput.value || currentTradeNo || '').trim();
-      if (!validateTradeNo(tradeNo)) throw new Error('Invalid trade_no format.');
+      if (!validateTradeNo(tradeNo)) throw new Error(currentLang === 'zh' ? 'trade_no 格式无效。' : 'Invalid trade_no format.');
       const tier = String(document.getElementById('tier').value || 'basic');
       const option = PAYMENT_OPTIONS[tier] || PAYMENT_OPTIONS.basic;
 
@@ -502,146 +671,171 @@
       });
 
       currentPayUrl = data.url || data.url_qrcode || '';
-      if (!currentPayUrl) throw new Error('No payment URL returned.');
+      if (!currentPayUrl) throw new Error(currentLang === 'zh' ? '未返回支付链接。' : 'No payment URL returned.');
 
       setResult(
-        `Payment URL created\n` +
-        `Trade no: ${tradeNo}\n` +
-        `Tier: ${option.id} / Fee: CNY ${option.fee}\n` +
+        `${currentLang === 'zh' ? '支付链接已创建' : 'Payment URL created'}\n` +
+        `${currentLang === 'zh' ? '订单号' : 'Trade no'}: ${tradeNo}\n` +
+        `${currentLang === 'zh' ? '档位' : 'Tier'}: ${option.id} / ${currentLang === 'zh' ? '金额' : 'Fee'}: CNY ${option.fee}\n` +
         `URL: ${currentPayUrl}\n\n` +
-        `After payment, verify in /support-orders.html`
+        `${currentLang === 'zh' ? '支付后请去 /support-orders.html 核验。' : 'After payment, verify in /support-orders.html'}`
       );
     }
 
     async function queryOrderStatus() {
       const tradeNo = String(repairTradeNoInput.value || '').trim();
-      if (!validateTradeNo(tradeNo)) throw new Error('Invalid trade no format.');
+      if (!validateTradeNo(tradeNo)) throw new Error(currentLang === 'zh' ? '订单号格式无效。' : 'Invalid trade no format.');
       const data = await callAdmin('query_order', { trade_no: tradeNo });
-      renderRecoveryState('Order status', data);
+      renderRecoveryState(currentLang === 'zh' ? '订单状态' : 'Order status', data);
     }
 
     async function resendDelivery() {
       const tradeNo = String(repairTradeNoInput.value || '').trim();
-      if (!validateTradeNo(tradeNo)) throw new Error('Invalid trade no format.');
+      if (!validateTradeNo(tradeNo)) throw new Error(currentLang === 'zh' ? '订单号格式无效。' : 'Invalid trade no format.');
       const data = await callAdmin('resend_delivery', { trade_no: tradeNo });
-      renderRecoveryState('Resend done', data);
+      renderRecoveryState(currentLang === 'zh' ? '补发完成' : 'Resend done', data);
     }
 
     saveAdminTokenBtn.addEventListener('click', () => {
       const token = String(adminTokenInput.value || '').trim();
       if (!token) {
-        setResult('Input admin token first.');
-        setRepairResult('Input admin token first.');
+        setResult(currentLang === 'zh' ? '请先输入管理员 Token。' : 'Input admin token first.');
+        setRepairResult(currentLang === 'zh' ? '请先输入管理员 Token。' : 'Input admin token first.');
         return;
       }
       setAdminToken(token);
-      setResult('Admin token saved in this tab session.');
-      setRepairResult('Admin token saved. You can now query or resend by trade no.');
+      setResult(currentLang === 'zh' ? '管理员 Token 已保存到当前会话。' : 'Admin token saved in this tab session.');
+      setRepairResult(currentLang === 'zh' ? '管理员 Token 已保存，可按订单号查询或补发。' : 'Admin token saved. You can now query or resend by trade no.');
     });
 
     queryOrderBtn.addEventListener('click', async () => {
       try {
-        setRepairResult('Querying order...');
+        setRepairResult(currentLang === 'zh' ? '正在查询订单...' : 'Querying order...');
         await queryOrderStatus();
       } catch (err) {
-        setRepairResult(`Query failed: ${err instanceof Error ? err.message : String(err)}`);
+        setRepairResult(currentLang === 'zh'
+          ? `查询失败：${err instanceof Error ? err.message : String(err)}`
+          : `Query failed: ${err instanceof Error ? err.message : String(err)}`);
       }
     });
 
     resendDeliveryBtn.addEventListener('click', async () => {
       try {
-        setRepairResult('Triggering resend...');
+        setRepairResult(currentLang === 'zh' ? '正在触发补发...' : 'Triggering resend...');
         await resendDelivery();
       } catch (err) {
-        setRepairResult(`Resend failed: ${err instanceof Error ? err.message : String(err)}`);
+        setRepairResult(currentLang === 'zh'
+          ? `补发失败：${err instanceof Error ? err.message : String(err)}`
+          : `Resend failed: ${err instanceof Error ? err.message : String(err)}`);
       }
     });
 
     copyRecoveryLinkBtn.addEventListener('click', async () => {
       if (!latestRecoveryLink) {
-        setRepairResult('No recovery link to copy yet. Query order first.');
+        setRepairResult(currentLang === 'zh' ? '暂无可复制链接，请先查询订单。' : 'No recovery link to copy yet. Query order first.');
         return;
       }
       try {
         await navigator.clipboard.writeText(latestRecoveryLink);
-        setRepairResult(`Copied recovery link:\n${latestRecoveryLink}`);
+        setRepairResult(currentLang === 'zh' ? `已复制恢复链接：\n${latestRecoveryLink}` : `Copied recovery link:\n${latestRecoveryLink}`);
       } catch {
-        setRepairResult(`Copy failed. Link:\n${latestRecoveryLink}`);
+        setRepairResult(currentLang === 'zh' ? `复制失败，链接如下：\n${latestRecoveryLink}` : `Copy failed. Link:\n${latestRecoveryLink}`);
       }
     });
 
     refreshSecurityBtn.addEventListener('click', async () => {
       try {
-        setSecurityResult('Loading security metrics...');
+        setSecurityResult(currentLang === 'zh' ? '正在加载安全指标...' : 'Loading security metrics...');
         const hours = Number(securityHoursSelect.value || 24);
         const payload = await callAdmin('security_overview', { hours });
         renderSecurityOverview(payload);
       } catch (err) {
-        setSecurityResult(`Security query failed: ${err.message || err}`);
+        setSecurityResult(currentLang === 'zh' ? `安全查询失败：${err.message || err}` : `Security query failed: ${err.message || err}`);
       }
     });
 
     cleanupRateLimitBtn.addEventListener('click', async () => {
       try {
         const keepHours = Number(securityHoursSelect.value || 24);
-        setSecurityResult(`Cleaning rate-limit data older than ${keepHours}h...`);
+        setSecurityResult(currentLang === 'zh'
+          ? `正在清理 ${keepHours} 小时前的限流数据...`
+          : `Cleaning rate-limit data older than ${keepHours}h...`);
         const payload = await callAdmin('cleanup_rate_limits', { keep_hours: keepHours });
-        setSecurityResult(`Cleanup done.\nDeleted rows: ${payload?.deleted_rows || 0}\nKeep recent hours: ${payload?.keep_hours || keepHours}`);
+        setSecurityResult(currentLang === 'zh'
+          ? `清理完成。\n删除行数：${payload?.deleted_rows || 0}\n保留最近小时数：${payload?.keep_hours || keepHours}`
+          : `Cleanup done.\nDeleted rows: ${payload?.deleted_rows || 0}\nKeep recent hours: ${payload?.keep_hours || keepHours}`);
       } catch (err) {
-        setSecurityResult(`Cleanup failed: ${err.message || err}`);
+        setSecurityResult(currentLang === 'zh' ? `清理失败：${err.message || err}` : `Cleanup failed: ${err.message || err}`);
       }
     });
 
-    document.getElementById('createOrderBtn').addEventListener('click', async () => {
+    createOrderBtn.addEventListener('click', async () => {
       try {
-        setResult('Creating order...');
+        setResult(currentLang === 'zh' ? '正在创建订单...' : 'Creating order...');
         await createOrder();
       } catch (err) {
-        setResult(`Create failed: ${err instanceof Error ? err.message : String(err)}`);
+        setResult(currentLang === 'zh'
+          ? `创建失败：${err instanceof Error ? err.message : String(err)}`
+          : `Create failed: ${err instanceof Error ? err.message : String(err)}`);
       }
     });
 
-    document.getElementById('createPayBtn').addEventListener('click', async () => {
+    createPayBtn.addEventListener('click', async () => {
       try {
-        setResult('Creating payment URL...');
+        setResult(currentLang === 'zh' ? '正在创建支付链接...' : 'Creating payment URL...');
         await createPaymentUrl();
       } catch (err) {
-        setResult(`Create URL failed: ${err instanceof Error ? err.message : String(err)}`);
+        setResult(currentLang === 'zh'
+          ? `创建链接失败：${err instanceof Error ? err.message : String(err)}`
+          : `Create URL failed: ${err instanceof Error ? err.message : String(err)}`);
       }
     });
 
-    document.getElementById('copyTradeBtn').addEventListener('click', async () => {
+    copyTradeBtn.addEventListener('click', async () => {
       const value = String(tradeNoInput.value || currentTradeNo || '').trim();
       if (!value) {
-        setResult('No trade no to copy.');
+        setResult(currentLang === 'zh' ? '没有可复制的订单号。' : 'No trade no to copy.');
         return;
       }
       try {
         await navigator.clipboard.writeText(value);
-        setResult(`Copied trade no: ${value}`);
+        setResult(currentLang === 'zh' ? `已复制订单号：${value}` : `Copied trade no: ${value}`);
       } catch {
-        setResult('Copy trade no failed.');
+        setResult(currentLang === 'zh' ? '复制订单号失败。' : 'Copy trade no failed.');
       }
     });
 
-    document.getElementById('copyPayBtn').addEventListener('click', async () => {
+    copyPayBtn.addEventListener('click', async () => {
       if (!currentPayUrl) {
-        setResult('No payment URL to copy.');
+        setResult(currentLang === 'zh' ? '没有可复制的支付链接。' : 'No payment URL to copy.');
         return;
       }
       try {
         await navigator.clipboard.writeText(currentPayUrl);
-        setResult(`Copied payment URL:\n${currentPayUrl}`);
+        setResult(currentLang === 'zh' ? `已复制支付链接：\n${currentPayUrl}` : `Copied payment URL:\n${currentPayUrl}`);
       } catch {
-        setResult(`Copy payment URL failed:\n${currentPayUrl}`);
+        setResult(currentLang === 'zh' ? `复制支付链接失败：\n${currentPayUrl}` : `Copy payment URL failed:\n${currentPayUrl}`);
       }
     });
 
+    langSelect.addEventListener('change', () => {
+      currentLang = String(langSelect.value || 'zh') === 'en' ? 'en' : 'zh';
+      localStorage.setItem(ADMIN_LANG_KEY, currentLang);
+      applyLanguage();
+    });
+
     (() => {
+      currentLang = getSavedLang();
+      langSelect.value = currentLang;
+      applyLanguage();
       const token = getAdminToken();
       if (token) adminTokenInput.value = token;
-      setResult(token ? 'Token found. You can create orders now.' : 'Save admin token first.');
-      setRepairResult(token ? 'Token found. Enter trade no to query or resend.' : 'Save admin token first.');
+      setResult(token
+        ? (currentLang === 'zh' ? '检测到 Token，可直接创建订单。' : 'Token found. You can create orders now.')
+        : t('saveTokenFirst'));
+      setRepairResult(token
+        ? (currentLang === 'zh' ? '检测到 Token，可输入订单号查询或补发。' : 'Token found. Enter trade no to query or resend.')
+        : t('saveTokenFirst'));
     })();
   </script>
 </body>
