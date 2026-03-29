@@ -653,6 +653,10 @@ Momo,koc_momo02,note_0318,MM02,"></textarea>
         Attribution source uses `koc_id/channel/content_id` stored in order `birth_input`.
         Update settlement status here for monthly reconciliation.
       </div>
+      <div class="tiny" id="kocFormulaHint" style="margin-top:4px;color:#334155;">
+        Commission formula: commission = paid amount × tier rate.
+        Paid amount prefers gateway fee, then discounted fee from order creation.
+      </div>
       <div class="row">
         <select id="kocDaysSelect">
           <option value="7">Last 7 days</option>
@@ -858,12 +862,12 @@ Momo,koc_momo02,note_0318,MM02,"></textarea>
         trafficRefreshBtn: 'Refresh Traffic',
         trafficNoData: 'No traffic data yet.',
         settlementOverviewTitle: 'Overall Settlement Dashboard',
-        settlementOverviewHint: 'Net Profit = GMV - Platform Fee (2%) - KOC Commission (tier based).',
+        settlementOverviewHint: 'Net Profit = GMV - Platform Fee (2%) - KOC Commission. KOC commission uses discounted paid amount × tier rate.',
         settlementRefreshBtn: 'Refresh Settlement',
         settlementNoData: 'No settlement data.',
         settlementServiceNoData: 'No service settlement data',
         kocDashboardTitle: 'KOC Settlement Dashboard',
-        kocDashboardHint: 'Attribution source uses koc_id/channel/content_id stored in order birth_input. Update settlement status here.',
+        kocDashboardHint: 'Attribution source uses koc_id/channel/content_id stored in order birth_input. Commission formula: paid amount (after discount) × tier rate.',
         kocRefreshBtn: 'Refresh KOC',
         kocNoData: 'No KOC data.',
         orderHint: 'If customer says "paid but no report", click "Verify + Trigger", then ask customer to reopen order result page.',
@@ -979,6 +983,7 @@ Momo,koc_momo02,note_0318,MM02,"></textarea>
     const trafficCard = document.getElementById('trafficCard');
     const overallSettlementCard = document.getElementById('overallSettlementCard');
     const kocSettlementCard = document.getElementById('kocSettlementCard');
+    const kocFormulaHintEl = document.getElementById('kocFormulaHint');
     const orderListCard = document.getElementById('orderListCard');
 
     let kocBuilderRows = [];
@@ -1352,6 +1357,11 @@ Momo,koc_momo02,note_0318,MM02,"></textarea>
       const kocHint = kocCard?.querySelector('.muted');
       if (kocTitle) kocTitle.textContent = t('kocDashboardTitle');
       if (kocHint) kocHint.textContent = t('kocDashboardHint');
+      if (kocFormulaHintEl) {
+        kocFormulaHintEl.textContent = currentLang === 'zh'
+          ? '\u4f63\u91d1\u516c\u5f0f\uff1a\u4f63\u91d1 = \u5b9e\u4ed8\u91d1\u989d x \u6863\u4f4d\u6bd4\u4f8b\uff1b\u5b9e\u4ed8\u91d1\u989d\u4f18\u5148\u53d6\u7f51\u5173\u56de\u4f20\u91d1\u989d\uff0c\u5176\u6b21\u53d6\u4e0b\u5355\u65f6\u4f18\u60e0\u540e\u91d1\u989d\u3002'
+          : 'Commission formula: commission = paid amount × tier rate. Paid amount uses gateway fee first, then discounted fee at order creation.';
+      }
       kocRefreshBtn.textContent = t('kocRefreshBtn');
       if (kocBatchApproveBtn) kocBatchApproveBtn.textContent = currentLang === 'zh' ? '\u6279\u91cf\u5ba1\u6838\uff08\u5f53\u524d\u7b5b\u9009\uff09' : 'Batch Approve (Filtered)';
       if (kocBatchPaidBtn) kocBatchPaidBtn.textContent = currentLang === 'zh' ? '\u6279\u91cf\u6807\u8bb0\u6253\u6b3e\uff08\u5df2\u4ea4\u4ed8\uff09' : 'Batch Mark Paid (Delivered)';
@@ -2075,8 +2085,15 @@ Momo,koc_momo02,note_0318,MM02,"></textarea>
         'tier',
         'paid',
         'delivered',
-        'total_fee',
+        'original_fee',
+        'total_fee_final',
+        'discount_applied',
+        'discount_amount',
+        'invite_code',
+        'fee_source',
         'commission_amount',
+        'commission_rate',
+        'commission_formula',
         'settlement_status',
         'settlement_note',
       ];
@@ -2096,8 +2113,15 @@ Momo,koc_momo02,note_0318,MM02,"></textarea>
           row?.payment_option_id || '',
           row?.paid ? '1' : '0',
           row?.delivered ? '1' : '0',
+          Number(row?.original_fee || row?.total_fee || 0).toFixed(2),
           Number(row?.total_fee || 0).toFixed(2),
+          row?.discount_applied ? '1' : '0',
+          Number(row?.discount_amount || 0).toFixed(2),
+          row?.invite_code || '',
+          row?.fee_source || '',
           Number(row?.commission_amount || 0).toFixed(2),
+          Number(row?.commission_rate || 0).toFixed(4),
+          row?.commission_formula || '',
           row?.settlement_status || '',
           row?.settlement_note || '',
         ].map(csvCell).join(','));
@@ -2458,8 +2482,44 @@ Momo,koc_momo02,note_0318,MM02,"></textarea>
         const paidTag = row.paid ? `<span class="tag ok">${t('yes')}</span>` : `<span class="tag bad">${t('no')}</span>`;
         const deliveredTag = row.delivered ? `<span class="tag ok">${t('yes')}</span>` : `<span class="tag warn">${t('no')}</span>`;
         const settlement = settlementTag(row.settlement_status);
-        const gmv = `CNY ${formatMoney(row.total_fee || 0)}`;
+        const originalFee = Number(row.original_fee || row.total_fee || 0);
+        const finalFee = Number(row.total_fee || 0);
+        const discountAmount = Number(row.discount_amount || 0);
+        const discountApplied = Boolean(row.discount_applied) || discountAmount > 0 || (originalFee > finalFee && finalFee > 0);
+        const inviteCode = String(row.invite_code || '').trim();
+        const feeSource = String(row.fee_source || '').trim();
+        const sourceText = currentLang === 'zh'
+          ? (feeSource === 'gateway_total_fee'
+            ? '\u7f51\u5173\u5b9e\u4ed8'
+            : feeSource === 'tracking_total_fee_final'
+              ? '\u4e0b\u5355\u6298\u540e'
+              : '\u6863\u4f4d\u6807\u4ef7')
+          : (feeSource === 'gateway_total_fee'
+            ? 'Gateway paid'
+            : feeSource === 'tracking_total_fee_final'
+              ? 'Discounted on order'
+              : 'Tier price');
+        const gmvMain = `CNY ${formatMoney(finalFee)}`;
+        const gmvDetailLines = [
+          currentLang === 'zh'
+            ? `\u539f\u4ef7 CNY ${formatMoney(originalFee)} \u2192 \u5b9e\u4ed8 CNY ${formatMoney(finalFee)}`
+            : `Original CNY ${formatMoney(originalFee)} -> Paid CNY ${formatMoney(finalFee)}`,
+          discountApplied
+            ? (currentLang === 'zh'
+              ? `\u4f18\u60e0\u91d1\u989d CNY ${formatMoney(discountAmount)}`
+              : `Discount CNY ${formatMoney(discountAmount)}`)
+            : (currentLang === 'zh' ? '\u4f18\u60e0\u91d1\u989d CNY 0.00' : 'Discount CNY 0.00'),
+          inviteCode
+            ? (currentLang === 'zh' ? `\u4f18\u60e0\u7801 ${inviteCode}` : `Code ${inviteCode}`)
+            : (currentLang === 'zh' ? '\u4f18\u60e0\u7801 -' : 'Code -'),
+          currentLang === 'zh' ? `\u91d1\u989d\u6765\u6e90 ${sourceText}` : `Amount source ${sourceText}`,
+        ];
+        const gmvDetailHtml = gmvDetailLines.map((line) => `<div>${escapeHtml(line)}</div>`).join('');
         const commission = `CNY ${formatMoney(row.commission_amount || 0)}`;
+        const ratePct = Number(row.commission_rate || 0) * 100;
+        const commissionFormula = currentLang === 'zh'
+          ? `\u516c\u5f0f\uff1a\u4f63\u91d1 = \u5b9e\u4ed8 CNY ${formatMoney(finalFee)} x ${formatMoney(ratePct)}%`
+          : `Formula: commission = paid CNY ${formatMoney(finalFee)} x ${formatMoney(ratePct)}%`;
         const note = escapeHtml(row.settlement_note || '');
 
         return `
@@ -2473,8 +2533,8 @@ Momo,koc_momo02,note_0318,MM02,"></textarea>
             <td>${tier}</td>
             <td>${paidTag}</td>
             <td>${deliveredTag}</td>
-            <td>${gmv}</td>
-            <td>${commission}</td>
+            <td>${gmvMain}<div class="tiny">${gmvDetailHtml}</div></td>
+            <td>${commission}<div class="tiny">${escapeHtml(commissionFormula)}</div></td>
             <td>${settlement}<div class="tiny">${note}</div></td>
             <td>
               <div class="koc-actions">
