@@ -6,28 +6,67 @@ const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
 const PENDING_BIRTH_INPUT_KEY = 'bazi_pending_birth_input';
 const PDF_PENDING_TRADE_KEY = 'bazi_pdf_pending_trade_no';
-const APP_BUILD = '20260316-pdfsigned-v1';
+const INVITE_CODE_KEY = 'bazi_invite_code_v1';
+const INVITE_CODE_COOKIE = 'bazi_invite_code_v1';
+const KOC_ATTRIBUTION_KEY = 'bazi_koc_attr_v1';
+const KOC_ATTRIBUTION_COOKIE = 'bazi_koc_attr_v1';
+const KOC_ATTRIBUTION_TTL_SECONDS = 60 * 60 * 24 * 30;
+const KOC_PLACEHOLDER_IDS = new Set(['koc_id', 'content_id', 'koc_code', 'kocid', 'contentid', 'code', 'id', 'name', 'ref', 'koc', 'content']);
+const APP_BUILD = '20260329-langsync-v1';
+const PAYMENT_AB_KEY = 'bazi_payment_ab_v1';
+const PAYMENT_AB_TRACK_KEY = 'bazi_payment_ab_track_v1';
+const PAYMENT_UNPAID_REMINDER_MS = 5 * 60 * 1000;
+const PAYMENT_PANEL_STATE_PREFIX = 'bazi_payment_panel_state_v1_';
+const REPORT_SHARE_CARD_ID = 'paid-report-share-card';
+const SUPPORT_ORDER_FOCUS_KEY = 'bazi_support_focus_trade_no';
 const PAYMENT_OPTIONS = [
-  { id: 'basic', title: '入门版：三大核心解读', subtitle: '性格底盘 + 近期机会 + 情感方向（约1200字）｜正式价 39 元｜测试价 0.01 元', fee: '0.01' },
-  { id: 'pro', title: '进阶版：八大维度深析', subtitle: '新增事业财运节奏、关键年份提醒与行动建议（约2800字）｜正式价 99 元｜测试价 0.01 元', fee: '0.01' },
-  { id: 'vip', title: '尊享完整版：15大项全解', subtitle: '最全面 5000 字：命局 + 大运 + 流年 + 婚恋 + 健康一次看透｜正式价 199 元｜测试价 0.01 元', fee: '0.01' },
+  {
+    id: 'basic',
+    title: '初级版：8大核心维度',
+    subtitle: '聚焦命主底盘、天赋与现实决策（约3000字）｜正式价 128 元｜当前活动价 99 元',
+    fee: '99',
+  },
+  {
+    id: 'pro',
+    title: '进阶版：16大实战维度',
+    subtitle: '覆盖事业、财运、婚恋、人际与运势节奏（约5000字）｜正式价 258 元｜当前活动价 199 元',
+    fee: '199',
+  },
+  {
+    id: 'vip',
+    title: '尊享完整版：24维全景深度报告',
+    subtitle: '24个维度系统拆解命局与未来节奏（约7000-9000字）｜正式价 398 元｜当前活动价 299 元',
+    fee: '299',
+  },
 ];
 const DEFAULT_PAYMENT_OPTION = PAYMENT_OPTIONS[0];
 const PDF_PRODUCT = {
   id: 'pdf',
   title: '《八字命理合集》PDF',
-  subtitle: '439页系统整理八字核心知识与实用思路，付款后可直接下载（测试价 0.01 元）',
-  fee: '0.01',
+  subtitle: '439页系统整理八字核心知识与实用思路，付款后可直接下载（正式价 39.9 元｜冲量底价 19.9 元）',
+  fee: '19.9',
   downloadPath: '/downloads/yunzi-bazi-guide.pdf',
   storageBucket: 'paid-docs',
   storagePath: 'pdfs/yunzi-bazi-guide.pdf',
   signedTtlSeconds: 600,
   fileName: '云子命理-八字命理合集.pdf',
 };
+const CONSULT_PRODUCT = {
+  id: 'consult',
+  title: '专属命理师1对1咨询',
+  promoFee: '499',
+  formalFee: '699',
+};
+const CONSULT_PAYMENT_OPTION = {
+  id: CONSULT_PRODUCT.id,
+  title: CONSULT_PRODUCT.title,
+  subtitle: '1对1专属命理师深度咨询（1小时语音或电话交付），支付成功后可自动校验订单并完成预约。',
+  fee: CONSULT_PRODUCT.promoFee,
+};
 const ONE_TIME_PAID_NOTICE = '\u672c\u6b21\u62a5\u544a\u662f\u4e00\u6b21\u6027\u670d\u52a1\uff0c\u8bf7\u81ea\u884c\u622a\u56fe\u4fdd\u5b58\uff0c\u9875\u9762\u5173\u95ed\u540e\u4e0d\u53ef\u518d\u6b21\u67e5\u770b\u3002';
 const PAID_ONE_TIME_NOTICE_HTML = '<p style="margin-top:10px;color:#dc2626;font-weight:700;">' + ONE_TIME_PAID_NOTICE + '</p>';
 window.__BAZI_APP_BUILD = APP_BUILD;
-window.__BAZI_PAYMENT_OPTION_IDS = [...PAYMENT_OPTIONS.map((x) => x.id), PDF_PRODUCT.id];
+window.__BAZI_PAYMENT_OPTION_IDS = [...PAYMENT_OPTIONS.map((x) => x.id), PDF_PRODUCT.id, CONSULT_PRODUCT.id];
 console.log('[bazi-app build]', APP_BUILD);
 
 const CLIENT_ID_KEY = 'bazi_client_id';
@@ -35,12 +74,186 @@ const PENDING_TRADE_COOKIE = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_COOKIE = 'bazi_pending_payment_option_id';
 const PDF_PENDING_TRADE_COOKIE = 'bazi_pdf_pending_trade_no';
 const EVENT_TRACK_ONCE_PREFIX = 'bazi_event_once_';
-const CUSTOMER_SERVICE_IMAGE = 'images/kefu-wechat.png';
+const ORDER_RECOVERY_PAGE = 'order-recovery.html';
+const SITE_LANG_KEY = 'site_lang_pref_v2';
+const SITE_VISITOR_ID_KEY = 'site_visitor_id_v1';
+const SITE_VISIT_SESSION_FLAG_PREFIX = 'site_visit_sent_';
+const SITE_TESTER_ID_KEY = 'site_tester_id_v1';
+const UI_TEXT = {
+  'zh-Hans': {
+    orderRecoveryEntryTitle: '支付后页面关闭？可从订单找回中心继续',
+    orderRecoveryEntryHint: '输入订单号即可校验支付状态，并一键回到报告或下载页面。',
+    orderRecoveryEntryBtn: '打开订单找回中心',
+    inviteCodeLabel: '邀请码 / 老客优惠码（可选）',
+    inviteCodePlaceholder: '输入邀请码可自动抵扣（示例：OLDVIP）',
+    inviteCodeHint: '若你是老客或来自合作渠道，可输入邀请码后再选择档位支付。',
+    pendingRecoverBtn: '订单找回中心',
+    pendingResumePaidTitle: '检测到已支付订单，可继续查看报告',
+    pendingResumeUnpaidTitle: '检测到未支付订单，请先继续支付',
+    pendingResumePaidBtn: '继续查看报告',
+    pendingResumeUnpaidBtn: '继续支付',
+    pendingResumeUnpaidHint: '未支付订单不会立即生成报告，请先完成支付再查看结果。',
+    mobileRecoveryBtn: '订单找回中心',
+    progressUnpaidTitle: '该订单尚未支付',
+    progressUnpaidDesc: '为避免长时间卡在生成界面，请先继续支付，支付成功后再生成报告。',
+    progressUnpaidPay: '去订单找回中心继续支付',
+    progressUnpaidReload: '我已支付，刷新校验',
+    progressUnpaidNoHang: '未支付订单已停止自动重试，避免页面长时间等待。',
+    progressStageWaiting: '等待支付确认',
+    progressStagePaidVerified: '支付已确认，准备生成',
+    progressStageGenerating: '深度报告生成中',
+    progressStageRetry: '网络波动，自动重试中',
+    progressStageReady: '报告已就绪，即将展示',
+    progressStepOrder: '订单创建',
+    progressStepVerify: '支付核验',
+    progressStepGenerate: '报告生成',
+    progressStepShow: '结果展示',
+    progressElapsed: '已等待 {sec} 秒',
+    progressDefaultNote: '系统正在自动校验支付与报告状态，请勿关闭页面。',
+    progressDirectDefault: '已确认支付，正在优先直连生成完整报告（通常 20-60 秒）…',
+    progressInitialWait: '系统正在校验支付状态，确认后会自动继续生成完整报告。',
+    progressInitialPaid: '支付已确认，正在为你建立报告生成通道。',
+    progressSwitchGenerate: '支付已确认，正在切换至报告生成流程。',
+    progressReadyOpen: '报告已生成完成，正在打开结果。',
+    progressPaidStart: '支付已确认，正在启动深度报告生成。',
+    progressPaidGenerating: '已确认支付，正在直连生成完整报告，请稍候…',
+    progressPaidPreparing: '支付已确认，系统正在准备生成完整报告。',
+    progressKeepOpen: '报告正在逐段生成，请保持页面打开。',
+    progressWaitGateway: '正在等待支付网关确认状态。',
+    progressRetryPaid: '支付状态已补确认，正在启动报告生成。',
+    progressRetryNetwork: '网络波动，系统已自动重试，请稍候。',
+    progressTimeoutTitle: '生成时间较长，请选择下一步',
+    progressTimeoutDesc: '你可继续等待，或去订单找回中心手动校验支付并恢复报告。',
+    progressTimeoutRefresh: '刷新重试',
+    progressTimeoutWait: '继续等待',
+    progressTimeoutRecovery: '打开订单找回中心',
+  },
+  'zh-Hant': {
+    orderRecoveryEntryTitle: '支付後頁面關閉？可從訂單找回中心繼續',
+    orderRecoveryEntryHint: '輸入訂單號即可校驗支付狀態，並一鍵回到報告或下載頁面。',
+    orderRecoveryEntryBtn: '打開訂單找回中心',
+    inviteCodeLabel: '邀請碼 / 老客優惠碼（可選）',
+    inviteCodePlaceholder: '輸入邀請碼可自動折抵（示例：OLDVIP）',
+    inviteCodeHint: '若你是老客或來自合作渠道，建議先輸入邀請碼再選擇檔位支付。',
+    pendingRecoverBtn: '訂單找回中心',
+    pendingResumePaidTitle: '檢測到已支付訂單，可繼續查看報告',
+    pendingResumeUnpaidTitle: '檢測到未支付訂單，請先繼續支付',
+    pendingResumePaidBtn: '繼續查看報告',
+    pendingResumeUnpaidBtn: '繼續支付',
+    pendingResumeUnpaidHint: '未支付訂單不會立即生成報告，請先完成支付再查看結果。',
+    mobileRecoveryBtn: '訂單找回中心',
+    progressUnpaidTitle: '該訂單尚未支付',
+    progressUnpaidDesc: '為避免長時間卡在生成頁面，請先繼續支付，支付成功後再生成報告。',
+    progressUnpaidPay: '去訂單找回中心繼續支付',
+    progressUnpaidReload: '我已支付，刷新校驗',
+    progressUnpaidNoHang: '未支付訂單已停止自動重試，避免頁面長時間等待。',
+    progressStageWaiting: '等待支付確認',
+    progressStagePaidVerified: '支付已確認，準備生成',
+    progressStageGenerating: '深度報告生成中',
+    progressStageRetry: '網絡波動，自動重試中',
+    progressStageReady: '報告已就緒，即將展示',
+    progressStepOrder: '訂單創建',
+    progressStepVerify: '支付校驗',
+    progressStepGenerate: '報告生成',
+    progressStepShow: '結果展示',
+    progressElapsed: '已等待 {sec} 秒',
+    progressDefaultNote: '系統正在自動校驗支付與報告狀態，請勿關閉頁面。',
+    progressDirectDefault: '已確認支付，正在優先直連生成完整報告（通常 20-60 秒）…',
+    progressInitialWait: '系統正在校驗支付狀態，確認後會自動繼續生成完整報告。',
+    progressInitialPaid: '支付已確認，正在為你建立報告生成通道。',
+    progressSwitchGenerate: '支付已確認，正在切換至報告生成流程。',
+    progressReadyOpen: '報告已生成完成，正在打開結果。',
+    progressPaidStart: '支付已確認，正在啟動深度報告生成。',
+    progressPaidGenerating: '已確認支付，正在直連生成完整報告，請稍候…',
+    progressPaidPreparing: '支付已確認，系統正在準備生成完整報告。',
+    progressKeepOpen: '報告正在逐段生成，請保持頁面打開。',
+    progressWaitGateway: '正在等待支付網關確認狀態。',
+    progressRetryPaid: '支付狀態已補確認，正在啟動報告生成。',
+    progressRetryNetwork: '網絡波動，系統已自動重試，請稍候。',
+    progressTimeoutTitle: '生成時間較長，請選擇下一步',
+    progressTimeoutDesc: '你可繼續等待，或到訂單找回中心手動校驗支付並恢復報告。',
+    progressTimeoutRefresh: '刷新重試',
+    progressTimeoutWait: '繼續等待',
+    progressTimeoutRecovery: '打開訂單找回中心',
+  },
+  en: {
+    orderRecoveryEntryTitle: 'Page closed after payment? Continue from Order Recovery Center',
+    orderRecoveryEntryHint: 'Enter your order number to verify payment and jump back to report/download.',
+    orderRecoveryEntryBtn: 'Open Order Recovery Center',
+    inviteCodeLabel: 'Invite Code / Returning User Code (Optional)',
+    inviteCodePlaceholder: 'Enter code for possible discount (e.g., OLDVIP)',
+    inviteCodeHint: 'If you are a returning user or from a partner channel, enter the code before choosing a tier.',
+    pendingRecoverBtn: 'Order Recovery Center',
+    pendingResumePaidTitle: 'Paid order detected. Continue to your report.',
+    pendingResumeUnpaidTitle: 'Unpaid order detected. Please continue payment first.',
+    pendingResumePaidBtn: 'Continue To Report',
+    pendingResumeUnpaidBtn: 'Continue Payment',
+    pendingResumeUnpaidHint: 'Unpaid orders cannot generate reports yet. Please finish payment first.',
+    mobileRecoveryBtn: 'Order Recovery Center',
+    progressUnpaidTitle: 'This Order Is Not Paid Yet',
+    progressUnpaidDesc: 'To avoid long waiting on generation, please continue payment first, then return to generate your report.',
+    progressUnpaidPay: 'Continue Payment In Recovery Center',
+    progressUnpaidReload: 'I Have Paid, Refresh Status',
+    progressUnpaidNoHang: 'Auto retry has been stopped for unpaid orders to avoid page freezing.',
+    progressStageWaiting: 'Waiting For Payment Confirmation',
+    progressStagePaidVerified: 'Payment Confirmed, Preparing Report',
+    progressStageGenerating: 'Generating Full Report',
+    progressStageRetry: 'Network Retry In Progress',
+    progressStageReady: 'Report Ready',
+    progressStepOrder: 'Order Created',
+    progressStepVerify: 'Payment Verified',
+    progressStepGenerate: 'Report Generation',
+    progressStepShow: 'Show Result',
+    progressElapsed: 'Elapsed {sec}s',
+    progressDefaultNote: 'Checking payment and report status automatically. Please keep this page open.',
+    progressDirectDefault: 'Payment confirmed, starting direct report generation (usually 20-60s)...',
+    progressInitialWait: 'We are verifying your payment status. Once confirmed, full report generation will start automatically.',
+    progressInitialPaid: 'Payment confirmed. Preparing generation channel.',
+    progressSwitchGenerate: 'Payment confirmed, switching to report generation.',
+    progressReadyOpen: 'Report completed. Opening result now...',
+    progressPaidStart: 'Payment confirmed. Starting deep report generation.',
+    progressPaidGenerating: 'Payment confirmed, generating full report now...',
+    progressPaidPreparing: 'Payment confirmed. Report generation is preparing.',
+    progressKeepOpen: 'Report is being generated section by section. Please keep this page open.',
+    progressWaitGateway: 'Waiting for payment gateway confirmation.',
+    progressRetryPaid: 'Payment confirmed via retry. Starting report generation.',
+    progressRetryNetwork: 'Network is unstable. Auto retry in progress.',
+    progressTimeoutTitle: 'Generation taking longer than expected',
+    progressTimeoutDesc: 'You can keep waiting, or use Order Recovery Center to verify payment and restore manually.',
+    progressTimeoutRefresh: 'Refresh',
+    progressTimeoutWait: 'Keep Waiting',
+    progressTimeoutRecovery: 'Order Recovery Center',
+  },
+};
+const CUSTOMER_SERVICE_IMAGE = 'images/kefu-wechat.png?v=20260324b';
+const CUSTOMER_SERVICE_LINK = 'https://work.weixin.qq.com/kfid/kfc17c4322c21cc15c1';
 const CUSTOMER_SERVICE_TITLE = '微信客服';
 const CUSTOMER_SERVICE_SUBTITLE = '长按识别二维码添加客服';
 const PAYMENT_NON_REFUND_NOTICE = '免责条款：命理分析为虚拟服务，支付完成后不支持退款，请确认后再付款。';
 const PDF_NON_REFUND_NOTICE = '免责条款：PDF为虚拟知识文档，支付完成后不支持退款，请确认后再付款。';
+const CONSULT_NON_REFUND_NOTICE = '免责条款：1对1咨询为虚拟服务，支付完成后不支持退款，请确认后再付款。';
+const CONSULT_DELIVERY_NOTICE = '交付方式：专属命理师 1 小时语音或电话咨询交付。';
 const WECHAT_PAYMENT_CLOSE_NOTICE = '微信浏览器支付完成后，当前页面可能会自动关闭。请重新打开首页点击“继续上次订单”，或选择微信外浏览器完成支付。';
+
+function getUiLang() {
+  let saved = '';
+  try {
+    saved = localStorage.getItem(SITE_LANG_KEY) || '';
+  } catch {}
+  if (saved === 'en' || saved === 'zh-Hans' || saved === 'zh-Hant') return saved;
+
+  const htmlLang = String(document?.documentElement?.getAttribute('lang') || '').toLowerCase();
+  if (htmlLang.includes('zh-hant') || htmlLang.includes('zh-tw') || htmlLang.includes('zh-hk')) return 'zh-Hant';
+  if (htmlLang.startsWith('en')) return 'en';
+
+  return 'zh-Hans';
+}
+
+function tUi(key, vars = {}) {
+  const lang = getUiLang();
+  const raw = UI_TEXT?.[lang]?.[key] ?? UI_TEXT?.['zh-Hans']?.[key] ?? key;
+  return String(raw).replace(/\{(\w+)\}/g, (_, k) => String(vars?.[k] ?? ''));
+}
 
 function safeGetLocalStorage(key) {
   try {
@@ -62,6 +275,108 @@ function safeRemoveLocalStorage(key) {
   } catch {}
 }
 
+function getPaymentPanelStateKey(tradeNo) {
+  const id = String(tradeNo || '').trim();
+  if (!id) return '';
+  return `${PAYMENT_PANEL_STATE_PREFIX}${id}`;
+}
+
+function readPaymentPanelState(tradeNo) {
+  const key = getPaymentPanelStateKey(tradeNo);
+  if (!key) return {};
+  const raw = safeGetLocalStorage(key);
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function updatePaymentPanelState(tradeNo, patch = {}) {
+  const key = getPaymentPanelStateKey(tradeNo);
+  if (!key) return {};
+  const next = {
+    ...readPaymentPanelState(tradeNo),
+    ...(patch && typeof patch === 'object' ? patch : {}),
+    updated_at: new Date().toISOString(),
+  };
+  safeSetLocalStorage(key, JSON.stringify(next));
+  return next;
+}
+
+function clearPaymentPanelState(tradeNo) {
+  const key = getPaymentPanelStateKey(tradeNo);
+  if (!key) return;
+  safeRemoveLocalStorage(key);
+}
+
+function getSiteVisitorId() {
+  const existing = safeGetLocalStorage(SITE_VISITOR_ID_KEY);
+  if (existing) return existing;
+  const next = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+  safeSetLocalStorage(SITE_VISITOR_ID_KEY, next);
+  return next;
+}
+
+function sanitizeTesterId(value) {
+  return String(value || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 40);
+}
+
+function resolveTesterIdFromUrl() {
+  try {
+    const params = new URLSearchParams(window.location.search || '');
+    const fromTester = sanitizeTesterId(params.get('tester') || '');
+    const fromTesterId = sanitizeTesterId(params.get('tester_id') || '');
+    const fromDebug = sanitizeTesterId(params.get('debug_tester') || '');
+    return fromTester || fromTesterId || fromDebug || '';
+  } catch {
+    return '';
+  }
+}
+
+function getSiteTesterId() {
+  const fromUrl = resolveTesterIdFromUrl();
+  if (fromUrl) {
+    safeSetLocalStorage(SITE_TESTER_ID_KEY, fromUrl);
+    return fromUrl;
+  }
+  return sanitizeTesterId(safeGetLocalStorage(SITE_TESTER_ID_KEY) || '');
+}
+
+function trackSiteVisitOnce() {
+  try {
+    const path = String(window.location.pathname || '/');
+    const key = `${SITE_VISIT_SESSION_FLAG_PREFIX}${path}`;
+    if (sessionStorage.getItem(key) === '1') return;
+    sessionStorage.setItem(key, '1');
+
+    const testerId = getSiteTesterId();
+    const payload = {
+      action: 'site_visit_track',
+      page_path: path,
+      page_title: String(document.title || '').slice(0, 120),
+      lang: getUiLang(),
+      referrer: String(document.referrer || '').slice(0, 260),
+      visitor_id: getSiteVisitorId(),
+      user_agent: String(navigator.userAgent || '').slice(0, 240),
+      tester_id: testerId,
+      is_tester: !!testerId,
+    };
+
+    fetch(`${SUPABASE_URL}/functions/v1/admin-orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${SUPABASE_ANON}`,
+      },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {}
+}
+
 function setCookie(name, value, maxAgeSeconds = 2592000) {
   const encoded = encodeURIComponent(String(value || ''));
   document.cookie = `${name}=${encoded}; Max-Age=${maxAgeSeconds}; Path=/; SameSite=Lax`;
@@ -80,6 +395,228 @@ function clearCookie(name) {
   document.cookie = `${name}=; Max-Age=0; Path=/; SameSite=Lax`;
 }
 
+function normalizeKocId(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, '')
+    .slice(0, 48);
+}
+
+function normalizeKocText(value, maxLen = 64) {
+  return String(value || '')
+    .trim()
+    .replace(/[\r\n\t]/g, ' ')
+    .slice(0, maxLen);
+}
+
+function parseJsonObject(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeKocSnapshot(raw) {
+  const source = raw && typeof raw === 'object' ? raw : {};
+  let koc_id = normalizeKocId(source.koc_id || source.kocId || source.ref || '');
+  let parent_koc_id = normalizeKocId(source.parent_koc_id || source.parentKocId || source.parent || source.pkoc || '');
+  let channel = normalizeKocId(source.channel || source.src || '');
+  let content_id = normalizeKocId(source.content_id || source.contentId || source.cid || '');
+  let koc_code = normalizeKocText(source.koc_code || source.kocCode || source.code || '', 64);
+  const codeAsId = normalizeKocId(koc_code);
+
+  if (KOC_PLACEHOLDER_IDS.has(koc_id)) koc_id = '';
+  if (KOC_PLACEHOLDER_IDS.has(parent_koc_id)) parent_koc_id = '';
+  if (KOC_PLACEHOLDER_IDS.has(channel)) channel = '';
+  if (KOC_PLACEHOLDER_IDS.has(content_id)) content_id = '';
+  if (KOC_PLACEHOLDER_IDS.has(codeAsId)) koc_code = '';
+  if (!koc_id && codeAsId && !KOC_PLACEHOLDER_IDS.has(codeAsId)) {
+    koc_id = codeAsId;
+  }
+  if (parent_koc_id && parent_koc_id === koc_id) {
+    parent_koc_id = '';
+  }
+
+  const first_touch_at = normalizeKocText(source.first_touch_at || source.firstTouchAt || '', 40);
+  const last_touch_at = normalizeKocText(source.last_touch_at || source.lastTouchAt || '', 40);
+  const first_landing_path = normalizeKocText(source.first_landing_path || source.firstLandingPath || '', 180);
+  const last_landing_path = normalizeKocText(source.last_landing_path || source.lastLandingPath || '', 180);
+  const entry_url = normalizeKocText(source.entry_url || source.entryUrl || '', 320);
+
+  if (!koc_id && !koc_code) return null;
+  return {
+    koc_id,
+    parent_koc_id,
+    channel,
+    content_id,
+    koc_code,
+    first_touch_at,
+    last_touch_at,
+    first_landing_path,
+    last_landing_path,
+    entry_url,
+  };
+}
+
+function readKocSnapshot() {
+  const local = normalizeKocSnapshot(parseJsonObject(safeGetLocalStorage(KOC_ATTRIBUTION_KEY) || ''));
+  if (local) return local;
+  const cookieValue = getCookie(KOC_ATTRIBUTION_COOKIE);
+  return normalizeKocSnapshot(parseJsonObject(cookieValue || ''));
+}
+
+function persistKocSnapshot(snapshot) {
+  if (!snapshot) return;
+  const payload = JSON.stringify(snapshot);
+  safeSetLocalStorage(KOC_ATTRIBUTION_KEY, payload);
+  setCookie(KOC_ATTRIBUTION_COOKIE, payload, KOC_ATTRIBUTION_TTL_SECONDS);
+}
+
+function parseKocFromUrl() {
+  if (typeof window === 'undefined') return null;
+  const urlParams = new URLSearchParams(window.location.search || '');
+  const hashParams = new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
+  const read = (key) => urlParams.get(key) || hashParams.get(key) || '';
+
+  const candidate = normalizeKocSnapshot({
+    koc_id: read('koc_id') || read('ref') || read('koc'),
+    parent_koc_id: read('parent_koc_id') || read('parent_koc') || read('parent') || read('parent_id') || read('pkoc'),
+    channel: read('channel') || read('utm_source') || read('src'),
+    content_id: read('content_id') || read('content') || read('utm_content'),
+    koc_code: read('koc_code') || read('code'),
+    entry_url: `${window.location.pathname || '/'}${window.location.search || ''}`,
+  });
+
+  return candidate;
+}
+
+function captureKocFromUrl() {
+  const incoming = parseKocFromUrl();
+  if (!incoming) return readKocSnapshot();
+
+  const existing = readKocSnapshot();
+  const nowIso = new Date().toISOString();
+  const merged = normalizeKocSnapshot({
+    ...(existing || {}),
+    ...incoming,
+    first_touch_at: existing?.first_touch_at || nowIso,
+    last_touch_at: nowIso,
+    first_landing_path: existing?.first_landing_path || (window.location.pathname || '/'),
+    last_landing_path: window.location.pathname || '/',
+    entry_url: incoming.entry_url || existing?.entry_url || '',
+  });
+
+  if (merged) persistKocSnapshot(merged);
+  return merged;
+}
+
+function getKocSnapshot() {
+  return readKocSnapshot();
+}
+
+function buildKocFieldsForBirthInput() {
+  const snapshot = getKocSnapshot();
+  if (!snapshot) return {};
+  const fields = {};
+  if (snapshot.koc_id) fields.koc_id = snapshot.koc_id;
+  if (snapshot.parent_koc_id) fields.koc_parent_id = snapshot.parent_koc_id;
+  if (snapshot.channel) fields.koc_channel = snapshot.channel;
+  if (snapshot.content_id) fields.koc_content_id = snapshot.content_id;
+  if (snapshot.koc_code) fields.koc_code = snapshot.koc_code;
+  return fields;
+}
+
+function buildOrderTrackingSeed(service, paymentOptionId) {
+  const tracking = {
+    client_id: getClientId(),
+    attribution_model: 'last_click_30d',
+    service: String(service || ''),
+    payment_option_id: String(paymentOptionId || ''),
+    payment_ab_variant: getPaymentAbVariant(),
+    order_created_client_at: new Date().toISOString(),
+  };
+  const inviteCode = getInviteCode();
+  if (inviteCode) tracking.invite_code = inviteCode;
+  const snapshot = getKocSnapshot();
+  if (!snapshot) return tracking;
+  if (snapshot.koc_id) tracking.koc_id = snapshot.koc_id;
+  if (snapshot.parent_koc_id) tracking.koc_parent_id = snapshot.parent_koc_id;
+  if (snapshot.channel) tracking.koc_channel = snapshot.channel;
+  if (snapshot.content_id) tracking.koc_content_id = snapshot.content_id;
+  if (snapshot.koc_code) tracking.koc_code = snapshot.koc_code;
+  if (snapshot.first_touch_at) tracking.koc_first_touch_at = snapshot.first_touch_at;
+  if (snapshot.last_touch_at) tracking.koc_last_touch_at = snapshot.last_touch_at;
+  if (snapshot.first_landing_path) tracking.koc_first_landing_path = snapshot.first_landing_path;
+  if (snapshot.last_landing_path) tracking.koc_last_landing_path = snapshot.last_landing_path;
+  if (snapshot.entry_url) tracking.koc_entry_url = snapshot.entry_url;
+  return tracking;
+}
+
+function withKocEventMeta(meta = {}) {
+  const snapshot = getKocSnapshot();
+  const next = {
+    ...meta,
+    payment_ab_variant: getPaymentAbVariant(),
+  };
+  if (!snapshot) return next;
+  if (snapshot.koc_id) next.koc_id = snapshot.koc_id;
+  if (snapshot.parent_koc_id) next.koc_parent_id = snapshot.parent_koc_id;
+  if (snapshot.channel) next.koc_channel = snapshot.channel;
+  if (snapshot.content_id) next.koc_content_id = snapshot.content_id;
+  return next;
+}
+
+function normalizeInviteCode(value) {
+  return String(value || '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9_-]/g, '')
+    .slice(0, 32);
+}
+
+function setInviteCode(code) {
+  const normalized = normalizeInviteCode(code);
+  if (!normalized) {
+    safeRemoveLocalStorage(INVITE_CODE_KEY);
+    clearCookie(INVITE_CODE_COOKIE);
+    return '';
+  }
+  safeSetLocalStorage(INVITE_CODE_KEY, normalized);
+  setCookie(INVITE_CODE_COOKIE, normalized, 60 * 60 * 24 * 30);
+  return normalized;
+}
+
+function getInviteCode() {
+  const local = normalizeInviteCode(safeGetLocalStorage(INVITE_CODE_KEY) || '');
+  if (local) return local;
+  const cookie = normalizeInviteCode(getCookie(INVITE_CODE_COOKIE) || '');
+  if (!cookie) return '';
+  safeSetLocalStorage(INVITE_CODE_KEY, cookie);
+  return cookie;
+}
+
+function captureInviteCodeFromUrl() {
+  try {
+    const query = new URLSearchParams(window.location.search || '');
+    const hash = new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
+    const read = (key) => query.get(key) || hash.get(key) || '';
+    const incoming = normalizeInviteCode(
+      read('invite_code')
+      || read('invite')
+      || read('coupon')
+      || read('promo_code'),
+    );
+    if (!incoming) return getInviteCode();
+    return setInviteCode(incoming);
+  } catch {
+    return getInviteCode();
+  }
+}
+
 function getClientId() {
   let cid = safeGetLocalStorage(CLIENT_ID_KEY) || getCookie(CLIENT_ID_KEY);
   if (!cid) {
@@ -89,6 +626,84 @@ function getClientId() {
   setCookie(CLIENT_ID_KEY, cid, 60 * 60 * 24 * 180);
   return cid;
 }
+
+function hashTextToInt(text) {
+  const input = String(text || '');
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    hash = ((hash << 5) - hash + input.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+function getPaymentAbVariant() {
+  const cached = String(safeGetLocalStorage(PAYMENT_AB_KEY) || '').toUpperCase();
+  if (cached === 'A' || cached === 'B') return cached;
+  const seed = `${getClientId()}-${getSiteVisitorId()}`;
+  const variant = (hashTextToInt(seed) % 2 === 0) ? 'A' : 'B';
+  safeSetLocalStorage(PAYMENT_AB_KEY, variant);
+  return variant;
+}
+
+function getPaymentAbCopySet() {
+  const variant = getPaymentAbVariant();
+  if (variant === 'B') {
+    return {
+      variant,
+      modalTitle: '选择支付方案（限时活动）',
+      modalSub: '越晚看清，越可能错过关键窗口。现在锁定报告更稳妥。',
+      optionMeta: {
+        basic: {
+          tag: '先看底盘',
+          desc: '先看清你的底层驱动力、天赋优势和现实选择方向，低成本建立判断框架（约3000字）。',
+          point: '8大核心维度：用神喜忌 / 五行扶抑 / 性格驱动力 / 天赋能力 / 事业财运 / 赚钱方式 / 行业黄金期 / 创业副业适配',
+          cta: '先解锁入门版',
+        },
+        pro: {
+          tag: '最受欢迎',
+          desc: '覆盖事业、婚恋、家庭、人际与运势主线，适合希望一次看全关键问题的用户（约5000字）。',
+          point: '16大实战维度：在8大基础上新增感情婚姻、婚恋相处、隐患深剖、原生家庭、子女缘分、人际贵人、神煞、地支刑冲合会',
+          cta: '解锁进阶版（推荐）',
+        },
+        vip: {
+          tag: '完整版',
+          desc: '完整覆盖24个维度，增加风险预警、关键转折点、改运策略与人生课题总结（约7000-9000字）。',
+          point: '24维全景报告 + 7000-9000字：命局底盘 × 事业财运 × 婚恋家庭 × 大运流年 × 决策策略',
+          cta: '解锁至尊完整版',
+        },
+      },
+    };
+  }
+  return {
+    variant,
+    modalTitle: '请选择支付选项',
+    modalSub: '已准备好你的生辰信息，选择后将跳转支付。',
+    optionMeta: {
+      basic: {
+        tag: '低门槛先看清',
+        desc: '先用8大核心维度看清命盘底层结构，快速建立可执行判断（约3000字）。',
+        point: '8大核心：用神喜忌 / 五行扶抑 / 性格驱动力 / 天赋优势 / 事业财运 / 赚钱方式 / 行业黄金期 / 创业副业适配',
+        cta: '立即解锁入门版',
+      },
+      pro: {
+        tag: '最受欢迎',
+        desc: '覆盖16个高频决策维度，兼顾深度与效率，适合多数用户（约5000字）。',
+        point: '16大维度：在8大核心基础上，增加感情婚姻、婚恋说明书、隐患深剖、原生家庭、子女缘分、贵人模式、神煞、地支刑冲合会',
+        cta: '立即解锁进阶版',
+      },
+      vip: {
+        tag: '全局判断',
+        desc: '24维完整版 + 7000-9000字，从命局到底层课题给出完整策略。',
+        point: '24维全景：新增风险预警、关键转折点、改运补运、人生核心课题总结',
+        cta: '立即解锁尊享版',
+      },
+    },
+  };
+}
+
+captureInviteCodeFromUrl();
+captureKocFromUrl();
+trackSiteVisitOnce();
 
 function setPendingTradeNo(tradeNo) {
   safeSetLocalStorage(PENDING_TRADE_KEY, tradeNo);
@@ -173,6 +788,9 @@ function buildResultUrl(tradeNo, birthInput = null) {
   const params = new URLSearchParams();
   if (tradeNo) params.set('trade_no', tradeNo);
   params.set('paid', 'true');
+  if (isConsultOptionId(birthInput?.payment_option?.id) || String(birthInput?.order_service || '').trim().toLowerCase() === 'consult') {
+    params.set('consult', '1');
+  }
 
   if (birthInput && typeof birthInput === 'object') {
     const y = Number(birthInput.year);
@@ -193,6 +811,49 @@ function buildResultUrl(tradeNo, birthInput = null) {
   return `result.html?${params.toString()}`;
 }
 
+function buildOrderRecoveryUrl(tradeNo = '') {
+  const trade = String(tradeNo || '').trim();
+  return trade ? `${ORDER_RECOVERY_PAGE}?trade_no=${encodeURIComponent(trade)}` : ORDER_RECOVERY_PAGE;
+}
+
+function ensureOrderRecoveryEntry(formEl) {
+  if (!formEl || document.getElementById('order-recovery-entry')) return;
+
+  const panel = document.createElement('div');
+  panel.id = 'order-recovery-entry';
+  panel.style.cssText = [
+    'margin:0 0 12px',
+    'padding:12px',
+    'border:1px solid #C7DDFB',
+    'border-radius:10px',
+    'background:#F8FBFF',
+  ].join(';');
+
+  const title = document.createElement('div');
+  title.id = 'order-recovery-entry-title';
+  title.style.cssText = 'font-size:14px;color:#1E3A8A;font-weight:700;margin-bottom:6px;';
+  title.textContent = tUi('orderRecoveryEntryTitle');
+
+  const hint = document.createElement('div');
+  hint.id = 'order-recovery-entry-hint';
+  hint.style.cssText = 'font-size:12px;color:#475569;line-height:1.6;margin-bottom:8px;';
+  hint.textContent = tUi('orderRecoveryEntryHint');
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.id = 'order-recovery-entry-btn';
+  btn.style.cssText = 'padding:8px 12px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;cursor:pointer;font-size:13px;font-weight:600;';
+  btn.textContent = tUi('orderRecoveryEntryBtn');
+  btn.addEventListener('click', () => {
+    window.location.href = buildOrderRecoveryUrl(getPendingTradeNo());
+  });
+
+  panel.appendChild(title);
+  panel.appendChild(hint);
+  panel.appendChild(btn);
+  formEl.prepend(panel);
+}
+
 function initCustomerServiceWidget() {
   const canShowOnPage = !!document.getElementById('bazi-form') || !!document.getElementById('bazi-table-section');
   if (!canShowOnPage || document.getElementById('kefu-float-btn')) return;
@@ -206,7 +867,7 @@ function initCustomerServiceWidget() {
     #kefu-card{width:min(92vw,360px);background:#fff;border-radius:14px;border:1px solid #e5e7eb;padding:14px}
     #kefu-title{font-size:18px;font-weight:700;color:#0f172a}
     #kefu-sub{font-size:13px;color:#64748b;margin-top:4px}
-    #kefu-image{width:100%;margin-top:12px;border-radius:10px;border:1px solid #dbe3ed;background:#fff}
+    #kefu-image{width:100%;max-height:62vh;object-fit:contain;margin-top:12px;border-radius:10px;border:1px solid #dbe3ed;background:#fff}
     #kefu-close{margin-top:12px;width:100%;padding:10px 12px;border:none;border-radius:8px;background:#111827;color:#fff;font-weight:600;cursor:pointer}
     @media (min-width:768px){#kefu-float-btn{bottom:26px}}
   `;
@@ -244,7 +905,7 @@ function initCustomerServiceWidget() {
   }
 
   openBtn.addEventListener('click', () => {
-    modal.classList.add('show');
+    openCustomerServiceEntry();
   });
   modal.addEventListener('click', (evt) => {
     if (evt.target === modal) modal.classList.remove('show');
@@ -263,7 +924,398 @@ function openCustomerServiceModal() {
     modal.classList.add('show');
     return;
   }
-  alert('客服二维码暂时不可用，请稍后重试。');
+  alert('\u5ba2\u670d\u7a97\u53e3\u52a0\u8f7d\u5931\u8d25\uff0c\u8bf7\u5237\u65b0\u9875\u9762\u540e\u91cd\u8bd5\u3002');
+}
+
+function openCustomerServiceLink() {
+  const url = String(CUSTOMER_SERVICE_LINK || '').trim();
+  if (!url) return false;
+  try {
+    const opened = window.open(url, '_blank', 'noopener,noreferrer');
+    if (opened) {
+      try {
+        opened.opener = null;
+      } catch {}
+      return true;
+    }
+  } catch {}
+  try {
+    window.location.href = url;
+    return true;
+  } catch {}
+  return false;
+}
+
+function openCustomerServiceEntry() {
+  if (openCustomerServiceLink()) return;
+  openCustomerServiceModal();
+}
+
+function isConsultOptionId(optionId) {
+  return String(optionId || '').trim().toLowerCase() === CONSULT_PRODUCT.id;
+}
+
+function normalizeConsultGender(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  if (!raw) return '';
+  if (raw.includes('\u7537') || raw === 'male' || raw === 'm' || raw === 'man') return 'male';
+  if (raw.includes('\u5973') || raw === 'female' || raw === 'f' || raw === 'woman') return 'female';
+  return '';
+}
+
+function isValidConsultNickname(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return false;
+  return /[A-Za-z\u4e00-\u9fff]/.test(raw);
+}
+
+function isValidConsultPhone(value) {
+  const raw = String(value || '').trim();
+  return /^\d{11}$/.test(raw);
+}
+
+function formatBirthDateTimeFromBirth(birth = {}) {
+  const y = Number(birth?.year);
+  const m = Number(birth?.month);
+  const d = Number(birth?.day);
+  const h = Number(birth?.hour);
+  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d) || !Number.isFinite(h)) return '';
+  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')} ${String(h).padStart(2, '0')}:00`;
+}
+
+async function saveConsultIntake(tradeNo, intake = {}) {
+  const id = String(tradeNo || '').trim();
+  if (!id) throw new Error('\u7f3a\u5c11\u8ba2\u5355\u53f7');
+
+  const payload = {
+    nickname: String(intake?.nickname || '').trim().slice(0, 64),
+    contact: String(intake?.contact || '').trim().slice(0, 120),
+    birth_datetime: String(intake?.birth_datetime || '').trim().slice(0, 64),
+    gender: normalizeConsultGender(intake?.gender || ''),
+    birthplace: String(intake?.birthplace || '').trim().slice(0, 120),
+    question: String(intake?.question || '').trim().slice(0, 2000),
+    preferred_time: String(intake?.preferred_time || '').trim().slice(0, 500),
+  };
+
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/submit-consult-intake`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${SUPABASE_ANON}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      trade_no: id,
+      intake: payload,
+    }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || data?.error) {
+    const message = String(data?.message || data?.error || `HTTP ${response.status}`).trim();
+    throw new Error(message || 'submit_consult_intake_failed');
+  }
+
+  const nextIntake = data?.consult_intake && typeof data.consult_intake === 'object' && !Array.isArray(data.consult_intake)
+    ? data.consult_intake
+    : payload;
+  return nextIntake;
+}
+
+function getConsultIntakeCopy() {
+  const lang = getUiLang();
+  if (lang === 'en') {
+    return {
+      title: '1-on-1 Consultation Confirmed',
+      desc: 'To help our consultant prepare in advance, please submit your profile and preference below.',
+      orderNo: 'Order No:',
+      formTitle: 'Consultation Intake Form',
+      nicknameLabel: 'How should we address you?',
+      nicknamePlaceholder: 'e.g. Ms. Zhang / Mr. Li',
+      contactLabel: 'Mobile number (required)',
+      contactPlaceholder: '11-digit mobile number',
+      birthDatetimeLabel: 'Birth date & time',
+      birthDatetimePlaceholder: 'e.g. 1992-08-16 09:00',
+      genderLabel: 'Gender',
+      genderPlaceholder: 'Optional',
+      genderMale: 'Male',
+      genderFemale: 'Female',
+      birthplaceLabel: 'Birthplace',
+      birthplacePlaceholder: 'City / Province / Country',
+      questionLabel: 'Your key questions',
+      questionPlaceholder: 'Describe what you want to focus on in this consultation.',
+      preferredTimeLabel: 'Preferred time slots',
+      preferredTimePlaceholder: 'e.g. Weekdays after 20:00',
+      submitBtn: 'Submit Consultation Info',
+      submitLoading: 'Submitting...',
+      openKefuBtn: 'Open WeChat Service QR',
+      recoveryBtn: 'Order Recovery Center',
+      savedAtPrefix: 'Saved at: ',
+      errNoOrder: 'Order number missing. Please re-open from Order Recovery Center.',
+      errNicknameRequired: 'Please enter your preferred name.',
+      errNicknameInvalid: 'Name must contain letters or Chinese characters.',
+      errContactRequired: 'Please enter your mobile number.',
+      errContactInvalid: 'Mobile number must be exactly 11 digits.',
+      errQuestionRequired: 'Please enter your question description.',
+      savingText: 'Saving your consultation info...',
+      savedText: 'Saved successfully. Our team will contact you based on your preferred time.',
+      saveFailPrefix: 'Save failed: ',
+    };
+  }
+  if (lang === 'zh-Hant') {
+    return {
+      title: '\u5c08\u5c6c\u547d\u7406\u5e2b 1 \u5c0d 1 \u9810\u7d04\u5df2\u6210\u529f',
+      desc: '\u70ba\u4e86\u8b93\u547d\u7406\u5e2b\u63d0\u524d\u6e96\u5099\uff0c\u8acb\u5148\u88dc\u5145\u4ee5\u4e0b\u9810\u7d04\u8cc7\u8a0a\u3002',
+      orderNo: '\u8a02\u55ae\u865f\uff1a',
+      formTitle: '\u9810\u7d04\u8cc7\u8a0a\u63d0\u4ea4',
+      nicknameLabel: '\u7a31\u547c',
+      nicknamePlaceholder: '\u4f8b\uff1a\u5f35\u5973\u58eb / \u674e\u5148\u751f',
+      contactLabel: '\u624b\u6a5f\u865f\uff08\u5fc5\u586b\uff09',
+      contactPlaceholder: '\u8acb\u8f38\u5165 11 \u4f4d\u624b\u6a5f\u865f',
+      birthDatetimeLabel: '\u51fa\u751f\u5e74\u6708\u65e5\u6642\u9593',
+      birthDatetimePlaceholder: '\u4f8b\uff1a1992-08-16 09:00',
+      genderLabel: '\u6027\u5225',
+      genderPlaceholder: '\u53ef\u9078',
+      genderMale: '\u7537',
+      genderFemale: '\u5973',
+      birthplaceLabel: '\u51fa\u751f\u5730',
+      birthplacePlaceholder: '\u8acb\u586b\u5beb\u7701 / \u5e02 / \u570b\u5bb6',
+      questionLabel: '\u554f\u984c\u63cf\u8ff0',
+      questionPlaceholder: '\u8acb\u63cf\u8ff0\u4f60\u60f3\u91cd\u9ede\u8a62\u554f\u7684\u554f\u984c\u3002',
+      preferredTimeLabel: '\u9810\u7d04\u6642\u9593\u504f\u597d',
+      preferredTimePlaceholder: '\u4f8b\uff1a\u5de5\u4f5c\u65e5 20:00 \u5f8c',
+      submitBtn: '\u63d0\u4ea4\u9810\u7d04\u8cc7\u8a0a',
+      submitLoading: '\u63d0\u4ea4\u4e2d...',
+      openKefuBtn: '\u6253\u958b\u5ba2\u670d\u5fae\u4fe1\u4e8c\u7dad\u78bc',
+      recoveryBtn: '\u8a02\u55ae\u627e\u56de\u4e2d\u5fc3',
+      savedAtPrefix: '\u5df2\u4fdd\u5b58\u6642\u9593\uff1a',
+      errNoOrder: '\u7f3a\u5c11\u8a02\u55ae\u865f\uff0c\u8acb\u5f9e\u8a02\u55ae\u627e\u56de\u4e2d\u5fc3\u91cd\u65b0\u9032\u5165\u3002',
+      errNicknameRequired: '\u8acb\u586b\u5beb\u7a31\u547c\u3002',
+      errNicknameInvalid: '\u7a31\u547c\u4e0d\u80fd\u53ea\u6709\u6578\u5b57\u6216\u7b26\u865f\uff0c\u8acb\u586b\u5beb\u771f\u5be6\u7a31\u547c\u3002',
+      errContactRequired: '\u8acb\u586b\u5beb\u624b\u6a5f\u865f\u3002',
+      errContactInvalid: '\u624b\u6a5f\u865f\u683c\u5f0f\u932f\u8aa4\uff0c\u8acb\u8f38\u5165 11 \u4f4d\u6578\u5b57\u3002',
+      errQuestionRequired: '\u8acb\u586b\u5beb\u554f\u984c\u63cf\u8ff0\uff0c\u65b9\u4fbf\u547d\u7406\u5e2b\u6e96\u5099\u3002',
+      savingText: '\u6b63\u5728\u4fdd\u5b58\u9810\u7d04\u8cc7\u8a0a...',
+      savedText: '\u9810\u7d04\u8cc7\u8a0a\u5df2\u4fdd\u5b58\uff0c\u5ba2\u670d\u5c07\u4f9d\u4f60\u586b\u5beb\u7684\u6642\u9593\u806f\u7e6b\u3002',
+      saveFailPrefix: '\u4fdd\u5b58\u5931\u6557\uff1a',
+    };
+  }
+  return {
+    title: '\u4e13\u5c5e\u547d\u7406\u5e08 1 \u5bf9 1 \u9884\u7ea6\u5df2\u6210\u529f',
+    desc: '\u4e3a\u4e86\u8ba9\u547d\u7406\u5e08\u63d0\u524d\u5907\u8bfe\uff0c\u8bf7\u5148\u8865\u5145\u4ee5\u4e0b\u9884\u7ea6\u4fe1\u606f\u3002',
+    orderNo: '\u8ba2\u5355\u53f7\uff1a',
+    formTitle: '\u9884\u7ea6\u4fe1\u606f\u63d0\u4ea4',
+    nicknameLabel: '\u79f0\u547c',
+    nicknamePlaceholder: '\u4f8b\uff1a\u5f20\u5973\u58eb / \u674e\u5148\u751f',
+    contactLabel: '\u624b\u673a\u53f7\uff08\u5fc5\u586b\uff09',
+    contactPlaceholder: '\u8bf7\u8f93\u5165 11 \u4f4d\u624b\u673a\u53f7',
+    birthDatetimeLabel: '\u51fa\u751f\u5e74\u6708\u65e5\u65f6\u95f4',
+    birthDatetimePlaceholder: '\u4f8b\uff1a1992-08-16 09:00',
+    genderLabel: '\u6027\u522b',
+    genderPlaceholder: '\u53ef\u9009',
+    genderMale: '\u7537',
+    genderFemale: '\u5973',
+    birthplaceLabel: '\u51fa\u751f\u5730',
+    birthplacePlaceholder: '\u8bf7\u586b\u5199\u7701 / \u5e02 / \u56fd\u5bb6',
+    questionLabel: '\u95ee\u9898\u63cf\u8ff0',
+    questionPlaceholder: '\u8bf7\u63cf\u8ff0\u4f60\u60f3\u91cd\u70b9\u54a8\u8be2\u7684\u95ee\u9898\u3002',
+    preferredTimeLabel: '\u9884\u7ea6\u65f6\u95f4\u504f\u597d',
+    preferredTimePlaceholder: '\u4f8b\uff1a\u5de5\u4f5c\u65e5 20:00 \u540e',
+    submitBtn: '\u63d0\u4ea4\u9884\u7ea6\u4fe1\u606f',
+    submitLoading: '\u63d0\u4ea4\u4e2d...',
+    openKefuBtn: '\u6253\u5f00\u5ba2\u670d\u5fae\u4fe1\u4e8c\u7ef4\u7801',
+    recoveryBtn: '\u8ba2\u5355\u627e\u56de\u4e2d\u5fc3',
+    savedAtPrefix: '\u5df2\u4fdd\u5b58\u65f6\u95f4\uff1a',
+    errNoOrder: '\u7f3a\u5c11\u8ba2\u5355\u53f7\uff0c\u8bf7\u4ece\u8ba2\u5355\u627e\u56de\u4e2d\u5fc3\u91cd\u65b0\u8fdb\u5165\u3002',
+    errNicknameRequired: '\u8bf7\u586b\u5199\u79f0\u547c\u3002',
+    errNicknameInvalid: '\u79f0\u547c\u4e0d\u80fd\u53ea\u6709\u6570\u5b57\u6216\u7b26\u53f7\uff0c\u8bf7\u586b\u5199\u771f\u5b9e\u79f0\u547c\u3002',
+    errContactRequired: '\u8bf7\u586b\u5199\u624b\u673a\u53f7\u3002',
+    errContactInvalid: '\u624b\u673a\u53f7\u683c\u5f0f\u9519\u8bef\uff0c\u8bf7\u8f93\u5165 11 \u4f4d\u6570\u5b57\u3002',
+    errQuestionRequired: '\u8bf7\u586b\u5199\u95ee\u9898\u63cf\u8ff0\uff0c\u65b9\u4fbf\u547d\u7406\u5e08\u51c6\u5907\u3002',
+    savingText: '\u6b63\u5728\u4fdd\u5b58\u9884\u7ea6\u4fe1\u606f...',
+    savedText: '\u9884\u7ea6\u4fe1\u606f\u5df2\u4fdd\u5b58\uff0c\u5ba2\u670d\u5c06\u6309\u4f60\u586b\u5199\u7684\u504f\u597d\u65f6\u95f4\u8054\u7cfb\u4f60\u3002',
+    saveFailPrefix: '\u4fdd\u5b58\u5931\u8d25\uff1a',
+  };
+}
+
+function renderConsultPaidSuccess(tradeNo = '') {
+  const copy = getConsultIntakeCopy();
+  const analysisLocked = document.getElementById('analysis-locked');
+  const payPrompt = document.getElementById('pay-prompt');
+  const analysisContent = document.getElementById('analysis-content');
+  const analysisLoading = document.getElementById('analysis-loading');
+  const safeTradeNo = String(tradeNo || '').trim();
+
+  if (analysisLocked) analysisLocked.style.display = 'none';
+  if (payPrompt) payPrompt.style.display = 'none';
+  if (analysisContent) analysisContent.style.display = 'none';
+  if (!analysisLoading) return;
+
+  analysisLoading.style.display = 'block';
+  analysisLoading.innerHTML = `
+    <div style="border:1px solid #bfdbfe;background:#f8fbff;border-radius:12px;padding:14px;">
+      <div style="font-size:16px;font-weight:700;color:#0f172a;">${copy.title}</div>
+      <p style="margin-top:8px;font-size:13px;color:#334155;line-height:1.8;">
+        ${copy.desc}
+      </p>
+      <div style="margin-top:8px;font-size:12px;color:#64748b;word-break:break-all;">
+        ${copy.orderNo}${escapeHtml(safeTradeNo || '-')}
+      </div>
+
+      <div style="margin-top:12px;border:1px solid #dbeafe;background:#fff;border-radius:10px;padding:12px;">
+        <div style="font-size:14px;font-weight:700;color:#0f172a;">${copy.formTitle}</div>
+        <div style="display:grid;gap:8px;margin-top:10px;">
+          <label style="font-size:12px;color:#334155;">${copy.nicknameLabel}</label>
+          <input id="consult-nickname" type="text" placeholder="${copy.nicknamePlaceholder}" style="height:38px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px;font-size:13px;">
+          <label style="font-size:12px;color:#334155;">${copy.contactLabel}</label>
+          <input id="consult-contact" type="tel" inputmode="numeric" maxlength="11" placeholder="${copy.contactPlaceholder}" style="height:38px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px;font-size:13px;">
+          <label style="font-size:12px;color:#334155;">${copy.birthDatetimeLabel}</label>
+          <input id="consult-birth-datetime" type="text" placeholder="${copy.birthDatetimePlaceholder}" style="height:38px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px;font-size:13px;">
+          <label style="font-size:12px;color:#334155;">${copy.genderLabel}</label>
+          <select id="consult-gender" style="height:38px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px;font-size:13px;background:#fff;">
+            <option value="">${copy.genderPlaceholder}</option>
+            <option value="male">${copy.genderMale}</option>
+            <option value="female">${copy.genderFemale}</option>
+          </select>
+          <label style="font-size:12px;color:#334155;">${copy.birthplaceLabel}</label>
+          <input id="consult-birthplace" type="text" placeholder="${copy.birthplacePlaceholder}" style="height:38px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px;font-size:13px;">
+          <label style="font-size:12px;color:#334155;">${copy.questionLabel}</label>
+          <textarea id="consult-question" placeholder="${copy.questionPlaceholder}" style="min-height:86px;border:1px solid #cbd5e1;border-radius:8px;padding:10px;font-size:13px;line-height:1.7;resize:vertical;"></textarea>
+          <label style="font-size:12px;color:#334155;">${copy.preferredTimeLabel}</label>
+          <textarea id="consult-preferred-time" placeholder="${copy.preferredTimePlaceholder}" style="min-height:68px;border:1px solid #cbd5e1;border-radius:8px;padding:10px;font-size:13px;line-height:1.7;resize:vertical;"></textarea>
+          <button id="consult-submit-btn" type="button" style="height:40px;border:none;border-radius:8px;background:#1d4ed8;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">${copy.submitBtn}</button>
+          <div id="consult-submit-status" style="font-size:12px;color:#475569;line-height:1.7;"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="consult-open-kefu-btn" type="button" style="padding:10px 14px;border:none;border-radius:8px;background:#0b1f44;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">
+          ${copy.openKefuBtn}
+        </button>
+        <a href="${buildOrderRecoveryUrl(safeTradeNo)}" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:8px;background:#1d4ed8;color:#fff;text-decoration:none;font-size:13px;">
+          ${copy.recoveryBtn}
+        </a>
+      </div>
+    </div>
+  `;
+
+  const openBtn = document.getElementById('consult-open-kefu-btn');
+  if (openBtn) {
+  openBtn.addEventListener('click', () => openCustomerServiceEntry());
+  }
+
+  const nicknameEl = document.getElementById('consult-nickname');
+  const contactEl = document.getElementById('consult-contact');
+  const birthDtEl = document.getElementById('consult-birth-datetime');
+  const genderEl = document.getElementById('consult-gender');
+  const birthplaceEl = document.getElementById('consult-birthplace');
+  const questionEl = document.getElementById('consult-question');
+  const preferredTimeEl = document.getElementById('consult-preferred-time');
+  const submitBtn = document.getElementById('consult-submit-btn');
+  const statusEl = document.getElementById('consult-submit-status');
+
+  if (contactEl) {
+    contactEl.addEventListener('input', () => {
+      contactEl.value = String(contactEl.value || '').replace(/\D+/g, '').slice(0, 11);
+    });
+  }
+
+  const setStatus = (msg, ok = false) => {
+    if (!statusEl) return;
+    statusEl.textContent = msg || '';
+    statusEl.style.color = ok ? '#166534' : '#475569';
+  };
+
+  const prefill = async () => {
+    if (!safeTradeNo) return;
+    const order = await fetchOrderByTradeNo(safeTradeNo);
+    const birth = parseBirthInputSafe(order?.birth_input);
+    const intake = birth?.consult_intake && typeof birth.consult_intake === 'object' && !Array.isArray(birth.consult_intake)
+      ? birth.consult_intake
+      : {};
+
+    if (nicknameEl) nicknameEl.value = String(intake.nickname || '').trim();
+    if (contactEl) contactEl.value = String(intake.contact || '').trim();
+    if (birthDtEl) {
+      birthDtEl.value = String(intake.birth_datetime || '').trim() || formatBirthDateTimeFromBirth(birth);
+    }
+    const genderVal = normalizeConsultGender(intake.gender || birth?.gender || '');
+    if (genderEl && genderVal) genderEl.value = genderVal;
+    if (birthplaceEl) birthplaceEl.value = String(intake.birthplace || birth?.birthplace || '').trim();
+    if (questionEl) questionEl.value = String(intake.question || '').trim();
+    if (preferredTimeEl) preferredTimeEl.value = String(intake.preferred_time || '').trim();
+
+    if (String(intake.updated_at || '').trim()) {
+      setStatus(`${copy.savedAtPrefix}${String(intake.updated_at).replace('T', ' ').slice(0, 19)}`, true);
+    }
+  };
+
+  prefill().catch((err) => {
+    console.warn('consult intake prefill failed:', err);
+  });
+
+  if (submitBtn) {
+    submitBtn.addEventListener('click', async () => {
+      if (!safeTradeNo) {
+        setStatus(copy.errNoOrder);
+        return;
+      }
+      const payload = {
+        nickname: String(nicknameEl?.value || '').trim(),
+        contact: String(contactEl?.value || '').trim(),
+        birth_datetime: String(birthDtEl?.value || '').trim(),
+        gender: normalizeConsultGender(genderEl?.value || ''),
+        birthplace: String(birthplaceEl?.value || '').trim(),
+        question: String(questionEl?.value || '').trim(),
+        preferred_time: String(preferredTimeEl?.value || '').trim(),
+      };
+
+      if (!payload.nickname) {
+        setStatus(copy.errNicknameRequired);
+        nicknameEl?.focus();
+        return;
+      }
+      if (!isValidConsultNickname(payload.nickname)) {
+        setStatus(copy.errNicknameInvalid);
+        nicknameEl?.focus();
+        return;
+      }
+      if (!payload.contact) {
+        setStatus(copy.errContactRequired);
+        contactEl?.focus();
+        return;
+      }
+      if (!isValidConsultPhone(payload.contact)) {
+        setStatus(copy.errContactInvalid);
+        contactEl?.focus();
+        return;
+      }
+      if (!payload.question) {
+        setStatus(copy.errQuestionRequired);
+        questionEl?.focus();
+        return;
+      }
+
+      try {
+        submitBtn.disabled = true;
+        submitBtn.textContent = copy.submitLoading;
+        setStatus(copy.savingText);
+        await saveConsultIntake(safeTradeNo, payload);
+        try {
+          localStorage.setItem(SUPPORT_ORDER_FOCUS_KEY, safeTradeNo);
+        } catch {}
+        setStatus(copy.savedText, true);
+      } catch (err) {
+        console.error('save consult intake failed:', err);
+        setStatus(`${copy.saveFailPrefix}${err instanceof Error ? err.message : String(err)}`);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = copy.submitBtn;
+      }
+    });
+  }
+
+  if (safeTradeNo) clearPaymentPanelState(safeTradeNo);
+  clearPendingTradeNo();
+  clearPendingPaymentOptionId();
 }
 
 async function copyTextSafe(text) {
@@ -600,37 +1652,128 @@ async function reconcilePaymentStatus(tradeNo, options = {}) {
 function showMobilePayPanel(payUrl, tradeNo, mountEl, options = {}) {
   const resultUrl = buildResultUrl(tradeNo, getPendingBirthInput(tradeNo));
   const successUrl = String(options?.successUrl || resultUrl || '').trim() || resultUrl;
-  const doneLabel = String(options?.doneLabel || '我已完成支付，查看报告').trim() || '我已完成支付，查看报告';
+  const doneLabel = String(options?.doneLabel || '\u6211\u5df2\u5b8c\u6210\u652f\u4ed8\uff0c\u67e5\u770b\u62a5\u544a').trim() || '\u6211\u5df2\u5b8c\u6210\u652f\u4ed8\uff0c\u67e5\u770b\u62a5\u544a';
   const customTip = String(options?.customTip || '').trim();
   const nonRefundNotice = String(options?.nonRefundNotice || PAYMENT_NON_REFUND_NOTICE).trim() || PAYMENT_NON_REFUND_NOTICE;
   const disableWeChatInApp = Boolean(options?.disableWeChatInApp);
-  const wechatPayWarning = String(options?.wechatPayWarning || '请勿在微信内直接支付，避免支付完成后订单校验失败。建议复制链接到系统浏览器完成支付。').trim();
+  const wechatPayWarning = String(
+    options?.wechatPayWarning
+      || '\u8bf7\u52ff\u5728\u5fae\u4fe1\u6d4f\u89c8\u5668\u5185\u76f4\u63a5\u652f\u4ed8\uff0c\u907f\u514d\u652f\u4ed8\u540e\u8ba2\u5355\u6821\u9a8c\u5931\u8d25\u3002\u5efa\u8bae\u590d\u5236\u94fe\u63a5\u5230\u7cfb\u7edf\u6d4f\u89c8\u5668\u5b8c\u6210\u652f\u4ed8\u3002'
+  ).trim();
   const isWeChat = isWeChatBrowser();
+  const uiLang = getUiLang();
+
+  const I18N = {
+    en: {
+      noticeTitle: 'Payment Notice (Please Read)',
+      step3: 'After payment, if the page closes, reopen home and tap "Continue Previous Order", or use "Copy Link & Pay in Browser".',
+      openPay: isWeChat ? 'Copy Link & Pay in Browser (Recommended)' : 'Open Payment Page',
+      copyPay: 'Copy Payment Link',
+      riskOpen: 'Open inside WeChat (May Close Page)',
+      copiedTip: 'Payment link copied. Please open it in your system browser and finish payment.',
+      manualCopyPrompt: 'Copy this payment link manually:',
+      popupBlocked: 'Could not open payment page automatically. Please copy the payment link and open it manually.',
+      verifying: 'Verifying payment...',
+      defaultTipWechat: 'If WeChat closes this page, reopen homepage and tap "Continue Previous Order".',
+      defaultTipMobile: 'Complete payment in a new tab. Keep this page open for report recovery.',
+      browserOpenHint: 'Tip: tap the top-right menu and choose "Open in Browser" before paying.',
+      followupTitle: 'No confirmation yet? Try these two quick actions',
+      followupDesc: 'If already paid, tap verify now. If not, open Order Recovery Center to continue safely.',
+      followupVerify: 'Verify Payment Now',
+      followupRecovery: 'Open Recovery Center',
+      followupPending: 'Automatic reminder appears in',
+    },
+    'zh-Hans': {
+      noticeTitle: '\u652f\u4ed8\u987b\u77e5\uff08\u8bf7\u5148\u9605\u8bfb\uff09',
+      step3: '\u652f\u4ed8\u5b8c\u6210\u540e\u8bf7\u91cd\u65b0\u6253\u5f00\u9996\u9875\uff0c\u70b9\u51fb\u201c\u7ee7\u7eed\u4e0a\u6b21\u8ba2\u5355\u201d\uff1b\u6216\u76f4\u63a5\u9009\u62e9\u201c\u590d\u5236\u94fe\u63a5\u5e76\u53bb\u6d4f\u89c8\u5668\u652f\u4ed8\uff08\u63a8\u8350\uff09\u201d\u3002',
+      openPay: isWeChat ? '\u590d\u5236\u94fe\u63a5\u5e76\u53bb\u6d4f\u89c8\u5668\u652f\u4ed8\uff08\u63a8\u8350\uff09' : '\u6253\u5f00\u652f\u4ed8\u9875\u9762',
+      copyPay: '\u590d\u5236\u652f\u4ed8\u94fe\u63a5',
+      riskOpen: '\u4ecd\u5728\u5fae\u4fe1\u5185\u6253\u5f00\uff08\u53ef\u80fd\u5173\u95ed\uff09',
+      copiedTip: '\u652f\u4ed8\u94fe\u63a5\u5df2\u590d\u5236\uff0c\u8bf7\u5207\u6362\u5230\u7cfb\u7edf\u6d4f\u89c8\u5668\u6253\u5f00\u5e76\u5b8c\u6210\u652f\u4ed8\u3002',
+      manualCopyPrompt: '\u8bf7\u624b\u52a8\u590d\u5236\u652f\u4ed8\u94fe\u63a5\uff1a',
+      popupBlocked: '\u672a\u80fd\u81ea\u52a8\u6253\u5f00\u652f\u4ed8\u9875\uff0c\u8bf7\u5148\u590d\u5236\u652f\u4ed8\u94fe\u63a5\u518d\u6253\u5f00\u3002',
+      verifying: '\u6b63\u5728\u6821\u9a8c\u652f\u4ed8...',
+      defaultTipWechat: '\u5982\u9875\u9762\u88ab\u5173\u95ed\uff0c\u91cd\u65b0\u6253\u5f00\u9996\u9875\u540e\u70b9\u51fb\u201c\u7ee7\u7eed\u4e0a\u6b21\u8ba2\u5355\u201d\u3002',
+      defaultTipMobile: '\u624b\u673a\u652f\u4ed8\u8bf7\u5728\u65b0\u7a97\u53e3\u5b8c\u6210\uff0c\u5f53\u524d\u9875\u9762\u5c06\u4fdd\u7559\u7528\u4e8e\u7ee7\u7eed\u67e5\u770b\u62a5\u544a\u3002',
+      browserOpenHint: '\u64cd\u4f5c\u63d0\u793a\uff1a\u8bf7\u70b9\u51fb\u53f3\u4e0a\u89d2\u201c\u00b7\u00b7\u00b7\u201d\uff0c\u9009\u62e9\u201c\u5728\u6d4f\u89c8\u5668\u6253\u5f00\u201d\u540e\u518d\u5b8c\u6210\u652f\u4ed8\u3002',
+      followupTitle: '\u8d85\u8fc7 5 \u5206\u949f\u4ecd\u672a\u786e\u8ba4\uff1f\u8bf7\u5c1d\u8bd5\u4e0b\u65b9\u64cd\u4f5c',
+      followupDesc: '\u82e5\u5df2\u652f\u4ed8\uff0c\u8bf7\u70b9\u201c\u7acb\u5373\u6821\u9a8c\u201d\uff1b\u82e5\u672a\u5b8c\u6210\uff0c\u8bf7\u8fdb\u5165\u201c\u8ba2\u5355\u627e\u56de\u4e2d\u5fc3\u201d\u7ee7\u7eed\u3002',
+      followupVerify: '\u7acb\u5373\u6821\u9a8c',
+      followupRecovery: '\u8ba2\u5355\u627e\u56de\u4e2d\u5fc3',
+      followupPending: '\u5c06\u5728\u4ee5\u4e0b\u65f6\u95f4\u540e\u81ea\u52a8\u63d0\u9192\uff1a',
+    },
+    'zh-Hant': {
+      noticeTitle: '\u652f\u4ed8\u9808\u77e5\uff08\u8acb\u5148\u95b1\u8b80\uff09',
+      step3: '\u652f\u4ed8\u5b8c\u6210\u5f8c\u8acb\u91cd\u65b0\u6253\u958b\u9996\u9801\uff0c\u9ede\u64ca\u300c\u7e7c\u7e8c\u4e0a\u6b21\u8a02\u55ae\u300d\uff1b\u6216\u76f4\u63a5\u9078\u64c7\u300c\u8907\u88fd\u9023\u7d50\u4e26\u53bb\u700f\u89bd\u5668\u652f\u4ed8\uff08\u63a8\u85a6\uff09\u300d\u3002',
+      openPay: isWeChat ? '\u8907\u88fd\u9023\u7d50\u4e26\u53bb\u700f\u89bd\u5668\u652f\u4ed8\uff08\u63a8\u85a6\uff09' : '\u6253\u958b\u652f\u4ed8\u9801\u9762',
+      copyPay: '\u8907\u88fd\u652f\u4ed8\u9023\u7d50',
+      riskOpen: '\u4ecd\u5728\u5fae\u4fe1\u5167\u6253\u958b\uff08\u53ef\u80fd\u95dc\u9589\uff09',
+      copiedTip: '\u652f\u4ed8\u9023\u7d50\u5df2\u8907\u88fd\uff0c\u8acb\u5207\u63db\u81f3\u7cfb\u7d71\u700f\u89bd\u5668\u6253\u958b\u4e26\u5b8c\u6210\u652f\u4ed8\u3002',
+      manualCopyPrompt: '\u8acb\u624b\u52d5\u8907\u88fd\u652f\u4ed8\u9023\u7d50\uff1a',
+      popupBlocked: '\u672a\u80fd\u81ea\u52d5\u6253\u958b\u652f\u4ed8\u9801\uff0c\u8acb\u5148\u8907\u88fd\u9023\u7d50\u518d\u6253\u958b\u3002',
+      verifying: '\u6b63\u5728\u6821\u9a57\u652f\u4ed8...',
+      defaultTipWechat: '\u5982\u9801\u9762\u88ab\u95dc\u9589\uff0c\u8acb\u91cd\u65b0\u6253\u958b\u9996\u9801\u5f8c\u9ede\u64ca\u300c\u7e7c\u7e8c\u4e0a\u6b21\u8a02\u55ae\u300d\u3002',
+      defaultTipMobile: '\u624b\u6a5f\u652f\u4ed8\u8acb\u5728\u65b0\u8996\u7a97\u5b8c\u6210\uff0c\u7576\u524d\u9801\u9762\u6703\u4fdd\u7559\u4ee5\u4fbf\u7e7c\u7e8c\u67e5\u770b\u5831\u544a\u3002',
+      browserOpenHint: '\u64cd\u4f5c\u63d0\u793a\uff1a\u8acb\u9ede\u64ca\u53f3\u4e0a\u89d2\u300c\u00b7\u00b7\u00b7\u300d\uff0c\u9078\u64c7\u300c\u5728\u700f\u89bd\u5668\u6253\u958b\u300d\u5f8c\u518d\u5b8c\u6210\u652f\u4ed8\u3002',
+      followupTitle: '\u8d85\u904e 5 \u5206\u9418\u4ecd\u672a\u78ba\u8a8d\uff1f\u8acb\u5617\u8a66\u4e0b\u65b9\u64cd\u4f5c',
+      followupDesc: '\u82e5\u5df2\u652f\u4ed8\uff0c\u8acb\u9ede\u300c\u7acb\u5373\u6821\u9a57\u300d\uff1b\u82e5\u672a\u5b8c\u6210\uff0c\u8acb\u9032\u5165\u300c\u8a02\u55ae\u627e\u56de\u4e2d\u5fc3\u300d\u7e7c\u7e8c\u3002',
+      followupVerify: '\u7acb\u5373\u6821\u9a57',
+      followupRecovery: '\u8a02\u55ae\u627e\u56de\u4e2d\u5fc3',
+      followupPending: '\u5c07\u5728\u4ee5\u4e0b\u6642\u9593\u5f8c\u81ea\u52d5\u63d0\u9192\uff1a',
+    },
+  };
+
+  const textSet = I18N[uiLang] || I18N['zh-Hans'];
   const step2Text = String(
     options?.step2Text
       || (isWeChat && disableWeChatInApp
         ? wechatPayWarning
-        : '微信浏览器支付后页面可能自动关闭（微信机制）。')
+        : (uiLang === 'en'
+          ? 'On WeChat browser, the payment page may auto-close after payment.'
+          : (uiLang === 'zh-Hant'
+            ? '\u5fae\u4fe1\u700f\u89bd\u5668\u652f\u4ed8\u5f8c\u9801\u9762\u53ef\u80fd\u81ea\u52d5\u95dc\u9589\uff08\u5fae\u4fe1\u6a5f\u5236\uff09\u3002'
+            : '\u5fae\u4fe1\u6d4f\u89c8\u5668\u652f\u4ed8\u540e\u9875\u9762\u53ef\u80fd\u81ea\u52a8\u5173\u95ed\uff08\u5fae\u4fe1\u673a\u5236\uff09\u3002')))
   ).trim();
   const wechatOpenInBrowserHint = (isWeChat && disableWeChatInApp)
-    ? '<div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:#fff;color:#92400e;font-size:12px;line-height:1.6;border:1px solid #fed7aa;">操作提示：请点击右上角“···”，选择“在浏览器打开”后再完成支付。</div>'
+    ? `<div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:#fff;color:#92400e;font-size:12px;line-height:1.6;border:1px solid #fed7aa;">${textSet.browserOpenHint}</div>`
     : '';
+
+  const stateBefore = readPaymentPanelState(tradeNo);
+  const openedAtMs = Date.parse(String(stateBefore?.opened_at || '')) || Date.now();
+  updatePaymentPanelState(tradeNo, {
+    opened_at: stateBefore?.opened_at || new Date(openedAtMs).toISOString(),
+    last_panel_shown_at: new Date().toISOString(),
+  });
+  const elapsedMs = Math.max(0, Date.now() - openedAtMs);
+  const followupShouldShowNow = elapsedMs >= PAYMENT_UNPAID_REMINDER_MS;
+  const followupRemainMs = Math.max(0, PAYMENT_UNPAID_REMINDER_MS - elapsedMs);
+
   const debugAnchorHtml = shouldShowPaymentDebug() ? '<div id="mobile-payment-debug-anchor"></div>' : '';
   const panelHtml = `
     <div style="margin-top:2px;padding:10px 12px;border-radius:10px;border:1px solid #fed7aa;background:#fff7ed;color:#7c2d12;font-size:13px;line-height:1.6;">
-      <div style="font-weight:700;color:#9a3412;">支付须知（请先阅读）</div>
+      <div style="font-weight:700;color:#9a3412;">${textSet.noticeTitle}</div>
       <div style="margin-top:6px;">1. ${nonRefundNotice}</div>
       <div style="margin-top:4px;">2. ${step2Text}</div>
-      <div style="margin-top:4px;">3. 支付完成后请重新打开首页，点击“继续上次订单”；或直接选择“复制链接并去浏览器支付（推荐）”。</div>
+      <div style="margin-top:4px;">3. ${textSet.step3}</div>
       ${wechatOpenInBrowserHint}
     </div>
     <div style="margin-top:12px;display:grid;gap:10px;">
-      <button id="mobile-open-pay-btn" type="button" style="padding:12px 14px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">${isWeChat ? '复制链接并去浏览器支付（推荐）' : '打开支付页面'}</button>
-      <button id="mobile-copy-pay-btn" type="button" style="padding:12px 14px;background:#fff;color:#1f2937;border:1px solid #d1d5db;border-radius:8px;font-weight:600;cursor:pointer;">复制支付链接</button>
-      ${(isWeChat && !disableWeChatInApp) ? '<button id="mobile-open-pay-risk-btn" type="button" style="padding:12px 14px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">仍在微信内打开（可能关闭）</button>' : ''}
+      <button id="mobile-open-pay-btn" type="button" style="padding:12px 14px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">${textSet.openPay}</button>
+      <button id="mobile-copy-pay-btn" type="button" style="padding:12px 14px;background:#fff;color:#1f2937;border:1px solid #d1d5db;border-radius:8px;font-weight:600;cursor:pointer;">${textSet.copyPay}</button>
+      ${(isWeChat && !disableWeChatInApp) ? `<button id="mobile-open-pay-risk-btn" type="button" style="padding:12px 14px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">${textSet.riskOpen}</button>` : ''}
       <button id="mobile-paid-back-btn" type="button" style="padding:12px 14px;background:#111827;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">${doneLabel}</button>
+      <button id="mobile-recovery-center-btn" type="button" style="padding:11px 14px;background:#eef2ff;color:#1e3a8a;border:1px solid #bfdbfe;border-radius:8px;font-weight:600;cursor:pointer;">${tUi('mobileRecoveryBtn')}</button>
     </div>
-    <p style="margin-top:10px;color:#6b7280;font-size:13px;">${customTip || (isWeChat ? '如页面被关闭，重新打开首页后点击“继续上次订单”。' : '手机支付请在新窗口完成，当前页面将保留用于继续查看报告。')}</p>
+    <p style="margin-top:10px;color:#6b7280;font-size:13px;">${customTip || (isWeChat ? textSet.defaultTipWechat : textSet.defaultTipMobile)}</p>
+    <div id="mobile-unpaid-reminder" style="margin-top:10px;padding:10px 12px;border-radius:10px;border:1px solid #fcd34d;background:#fffbeb;display:${followupShouldShowNow ? 'block' : 'none'};">
+      <div style="font-size:13px;font-weight:700;color:#92400e;">${textSet.followupTitle}</div>
+      <div style="margin-top:6px;font-size:12px;line-height:1.65;color:#78350f;">${textSet.followupDesc}</div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="mobile-followup-verify-btn" type="button" style="padding:8px 10px;border:none;border-radius:8px;background:#1d4ed8;color:#fff;font-size:12px;font-weight:700;cursor:pointer;">${textSet.followupVerify}</button>
+        <button id="mobile-followup-recovery-btn" type="button" style="padding:8px 10px;border:1px solid #f59e0b;border-radius:8px;background:#fff;color:#92400e;font-size:12px;font-weight:700;cursor:pointer;">${textSet.followupRecovery}</button>
+      </div>
+    </div>
+    <div id="mobile-unpaid-countdown" style="margin-top:8px;font-size:12px;color:#b45309;display:${followupShouldShowNow ? 'none' : 'block'};"></div>
     ${debugAnchorHtml}
   `;
 
@@ -662,26 +1805,59 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl, options = {}) {
     }
   }
 
+  const showFollowup = () => {
+    const followupBox = document.getElementById('mobile-unpaid-reminder');
+    const followupCountdown = document.getElementById('mobile-unpaid-countdown');
+    if (followupBox) followupBox.style.display = 'block';
+    if (followupCountdown) followupCountdown.style.display = 'none';
+    updatePaymentPanelState(tradeNo, { followup_shown_at: new Date().toISOString() });
+    trackOrderEventOnce(tradeNo, 'payment_followup_shown', withKocEventMeta({
+      in_wechat: isWeChat,
+      elapsed_sec: Math.max(0, Math.floor((Date.now() - openedAtMs) / 1000)),
+    }));
+  };
+
+  const followupCountdown = document.getElementById('mobile-unpaid-countdown');
+  if (followupShouldShowNow) {
+    showFollowup();
+  } else if (followupCountdown) {
+    const renderCountdown = (remainMs) => {
+      const sec = Math.max(0, Math.ceil(remainMs / 1000));
+      followupCountdown.textContent = `${textSet.followupPending} ${sec}s`;
+    };
+    renderCountdown(followupRemainMs);
+    const timerStart = Date.now();
+    const timer = window.setInterval(() => {
+      const remain = followupRemainMs - (Date.now() - timerStart);
+      if (remain <= 0) {
+        window.clearInterval(timer);
+        showFollowup();
+        return;
+      }
+      renderCountdown(remain);
+    }, 1000);
+  }
+
   const openPayBtn = document.getElementById('mobile-open-pay-btn');
   if (openPayBtn) {
     openPayBtn.addEventListener('click', async () => {
-      trackOrderEvent(tradeNo, 'payment_page_opened', {
+      trackOrderEvent(tradeNo, 'payment_page_opened', withKocEventMeta({
         in_wechat: isWeChat,
         method: isWeChat ? 'copy_to_browser' : 'open_new_tab',
-      });
+      }));
       if (isWeChat) {
         const ok = await copyTextSafe(payUrl);
         if (ok) {
-          alert('支付链接已复制，请切换到系统浏览器打开并完成支付。');
+          alert(textSet.copiedTip);
         } else {
-          prompt('请手动复制支付链接：', payUrl);
+          prompt(textSet.manualCopyPrompt, payUrl);
         }
         return;
       }
 
       const win = window.open(payUrl, '_blank');
       if (!win) {
-        alert('未能自动打开支付页，请先复制支付链接再打开。');
+        alert(textSet.popupBlocked);
       }
     });
   }
@@ -689,14 +1865,14 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl, options = {}) {
   const copyPayBtn = document.getElementById('mobile-copy-pay-btn');
   if (copyPayBtn) {
     copyPayBtn.addEventListener('click', async () => {
-      trackOrderEvent(tradeNo, 'payment_link_copied', {
+      trackOrderEvent(tradeNo, 'payment_link_copied', withKocEventMeta({
         in_wechat: isWeChat,
-      });
+      }));
       const ok = await copyTextSafe(payUrl);
       if (ok) {
-        alert('支付链接已复制，请在浏览器打开并完成支付。');
+        alert(textSet.copiedTip);
       } else {
-        prompt('请手动复制支付链接：', payUrl);
+        prompt(textSet.manualCopyPrompt, payUrl);
       }
     });
   }
@@ -704,11 +1880,31 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl, options = {}) {
   const doneBtn = document.getElementById('mobile-paid-back-btn');
   if (doneBtn) {
     doneBtn.addEventListener('click', async () => {
-      trackOrderEvent(tradeNo, 'payment_verify_clicked');
+      trackOrderEvent(tradeNo, 'payment_verify_clicked', withKocEventMeta({ source: 'mobile_panel' }));
       doneBtn.disabled = true;
-      doneBtn.textContent = '正在核验支付...';
+      doneBtn.textContent = textSet.verifying;
       await reconcilePaymentStatus(tradeNo, { quiet: true });
+      clearPaymentPanelState(tradeNo);
       window.location.href = successUrl;
+    });
+  }
+
+  const recoveryBtn = document.getElementById('mobile-recovery-center-btn');
+  if (recoveryBtn) {
+    recoveryBtn.addEventListener('click', () => {
+      window.location.href = buildOrderRecoveryUrl(tradeNo);
+    });
+  }
+
+  const followupVerifyBtn = document.getElementById('mobile-followup-verify-btn');
+  if (followupVerifyBtn && doneBtn) {
+    followupVerifyBtn.addEventListener('click', () => doneBtn.click());
+  }
+
+  const followupRecoveryBtn = document.getElementById('mobile-followup-recovery-btn');
+  if (followupRecoveryBtn) {
+    followupRecoveryBtn.addEventListener('click', () => {
+      window.location.href = buildOrderRecoveryUrl(tradeNo);
     });
   }
 
@@ -738,15 +1934,15 @@ function ensurePdfPurchaseUI() {
       'background:#f8fbff',
     ].join(';');
     section.innerHTML = `
-      <div style="font-size:18px;font-weight:700;color:#0a2540;line-height:1.5;">《八字命理合集》PDF｜439页系统内容，反复查阅</div>
-      <p style="margin:8px 0 0;color:#334155;font-size:14px;line-height:1.8;">全书 439 页，覆盖八字核心知识与实用分析思路，不只看结论，更帮你建立判断框架。</p>
+      <div id="pdf-sale-title" style="font-size:18px;font-weight:700;color:#0a2540;line-height:1.5;">《八字命理合集》PDF｜439页系统内容，反复查阅</div>
+      <p id="pdf-sale-sub" style="margin:8px 0 0;color:#334155;font-size:14px;line-height:1.8;">全书 439 页，覆盖八字核心知识与实用分析思路，不只看结论，更帮你建立判断框架。</p>
       <div style="margin-top:8px;color:#1f2937;font-size:13px;line-height:1.8;">
-        <div>• 小白友好：核心逻辑讲清楚，一看就懂</div>
-        <div>• 决策参考：看清关键年份节奏，少走弯路</div>
-        <div>• 可反复查阅：支付后直接下载保存</div>
+        <div id="pdf-sale-bullet-1">• 小白友好：核心逻辑讲清楚，一看就懂</div>
+        <div id="pdf-sale-bullet-2">• 决策参考：看清关键年份节奏，少走弯路</div>
+        <div id="pdf-sale-bullet-3">• 可反复查阅：支付后直接下载保存</div>
       </div>
-      <button type="button" id="pdf-pay-btn" class="form-submit" style="margin-top:12px;">0.01元解锁八字命理合集PDF</button>
-      <p style="margin:8px 0 0;color:#6b7280;font-size:12px;line-height:1.6;">虚拟知识文档，支付后不支持退款，请确认后购买。</p>
+      <button type="button" id="pdf-pay-btn" class="form-submit" style="margin-top:12px;">19.9元解锁八字命理合集PDF（原价39.9元）</button>
+      <p id="pdf-sale-nonrefund" style="margin:8px 0 0;color:#6b7280;font-size:12px;line-height:1.6;">虚拟知识文档，支付后不支持退款，请确认后购买。</p>
       <div id="pdf-pay-feedback" style="margin-top:10px;display:none;"></div>
       <div id="pdf-download-box" style="margin-top:10px;display:none;"></div>
       <div id="pdf-resume-box" style="margin-top:10px;display:none;"></div>
@@ -911,7 +2107,7 @@ async function startPdfPayment() {
 
   const button = ui.button;
   const feedback = ui.feedback;
-  const defaultText = button.dataset.defaultText || button.textContent || '0.01元解锁八字命理合集PDF';
+  const defaultText = button.dataset.defaultText || button.textContent || '19.9元解锁八字命理合集PDF（原价39.9元）';
   button.dataset.defaultText = defaultText;
 
   const setFeedback = (html) => {
@@ -934,6 +2130,7 @@ async function startPdfPayment() {
     order_service: 'pdf',
     product_id: PDF_PRODUCT.id,
     product_title: PDF_PRODUCT.title,
+    payment_ab_variant: getPaymentAbVariant(),
     payment_option: {
       id: PDF_PRODUCT.id,
       title: PDF_PRODUCT.title,
@@ -942,6 +2139,8 @@ async function startPdfPayment() {
     pdf_download_path: PDF_PRODUCT.downloadPath,
     pdf_storage_bucket: PDF_PRODUCT.storageBucket,
     pdf_storage_path: PDF_PRODUCT.storagePath,
+    tracking: buildOrderTrackingSeed('pdf', PDF_PRODUCT.id),
+    ...buildKocFieldsForBirthInput(),
   };
 
   try {
@@ -962,10 +2161,10 @@ async function startPdfPayment() {
       const detail = await createOrderResp.text().catch(() => '');
       throw new Error(`create_order_failed:${createOrderResp.status}:${detail}`);
     }
-    trackOrderEventOnce(tradeNo, 'order_created', {
+    trackOrderEventOnce(tradeNo, 'order_created', withKocEventMeta({
       service: 'pdf',
       payment_option_id: PDF_PRODUCT.id,
-    });
+    }));
 
     const ua = navigator.userAgent || '';
     const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
@@ -981,12 +2180,14 @@ async function startPdfPayment() {
         payment_option_id: PDF_PRODUCT.id,
         payment_option_title: PDF_PRODUCT.title,
         total_fee: PDF_PRODUCT.fee,
-        return_path: '/index.html',
+        return_path: '/payment-fallback.html',
         birth_input: pdfBirthInput,
         client_env: {
           user_agent: ua,
           is_mobile: isMobile,
           is_wechat: isWeChat,
+          payment_ab_variant: getPaymentAbVariant(),
+          koc: getKocSnapshot() || null,
         },
       }),
     });
@@ -998,11 +2199,11 @@ async function startPdfPayment() {
 
     const payUrl = result?.url || result?.url_qrcode || '';
     const jsapiPayload = normalizeWeChatJsapiPayload(result);
-    trackOrderEventOnce(tradeNo, 'payment_created', {
+    trackOrderEventOnce(tradeNo, 'payment_created', withKocEventMeta({
       service: 'pdf',
       payment_option_id: PDF_PRODUCT.id,
       api_base: result?.gateway_meta?.selected_api_base || '',
-    });
+    }));
     const successUrl = `${window.location.origin}/index.html?pdf_paid=1&trade_no=${encodeURIComponent(tradeNo)}`;
 
     setFeedback('<p class="price-desc">订单已创建，请完成支付后下载《八字命理合集》PDF。</p>');
@@ -1053,6 +2254,13 @@ function initPdfSale() {
 
 function pickPaymentOption() {
   return new Promise(resolve => {
+    const abCopy = getPaymentAbCopySet();
+    safeSetLocalStorage(PAYMENT_AB_TRACK_KEY, JSON.stringify({
+      variant: abCopy.variant,
+      viewed_at: new Date().toISOString(),
+      page: window.location.pathname || '/',
+    }));
+
     const overlay = document.createElement('div');
     overlay.style.cssText = [
       'position:fixed',
@@ -1067,7 +2275,9 @@ function pickPaymentOption() {
 
     const card = document.createElement('div');
     card.style.cssText = [
-      'width:min(92vw,420px)',
+      'width:min(96vw,980px)',
+      'max-height:90vh',
+      'overflow:auto',
       'background:#fff',
       'border-radius:14px',
       'border:1px solid #DEE2E6',
@@ -1077,11 +2287,11 @@ function pickPaymentOption() {
     ].join(';');
 
     const title = document.createElement('h3');
-    title.textContent = '请选择支付选项';
+    title.textContent = abCopy.modalTitle;
     title.style.cssText = 'margin:0 0 6px;font-size:18px;color:#0A2540;';
 
     const subtitle = document.createElement('p');
-    subtitle.textContent = '已准备好你的生辰信息，选择后将跳转支付。';
+    subtitle.textContent = abCopy.modalSub;
     subtitle.style.cssText = 'margin:0 0 14px;font-size:13px;color:#6C757D;';
 
     const notice = document.createElement('div');
@@ -1100,34 +2310,228 @@ function pickPaymentOption() {
       <div style="margin-top:4px;">${WECHAT_PAYMENT_CLOSE_NOTICE}</div>
     `;
 
-    const list = document.createElement('div');
-    list.style.cssText = 'display:grid;gap:10px;';
+    const inviteLabel = tUi('inviteCodeLabel') || '邀请码 / 老客优惠码（可选）';
+    const invitePlaceholder = tUi('inviteCodePlaceholder') || '输入邀请码可自动抵扣';
+    const inviteHint = tUi('inviteCodeHint') || '如你是老客或来自合作渠道，建议先输入邀请码。';
+    const inviteInitial = getInviteCode();
 
-    PAYMENT_OPTIONS.forEach((opt) => {
+    const inviteWrap = document.createElement('div');
+    inviteWrap.style.cssText = [
+      'margin:0 0 14px',
+      'padding:10px 12px',
+      'border-radius:10px',
+      'border:1px solid #dbeafe',
+      'background:#f8fbff',
+    ].join(';');
+    inviteWrap.innerHTML = `
+      <label for="pay-invite-code-input" style="display:block;font-size:13px;font-weight:700;color:#1e3a8a;">${inviteLabel}</label>
+      <input id="pay-invite-code-input" type="text" maxlength="32" placeholder="${invitePlaceholder}" value="${inviteInitial}" style="margin-top:6px;width:100%;padding:10px 12px;border:1px solid #bfdbfe;border-radius:8px;font-size:13px;color:#0a2540;box-sizing:border-box;" />
+      <div style="margin-top:6px;font-size:12px;color:#475569;line-height:1.6;">${inviteHint}</div>
+    `;
+
+    const style = document.createElement('style');
+    style.textContent = `
+      .bazi-pay-grid{
+        display:grid;
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:12px;
+      }
+      .bazi-pay-option{
+        width:100%;
+        text-align:left;
+        border-radius:12px;
+        border:1px solid #d9e2ef;
+        background:#fff;
+        padding:14px;
+        cursor:pointer;
+        display:flex;
+        flex-direction:column;
+        gap:8px;
+        min-height:228px;
+        transition:all .18s ease;
+      }
+      .bazi-pay-option:hover{
+        transform:translateY(-1px);
+        box-shadow:0 10px 26px rgba(15,23,42,.14);
+      }
+      .bazi-pay-option .opt-top{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:8px;
+      }
+      .bazi-pay-option .opt-name{
+        font-size:16px;
+        font-weight:700;
+        color:#0a2540;
+      }
+      .bazi-pay-option .opt-tag{
+        font-size:11px;
+        line-height:1;
+        padding:4px 8px;
+        border-radius:999px;
+        border:1px solid transparent;
+        white-space:nowrap;
+      }
+      .bazi-pay-option .opt-desc{
+        font-size:13px;
+        line-height:1.5;
+        color:#334155;
+        min-height:38px;
+      }
+      .bazi-pay-option .opt-point{
+        font-size:12px;
+        line-height:1.6;
+        color:#475569;
+      }
+      .bazi-pay-option .opt-price{
+        margin-top:auto;
+        padding-top:4px;
+        font-size:13px;
+        display:flex;
+        align-items:center;
+        gap:8px;
+      }
+      .bazi-pay-option .opt-price-formal{
+        color:#94a3b8;
+        text-decoration:line-through;
+      }
+      .bazi-pay-option .opt-price-sale{
+        color:#dc2626;
+        font-weight:700;
+      }
+      .bazi-pay-option .opt-cta{
+        margin-top:8px;
+        border-radius:10px;
+        padding:9px 10px;
+        text-align:center;
+        font-size:13px;
+        font-weight:700;
+      }
+      .bazi-pay-option.basic{
+        border-color:#d9e2ef;
+        background:#fff;
+      }
+      .bazi-pay-option.basic .opt-tag{
+        background:#f1f5f9;
+        color:#334155;
+        border-color:#cbd5e1;
+      }
+      .bazi-pay-option.basic .opt-cta{
+        background:#e2e8f0;
+        color:#0f172a;
+      }
+      .bazi-pay-option.pro{
+        border-color:#2563eb;
+        background:linear-gradient(180deg,#eff6ff 0%,#ffffff 70%);
+        box-shadow:0 10px 28px rgba(37,99,235,.18);
+      }
+      .bazi-pay-option.pro .opt-tag{
+        background:#1d4ed8;
+        color:#fff;
+      }
+      .bazi-pay-option.pro .opt-cta{
+        background:#2563eb;
+        color:#fff;
+      }
+      .bazi-pay-option.vip{
+        border-color:#f59e0b;
+        background:linear-gradient(180deg,#fffbeb 0%,#ffffff 72%);
+      }
+      .bazi-pay-option.vip .opt-tag{
+        background:#f59e0b;
+        color:#fff;
+      }
+      .bazi-pay-option.vip .opt-cta{
+        background:#f59e0b;
+        color:#fff;
+      }
+      @media (max-width: 900px){
+        .bazi-pay-grid{
+          grid-template-columns:1fr;
+        }
+        .bazi-pay-option{
+          min-height:auto;
+        }
+      }
+    `;
+
+    const list = document.createElement('div');
+    list.className = 'bazi-pay-grid';
+
+    const optionDisplay = {
+      basic: {
+        name: '入门版',
+        tag: abCopy.optionMeta.basic.tag,
+        desc: abCopy.optionMeta.basic.desc,
+        point: abCopy.optionMeta.basic.point,
+        formal: '128',
+        sale: '99',
+        cta: abCopy.optionMeta.basic.cta,
+        variant: 'basic',
+      },
+      pro: {
+        name: '进阶版',
+        tag: abCopy.optionMeta.pro.tag,
+        desc: abCopy.optionMeta.pro.desc,
+        point: abCopy.optionMeta.pro.point,
+        formal: '258',
+        sale: '199',
+        cta: abCopy.optionMeta.pro.cta,
+        variant: 'pro',
+      },
+      vip: {
+        name: '尊享完整版',
+        tag: abCopy.optionMeta.vip.tag,
+        desc: abCopy.optionMeta.vip.desc,
+        point: abCopy.optionMeta.vip.point,
+        formal: '398',
+        sale: '299',
+        cta: abCopy.optionMeta.vip.cta,
+        variant: 'vip',
+      },
+    };
+
+    const orderedOptionIds = ['basic', 'pro', 'vip'];
+    const orderedOptions = orderedOptionIds
+      .map((id) => PAYMENT_OPTIONS.find((x) => x.id === id))
+      .filter(Boolean);
+    const extraOptions = PAYMENT_OPTIONS.filter((x) => !orderedOptionIds.includes(x.id));
+    const finalOptions = [...orderedOptions, ...extraOptions];
+
+    finalOptions.forEach((opt) => {
+      const meta = optionDisplay[opt.id] || {
+        name: opt.title,
+        tag: '可选',
+        desc: opt.subtitle || '',
+        point: '',
+        formal: '--',
+        sale: opt.fee,
+        cta: '立即解锁',
+        variant: 'basic',
+      };
+
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.textContent = `${opt.title} · ${opt.subtitle}`;
-      btn.style.cssText = [
-        'text-align:left',
-        'padding:12px 14px',
-        'border-radius:10px',
-        'border:1px solid #DEE2E6',
-        'background:#F8F9FA',
-        'font-size:14px',
-        'color:#1A1A1A',
-        'cursor:pointer',
-      ].join(';');
-      btn.addEventListener('mouseenter', () => {
-        btn.style.borderColor = '#0066CC';
-        btn.style.background = '#EFF6FF';
-      });
-      btn.addEventListener('mouseleave', () => {
-        btn.style.borderColor = '#DEE2E6';
-        btn.style.background = '#F8F9FA';
-      });
+      btn.className = `bazi-pay-option ${meta.variant}`;
+      btn.innerHTML = `
+        <div class="opt-top">
+          <div class="opt-name">${meta.name}</div>
+          <span class="opt-tag">${meta.tag}</span>
+        </div>
+        <div class="opt-desc">${meta.desc}</div>
+        ${meta.point ? `<div class="opt-point">${meta.point}</div>` : ''}
+        <div class="opt-price">
+          <span class="opt-price-formal">正式价 ¥${meta.formal}</span>
+          <span class="opt-price-sale">当前活动价 ¥${meta.sale}</span>
+        </div>
+        <div class="opt-cta">${meta.cta}</div>
+      `;
       btn.addEventListener('click', () => {
+        const inviteInput = card.querySelector('#pay-invite-code-input');
+        const inviteCode = setInviteCode(inviteInput ? inviteInput.value : '');
         cleanup();
-        resolve(opt);
+        resolve({ ...opt, invite_code: inviteCode || '' });
       });
       list.appendChild(btn);
     });
@@ -1142,16 +2546,20 @@ function pickPaymentOption() {
     ].join(';');
 
     const customTitle = document.createElement('div');
-    customTitle.textContent = '专属定制版（1对1）';
+    customTitle.textContent = `${CONSULT_PRODUCT.title}（原价¥${CONSULT_PRODUCT.formalFee}｜优惠价¥${CONSULT_PRODUCT.promoFee}）`;
     customTitle.style.cssText = 'font-size:14px;font-weight:700;color:#0A2540;';
 
     const customSub = document.createElement('div');
-    customSub.textContent = '适合希望获得更细致、个性化解读的用户，专属命理师1对1沟通后定制方案与报价。';
+    customSub.textContent = '适合希望获得更细致、个性化指导的用户：专属命理师1对1深度沟通，付款后自动校验订单并进入咨询预约流程（1小时语音或电话交付）。';
     customSub.style.cssText = 'margin-top:6px;font-size:12px;line-height:1.6;color:#334155;';
+
+    const customNotice = document.createElement('div');
+    customNotice.textContent = `${CONSULT_NON_REFUND_NOTICE} ${CONSULT_DELIVERY_NOTICE}`;
+    customNotice.style.cssText = 'margin-top:8px;font-size:12px;line-height:1.7;color:#b45309;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:8px 10px;';
 
     const customBtn = document.createElement('button');
     customBtn.type = 'button';
-    customBtn.textContent = '联系专属命理师（微信）';
+    customBtn.textContent = `立即支付1对1咨询（优惠价¥${CONSULT_PRODUCT.promoFee}）`;
     customBtn.style.cssText = [
       'margin-top:10px',
       'width:100%',
@@ -1165,15 +2573,37 @@ function pickPaymentOption() {
       'cursor:pointer',
     ].join(';');
     customBtn.addEventListener('click', () => {
+      const inviteInput = card.querySelector('#pay-invite-code-input');
+      const inviteCode = setInviteCode(inviteInput ? inviteInput.value : '');
+      cleanup();
+      resolve({ ...CONSULT_PAYMENT_OPTION, invite_code: inviteCode || '' });
+    });
+
+    const customContactBtn = document.createElement('button');
+    customContactBtn.type = 'button';
+    customContactBtn.textContent = '打开企业微信客服';
+    customContactBtn.style.cssText = [
+      'margin-top:8px',
+      'width:100%',
+      'padding:10px 12px',
+      'border:1px solid #bfdbfe',
+      'border-radius:8px',
+      'background:#fff',
+      'color:#1e3a8a',
+      'font-size:12px',
+      'font-weight:600',
+      'cursor:pointer',
+    ].join(';');
+    customContactBtn.addEventListener('click', () => {
       cleanup();
       resolve(null);
-      setTimeout(() => {
-        openCustomerServiceModal();
-      }, 0);
+      setTimeout(() => openCustomerServiceEntry(), 0);
     });
     customWrap.appendChild(customTitle);
     customWrap.appendChild(customSub);
+    customWrap.appendChild(customNotice);
     customWrap.appendChild(customBtn);
+    customWrap.appendChild(customContactBtn);
 
     const cancelBtn = document.createElement('button');
     cancelBtn.type = 'button';
@@ -1214,9 +2644,11 @@ function pickPaymentOption() {
     });
 
     document.addEventListener('keydown', onEsc);
+    card.appendChild(style);
     card.appendChild(title);
     card.appendChild(subtitle);
     card.appendChild(notice);
+    card.appendChild(inviteWrap);
     card.appendChild(list);
     card.appendChild(customWrap);
     card.appendChild(cancelBtn);
@@ -1278,6 +2710,7 @@ async function geocode(place) {
 // ── 首页逻辑 ──────────────────────────────────────────────────────
 const form = document.getElementById('bazi-form');
 if (form) {
+  ensureOrderRecoveryEntry(form);
   // 阳历/农历切换
   document.querySelectorAll('input[name=caltype]').forEach(radio => {
     radio.addEventListener('change', () => {
@@ -1307,7 +2740,13 @@ if (form) {
         if (recentRes.ok) {
           const recentRows = await recentRes.json();
           const recentOrder = Array.isArray(recentRows)
-            ? (recentRows.find((row) => parseBirthInputSafe(row?.birth_input)?.order_service !== 'pdf') || null)
+            ? (recentRows.find((row) => {
+              const birth = parseBirthInputSafe(row?.birth_input);
+              if (birth?.order_service === 'pdf') return false;
+              const paid = !!row?.paid;
+              const hasAnalysis = !!String(row?.analysis || '').trim();
+              return !paid || !hasAnalysis;
+            }) || null)
             : null;
           if (recentOrder?.trade_no) {
             pendingTradeNo = recentOrder.trade_no;
@@ -1324,6 +2763,8 @@ if (form) {
     const renderPendingPanel = (paid = false) => {
       if (document.getElementById('pending-trade-resume')) return;
       const resultUrl = buildResultUrl(pendingTradeNo, getPendingBirthInput(pendingTradeNo));
+      const recoveryUrl = buildOrderRecoveryUrl(pendingTradeNo);
+      const resumeUrl = paid ? resultUrl : recoveryUrl;
 
       const panel = document.createElement('div');
       panel.id = 'pending-trade-resume';
@@ -1337,7 +2778,11 @@ if (form) {
 
       const title = document.createElement('div');
       title.style.cssText = 'font-size:14px;color:#1E3A8A;font-weight:700;margin-bottom:8px;';
-      title.textContent = paid ? '检测到已支付订单，可继续查看报告' : '检测到上次订单，可继续恢复结果';
+      title.textContent = paid ? tUi('pendingResumePaidTitle') : tUi('pendingResumeUnpaidTitle');
+
+      const hint = document.createElement('div');
+      hint.style.cssText = 'font-size:12px;color:#334155;line-height:1.6;margin:0 0 8px;';
+      hint.textContent = paid ? '' : tUi('pendingResumeUnpaidHint');
 
       const row = document.createElement('div');
       row.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;';
@@ -1345,9 +2790,9 @@ if (form) {
       const resumeBtn = document.createElement('button');
       resumeBtn.type = 'button';
       resumeBtn.style.cssText = 'padding:8px 12px;border:0;border-radius:8px;background:#2563EB;color:#fff;cursor:pointer;font-size:13px;';
-      resumeBtn.textContent = paid ? '继续查看报告' : '继续上次订单';
+      resumeBtn.textContent = paid ? tUi('pendingResumePaidBtn') : tUi('pendingResumeUnpaidBtn');
       resumeBtn.addEventListener('click', () => {
-        window.location.href = resultUrl;
+        window.location.href = resumeUrl;
       });
 
       const clearBtn = document.createElement('button');
@@ -1360,9 +2805,19 @@ if (form) {
         panel.remove();
       });
 
+      const recoverBtn = document.createElement('button');
+      recoverBtn.type = 'button';
+      recoverBtn.style.cssText = 'padding:8px 12px;border:1px solid #93C5FD;border-radius:8px;background:#f8fbff;color:#1E3A8A;cursor:pointer;font-size:13px;';
+      recoverBtn.textContent = tUi('pendingRecoverBtn');
+      recoverBtn.addEventListener('click', () => {
+        window.location.href = buildOrderRecoveryUrl(pendingTradeNo);
+      });
+
       row.appendChild(resumeBtn);
       row.appendChild(clearBtn);
+      row.appendChild(recoverBtn);
       panel.appendChild(title);
+      if (!paid) panel.appendChild(hint);
       panel.appendChild(row);
       form.prepend(panel);
     };
@@ -1388,11 +2843,10 @@ if (form) {
         clearPendingPaymentOptionId();
         return;
       }
-
-      const resultUrl = buildResultUrl(pendingTradeNo, getPendingBirthInput(pendingTradeNo));
-      const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
-      if (order.paid && isMobile) {
-        window.location.href = resultUrl;
+      const hasAnalysis = !!String(order?.analysis || '').trim();
+      if (order.paid && hasAnalysis) {
+        clearPendingTradeNo();
+        clearPendingPaymentOptionId();
         return;
       }
 
@@ -1478,75 +2932,126 @@ if (form) {
     if (!paidBtn.dataset.defaultText) {
       paidBtn.dataset.defaultText = paidBtn.textContent.trim();
     }
-    paidBtn.addEventListener('click', async () => {
-      // 验证表单
-      const yearEl   = document.getElementById('year');
-      const monthEl  = document.getElementById('month');
-      const dayEl    = document.getElementById('day');
-      const hourEl   = document.getElementById('hour');
+
+    let consultPayBtn = document.getElementById('consult-pay-btn');
+    if (!consultPayBtn && paidBtn.parentElement) {
+      consultPayBtn = document.createElement('button');
+      consultPayBtn.type = 'button';
+      consultPayBtn.id = 'consult-pay-btn';
+      consultPayBtn.className = 'form-submit';
+      consultPayBtn.textContent = `1\u5bf91\u54a8\u8be2\u4e13\u7528\u652f\u4ed8\uff08\u4f18\u60e0\u4ef7\u00a5${CONSULT_PRODUCT.promoFee}\uff09`;
+      consultPayBtn.style.marginTop = '10px';
+      consultPayBtn.style.background = '#0b1f44';
+      consultPayBtn.style.borderColor = '#0b1f44';
+      paidBtn.insertAdjacentElement('afterend', consultPayBtn);
+    }
+    if (consultPayBtn && !consultPayBtn.dataset.defaultText) {
+      consultPayBtn.dataset.defaultText = consultPayBtn.textContent.trim();
+    }
+
+    let consultNotice = document.getElementById('consult-pay-notice');
+    if (!consultNotice && consultPayBtn && consultPayBtn.parentElement) {
+      consultNotice = document.createElement('p');
+      consultNotice.id = 'consult-pay-notice';
+      consultNotice.style.cssText = 'margin-top:8px;font-size:12px;line-height:1.75;color:#b45309;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:8px 10px;';
+      consultPayBtn.insertAdjacentElement('afterend', consultNotice);
+    }
+    if (consultNotice) {
+      consultNotice.textContent = `${CONSULT_NON_REFUND_NOTICE} ${CONSULT_DELIVERY_NOTICE}`;
+    }
+
+    const collectBirthAndBazi = () => {
+      const yearEl = document.getElementById('year');
+      const monthEl = document.getElementById('month');
+      const dayEl = document.getElementById('day');
+      const hourEl = document.getElementById('hour');
       const genderEl = document.querySelector('input[name=gender]:checked');
 
       if (!yearEl.value || !monthEl.value || !dayEl.value || !hourEl.value || !genderEl) {
-        alert('请填写完整的生辰信息');
-        return;
+        alert('\u8bf7\u586b\u5199\u5b8c\u6574\u7684\u751f\u8fb0\u4fe1\u606f');
+        return null;
       }
 
-      let year   = parseInt(yearEl.value);
-      let month  = parseInt(monthEl.value);
-      let day    = parseInt(dayEl.value);
-      let hour   = parseInt(hourEl.value);
-      const gender     = genderEl.value;
+      let year = parseInt(yearEl.value);
+      let month = parseInt(monthEl.value);
+      let day = parseInt(dayEl.value);
+      let hour = parseInt(hourEl.value);
+      const gender = genderEl.value;
       const birthplace = document.getElementById('birthplace').value.trim();
-      const caltype    = document.querySelector('input[name=caltype]:checked').value;
+      const caltype = document.querySelector('input[name=caltype]:checked').value;
 
-      // 农历转阳历
       if (caltype === 'lunar') {
         const isLeap = document.getElementById('is-leap').checked;
         try {
           const solar = isLeap
             ? Lunar.fromYmd(year, -month, day).getSolar()
             : Lunar.fromYmd(year, month, day).getSolar();
-          year  = solar.getYear();
+          year = solar.getYear();
           month = solar.getMonth();
-          day   = solar.getDay();
+          day = solar.getDay();
         } catch {
-          alert('农历日期转换失败，请检查输入是否正确');
-          return;
+          alert('\u519c\u5386\u65e5\u671f\u8f6c\u6362\u5931\u8d25\uff0c\u8bf7\u68c0\u67e5\u8f93\u5165\u662f\u5426\u6b63\u786e');
+          return null;
         }
       }
 
-      // 真太阳时校正
       let solarHour = hour;
-      let lonUsed   = null;
       if (geoCache) {
-        lonUsed = geoCache.lon;
+        const lonUsed = geoCache.lon;
         const tzOffset = Math.round(lonUsed / 15);
-        const eqtMin   = equationOfTime(year, month, day);
-        const lonMin   = longitudeCorrection(lonUsed, tzOffset);
+        const eqtMin = equationOfTime(year, month, day);
+        const lonMin = longitudeCorrection(lonUsed, tzOffset);
         const totalMin = eqtMin + lonMin;
         const birthMin = hour * 60 + totalMin;
         solarHour = ((Math.floor(birthMin / 60) % 24) + 24) % 24;
       }
 
-      // 计算八字数据
       const bazi = BaziCalc.calculateBazi(year, month, day, solarHour);
+      return {
+        birthData: { year, month, day, hour: solarHour, gender, birthplace },
+        bazi,
+      };
+    };
+
+    paidBtn.addEventListener('click', async () => {
+      const parsed = collectBirthAndBazi();
+      if (!parsed) return;
 
       const selectedOption = await pickPaymentOption();
       if (!selectedOption) return;
 
-      // 跳转支付
       paidBtn.disabled = true;
-      paidBtn.textContent = '正在跳转...';
+      paidBtn.textContent = '\u6b63\u5728\u8df3\u8f6c...';
 
       try {
-        await startPayment({ year, month, day, hour: solarHour, gender, birthplace }, bazi, selectedOption);
+        await startPayment(parsed.birthData, parsed.bazi, selectedOption);
       } catch (err) {
-        console.error('支付跳转失败:', err);
-        alert('跳转支付失败，请刷新页面重试');
+        console.error('\u652f\u4ed8\u8df3\u8f6c\u5931\u8d25:', err);
+        alert('\u8df3\u8f6c\u652f\u4ed8\u5931\u8d25\uff0c\u8bf7\u5237\u65b0\u9875\u9762\u91cd\u8bd5');
         paidBtn.disabled = false;
-        paidBtn.textContent = paidBtn.dataset.defaultText || '立即解锁完整命理报告';
+        paidBtn.textContent = paidBtn.dataset.defaultText || '\u7acb\u5373\u89e3\u9501\u5b8c\u6574\u547d\u7406\u62a5\u544a';
       }
     });
+
+    if (consultPayBtn) {
+      consultPayBtn.addEventListener('click', async () => {
+        const parsed = collectBirthAndBazi();
+        if (!parsed) return;
+
+        consultPayBtn.disabled = true;
+        consultPayBtn.textContent = '\u6b63\u5728\u8df3\u8f6c...';
+
+        try {
+          await startPayment(parsed.birthData, parsed.bazi, CONSULT_PAYMENT_OPTION);
+        } catch (err) {
+          console.error('\u54a8\u8be2\u652f\u4ed8\u8df3\u8f6c\u5931\u8d25:', err);
+          alert('\u54a8\u8be2\u652f\u4ed8\u8df3\u8f6c\u5931\u8d25\uff0c\u8bf7\u5237\u65b0\u9875\u9762\u91cd\u8bd5');
+          consultPayBtn.disabled = false;
+          consultPayBtn.textContent = consultPayBtn.dataset.defaultText || `1\u5bf91\u54a8\u8be2\u4e13\u7528\u652f\u4ed8\uff08\u4f18\u60e0\u4ef7\u00a5${CONSULT_PRODUCT.promoFee}\uff09`;
+        }
+      });
+    }
+
   }
 }
 
@@ -1846,7 +3351,11 @@ function renderBaziDetailGrid(bazi) {
   if (document.getElementById('bazi-table-section')) {
   const p          = new URLSearchParams(location.search);
   const hashParams = new URLSearchParams(location.hash.replace(/^#/, ''));
+  const consultModeByQuery = p.get('consult') === '1' || hashParams.get('consult') === '1';
   let year, month, day, hour, inputHour, gender, birthplace, lon;
+  if (consultModeByQuery) {
+    setPendingPaymentOptionId(CONSULT_PRODUCT.id);
+  }
 
   const applyBirthInput = (birth) => {
     if (!birth || typeof birth !== 'object') return false;
@@ -1937,6 +3446,7 @@ function renderBaziDetailGrid(bazi) {
           <p style="margin-top:8px;color:#6B7280;font-size:13px;">订单号：${tradeNo}</p>
           <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
             <a href="index.html" style="display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:8px;background:#2563eb;color:#fff;text-decoration:none;font-size:13px;">返回首页继续订单</a>
+            <a href="${buildOrderRecoveryUrl(tradeNo)}" style="display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:8px;background:#0b1f44;color:#fff;text-decoration:none;font-size:13px;">打开订单找回中心</a>
             <button id="retry-restore-btn" type="button" style="padding:8px 12px;border:1px solid #93c5fd;border-radius:8px;background:#fff;color:#1E3A8A;font-size:13px;cursor:pointer;">重试恢复</button>
           </div>
         `;
@@ -2010,7 +3520,8 @@ function renderBaziDetailGrid(bazi) {
   renderSpecialYears(specialYears, currentYear);
 
   // 检查是否为付费模式
-  const isPaidMode = p.get('paid') === 'true';
+  const paidFlag = p.get('paid') === 'true';
+  const isPaidMode = paidFlag && Boolean(tradeNo || getPendingTradeNo());
 
   // 检查 localStorage 缓存（先查完整版，再查免费版）
   const cacheKey     = `bazi_${year}_${month}_${day}_${hour}_${gender}`;
@@ -2018,10 +3529,12 @@ function renderBaziDetailGrid(bazi) {
   const cachedFull   = localStorage.getItem(fullCacheKey);
   const cached       = localStorage.getItem(cacheKey);
 
-  // 优先显示完整版缓存
-  if (cachedFull) {
+  // 仅在付费模式/支付回调时优先显示完整版缓存，避免免费模式误读为付费完整版
+  if ((isPaidMode || tradeNo) && cachedFull) {
+    clearPendingTradeNo();
     clearPendingPaymentOptionId();
     showAnalysis(cachedFull, true);
+    return;
   } else if (cached && !tradeNo) {
     // 如果有免费版缓存且不是支付回调，显示免费版
     showAnalysis(cached);
@@ -2051,13 +3564,75 @@ function renderBaziDetailGrid(bazi) {
 
   // 检查 URL 中是否有回调参数（支付成功后跳回）
   if (tradeNo) {
-    // 立即显示加载提示，隐藏其他内容
-    document.getElementById('analysis-locked').style.display = 'none';
-    document.getElementById('pay-prompt').style.display = 'none';
-    document.getElementById('analysis-content').style.display = 'none';
-    document.getElementById('analysis-loading').style.display = 'block';
-    document.getElementById('analysis-loading').innerHTML = '<p class="price-desc">\u652f\u4ed8\u6210\u529f\uff0c\u6b63\u5728\u751f\u6210\u6df1\u5ea6\u547d\u7406\u62a5\u544a\uff0c\u8bf7\u7a0d\u5019\u2026</p>' + PAID_ONE_TIME_NOTICE_HTML;
-    
+    const analysisLocked = document.getElementById('analysis-locked');
+    const payPrompt = document.getElementById('pay-prompt');
+    const analysisContent = document.getElementById('analysis-content');
+    const analysisLoading = document.getElementById('analysis-loading');
+    if (analysisLocked) analysisLocked.style.display = 'none';
+    if (payPrompt) payPrompt.style.display = 'none';
+    if (analysisContent) analysisContent.style.display = 'none';
+    if (analysisLoading) analysisLoading.style.display = 'block';
+
+    let orderSnapshot = null;
+    let snapshotOptionId = '';
+    let reconcilePaidFromUnpaidCheck = false;
+    try {
+      const snapRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(tradeNo)}&select=paid,analysis,birth_input&limit=1`,
+        { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } },
+      );
+      if (snapRes.ok) {
+        const snapRows = await snapRes.json();
+        orderSnapshot = Array.isArray(snapRows) ? (snapRows[0] || null) : null;
+        const snapBirth = parseBirthInputSafe(orderSnapshot?.birth_input);
+        const snapOptionId = snapBirth?.payment_option?.id;
+        if (snapOptionId) {
+          setPendingPaymentOptionId(snapOptionId);
+          snapshotOptionId = String(snapOptionId || '').trim().toLowerCase();
+        }
+      }
+    } catch (snapErr) {
+      console.warn('result order snapshot failed:', snapErr);
+    }
+    if (!snapshotOptionId) {
+      snapshotOptionId = String(getPendingPaymentOptionId() || '').trim().toLowerCase();
+    }
+
+    if (orderSnapshot && !orderSnapshot.paid && !orderSnapshot.analysis) {
+      const reconcileData = await reconcilePaymentStatus(tradeNo, { quiet: true });
+      const reconcilePaid = Boolean(reconcileData?.paid) || String(reconcileData?.status || '').toUpperCase() === 'OD';
+      reconcilePaidFromUnpaidCheck = reconcilePaid;
+      if (!reconcilePaid) {
+        if (analysisLoading) {
+          analysisLoading.innerHTML = `
+            <div style="border:1px solid #fecaca;background:#fff7ed;border-radius:12px;padding:12px;">
+              <div style="font-size:15px;font-weight:700;color:#9a3412;">${tUi('progressUnpaidTitle')}</div>
+              <p style="margin-top:8px;font-size:13px;color:#7c2d12;line-height:1.7;">${tUi('progressUnpaidDesc')}</p>
+              <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+                <a href="${buildOrderRecoveryUrl(tradeNo)}" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;background:#1d4ed8;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;">${tUi('progressUnpaidPay')}</a>
+                <button id="unpaid-refresh-btn" type="button" style="padding:10px 14px;background:#fff;color:#1e3a8a;border:1px solid #93c5fd;border-radius:8px;cursor:pointer;font-size:13px;">${tUi('progressUnpaidReload')}</button>
+              </div>
+              <p style="margin-top:8px;font-size:12px;color:#9a3412;">${tUi('progressUnpaidNoHang')}</p>
+            </div>
+          `;
+          const unpaidRefreshBtn = document.getElementById('unpaid-refresh-btn');
+          if (unpaidRefreshBtn) {
+            unpaidRefreshBtn.addEventListener('click', () => location.reload());
+          }
+        }
+        return;
+      }
+    }
+
+    if (isConsultOptionId(snapshotOptionId) && (orderSnapshot?.paid || reconcilePaidFromUnpaidCheck)) {
+      renderConsultPaidSuccess(tradeNo);
+      return;
+    }
+
+    if (analysisLoading) {
+      analysisLoading.innerHTML = '<p class="price-desc">\u652f\u4ed8\u6210\u529f\uff0c\u6b63\u5728\u751f\u6210\u6df1\u5ea6\u547d\u7406\u62a5\u544a\uff0c\u8bf7\u7a0d\u5019\u2026</p>' + PAID_ONE_TIME_NOTICE_HTML;
+    }
+
     pollForAnalysis(
       tradeNo,
       cacheKey,
@@ -2072,10 +3647,12 @@ function renderBaziDetailGrid(bazi) {
 // ── 支付 ──────────────────────────────────────────────────────────
 async function startPayment(birthData, bazi, paymentOption) {
   const chosenOption = paymentOption || DEFAULT_PAYMENT_OPTION;
+  const orderService = isConsultOptionId(chosenOption?.id) ? 'consult' : 'bazi';
+  const inviteCode = setInviteCode(chosenOption?.invite_code || getInviteCode() || '');
   console.log('开始支付流程...', birthData, bazi, chosenOption);
 
   const resetPayButtons = () => {
-    const ids = ['pay-btn', 'paid-btn'];
+    const ids = ['pay-btn', 'paid-btn', 'consult-pay-btn'];
     ids.forEach((id) => {
       const btn = document.getElementById(id);
       if (!btn) return;
@@ -2138,10 +3715,15 @@ async function startPayment(birthData, bazi, paymentOption) {
     birth_input: JSON.stringify({
       ...birthData,
       bazi_str: baziStr,
+      payment_ab_variant: getPaymentAbVariant(),
       dayun_text: dayunText,
       special_years_text: specialYearsText,
       start_age: daYunData.startAge,
+      order_service: orderService,
       payment_option: chosenOption,
+      invite_code: inviteCode || undefined,
+      tracking: buildOrderTrackingSeed(orderService, chosenOption.id),
+      ...buildKocFieldsForBirthInput(),
     }),
   };
 
@@ -2165,10 +3747,10 @@ async function startPayment(birthData, bazi, paymentOption) {
   try {
     await upsertOrderSnapshot();
     console.log('订单创建/更新成功');
-    trackOrderEventOnce(tradeNo, 'order_created', {
-      service: 'bazi',
+    trackOrderEventOnce(tradeNo, 'order_created', withKocEventMeta({
+      service: orderService,
       payment_option_id: chosenOption.id,
-    });
+    }));
   } catch (err) {
     console.error('订单创建失败:', err);
     alert('支付请求失败：订单创建失败，请检查网络后重试');
@@ -2187,14 +3769,18 @@ async function startPayment(birthData, bazi, paymentOption) {
   try {
     const createPaymentPayload = {
       trade_no: tradeNo,
-      birth_input: { ...birthData, bazi_str: baziStr },
+      birth_input: { ...birthData, bazi_str: baziStr, order_service: orderService, payment_option: chosenOption },
       payment_option_id: chosenOption.id,
       payment_option_title: chosenOption.title,
       total_fee: chosenOption.fee,
+      invite_code: inviteCode || undefined,
+      return_path: '/payment-fallback.html',
       client_env: {
         user_agent: ua,
         is_mobile: isMobile,
         is_wechat: isWeChat,
+        payment_ab_variant: getPaymentAbVariant(),
+        koc: getKocSnapshot() || null,
       },
     };
 
@@ -2245,17 +3831,32 @@ async function startPayment(birthData, bazi, paymentOption) {
     if (response.ok && result?.errcode === 0) {
       const payUrl = result.url || result.url_qrcode || '';
       const jsapiPayload = normalizeWeChatJsapiPayload(result);
-      trackOrderEventOnce(tradeNo, 'payment_created', {
-        service: 'bazi',
+      const discountInfo = result?.discount_info && typeof result.discount_info === 'object' ? result.discount_info : null;
+      trackOrderEventOnce(tradeNo, 'payment_created', withKocEventMeta({
+        service: orderService,
         payment_option_id: chosenOption.id,
         api_base: result?.gateway_meta?.selected_api_base || '',
-      });
+        invite_code: discountInfo?.invite_code || inviteCode || '',
+        discount_applied: Boolean(discountInfo?.discount_applied),
+        total_fee_final: discountInfo?.total_fee_final || '',
+      }));
       console.log('支付信息:', {
         payUrl,
         hasJsapiPayload: !!jsapiPayload,
         gateway: result?.gateway_meta || null,
+        discount: discountInfo,
       });
       if (loadingSection) {
+        const finalAmount = discountInfo?.total_fee_final ? `¥${discountInfo.total_fee_final}` : '';
+        const originAmount = discountInfo?.total_fee_original ? `¥${discountInfo.total_fee_original}` : '';
+        const discountNotice = discountInfo?.discount_applied
+          ? `<p class="price-desc" style="color:#166534;">已应用优惠码 ${discountInfo.invite_code || ''}：${originAmount} → <strong>${finalAmount}</strong></p>`
+          : ((discountInfo?.invite_code || inviteCode)
+            ? `<p class="price-desc" style="color:#92400e;">优惠码 ${discountInfo?.invite_code || inviteCode} 未命中活动规则，当前按原价支付。</p>`
+            : '');
+        if (discountNotice) {
+          loadingSection.innerHTML = discountNotice + loadingSection.innerHTML;
+        }
         renderPaymentDebugInfo(loadingSection, result, jsapiPayload);
       }
 
@@ -2313,11 +3914,11 @@ async function startPayment(birthData, bazi, paymentOption) {
 
 // ── 轮询等待分析结果 ──────────────────────────────────────────────
 async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, specialYears) {
-  // use full-report cache key
   const fullCacheKey = cacheKey.replace('bazi_', 'bazi_full_');
   const pollIntervalMs = 800;
-  const maxAttempts = 150; // up to ~120s
+  const maxAttempts = 150; // ~120s
   const reconcileIntervalMs = 2500;
+  const startedAt = Date.now();
   let lastReconcileTs = 0;
   let paidSeenCount = 0;
   let streamFallbackTriggered = false;
@@ -2334,17 +3935,74 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
   if (!resolvedPaymentOptionId && pollContext.paymentOptionId) {
     resolvedPaymentOptionId = pollContext.paymentOptionId;
   }
+  let consultOrderDetected = isConsultOptionId(resolvedPaymentOptionId);
 
-  const startDirectGenerate = async (loadingText = '已确认支付，正在优先直连生成完整报告（通常 20-60 秒）…') => {
+  const escapeHtml = (value) => String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+  const renderPaidProgress = (stage = 'waiting_payment', note = '') => {
+    const loadingEl = document.getElementById('analysis-loading');
+    if (!loadingEl) return;
+    loadingEl.style.display = 'block';
+
+    const elapsedSec = Math.max(1, Math.floor((Date.now() - startedAt) / 1000));
+    const stageMap = {
+      waiting_payment: { percent: Math.min(32, 8 + Math.floor(elapsedSec * 0.9)), title: tUi('progressStageWaiting') },
+      paid_verified: { percent: Math.min(55, 35 + Math.floor(elapsedSec * 0.4)), title: tUi('progressStagePaidVerified') },
+      generating: { percent: Math.min(92, 45 + Math.floor(elapsedSec * 0.8)), title: tUi('progressStageGenerating') },
+      network_retry: { percent: Math.min(88, 36 + Math.floor(elapsedSec * 0.5)), title: tUi('progressStageRetry') },
+      ready: { percent: 100, title: tUi('progressStageReady') },
+    };
+    const current = stageMap[stage] || stageMap.waiting_payment;
+    const progress = Math.max(5, Math.min(100, current.percent));
+
+    const steps = [
+      { label: tUi('progressStepOrder'), done: true, active: false },
+      { label: tUi('progressStepVerify'), done: stage !== 'waiting_payment' && stage !== 'network_retry', active: stage === 'waiting_payment' || stage === 'network_retry' },
+      { label: tUi('progressStepGenerate'), done: stage === 'ready', active: stage === 'paid_verified' || stage === 'generating' },
+      { label: tUi('progressStepShow'), done: stage === 'ready', active: false },
+    ];
+
+    const stepHtml = steps.map((item) => {
+      const dotColor = item.done ? '#16a34a' : item.active ? '#1d4ed8' : '#94a3b8';
+      const textColor = item.done ? '#166534' : item.active ? '#1e3a8a' : '#64748b';
+      return `<div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:8px;height:8px;border-radius:999px;background:${dotColor};display:inline-block;"></span>
+        <span style="font-size:12px;color:${textColor};">${item.label}</span>
+      </div>`;
+    }).join('');
+
+    loadingEl.innerHTML = `
+      <div style="border:1px solid #dbeafe;background:#f8fbff;border-radius:12px;padding:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+          <div style="font-size:14px;font-weight:700;color:#1e3a8a;">${current.title}</div>
+          <div style="font-size:12px;color:#475569;">${tUi('progressElapsed', { sec: elapsedSec })}</div>
+        </div>
+        <div style="margin-top:8px;height:8px;background:#dbeafe;border-radius:999px;overflow:hidden;">
+          <div style="width:${progress}%;height:100%;background:linear-gradient(90deg,#2563eb,#1d4ed8);transition:width .35s ease;"></div>
+        </div>
+        <div style="display:grid;gap:4px;margin-top:10px;">
+          ${stepHtml}
+        </div>
+        <p style="margin-top:8px;font-size:12px;color:#475569;line-height:1.6;">${escapeHtml(note || tUi('progressDefaultNote'))}</p>
+      </div>
+    ` + PAID_ONE_TIME_NOTICE_HTML;
+  };
+
+  const startDirectGenerate = async (loadingText = tUi('progressDirectDefault')) => {
     if (streamFallbackTriggered) return false;
+    if (consultOrderDetected) {
+      renderConsultPaidSuccess(tradeNo);
+      return true;
+    }
     if (!resolvedBirthData || !resolvedBazi || !resolvedDaYunData || !resolvedSpecialYears) return false;
     streamFallbackTriggered = true;
     trackOrderEventOnce(tradeNo, 'payment_verified', { source: 'poll_direct_generate' });
-
-    const loadingEl = document.getElementById('analysis-loading');
-    if (loadingEl) {
-      loadingEl.innerHTML = `<p class="price-desc">${loadingText}</p>` + PAID_ONE_TIME_NOTICE_HTML;
-    }
+    renderPaidProgress('generating', loadingText);
 
     await fullAnalyze(resolvedBirthData, resolvedBazi, resolvedDaYunData, resolvedSpecialYears, {
       tradeNo,
@@ -2353,20 +4011,21 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
     return true;
   };
 
+  renderPaidProgress('waiting_payment', tUi('progressInitialWait'));
+
   try {
     const initialReconcile = await reconcilePaymentStatus(tradeNo, { quiet: true });
     const reconcilePaid = Boolean(initialReconcile?.paid) || String(initialReconcile?.status || '').toUpperCase() === 'OD';
     if (reconcilePaid) {
+      renderPaidProgress('paid_verified', tUi('progressInitialPaid'));
       const started = await startDirectGenerate();
       if (started) return;
     }
   } catch {}
 
-  // poll until report is ready
   for (let i = 0; i < maxAttempts; i++) {
     try {
       await new Promise((r) => setTimeout(r, pollIntervalMs));
-
       const res = await fetch(
         `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(tradeNo)}&select=paid,analysis,birth_input&_=${Date.now()}`,
         {
@@ -2376,11 +4035,12 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
             Authorization: `Bearer ${SUPABASE_ANON}`,
             'Cache-Control': 'no-cache',
           },
-        }
+        },
       );
 
       const [order] = await res.json();
       const nowTs = Date.now();
+
       if (
         !streamFallbackTriggered
         && nowTs - lastReconcileTs >= reconcileIntervalMs
@@ -2390,6 +4050,7 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
         const reconcileResult = await reconcilePaymentStatus(tradeNo, { quiet: true });
         const reconcilePaid = Boolean(reconcileResult?.paid) || String(reconcileResult?.status || '').toUpperCase() === 'OD';
         if (reconcilePaid) {
+          renderPaidProgress('paid_verified', tUi('progressSwitchGenerate'));
           const started = await startDirectGenerate();
           if (started) return;
         }
@@ -2399,34 +4060,40 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
         try {
           const birth = JSON.parse(order.birth_input);
           resolvedPaymentOptionId = birth?.payment_option?.id || '';
-          if (resolvedPaymentOptionId) {
-            setPendingPaymentOptionId(resolvedPaymentOptionId);
-          }
+          if (resolvedPaymentOptionId) setPendingPaymentOptionId(resolvedPaymentOptionId);
+          consultOrderDetected = isConsultOptionId(resolvedPaymentOptionId);
         } catch {}
       }
 
+      if (consultOrderDetected && order?.paid) {
+        renderConsultPaidSuccess(tradeNo);
+        return;
+      }
+
       if (order?.paid && order?.analysis) {
-        // save full report to cache
         localStorage.setItem(fullCacheKey, order.analysis);
         trackOrderEventOnce(tradeNo, 'payment_verified', { source: 'poll_paid_with_analysis' });
+        renderPaidProgress('ready', tUi('progressReadyOpen'));
         clearPendingTradeNo();
         clearPendingPaymentOptionId();
-        showAnalysis(order.analysis, true); // hidePay=true: hide pay prompt
+        showAnalysis(order.analysis, true);
         return;
       }
 
       if (order?.paid && !order?.analysis) {
         paidSeenCount += 1;
         if (!streamFallbackTriggered && paidSeenCount >= 1) {
-          const started = await startDirectGenerate('已确认支付，正在直连生成完整报告，请稍候…');
+          renderPaidProgress('paid_verified', tUi('progressPaidStart'));
+          const started = await startDirectGenerate(tUi('progressPaidGenerating'));
           if (started) return;
         }
-      }
-
-      // refresh loading copy every 4 attempts
-      if (i % 4 === 0 && i > 0) {
-        const seconds = Math.ceil(((i + 1) * pollIntervalMs) / 1000);
-        document.getElementById('analysis-loading').innerHTML = `<p class="price-desc">正在生成深度命理报告（已等待 ${seconds} 秒，通常 20-60 秒开始显示）</p>` + PAID_ONE_TIME_NOTICE_HTML;
+        if (!streamFallbackTriggered) {
+          renderPaidProgress('paid_verified', tUi('progressPaidPreparing'));
+        } else if (i % 3 === 0) {
+          renderPaidProgress('generating', tUi('progressKeepOpen'));
+        }
+      } else if (!streamFallbackTriggered && i % 3 === 0) {
+        renderPaidProgress('waiting_payment', tUi('progressWaitGateway'));
       }
     } catch (err) {
       console.error('poll query failed:', err);
@@ -2434,21 +4101,31 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
         const reconcileResult = await reconcilePaymentStatus(tradeNo, { quiet: true });
         const reconcilePaid = Boolean(reconcileResult?.paid) || String(reconcileResult?.status || '').toUpperCase() === 'OD';
         if (reconcilePaid) {
+          renderPaidProgress('paid_verified', tUi('progressRetryPaid'));
           const started = await startDirectGenerate();
           if (started) return;
         }
       }
+      if (i % 3 === 0) {
+        renderPaidProgress('network_retry', tUi('progressRetryNetwork'));
+      }
     }
   }
 
-  // timeout handling
-  document.getElementById('analysis-loading').innerHTML = `
-    <p class="price-desc">报告生成时间较长，您可以：</p>
-    <div style="margin-top:16px;">
-      <button onclick="location.reload()" style="padding:10px 24px;background:#2563eb;color:white;border:none;border-radius:4px;cursor:pointer;font-size:14px;">刷新页面</button>
-      <button onclick="pollForAnalysis('${tradeNo}', '${cacheKey}')" style="padding:10px 24px;background:#4b5563;color:white;border:none;border-radius:4px;cursor:pointer;font-size:14px;margin-left:12px;">继续等待</button>
-    </div>
-  `;
+  const loadingEl = document.getElementById('analysis-loading');
+  if (loadingEl) {
+    loadingEl.innerHTML = `
+      <div style="border:1px solid #dbeafe;background:#f8fbff;border-radius:12px;padding:12px;">
+        <div style="font-size:14px;font-weight:700;color:#1e3a8a;">${tUi('progressTimeoutTitle')}</div>
+        <p style="margin-top:6px;font-size:13px;color:#475569;line-height:1.7;">${tUi('progressTimeoutDesc')}</p>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button onclick="location.reload()" style="padding:10px 14px;background:#2563eb;color:white;border:none;border-radius:8px;cursor:pointer;font-size:13px;">${tUi('progressTimeoutRefresh')}</button>
+          <button onclick="pollForAnalysis('${tradeNo}', '${cacheKey}')" style="padding:10px 14px;background:#475569;color:white;border:none;border-radius:8px;cursor:pointer;font-size:13px;">${tUi('progressTimeoutWait')}</button>
+          <a href="${buildOrderRecoveryUrl(tradeNo)}" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;background:#0b1f44;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;">${tUi('progressTimeoutRecovery')}</a>
+        </div>
+      </div>
+    ` + PAID_ONE_TIME_NOTICE_HTML;
+  }
 }
 
 
@@ -2458,6 +4135,7 @@ function normalizeReportLines(text) {
   if (!text) return '';
   return String(text)
     .replace(/\r\n?/g, '\n')
+    .replace(/(^|\n)\s*(?:Section|section)\s*(\d{1,2})\s*[:：]/g, '$1第$2段：')
     .replace(/第([一二三四五六七八九十百零\d]{1,3})段[：:]/g, '\n第$1段：')
     .replace(/^\n+/, '')
     .replace(/\n{3,}/g, '\n\n')
@@ -2485,6 +4163,272 @@ function togglePaidOneTimeNotice(visible) {
   if (notice) notice.style.display = visible ? 'block' : 'none';
 }
 
+function getShareCardCopySet() {
+  const lang = getUiLang();
+  if (lang === 'en') {
+    return {
+      title: 'Paid Report Ready',
+      desc: 'You can copy the full report text or download the full report image.',
+      copyBtn: 'Copy Full Report',
+      imageBtn: 'Download Full Image',
+      copied: 'Full report text copied.',
+      copyFail: 'Copy failed. Please copy manually.',
+      imageFail: 'Image generation failed. Please try again.',
+      footer: 'YUNZI · Bazi Destiny Report',
+      saveHint: 'This report is one-time view. Please save screenshot.',
+      bulletPrefix: 'Highlights',
+      shareSuffix: 'Open site: ',
+      fileName: 'yunzi-report-full.png',
+    };
+  }
+  if (lang === 'zh-Hant') {
+    return {
+      title: '\u4ed8\u8cbb\u5831\u544a\u5df2\u5c31\u7dd2',
+      desc: '\u53ef\u8907\u88fd\u5168\u6587\u6216\u4e0b\u8f09\u5168\u6587\u9577\u5716\uff0c\u65b9\u4fbf\u4fdd\u5b58\u8207\u8f49\u767c\u3002',
+      copyBtn: '\u8907\u88fd\u5168\u6587',
+      imageBtn: '\u4e0b\u8f09\u5168\u6587\u9577\u5716',
+      copied: '\u5df2\u8907\u88fd\u5831\u544a\u5168\u6587\u3002',
+      copyFail: '\u8907\u88fd\u5931\u6557\uff0c\u8acb\u624b\u52d5\u8907\u88fd\u3002',
+      imageFail: '\u751f\u6210\u5716\u7247\u5931\u6557\uff0c\u8acb\u91cd\u8a66\u3002',
+      footer: 'YUNZI \u00b7 \u516b\u5b57\u547d\u7406\u5831\u544a',
+      saveHint: '\u672c\u5831\u544a\u70ba\u4e00\u6b21\u6027\u670d\u52d9\uff0c\u8acb\u81ea\u884c\u622a\u5716\u4fdd\u5b58\u3002',
+      bulletPrefix: '\u95dc\u9375\u8981\u9ede',
+      shareSuffix: '\u7ad9\u9ede\uff1a',
+      fileName: 'yunzi-report-full.png',
+    };
+  }
+  return {
+    title: '\u4ed8\u8d39\u62a5\u544a\u5df2\u5c31\u7eea',
+    desc: '\u53ef\u590d\u5236\u5168\u6587\u6216\u4e0b\u8f7d\u5168\u6587\u957f\u56fe\uff0c\u65b9\u4fbf\u4fdd\u5b58\u4e0e\u8f6c\u53d1\u3002',
+    copyBtn: '\u590d\u5236\u5168\u6587',
+    imageBtn: '\u4e0b\u8f7d\u5168\u6587\u957f\u56fe',
+    copied: '\u5df2\u590d\u5236\u62a5\u544a\u5168\u6587\u3002',
+    copyFail: '\u590d\u5236\u5931\u8d25\uff0c\u8bf7\u624b\u52a8\u590d\u5236\u3002',
+    imageFail: '\u751f\u6210\u56fe\u7247\u5931\u8d25\uff0c\u8bf7\u91cd\u8bd5\u3002',
+    footer: 'YUNZI \u00b7 \u516b\u5b57\u547d\u7406\u62a5\u544a',
+    saveHint: '\u672c\u6b21\u62a5\u544a\u4e3a\u4e00\u6b21\u6027\u670d\u52a1\uff0c\u8bf7\u81ea\u884c\u622a\u56fe\u4fdd\u5b58\u3002',
+    bulletPrefix: '\u5173\u952e\u8981\u70b9',
+    shareSuffix: '\u7f51\u7ad9\uff1a',
+    fileName: 'yunzi-report-full.png',
+  };
+}
+
+function buildReportShareHighlights(rawText) {
+  const lines = String(rawText || '')
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .map((line) => String(line || '').trim())
+    .filter(Boolean)
+    .filter((line) => !line.startsWith('\u4ee5\u4e0a\u5185\u5bb9\u4e3a\u4f20\u7edf\u6587\u5316\u63a8\u6f14'))
+    .filter((line) => !line.includes('\u62a5\u544a\u662f\u4e00\u6b21\u6027\u670d\u52a1'));
+
+  const picked = [];
+  for (const line of lines) {
+    const normalized = line.replace(/^\d+[.)]\s*/, '');
+    if (!normalized) continue;
+    picked.push(normalized);
+    if (picked.length >= 4) break;
+  }
+  return picked;
+}
+
+function buildFullReportText(rawText) {
+  const report = normalizeReportLines(rawText || '');
+  if (!report) return DISCLAIMER.trim();
+  return `${report}${DISCLAIMER}`.trim();
+}
+
+function wrapTextLines(ctx, text, maxWidth) {
+  const lines = [];
+  const paragraphs = String(text || '').replace(/\r\n?/g, '\n').split('\n');
+  paragraphs.forEach((paragraph, index) => {
+    const content = String(paragraph || '').trim();
+    if (!content) {
+      lines.push('');
+      return;
+    }
+    let current = '';
+    for (const ch of content) {
+      const test = current + ch;
+      if (ctx.measureText(test).width > maxWidth && current) {
+        lines.push(current);
+        current = ch;
+      } else {
+        current = test;
+      }
+    }
+    if (current) lines.push(current);
+    if (index !== paragraphs.length - 1) lines.push('');
+  });
+  return lines;
+}
+
+function renderTextInCanvas(ctx, text, x, y, maxWidth, lineHeight) {
+  const content = String(text || '');
+  if (!content) return y;
+  let line = '';
+  for (const ch of content) {
+    const test = line + ch;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      ctx.fillText(line, x, y);
+      y += lineHeight;
+      line = ch;
+    } else {
+      line = test;
+    }
+  }
+  if (line) {
+    ctx.fillText(line, x, y);
+    y += lineHeight;
+  }
+  return y;
+}
+
+function renderWrappedLines(ctx, lines, x, y, lineHeight, paragraphGap = 14) {
+  let currentY = y;
+  (lines || []).forEach((line) => {
+    if (!line) {
+      currentY += paragraphGap;
+      return;
+    }
+    ctx.fillText(line, x, currentY);
+    currentY += lineHeight;
+  });
+  return currentY;
+}
+
+function ensurePaidReportShareCard(reportText, tradeNo) {
+  const analysisContent = document.getElementById('analysis-content');
+  const analysisTextEl = document.getElementById('analysis-text');
+  if (!analysisContent || !analysisTextEl) return;
+
+  let card = document.getElementById(REPORT_SHARE_CARD_ID);
+  if (!card) {
+    card = document.createElement('div');
+    card.id = REPORT_SHARE_CARD_ID;
+    card.style.cssText = [
+      'margin:14px 0 0',
+      'padding:12px',
+      'border:1px solid #bfdbfe',
+      'background:#eff6ff',
+      'border-radius:10px',
+    ].join(';');
+    analysisTextEl.insertAdjacentElement('afterend', card);
+  }
+
+  const copySet = getShareCardCopySet();
+  const highlights = buildReportShareHighlights(reportText);
+  const fullReportText = buildFullReportText(reportText);
+  const shareUrl = `${window.location.origin}/index.html`;
+  const bulletsHtml = highlights.length
+    ? highlights.map((line) => `<li style="margin-top:4px;">${line}</li>`).join('')
+    : `<li style="margin-top:4px;">${copySet.saveHint}</li>`;
+  const shareText = fullReportText;
+
+  card.innerHTML = `
+    <div style="font-size:15px;font-weight:700;color:#1e3a8a;">${copySet.title}</div>
+    <div style="margin-top:4px;font-size:13px;color:#334155;line-height:1.6;">${copySet.desc}</div>
+    <ul style="margin:8px 0 0 18px;padding:0;font-size:13px;color:#0f172a;line-height:1.7;">
+      ${bulletsHtml}
+    </ul>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button id="report-share-copy-btn" type="button" style="padding:8px 10px;border:none;border-radius:8px;background:#1d4ed8;color:#fff;font-size:12px;font-weight:700;cursor:pointer;">${copySet.copyBtn}</button>
+      <button id="report-share-image-btn" type="button" style="padding:8px 10px;border:1px solid #2563eb;border-radius:8px;background:#fff;color:#1d4ed8;font-size:12px;font-weight:700;cursor:pointer;">${copySet.imageBtn}</button>
+    </div>
+  `;
+
+  const copyBtn = card.querySelector('#report-share-copy-btn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      try {
+        const ok = await copyTextSafe(shareText);
+        if (!ok) {
+          alert(copySet.copyFail);
+          return;
+        }
+        trackOrderEvent(tradeNo, 'report_share_clicked', withKocEventMeta({ action: 'copy_text' }));
+        alert(copySet.copied);
+      } catch {
+        alert(copySet.copyFail);
+      }
+    });
+  }
+
+  const imageBtn = card.querySelector('#report-share-image-btn');
+  if (imageBtn) {
+    imageBtn.addEventListener('click', async () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1080;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('canvas_context_missing');
+
+        const contentX = 70;
+        const contentWidth = 940;
+        const headerTop = 70;
+        const bodyStartY = 280;
+        const bodyLineHeight = 36;
+        const footerHeight = 140;
+
+        ctx.font = '400 28px "Microsoft YaHei", "PingFang SC", sans-serif';
+        const wrappedReportLines = wrapTextLines(ctx, fullReportText, contentWidth);
+        const estimatedBodyHeight = wrappedReportLines.reduce((sum, line) => sum + (line ? bodyLineHeight : 14), 0);
+        canvas.height = Math.max(1680, Math.ceil(bodyStartY + estimatedBodyHeight + footerHeight));
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, '#0b1f44');
+        gradient.addColorStop(1, '#1e3a8a');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(40, 40, canvas.width - 80, canvas.height - 80);
+
+        const innerGradient = ctx.createLinearGradient(0, 40, 0, 240);
+        innerGradient.addColorStop(0, '#0b1f44');
+        innerGradient.addColorStop(1, '#1e3a8a');
+        ctx.fillStyle = innerGradient;
+        ctx.fillRect(40, 40, canvas.width - 80, 220);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '700 44px \"Microsoft YaHei\", \"PingFang SC\", sans-serif';
+        ctx.fillText('YUNZI', contentX, headerTop + 40);
+        ctx.font = '600 32px \"Microsoft YaHei\", \"PingFang SC\", sans-serif';
+        ctx.fillText(copySet.title, contentX, headerTop + 100);
+        ctx.font = '400 24px "Microsoft YaHei", "PingFang SC", sans-serif';
+        ctx.fillStyle = '#dbeafe';
+        renderTextInCanvas(ctx, copySet.desc, contentX, headerTop + 150, contentWidth, 34);
+
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '700 28px "Microsoft YaHei", "PingFang SC", sans-serif';
+        ctx.fillText(copySet.copyBtn, contentX, bodyStartY - 20);
+
+        ctx.fillStyle = '#111827';
+        ctx.font = '400 28px "Microsoft YaHei", "PingFang SC", sans-serif';
+        const finalY = renderWrappedLines(ctx, wrappedReportLines, contentX, bodyStartY + 20, bodyLineHeight, 14);
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '400 22px "Microsoft YaHei", "PingFang SC", sans-serif';
+        renderTextInCanvas(ctx, `${copySet.shareSuffix}${shareUrl}`, contentX, finalY + 30, contentWidth, 30);
+        renderTextInCanvas(ctx, copySet.footer, contentX, canvas.height - 90, contentWidth, 30);
+
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = copySet.fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        trackOrderEvent(tradeNo, 'report_share_clicked', withKocEventMeta({ action: 'download_image' }));
+      } catch (err) {
+        console.warn('report share image failed:', err);
+        alert(copySet.imageFail);
+      }
+    });
+  }
+}
+
 function showAnalysis(text, hidePay = false) {
   document.getElementById('analysis-locked').style.display  = 'none';
   document.getElementById('analysis-loading').style.display = 'none';
@@ -2493,12 +4437,31 @@ function showAnalysis(text, hidePay = false) {
   document.getElementById('analysis-text').textContent = normalizeReportLines(text) + DISCLAIMER;
   const payPrompt = document.getElementById('pay-prompt');
   if (payPrompt) payPrompt.style.display = hidePay ? 'none' : 'block';
+  const shareCard = document.getElementById(REPORT_SHARE_CARD_ID);
+  if (!hidePay && shareCard) {
+    shareCard.remove();
+  }
 
   if (hidePay) {
     const params = new URLSearchParams(window.location.search || '');
     const tradeNo = params.get('trade_no') || params.get('trade_order_id') || getPendingTradeNo();
+    clearPendingTradeNo();
+    clearPendingPaymentOptionId();
+    try {
+      const next = new URL(window.location.href);
+      next.searchParams.delete('trade_no');
+      next.searchParams.delete('trade_order_id');
+      next.searchParams.delete('paid');
+      const nextSearch = next.searchParams.toString();
+      const cleanUrl = `${next.pathname}${nextSearch ? `?${nextSearch}` : ''}${next.hash || ''}`;
+      window.history.replaceState({}, '', cleanUrl);
+    } catch {}
     if (tradeNo) {
+      clearPaymentPanelState(tradeNo);
       trackOrderEventOnce(tradeNo, 'report_viewed', { page: 'result' });
+      ensurePaidReportShareCard(text, tradeNo);
+    } else {
+      ensurePaidReportShareCard(text, '');
     }
   }
 }
@@ -2661,7 +4624,14 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext
   if (paidContext?.tradeNo) basePayload.trade_no = paidContext.tradeNo;
   if (paidContext?.paymentOptionId) basePayload.payment_option_id = paidContext.paymentOptionId;
 
-  const isVipPaid = String(paidContext?.paymentOptionId || '').toLowerCase() === 'vip';
+  const paidTier = (() => {
+    const raw = String(paidContext?.paymentOptionId || '').toLowerCase();
+    if (raw === 'vip' || raw === 'pro' || raw === 'basic') return raw;
+    return 'basic';
+  })();
+  const tierRanges = paidTier === 'vip'
+    ? [[1, 8], [9, 16], [17, 24]]
+    : (paidTier === 'pro' ? [[1, 8], [9, 16]] : [[1, 8]]);
 
   const cleanAnalysisText = (raw) => {
     return String(raw || '')
@@ -2738,27 +4708,24 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext
     try {
       if (loading) {
         loading.style.display = 'block';
-        loading.innerHTML = '<p class="price-desc">支付已确认，正在切换备用通道生成完整报告，请稍候…</p>' + PAID_ONE_TIME_NOTICE_HTML;
+        loading.innerHTML = '<p class="price-desc">支付已确认，正在切换备用通道分段生成报告，请稍候…</p>' + PAID_ONE_TIME_NOTICE_HTML;
+      }
+      let combined = '';
+      for (const [start, end] of tierRanges) {
+        const part = await fetchNonStreamAnalysis({ section_start: start, section_end: end });
+        combined = joinAnalysisParts(combined, part);
       }
 
-      if (!isVipPaid) {
-        return renderFinal(await fetchNonStreamAnalysis());
-      }
-
-      let combined = joinAnalysisParts(
-        await fetchNonStreamAnalysis({ section_start: 1, section_end: 8 }),
-        await fetchNonStreamAnalysis({ section_start: 9, section_end: 15 })
-      );
-
+      const targetEnd = tierRanges[tierRanges.length - 1][1];
       const maxSection = countReportSections(combined);
-      if (maxSection < 15) {
+      if (maxSection < targetEnd) {
         combined = joinAnalysisParts(
           combined,
-          await fetchNonStreamAnalysis({ section_start: Math.max(1, maxSection + 1), section_end: 15 })
+          await fetchNonStreamAnalysis({ section_start: Math.max(1, maxSection + 1), section_end: targetEnd })
         );
       }
 
-      return renderFinal(combined);
+      return renderFinal(combined || (await fetchNonStreamAnalysis()));
     } catch (err) {
       console.warn('non-stream fallback failed:', err);
       return false;
@@ -2812,38 +4779,26 @@ async function fullAnalyze(birthData, bazi, daYunData, specialYears, paidContext
 
   try {
     let fullText = '';
-
-    if (isVipPaid) {
-      const firstHalf = await streamSinglePart({ section_start: 1, section_end: 8 }, false);
-      if (firstHalf == null) {
+    const streamParts = [];
+    for (let i = 0; i < tierRanges.length; i += 1) {
+      const [start, end] = tierRanges[i];
+      const part = await streamSinglePart({ section_start: start, section_end: end }, i > 0);
+      if (part == null) {
         const ok = await tryNonStreamFallback();
         if (!ok && loading) loading.innerHTML = '<p>报告生成失败，请刷新后重试。</p>';
         return;
       }
+      streamParts.push(part);
+    }
 
-      const secondHalf = await streamSinglePart({ section_start: 9, section_end: 15 }, true);
-      if (secondHalf == null) {
-        const ok = await tryNonStreamFallback();
-        if (!ok && loading) loading.innerHTML = '<p>报告生成失败，请刷新后重试。</p>';
-        return;
-      }
-
-      fullText = joinAnalysisParts(firstHalf, secondHalf);
-      const maxSection = countReportSections(fullText);
-      if (maxSection < 15) {
-        fullText = joinAnalysisParts(
-          fullText,
-          await fetchNonStreamAnalysis({ section_start: Math.max(1, maxSection + 1), section_end: 15 })
-        );
-      }
-    } else {
-      const singlePart = await streamSinglePart({}, false);
-      if (singlePart == null) {
-        const ok = await tryNonStreamFallback();
-        if (!ok && loading) loading.innerHTML = '<p>报告生成失败，请刷新后重试。</p>';
-        return;
-      }
-      fullText = singlePart;
+    fullText = joinAnalysisParts(...streamParts);
+    const targetEnd = tierRanges[tierRanges.length - 1][1];
+    const maxSection = countReportSections(fullText);
+    if (maxSection < targetEnd) {
+      fullText = joinAnalysisParts(
+        fullText,
+        await fetchNonStreamAnalysis({ section_start: Math.max(1, maxSection + 1), section_end: targetEnd })
+      );
     }
 
     if (!renderFinal(fullText)) {
@@ -2960,10 +4915,20 @@ function buildLocalFreeAnalysis(birthData, bazi, daYunData, specialYears, _reaso
     ? `${nearbySpecial[0].year}年${nearbySpecial[0].gz}需重点关注节奏变化，重大事项建议分步推进。`
     : '近两年节奏总体可控，关键在于先定优先级再行动。';
 
+  const preferredElementIdx = strengthScore >= 0
+    ? (controllerElement ?? leakElement ?? dayElement)
+    : (producerElement ?? dayElement);
+  const avoidElementIdx = strengthScore >= 0
+    ? (producerElement ?? dayElement)
+    : (controllerElement ?? leakElement ?? dayElement);
+  const preferredElement = preferredElementIdx === undefined ? '平衡五行' : `${ELEMENT_LABELS[preferredElementIdx]}为先`;
+  const avoidElement = avoidElementIdx === undefined ? '失衡信号' : `忌${ELEMENT_LABELS[avoidElementIdx]}过旺`;
+
   const lines = [
     '本次为免费版基础预览',
     `第1段：日主强弱。你是${dayStem}${dayBranch}日柱，综合判断为${strengthLabel}，命局以${patternName}倾向为主。建议：先稳后进。`,
     `第2段：格局判断与命主性格底盘。${patternProfile}按日柱看，${dayProfile.core}优势在于${dayProfile.adv}，短板在于${dayProfile.risk}。建议：${dayunHint}${specialHint}`,
+    `第3段：用神喜忌与行动建议。当前更适合以${preferredElement}的策略去发力，同时注意${avoidElement}导致的内耗与决策偏差。落地建议：先做一项可执行的小目标，连续执行4周，再根据反馈微调方向。`,
   ];
 
   return lines.join('\n');
@@ -2982,6 +4947,14 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
 
   const baziStr = `${bazi.year.tg}${bazi.year.dz} ${bazi.month.tg}${bazi.month.dz} ${bazi.day.tg}${bazi.day.dz} ${bazi.hour.tg}${bazi.hour.dz}`;
   const cacheKey = `bazi_${birthData.year}_${birthData.month}_${birthData.day}_${birthData.hour}_${birthData.gender}`;
+  const localPreview = buildLocalFreeAnalysis(birthData, bazi, daYunData, specialYears, 'local_preview');
+  let previewTimer = null;
+  const clearPreviewTimer = () => {
+    if (previewTimer) {
+      clearTimeout(previewTimer);
+      previewTimer = null;
+    }
+  };
 
   const cleanAnalysisText = (raw) => {
     return String(raw || '')
@@ -2996,12 +4969,19 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
   const renderFinal = (raw) => {
     const cleaned = cleanAnalysisText(raw);
     if (!cleaned) return false;
+    clearPreviewTimer();
     localStorage.setItem(cacheKey, cleaned);
     showAnalysis(cleaned);
     return true;
   };
 
   try {
+    previewTimer = setTimeout(() => {
+      if (!analysisText?.textContent?.trim()) {
+        showAnalysis(localPreview);
+      }
+    }, 2200);
+
     const dayunText = daYunData.dayuns
       .map((d) => `${d.gz}(ageStart:${d.ageStart},yearStart:${d.yearStart})`)
       .join(', ');
@@ -3120,7 +5100,10 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
       if (!ok) throw new Error('free_stream_empty_and_fallback_failed');
     }
   } catch (err) {
+    clearPreviewTimer();
     console.warn('free analyze failed, use local fallback', err);
     showAnalysis(buildLocalFreeAnalysis(birthData, bazi, daYunData, specialYears, err?.message || err));
   }
 }
+
+
