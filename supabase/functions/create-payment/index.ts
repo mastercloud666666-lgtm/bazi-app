@@ -702,6 +702,8 @@ Deno.serve(async (req) => {
     let responseText = '';
     let selectedApiBase = '';
     let transportError = '';
+    let lastGatewayErrCode: number | null = null;
+    let lastGatewayErrMsg = '';
 
     for (const apiBase of candidateApiBases) {
       const endpoint = `${apiBase}/payment/do.html`;
@@ -712,17 +714,42 @@ Deno.serve(async (req) => {
           body: new URLSearchParams({ ...payParams, hash }),
         });
         const text = await res.text();
-        selectedApiBase = apiBase;
 
-        if (res.ok) {
+        if (!res.ok) {
+          console.error('Payment API non-OK response', { endpoint, status: res.status });
           response = res;
           responseText = text;
+          selectedApiBase = apiBase;
+          continue;
+        }
+
+        response = res;
+        responseText = text;
+        selectedApiBase = apiBase;
+
+        let parsedCandidate: Record<string, unknown> = {};
+        try {
+          const candidate = JSON.parse(text);
+          if (candidate && typeof candidate === 'object') {
+            parsedCandidate = candidate as Record<string, unknown>;
+          }
+        } catch {
+          parsedCandidate = {};
+        }
+
+        const candidateErrCode = Number(parsedCandidate.errcode);
+        const isSuccess = Number.isFinite(candidateErrCode) && candidateErrCode === 0;
+        if (isSuccess) {
           break;
         }
 
-        console.error('Payment API non-OK response', { endpoint, status: res.status });
-        response = res;
-        responseText = text;
+        lastGatewayErrCode = Number.isFinite(candidateErrCode) ? candidateErrCode : null;
+        lastGatewayErrMsg = String(parsedCandidate.errmsg || '');
+        console.warn('Payment API returned non-zero errcode, trying next gateway if available', {
+          endpoint,
+          errcode: lastGatewayErrCode,
+          errmsg: lastGatewayErrMsg,
+        });
       } catch (err) {
         transportError = err instanceof Error ? err.message : String(err);
         console.error('Payment API transport error', { endpoint, transportError });
@@ -738,6 +765,8 @@ Deno.serve(async (req) => {
       return_path: returnPath,
       invite_discount_rule: discountMeta.discountRule || null,
       invite_discount_note: discountMeta.discountNote || null,
+      gateway_last_errcode: lastGatewayErrCode,
+      gateway_last_errmsg: lastGatewayErrMsg || null,
     };
 
     if (!response) {
