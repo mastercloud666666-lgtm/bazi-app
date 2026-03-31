@@ -1,0 +1,38 @@
+name: Daily Site Healthcheck
+
+on:
+  schedule:
+    # 08:00 Asia/Singapore = 00:00 UTC
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  healthcheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run daily healthcheck
+        env:
+          BASE_URL: https://tengyunzi.com
+          # Optional overrides (recommended to store as GitHub Secrets)
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON: ${{ secrets.SUPABASE_ANON }}
+          HEALTHCHECK_PAID_TRADE_NO: ${{ secrets.HEALTHCHECK_PAID_TRADE_NO }}
+          HEALTHCHECK_NOTIFY_WEBHOOK: ${{ secrets.HEALTHCHECK_NOTIFY_WEBHOOK }}
+        run: node scripts/daily-healthcheck.mjs
+
+      - name: Upload healthcheck report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: healthcheck-report
+          path: healthcheck-report.json
+
