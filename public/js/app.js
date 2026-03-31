@@ -3710,54 +3710,100 @@ async function startPayment(birthData, bazi, paymentOption) {
     loadingSection.innerHTML = '<p class="price-desc">正在跳转支付页面…</p>';
   }
 
-  const orderPayload = {
-    trade_no: tradeNo,
-    birth_input: JSON.stringify({
+  const buildOrderBirthInput = (compact = false) => {
+    const base = {
       ...birthData,
       bazi_str: baziStr,
       payment_ab_variant: getPaymentAbVariant(),
-      dayun_text: dayunText,
-      special_years_text: specialYearsText,
       start_age: daYunData.startAge,
       order_service: orderService,
       payment_option: chosenOption,
       invite_code: inviteCode || undefined,
       tracking: buildOrderTrackingSeed(orderService, chosenOption.id),
       ...buildKocFieldsForBirthInput(),
-    }),
+    };
+    if (compact) return base;
+    return {
+      ...base,
+      dayun_text: dayunText,
+      special_years_text: specialYearsText,
+    };
   };
 
-  const upsertOrderSnapshot = async () => {
-    const resp = await fetch(`${SUPABASE_URL}/rest/v1/orders?on_conflict=trade_no`, {
+  const insertOrderSnapshot = async (compact = false) => {
+    const orderPayload = {
+      trade_no: tradeNo,
+      birth_input: JSON.stringify(buildOrderBirthInput(compact)),
+    };
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
       method: 'POST',
       headers: {
         apikey: SUPABASE_ANON,
         Authorization: `Bearer ${SUPABASE_ANON}`,
         'Content-Type': 'application/json',
-        Prefer: 'resolution=merge-duplicates,return=minimal',
+        Prefer: 'return=minimal',
       },
       body: JSON.stringify(orderPayload),
     });
-    if (!resp.ok) {
-      const raw = await resp.text().catch(() => '');
-      throw new Error(`order_upsert_failed_${resp.status}:${raw || resp.statusText || 'unknown'}`);
+    if (resp.ok) return { ok: true, compact, reused: false };
+
+    const raw = await resp.text().catch(() => '');
+    const lower = String(raw || '').toLowerCase();
+    const conflict = resp.status === 409 || lower.includes('duplicate key') || lower.includes('orders_trade_no_key');
+    if (conflict) {
+      const existing = await fetchOrderByTradeNo(tradeNo);
+      if (existing && String(existing.trade_no || '') === tradeNo) {
+        return { ok: true, compact, reused: true };
+      }
     }
+
+    throw new Error(`order_insert_failed_${compact ? 'compact' : 'full'}_${resp.status}:${raw || resp.statusText || 'unknown'}`);
   };
 
+  const ensureOrderSnapshot = async () => {
+    let lastErr = null;
+    for (let i = 0; i < 3; i++) {
+      try {
+        await insertOrderSnapshot(false);
+        return;
+      } catch (err) {
+        lastErr = err;
+        const msg = String(err instanceof Error ? err.message : err || '').toLowerCase();
+        const shouldCompactFallback =
+          msg.includes('too_large')
+          || msg.includes('row-level security')
+          || msg.includes('payload')
+          || msg.includes('request entity too large')
+          || msg.includes('413');
+        if (shouldCompactFallback) {
+          await insertOrderSnapshot(true);
+          return;
+        }
+        if (i < 2) await sleep(320 * (i + 1));
+      }
+    }
+    throw lastErr || new Error('order_insert_failed_unknown');
+  };
+
+  let orderSnapshotReady = false;
   try {
-    await upsertOrderSnapshot();
-    console.log('订单创建/更新成功');
+    await ensureOrderSnapshot();
+    orderSnapshotReady = true;
+    console.log('\u8ba2\u5355\u5feb\u7167\u521b\u5efa/\u66f4\u65b0\u6210\u529f');
     trackOrderEventOnce(tradeNo, 'order_created', withKocEventMeta({
       service: orderService,
       payment_option_id: chosenOption.id,
     }));
   } catch (err) {
-    console.error('订单创建失败:', err);
-    alert('支付请求失败：订单创建失败，请检查网络后重试');
-    clearPendingTradeNo();
-    clearPendingPaymentOptionId();
-    resetPayButtons();
-    return;
+    console.warn('\u8ba2\u5355\u5feb\u7167\u521b\u5efa\u5931\u8d25\uff0c\u6539\u7531\u540e\u7aef\u515c\u5e95\u521b\u5355:', err);
+    trackOrderEventOnce(tradeNo, 'order_create_failed_frontend', withKocEventMeta({
+      service: orderService,
+      payment_option_id: chosenOption.id,
+      reason: String(err?.message || err || '').slice(0, 120),
+    }));
+    if (loadingSection) {
+      loadingSection.innerHTML = '<p class="price-desc">\u7f51\u7edc\u6ce2\u52a8\uff0c\u6b63\u5728\u7ee7\u7eed\u751f\u6210\u652f\u4ed8\u94fe\u63a5\uff08\u540e\u7aef\u5c06\u81ea\u52a8\u8865\u5efa\u8ba2\u5355\uff09...</p>';
+    }
   }
 
   console.log('调用后端代理创建支付...');
@@ -3820,8 +3866,12 @@ async function startPayment(birthData, bazi, paymentOption) {
     let { response, result, raw } = await requestCreatePayment();
     const errorText = `${getPaymentErrorMessage(result, response, raw)} ${raw || ''}`.toLowerCase();
     if ((!response.ok || result?.errcode !== 0) && errorText.includes('order not found')) {
-      // 订单偶发同步延迟，补一次 upsert 后重试
-      await upsertOrderSnapshot();
+      // Order may be eventually consistent; retry after optional snapshot sync.
+      try {
+        await ensureOrderSnapshot();
+      } catch (snapshotErr) {
+        console.warn('order not found\uff1a\u8865\u5355\u91cd\u8bd5\u5931\u8d25\uff0c\u6539\u4e3a\u76f4\u63a5\u91cd\u8bd5 create-payment:', snapshotErr);
+      }
       await sleep(450);
       ({ response, result, raw } = await requestCreatePayment());
     }

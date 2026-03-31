@@ -5,24 +5,30 @@ import {
   corsHeaders,
   extractClientIp,
   isAllowedRequestOrigin,
+  isLikelyAutomatedUa,
   json,
   maskIp,
   recordAbuseLog,
   resolveAllowedOrigins,
   tooManyRequestsResponse,
 } from '../_shared/security.ts';
+import { sendOrderNotify } from '../_shared/order-notify.ts';
 
-const PAYMENT_OPTION_MAP: Record<'basic' | 'pro' | 'vip' | 'pdf', { title: string; total_fee: string }> = {
-  basic: { title: 'Basic Bazi Report', total_fee: '0.01' },
-  pro: { title: 'Advanced Bazi Report', total_fee: '0.01' },
-  vip: { title: 'Premium Full Bazi Report', total_fee: '0.01' },
-  pdf: { title: 'Bazi PDF Document', total_fee: '0.01' },
+const PAYMENT_OPTION_MAP: Record<'basic' | 'pro' | 'vip' | 'pdf' | 'consult', { title: string; total_fee: string }> = {
+  basic: { title: 'Bazi Starter Report', total_fee: '99' },
+  pro: { title: 'Bazi Advanced Report', total_fee: '199' },
+  vip: { title: 'Bazi Premium Full Report', total_fee: '299' },
+  pdf: { title: 'Bazi PDF Document', total_fee: '19.9' },
+  consult: { title: '1v1 Destiny Consultation', total_fee: '499' },
 };
+const HEPAN_PAYMENT_CONFIG = { title: 'Compatibility Analysis Report', total_fee: '199' } as const;
 
 const DEFAULT_PRIMARY_API_BASE = 'https://api.xunhupay.com';
 const DEFAULT_BACKUP_API_BASE = 'https://api.dpweixin.com';
 const DEFAULT_RATE_LIMIT_WINDOW_SECONDS = 60;
 const DEFAULT_RATE_LIMIT_MAX_REQUESTS = 18;
+const DEFAULT_TRADE_RATE_LIMIT_MAX_REQUESTS = 8;
+const DEFAULT_MIN_PAY_AMOUNT = 0.01;
 
 function normalizeApiBase(base: string | undefined, fallback: string) {
   const value = (base || fallback).trim();
@@ -39,12 +45,13 @@ function validateTradeNo(value: string): boolean {
   return /^bazi-[a-z0-9_-]{4,120}$/i.test(value);
 }
 
-function normalizePaymentOptionId(value: unknown, fallback: 'basic' | 'pro' | 'vip' | 'pdf' | '' = 'basic'): 'basic' | 'pro' | 'vip' | 'pdf' | '' {
+function normalizePaymentOptionId(value: unknown, fallback: 'basic' | 'pro' | 'vip' | 'pdf' | 'consult' | '' = 'basic'): 'basic' | 'pro' | 'vip' | 'pdf' | 'consult' | '' {
   const id = String(value || '').trim();
   if (id === 'pro') return 'pro';
   if (id === 'vip') return 'vip';
   if (id === 'basic') return 'basic';
   if (id === 'pdf') return 'pdf';
+  if (id === 'consult') return 'consult';
   return fallback;
 }
 
@@ -58,6 +65,198 @@ function parseBirthInput(value: unknown): Record<string, unknown> {
   } catch {
     return {};
   }
+}
+
+function normalizeInviteCode(value: unknown): string {
+  const code = String(value || '').trim().toUpperCase();
+  if (!code) return '';
+  return /^[A-Z0-9_-]{2,32}$/.test(code) ? code : '';
+}
+
+function toMoneyNumber(value: unknown): number | null {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  return Math.round(n * 100) / 100;
+}
+
+function formatMoney(value: number): string {
+  const cents = Math.round(value * 100);
+  const normalized = cents / 100;
+  return Number.isInteger(normalized) ? String(normalized) : normalized.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+}
+
+type InviteRule = {
+  fixedPrice?: number | null;
+  amountOff?: number | null;
+  percentOff?: number | null;
+  optionPrices?: Record<string, number>;
+  note?: string;
+};
+
+function parseInviteRules(raw: string): Record<string, InviteRule> {
+  if (!raw) return {};
+  const normalizeRawCandidates = (input: string): string[] => {
+    const seed = String(input || '').trim();
+    if (!seed) return [];
+    const list = [seed];
+    // Sometimes env is stored as quoted JSON string
+    if (
+      (seed.startsWith('"') && seed.endsWith('"'))
+      || (seed.startsWith("'") && seed.endsWith("'"))
+    ) {
+      list.push(seed.slice(1, -1));
+    }
+    // Sometimes quotes are escaped in env like {\"A\":...}
+    if (seed.includes('\\"')) {
+      list.push(seed.replace(/\\"/g, '"'));
+    }
+    return Array.from(new Set(list.map((x) => x.trim()).filter(Boolean)));
+  };
+
+  let parsed: unknown = null;
+  for (const candidate of normalizeRawCandidates(raw)) {
+    try {
+      parsed = JSON.parse(candidate);
+      if (typeof parsed === 'string') {
+        parsed = JSON.parse(parsed);
+      }
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) break;
+    } catch {
+      parsed = null;
+    }
+  }
+
+  try {
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    const out: Record<string, InviteRule> = {};
+    for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+      const code = normalizeInviteCode(key);
+      if (!code) continue;
+
+      if (typeof value === 'number' || typeof value === 'string') {
+        const fixed = toMoneyNumber(value);
+        if (fixed && fixed > 0) out[code] = { fixedPrice: fixed };
+        continue;
+      }
+      if (!value || typeof value !== 'object' || Array.isArray(value)) continue;
+      const obj = value as Record<string, unknown>;
+
+      const fixedPrice = toMoneyNumber(obj.fixed_price ?? obj.fixedPrice ?? obj.price ?? obj.fixed);
+      const amountOff = toMoneyNumber(obj.amount_off ?? obj.amountOff ?? obj.off ?? obj.minus);
+      const percentOff = toMoneyNumber(obj.percent_off ?? obj.percentOff ?? obj.discount_percent ?? obj.discountPercent ?? obj.percent);
+      const optionPricesRaw = obj.option_prices ?? obj.optionPrices;
+      const optionPrices: Record<string, number> = {};
+      if (optionPricesRaw && typeof optionPricesRaw === 'object' && !Array.isArray(optionPricesRaw)) {
+        for (const [pid, pval] of Object.entries(optionPricesRaw as Record<string, unknown>)) {
+          const money = toMoneyNumber(pval);
+          if (money && money > 0) optionPrices[String(pid)] = money;
+        }
+      }
+
+      out[code] = {
+        fixedPrice: fixedPrice && fixedPrice > 0 ? fixedPrice : null,
+        amountOff: amountOff && amountOff > 0 ? amountOff : null,
+        percentOff: percentOff && percentOff > 0 ? percentOff : null,
+        optionPrices: Object.keys(optionPrices).length ? optionPrices : undefined,
+        note: typeof obj.note === 'string' ? obj.note.slice(0, 80) : '',
+      };
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function resolveDiscountedPrice(params: {
+  baseAmount: number;
+  inviteCode: string;
+  optionId: string;
+}) {
+  const rawRuleText = String(Deno.env.get('PAY_INVITE_CODE_MAP') || '').trim();
+  const rules = parseInviteRules(rawRuleText);
+  const rule = params.inviteCode ? rules[params.inviteCode] : null;
+  if (!rule) {
+    return {
+      finalAmount: params.baseAmount,
+      discountApplied: false,
+      discountAmount: 0,
+      inviteCode: params.inviteCode || '',
+      discountRule: '',
+      discountNote: '',
+      rulesLoaded: Object.keys(rules).length,
+      envRuleLen: rawRuleText.length,
+    };
+  }
+
+  let finalAmount = params.baseAmount;
+  let discountRule = '';
+  if (rule.optionPrices?.[params.optionId]) {
+    finalAmount = rule.optionPrices[params.optionId];
+    discountRule = 'option_price';
+  } else if (rule.fixedPrice && rule.fixedPrice > 0) {
+    finalAmount = rule.fixedPrice;
+    discountRule = 'fixed_price';
+  } else if (rule.amountOff && rule.amountOff > 0) {
+    finalAmount = params.baseAmount - rule.amountOff;
+    discountRule = 'amount_off';
+  } else if (rule.percentOff && rule.percentOff > 0) {
+    finalAmount = params.baseAmount * (1 - rule.percentOff / 100);
+    discountRule = 'percent_off';
+  }
+
+  finalAmount = Math.max(DEFAULT_MIN_PAY_AMOUNT, Math.min(params.baseAmount, Math.round(finalAmount * 100) / 100));
+  const discountAmount = Math.max(0, Math.round((params.baseAmount - finalAmount) * 100) / 100);
+
+  return {
+    finalAmount,
+    discountApplied: discountAmount > 0,
+    discountAmount,
+    inviteCode: params.inviteCode,
+    discountRule,
+    discountNote: rule.note || '',
+    rulesLoaded: Object.keys(rules).length,
+    envRuleLen: rawRuleText.length,
+  };
+}
+
+function detectOrderService(birth: Record<string, unknown>): 'bazi' | 'hepan' | 'pdf' | 'consult' {
+  const service = String(birth?.order_service || '').trim().toLowerCase();
+  if (service === 'hepan') return 'hepan';
+  if (service === 'pdf') return 'pdf';
+  if (service === 'consult') return 'consult';
+  return 'bazi';
+}
+
+function inferOrderServiceFromOptionId(optionId: 'basic' | 'pro' | 'vip' | 'pdf' | 'consult'): 'bazi' | 'pdf' | 'consult' {
+  if (optionId === 'pdf') return 'pdf';
+  if (optionId === 'consult') return 'consult';
+  return 'bazi';
+}
+
+function buildFallbackOrderBirthInput(rawInput: unknown, optionId: 'basic' | 'pro' | 'vip' | 'pdf' | 'consult'): Record<string, unknown> {
+  const next = parseBirthInput(rawInput);
+  if (!String(next.order_service || '').trim()) {
+    next.order_service = inferOrderServiceFromOptionId(optionId);
+  }
+  const paymentOptionObj = parseBirthInput(next.payment_option);
+  if (!String(paymentOptionObj.id || '').trim()) {
+    const optionConfig = PAYMENT_OPTION_MAP[optionId];
+    next.payment_option = {
+      id: optionId,
+      title: optionConfig?.title || 'Bazi Report',
+      fee: optionConfig?.total_fee || String(DEFAULT_MIN_PAY_AMOUNT),
+    };
+  }
+  if (!String(next.payment_option_id || '').trim()) {
+    next.payment_option_id = optionId;
+  }
+  return next;
+}
+
+function isDuplicateTradeNoError(error: { code?: string | null; message?: string | null } | null | undefined): boolean {
+  const code = String(error?.code || '').toLowerCase();
+  const msg = String(error?.message || '').toLowerCase();
+  return code === '23505' || msg.includes('duplicate key') || msg.includes('orders_trade_no_key');
 }
 
 function applyTrackingEvent(
@@ -115,11 +314,13 @@ function resolveReturnOrigin(req: Request, fallbackOrigin: string): string {
   return fallbackOrigin;
 }
 
-function resolveReturnPath(value: unknown): '/result.html' | '/hepan.html' | '/index.html' {
+function resolveReturnPath(value: unknown): '/payment-fallback.html' | '/result.html' | '/hepan.html' | '/index.html' {
   const path = String(value || '').trim();
+  if (path === '/payment-fallback.html') return '/payment-fallback.html';
   if (path === '/hepan.html') return '/hepan.html';
   if (path === '/index.html') return '/index.html';
-  return '/result.html';
+  if (path === '/result.html') return '/result.html';
+  return '/payment-fallback.html';
 }
 
 // Pure JS MD5 implementation (Web Crypto API does not support MD5)
@@ -278,7 +479,7 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const tradeNo = String(body?.trade_no || '').trim();
-    const requestedPaymentOptionId = normalizePaymentOptionId(body?.payment_option_id, 'basic') as 'basic' | 'pro' | 'vip' | 'pdf';
+    const requestedPaymentOptionId = normalizePaymentOptionId(body?.payment_option_id, 'basic') as 'basic' | 'pro' | 'vip' | 'pdf' | 'consult';
     const clientEnv = body?.client_env && typeof body.client_env === 'object' ? body.client_env : {};
 
     if (!tradeNo || !validateTradeNo(tradeNo)) {
@@ -314,6 +515,8 @@ Deno.serve(async (req) => {
     });
     const clientIp = extractClientIp(req);
     const maskedIp = maskIp(clientIp);
+    const userAgent = String(clientEnv?.user_agent || req.headers.get('user-agent') || '').slice(0, 240);
+    const shouldBlockBotUa = Deno.env.get('SECURITY_BLOCK_BOT_UA_SENSITIVE') !== '0';
 
     if (!rateResult.allowed) {
       await recordAbuseLog(supabase, {
@@ -335,11 +538,56 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { data: order, error: orderError } = await supabase
+    if (shouldBlockBotUa && isLikelyAutomatedUa(userAgent)) {
+      await recordAbuseLog(supabase, {
+        scope: 'create-payment',
+        identifier: rateIdentifier,
+        event: 'blocked_bot_ua',
+        meta: {
+          ip_masked: maskedIp,
+          ua: userAgent.slice(0, 160),
+        },
+      });
+      return jsonResponse(req, {
+        error: 'blocked_bot_ua',
+        details: 'Automated client is not allowed for payment creation',
+      }, 403, allowedOrigins);
+    }
+
+    const tradeRateMaxRequests = readEnvNumber('RATE_LIMIT_CREATE_PAYMENT_TRADE_MAX_REQUESTS', DEFAULT_TRADE_RATE_LIMIT_MAX_REQUESTS, 2, 200);
+    const tradeRateResult = await consumeRateLimit(supabase, {
+      scope: 'create-payment-trade',
+      identifier: tradeNo,
+      windowSeconds: rateWindowSeconds,
+      maxRequests: tradeRateMaxRequests,
+    });
+    if (!tradeRateResult.allowed) {
+      await recordAbuseLog(supabase, {
+        scope: 'create-payment-trade',
+        identifier: tradeNo,
+        event: 'rate_limited_trade',
+        meta: {
+          ip_masked: maskedIp,
+          current_count: tradeRateResult.currentCount,
+          max_requests: tradeRateMaxRequests,
+          window_seconds: rateWindowSeconds,
+        },
+      });
+      return tooManyRequestsResponse(req, allowedOrigins, {
+        message: 'Payment request for this order is too frequent, please retry shortly.',
+        retryAfterSeconds: tradeRateResult.retryAfterSeconds,
+        scope: 'create-payment-trade',
+        currentCount: tradeRateResult.currentCount,
+      });
+    }
+
+    const queryOrder = async () => await supabase
       .from('orders')
       .select('paid,birth_input')
       .eq('trade_no', tradeNo)
       .maybeSingle();
+
+    let { data: order, error: orderError } = await queryOrder();
 
     if (orderError) {
       return jsonResponse(req, {
@@ -347,17 +595,59 @@ Deno.serve(async (req) => {
         details: orderError.message,
       }, 500, allowedOrigins);
     }
+
+    if (!order) {
+      const fallbackBirthInput = buildFallbackOrderBirthInput(body?.birth_input, requestedPaymentOptionId);
+      const { error: insertOrderError } = await supabase
+        .from('orders')
+        .insert({
+          trade_no: tradeNo,
+          birth_input: JSON.stringify(fallbackBirthInput),
+        });
+      if (insertOrderError && !isDuplicateTradeNoError(insertOrderError)) {
+        return jsonResponse(req, {
+          error: 'Order auto create failed',
+          details: insertOrderError.message,
+        }, 500, allowedOrigins);
+      }
+
+      const retried = await queryOrder();
+      order = retried.data;
+      orderError = retried.error;
+      if (orderError) {
+        return jsonResponse(req, {
+          error: 'Order query failed after auto create',
+          details: orderError.message,
+        }, 500, allowedOrigins);
+      }
+    }
+
     if (!order) return jsonResponse(req, { error: 'Order not found' }, 404, allowedOrigins);
     if (order.paid) return jsonResponse(req, { error: 'Order already paid' }, 409, allowedOrigins);
 
     // Lock payment option to the one stored in order if present.
     const birth = parseBirthInput(order.birth_input);
     const paymentOptionObj = parseBirthInput(birth.payment_option);
-    const lockedPaymentOptionId = normalizePaymentOptionId(paymentOptionObj.id, '') as '' | 'basic' | 'pro' | 'vip' | 'pdf';
+    const lockedPaymentOptionId = normalizePaymentOptionId(paymentOptionObj.id, '') as '' | 'basic' | 'pro' | 'vip' | 'pdf' | 'consult';
     const paymentOptionId = lockedPaymentOptionId || requestedPaymentOptionId;
-    const optionConfig = PAYMENT_OPTION_MAP[paymentOptionId];
+    const service = detectOrderService(birth);
+    const optionConfig = service === 'hepan'
+      ? HEPAN_PAYMENT_CONFIG
+      : PAYMENT_OPTION_MAP[paymentOptionId];
+    const discountOptionId = service === 'hepan' ? 'hepan' : paymentOptionId;
+    const inviteCode = normalizeInviteCode(
+      body?.invite_code
+      || (birth as Record<string, unknown>)?.invite_code
+      || ((birth as Record<string, any>)?.tracking?.invite_code),
+    );
+    const baseAmount = toMoneyNumber(optionConfig.total_fee) || DEFAULT_MIN_PAY_AMOUNT;
+    const discountMeta = resolveDiscountedPrice({
+      baseAmount,
+      inviteCode,
+      optionId: discountOptionId,
+    });
+    const totalFee = formatMoney(discountMeta.finalAmount);
 
-    const userAgent = String(clientEnv?.user_agent || req.headers.get('user-agent') || '');
     const isWeChatClient = Boolean(clientEnv?.is_wechat) || /MicroMessenger/i.test(userAgent);
     const forceBackupOnWeChat = Deno.env.get('HUPI_FORCE_BACKUP_WECHAT') !== '0';
     const primaryApiBase = normalizeApiBase(Deno.env.get('HUPI_API_BASE'), DEFAULT_PRIMARY_API_BASE);
@@ -372,6 +662,13 @@ Deno.serve(async (req) => {
       preferred_api_base: preferredApiBase,
       attempted_api_bases: candidateApiBases,
       payment_option_id: paymentOptionId,
+      invite_code: discountMeta.inviteCode || null,
+      invite_discount_applied: discountMeta.discountApplied,
+      invite_discount_amount: discountMeta.discountAmount,
+      invite_rules_loaded: discountMeta.rulesLoaded || 0,
+      invite_env_len: discountMeta.envRuleLen || 0,
+      total_fee_original: formatMoney(baseAmount),
+      total_fee_final: totalFee,
     };
 
     const nonceStr = Math.random().toString(36).slice(2, 15) + Math.random().toString(36).slice(2, 15);
@@ -385,7 +682,7 @@ Deno.serve(async (req) => {
       version: '1.1',
       appid: appId,
       trade_order_id: tradeNo,
-      total_fee: optionConfig.total_fee,
+      total_fee: totalFee,
       title: optionConfig.title,
       time: Math.floor(Date.now() / 1000),
       notify_url: notifyUrl,
@@ -439,6 +736,8 @@ Deno.serve(async (req) => {
       fallback_used: selectedApiBase ? selectedApiBase !== preferredApiBase : false,
       return_origin: returnOrigin,
       return_path: returnPath,
+      invite_discount_rule: discountMeta.discountRule || null,
+      invite_discount_note: discountMeta.discountNote || null,
     };
 
     if (!response) {
@@ -465,8 +764,37 @@ Deno.serve(async (req) => {
       parsed = {};
     }
     const result = (parsed && typeof parsed === 'object')
-      ? { ...(parsed as Record<string, unknown>), gateway_meta: gatewayMetaWithRuntime }
-      : { errcode: 500, errmsg: 'Invalid payment response', gateway_meta: gatewayMetaWithRuntime };
+      ? {
+        ...(parsed as Record<string, unknown>),
+        gateway_meta: gatewayMetaWithRuntime,
+        discount_info: {
+          invite_code: discountMeta.inviteCode || null,
+          discount_applied: discountMeta.discountApplied,
+          discount_amount: discountMeta.discountAmount,
+          total_fee_original: formatMoney(baseAmount),
+          total_fee_final: totalFee,
+          discount_rule: discountMeta.discountRule || null,
+          discount_note: discountMeta.discountNote || null,
+          rules_loaded: discountMeta.rulesLoaded || 0,
+          env_rule_len: discountMeta.envRuleLen || 0,
+        },
+      }
+      : {
+        errcode: 500,
+        errmsg: 'Invalid payment response',
+        gateway_meta: gatewayMetaWithRuntime,
+        discount_info: {
+          invite_code: discountMeta.inviteCode || null,
+          discount_applied: discountMeta.discountApplied,
+          discount_amount: discountMeta.discountAmount,
+          total_fee_original: formatMoney(baseAmount),
+          total_fee_final: totalFee,
+          discount_rule: discountMeta.discountRule || null,
+          discount_note: discountMeta.discountNote || null,
+          rules_loaded: discountMeta.rulesLoaded || 0,
+          env_rule_len: discountMeta.envRuleLen || 0,
+        },
+      };
 
     try {
       if ((result as Record<string, unknown>)?.errcode === 0) {
@@ -474,11 +802,28 @@ Deno.serve(async (req) => {
           option_id: paymentOptionId,
           api_base: selectedApiBase || preferredApiBase,
           is_wechat: isWeChatClient,
+          invite_code: discountMeta.inviteCode || '',
+          invite_discount_applied: discountMeta.discountApplied,
+          invite_discount_amount: discountMeta.discountAmount,
+          total_fee_final: totalFee,
         });
         await supabase
           .from('orders')
           .update({ birth_input: JSON.stringify(trackedBirth) })
           .eq('trade_no', tradeNo);
+
+        await sendOrderNotify('payment_created', {
+          trade_no: tradeNo,
+          service,
+          payment_option_id: paymentOptionId,
+          total_fee: totalFee,
+          status: 'UNPAID',
+          source: 'create-payment',
+          note: [
+            selectedApiBase || preferredApiBase,
+            discountMeta.discountApplied ? `invite:${discountMeta.inviteCode}` : '',
+          ].filter(Boolean).join(' | '),
+        });
       }
     } catch (trackErr) {
       console.warn('create-payment tracking update failed', trackErr);
