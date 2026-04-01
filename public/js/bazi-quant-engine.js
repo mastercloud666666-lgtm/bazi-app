@@ -94,21 +94,99 @@
     return score;
   }
 
+  // ── 从格检测 ──────────────────────────────────────────────────────
+  /*
+   * 从格条件：
+   * 1. 扶身力量极弱：全局比劫+印（含所有位置）加权 ≤ 16
+   * 2. 某一敌煞（财/官杀/食伤）加权 ≥ 24，形成压倒性主导
+   *
+   * 从格类型：
+   * - 从财格：财星主导，喜财官，忌印比
+   * - 从官格：官杀主导，喜官财，忌印比
+   * - 从儿格：食伤主导，喜食伤+财，忌印+官
+   */
+  function detectCongGe(bazi) {
+    const dayTg = bazi.day.tg;
+    const positions = [
+      { char: bazi.year.tg,  w: 8  },
+      { char: bazi.year.dz,  w: 4  },
+      { char: bazi.month.tg, w: 12 },
+      { char: bazi.month.dz, w: 40 },
+      { char: bazi.day.dz,   w: 12 },
+      { char: bazi.hour.tg,  w: 12 },
+      { char: bazi.hour.dz,  w: 12 },
+    ];
+
+    let supportW = 0, caiW = 0, guanW = 0, shiW = 0;
+    for (const { char, w } of positions) {
+      const ss = getShiShen(dayTg, char);
+      if (['比肩','劫财','正印','偏印'].includes(ss)) supportW += w;
+      else if (['正财','偏财'].includes(ss)) caiW += w;
+      else if (['正官','七杀'].includes(ss)) guanW += w;
+      else if (['食神','伤官'].includes(ss)) shiW += w;
+    }
+
+    if (supportW > 16) return null;
+
+    const maxW = Math.max(caiW, guanW, shiW);
+    if (maxW < 24) return null;
+
+    let type;
+    if (caiW === maxW)  type = '从财格';
+    else if (guanW === maxW) type = '从官格';
+    else                type = '从儿格';
+
+    return { type, supportW, caiW, guanW, shiW };
+  }
+
   // ── 喜用神 ────────────────────────────────────────────────────────
 
-  function getXiYong(score, dayTg) {
+  function getXiYong(score, dayTg, congGe) {
     const dayWx = WUXING[dayTg];
     const idx = wxIdx(dayWx);
-    // 生我 (印) 和 同我 (比劫) 的五行
-    const yinWx  = WX_ORDER[(idx + 4) % 5]; // 生我者
-    const biWx   = dayWx;                    // 同我者
-    // 我克 (财) 和 克我 (官杀) 的五行
-    const caiWx  = WX_ORDER[(idx + 2) % 5]; // 我克
-    const guanWx = WX_ORDER[(idx + 3) % 5]; // 克我
+    const yinWx  = WX_ORDER[(idx + 4) % 5]; // 生我 (印)
+    const biWx   = dayWx;                    // 同我 (比劫)
+    const shiWx  = WX_ORDER[(idx + 1) % 5]; // 我生 (食伤)
+    const caiWx  = WX_ORDER[(idx + 2) % 5]; // 我克 (财)
+    const guanWx = WX_ORDER[(idx + 3) % 5]; // 克我 (官杀)
+
+    // 从格：喜忌与普通身弱完全相反
+    if (congGe) {
+      if (congGe.type === '从财格') {
+        return {
+          strength: '从财格', congGe: true,
+          label: `从财格（扶身${score}分，日主极弱顺从财星）`,
+          xiYongWx: [caiWx, guanWx],
+          jiShen: [yinWx, biWx],
+          investStyle: '顺势取财，跟随强势财星行业',
+          detail: `从财格：喜${caiWx}（财）、${guanWx}（官），忌${yinWx}（印）、${biWx}（比劫）`,
+        };
+      }
+      if (congGe.type === '从官格') {
+        return {
+          strength: '从官格', congGe: true,
+          label: `从官格（扶身${score}分，日主极弱顺从官杀）`,
+          xiYongWx: [guanWx, caiWx],
+          jiShen: [yinWx, biWx],
+          investStyle: '政策驱动行业，顺势而为',
+          detail: `从官格：喜${guanWx}（官杀）、${caiWx}（财），忌${yinWx}（印）、${biWx}（比劫）`,
+        };
+      }
+      if (congGe.type === '从儿格') {
+        return {
+          strength: '从儿格', congGe: true,
+          label: `从儿格（扶身${score}分，日主极弱顺从食伤）`,
+          xiYongWx: [shiWx, caiWx],
+          jiShen: [yinWx, guanWx],
+          investStyle: '科技/创新/成长型，重视现金流',
+          detail: `从儿格：喜${shiWx}（食伤）、${caiWx}（财），忌${yinWx}（印）、${guanWx}（官杀）`,
+        };
+      }
+    }
 
     if (score > 60) {
       return {
-        strength: '身强',
+        strength: '身强', congGe: false,
         label: `得分 ${score}，日主旺盛`,
         xiYongWx: [caiWx, guanWx],
         jiShen: [yinWx, biWx],
@@ -117,7 +195,7 @@
       };
     } else if (score < 40) {
       return {
-        strength: '身弱',
+        strength: '身弱', congGe: false,
         label: `得分 ${score}，日主偏弱`,
         xiYongWx: [yinWx, biWx],
         jiShen: [caiWx, guanWx],
@@ -126,7 +204,7 @@
       };
     } else {
       return {
-        strength: '中和',
+        strength: '中和', congGe: false,
         label: `得分 ${score}，日主中和`,
         xiYongWx: [caiWx, guanWx, yinWx],
         jiShen: [],
@@ -356,26 +434,42 @@
 
   // ── 清仓信号检测 ──────────────────────────────────────────────────
 
-  function checkExitSignal(timing, strengthScore, dayTg) {
-    const { lnScore } = timing;
+  function checkExitSignal(timing, strengthScore, dayTg, xiYong) {
     const { tg: lnTg, dz: lnDz } = timing.pillars.liuNian;
-    const dayTgSS_ln_tg = getShiShen(dayTg, lnTg);
-    const dayTgSS_ln_dz = getShiShen(dayTg, lnDz);
-
+    const lnTgSS = getShiShen(dayTg, lnTg);
+    const lnDzSS = getShiShen(dayTg, lnDz);
     const signals = [];
 
-    if (strengthScore > 60) {
-      // 身强：遇比肩劫财 → 清仓
-      if (['比肩','劫财'].includes(dayTgSS_ln_tg) || ['比肩','劫财'].includes(dayTgSS_ln_dz)) {
-        signals.push({ level: '清仓', reason: `身强遇比肩/劫财（流年${lnTg}${lnDz}），财运被劫，建议清仓锁利` });
+    if (xiYong && xiYong.congGe) {
+      // 从格：遇到冲破从格之物 → 清仓（喜忌与普通命局相反）
+      const { strength } = xiYong;
+      if (strength === '从财格' || strength === '从官格') {
+        // 从财/官格喜财官，忌印比——遇印比则冲格
+        if (['比肩','劫财','正印','偏印'].includes(lnTgSS) || ['比肩','劫财','正印','偏印'].includes(lnDzSS)) {
+          signals.push({ level: '清仓', reason: `${strength}遇印/比（流年${lnTg}${lnDz}），冲破从格，建议清仓` });
+        }
+      } else if (strength === '从儿格') {
+        // 从儿格喜食伤，忌印+官——遇印克食伤
+        if (['正印','偏印'].includes(lnTgSS) || ['正印','偏印'].includes(lnDzSS)) {
+          signals.push({ level: '清仓', reason: `从儿格遇印星（流年${lnTg}${lnDz}），克制食伤，建议清仓` });
+        }
+        if (['正官','七杀'].includes(lnTgSS) || ['正官','七杀'].includes(lnDzSS)) {
+          signals.push({ level: '减仓', reason: `从儿格遇官杀（流年${lnTg}${lnDz}），压制食伤，建议减仓` });
+        }
       }
-    } else if (strengthScore < 40) {
-      // 身弱：遇食伤官杀 → 清仓/减仓
-      if (['食神','伤官'].includes(dayTgSS_ln_tg) || ['食神','伤官'].includes(dayTgSS_ln_dz)) {
-        signals.push({ level: '减仓', reason: `身弱遇食伤（流年${lnTg}${lnDz}），泄气，建议减仓50%` });
-      }
-      if (['正官','七杀'].includes(dayTgSS_ln_tg) || ['正官','七杀'].includes(dayTgSS_ln_dz)) {
-        signals.push({ level: '清仓', reason: `身弱遇官杀（流年${lnTg}${lnDz}），受克，建议清仓` });
+    } else {
+      // 普通格局
+      if (strengthScore > 60) {
+        if (['比肩','劫财'].includes(lnTgSS) || ['比肩','劫财'].includes(lnDzSS)) {
+          signals.push({ level: '清仓', reason: `身强遇比肩/劫财（流年${lnTg}${lnDz}），财运被劫，建议清仓锁利` });
+        }
+      } else if (strengthScore < 40) {
+        if (['食神','伤官'].includes(lnTgSS) || ['食神','伤官'].includes(lnDzSS)) {
+          signals.push({ level: '减仓', reason: `身弱遇食伤（流年${lnTg}${lnDz}），泄气，建议减仓50%` });
+        }
+        if (['正官','七杀'].includes(lnTgSS) || ['正官','七杀'].includes(lnDzSS)) {
+          signals.push({ level: '清仓', reason: `身弱遇官杀（流年${lnTg}${lnDz}），受克，建议清仓` });
+        }
       }
     }
 
@@ -392,11 +486,12 @@
     );
 
     const score    = calcStrengthScore(bazi);
-    const xiYong   = getXiYong(score, dayTg);
+    const congGe   = detectCongGe(bazi);
+    const xiYong   = getXiYong(score, dayTg, congGe);
     const caiXing  = analyzeCaiXing(bazi);
     const timing   = calcTimingScore(dayuns, year, dayTg, xiYong.xiYongWx, xiYong.jiShen);
     const indRec   = getIndustryRec(xiYong.xiYongWx, dayTg);
-    const exitSigs = checkExitSignal(timing, score, dayTg);
+    const exitSigs = checkExitSignal(timing, score, dayTg, xiYong);
     const curDaYun = getCurrentDaYun(dayuns, year);
 
     // 十神标注（用于展示）
@@ -410,7 +505,7 @@
     return {
       bazi, dayTg, dayYang: isYang(dayTg),
       pillarsWithSS,
-      score, xiYong, caiXing,
+      score, congGe, xiYong, caiXing,
       dayuns, startAge, forward, curDaYun,
       timing, indRec, exitSigs,
     };
@@ -426,10 +521,13 @@
 
     const signalIcon = (s) => s === '喜用' ? '✅' : s === '忌神' ? '❌' : '➖';
 
+    const { congGe } = result;
+    const congGeNote = congGe ? ` · ${congGe.type}` : '';
+
     const lines = [
       `【八字量化信号】${today}`,
       ``,
-      `日主：${dayTg}（${WUXING[dayTg]}）${xiYong.strength}`,
+      `日主：${dayTg}（${WUXING[dayTg]}）${xiYong.strength}${congGeNote}`,
       `喜用：${xiYong.xiYongWx.join('、')} | ${caiXing.stockType}`,
       ``,
       `▸ 大运：${curDaYun ? curDaYun.gz : '—'}`,
