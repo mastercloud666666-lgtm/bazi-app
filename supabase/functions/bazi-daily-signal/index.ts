@@ -1,6 +1,6 @@
 // supabase/functions/bazi-daily-signal/index.ts
 // 企业微信推送：支持内部成员(userid) 和 外部联系人(external_userid)
-import { corsHeaders } from '../_shared/security.ts';
+import { corsHeaders, resolveAllowedOrigins } from '../_shared/security.ts';
 
 const WECHAT_API_BASE = 'https://qyapi.weixin.qq.com/cgi-bin';
 
@@ -13,37 +13,24 @@ async function getAccessToken(corpid: string, corpsecret: string): Promise<strin
   return data.access_token as string;
 }
 
-// 内部成员消息（自建应用 /message/send）
+// 内部成员消息
 async function sendInternalMessage(
-  accessToken: string,
-  toUser: string,
-  agentId: string,
-  content: string
+  accessToken: string, toUser: string, agentId: string, content: string
 ): Promise<void> {
   const url = `${WECHAT_API_BASE}/message/send?access_token=${accessToken}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      touser: toUser,
-      msgtype: 'text',
-      agentid: agentId,
-      text: { content },
-      safe: 0,
-    }),
+    body: JSON.stringify({ touser: toUser, msgtype: 'text', agentid: agentId, text: { content }, safe: 0 }),
   });
   if (!res.ok) throw new Error(`WeChat internal send failed: ${res.status}`);
   const data = await res.json();
-  if (data.errcode !== 0) throw new Error(`WeChat internal send error ${data.errcode}: ${data.errmsg}`);
+  if (data.errcode !== 0) throw new Error(`WeChat send error ${data.errcode}: ${data.errmsg}`);
 }
 
-// 外部联系人消息（/externalcontact/message/send）
-// 需要：sender = 已添加该外部联系人的内部成员 userid
+// 外部联系人消息
 async function sendExternalMessage(
-  accessToken: string,
-  externalUserid: string,
-  senderUserid: string,
-  content: string
+  accessToken: string, externalUserid: string, senderUserid: string, content: string
 ): Promise<void> {
   const url = `${WECHAT_API_BASE}/externalcontact/message/send?access_token=${accessToken}`;
   const res = await fetch(url, {
@@ -61,47 +48,43 @@ async function sendExternalMessage(
   if (data.errcode !== 0) throw new Error(`WeChat external send error ${data.errcode}: ${data.errmsg}`);
 }
 
-// 外部联系人 external_userid 以 'wo' 或 'wm' 开头
 function isExternalUserid(userid: string): boolean {
   return userid.startsWith('wo') || userid.startsWith('wm');
 }
 
 Deno.serve(async (req: Request) => {
+  const allowedOrigins = resolveAllowedOrigins();
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: corsHeaders });
+    return new Response(null, { status: 200, headers: corsHeaders(req, allowedOrigins) });
   }
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders(req, allowedOrigins), 'Content-Type': 'application/json' },
     });
   }
 
   try {
-    const corpid      = Deno.env.get('WECHAT_CORPID');
-    const corpsecret  = Deno.env.get('WECHAT_CORPSECRET');
-    const agentId     = Deno.env.get('WECHAT_AGENTID');
-    // 发送外部联系人消息时，代表哪个内部成员发出（默认用管理员自己）
+    const corpid       = Deno.env.get('WECHAT_CORPID');
+    const corpsecret   = Deno.env.get('WECHAT_CORPSECRET');
+    const agentId      = Deno.env.get('WECHAT_AGENTID');
     const senderUserId = Deno.env.get('WECHAT_SENDER_USERID') || 'TengBaiJia';
 
     if (!corpid || !corpsecret || !agentId) {
       return new Response(JSON.stringify({ error: '企业微信配置缺失' }), {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders(req, allowedOrigins), 'Content-Type': 'application/json' },
       });
     }
 
     const body = await req.json();
-    const { userid, message, name } = body as {
-      userid?: string;
-      message?: string;
-      name?: string;
-    };
+    const { userid, message, name } = body as { userid?: string; message?: string; name?: string };
 
     if (!userid || !message) {
       return new Response(JSON.stringify({ error: '缺少 userid 或 message' }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders(req, allowedOrigins), 'Content-Type': 'application/json' },
       });
     }
 
@@ -118,20 +101,15 @@ Deno.serve(async (req: Request) => {
     }
 
     return new Response(
-      JSON.stringify({
-        ok: true,
-        type: external ? '外部联系人' : '内部成员',
-        sent_to: userid,
-        preview: finalMessage.slice(0, 60) + '…',
-      }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ ok: true, type: external ? '外部联系人' : '内部成员', sent_to: userid }),
+      { status: 200, headers: { ...corsHeaders(req, allowedOrigins), 'Content-Type': 'application/json' } }
     );
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error('[bazi-daily-signal] Error:', message);
-    return new Response(JSON.stringify({ ok: false, error: message }), {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[bazi-daily-signal]', msg);
+    return new Response(JSON.stringify({ ok: false, error: msg }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders(req, allowedOrigins), 'Content-Type': 'application/json' },
     });
   }
 });
