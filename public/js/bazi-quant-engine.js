@@ -66,6 +66,31 @@
     hour_tg: 12, hour_dz: 12,
   };
 
+  // ── 地支藏干 ──────────────────────────────────────────────────────
+  // 顺序：主气、中气、余气
+  const CANG_GAN = {
+    '子': ['癸'],
+    '丑': ['己','癸','辛'],
+    '寅': ['甲','丙','戊'],
+    '卯': ['乙'],
+    '辰': ['戊','乙','癸'],
+    '巳': ['丙','庚','戊'],
+    '午': ['丁','己'],
+    '未': ['己','丁','乙'],
+    '申': ['庚','壬','戊'],
+    '酉': ['辛'],
+    '戌': ['戊','辛','丁'],
+    '亥': ['壬','甲'],
+  };
+  const CANG_RATIOS = [0.6, 0.3, 0.1]; // 主气/中气/余气权重比
+
+  function getCangGan(dz) {
+    return (CANG_GAN[dz] || []).map((tg, i) => ({
+      tg, ratio: CANG_RATIOS[i] || 0.1,
+      qi: ['主气','中气','余气'][i] || '余气',
+    }));
+  }
+
   function calcStrengthScore(bazi) {
     const dayTg = bazi.day.tg;
     let score = 0;
@@ -84,14 +109,26 @@
       const ss = getShiShen(dayTg, char);
       const w  = PILLAR_WEIGHTS[key];
       if (key === 'month_dz') {
-        // 月令：比劫 OR 印星 均计40分
+        // 月令地支：比劫 OR 印星 均计40分（主气已体现在地支本身）
         if (['比肩','劫财','正印','偏印'].includes(ss)) score += w;
+        // 月令中气/余气：比劫+印 各按折扣计
+        getCangGan(char).slice(1).forEach(({ tg, ratio }) => {
+          const hss = getShiShen(dayTg, tg);
+          if (['比肩','劫财','正印','偏印'].includes(hss)) score += w * ratio * 0.4;
+        });
+      } else if (key === 'year_dz' || key === 'day_dz' || key === 'hour_dz') {
+        // 非月令地支：只有比劫计（含藏干，但折扣更低）
+        if (['比肩','劫财'].includes(ss)) score += w;
+        getCangGan(char).forEach(({ tg, ratio }) => {
+          const hss = getShiShen(dayTg, tg);
+          if (['比肩','劫财'].includes(hss)) score += w * ratio * 0.3;
+        });
       } else {
-        // 其余：只有比劫计分
+        // 天干位置
         if (['比肩','劫财'].includes(ss)) score += w;
       }
     }
-    return score;
+    return Math.min(100, Math.round(score));
   }
 
   // ── 从格检测 ──────────────────────────────────────────────────────
@@ -118,12 +155,22 @@
     ];
 
     let supportW = 0, caiW = 0, guanW = 0, shiW = 0;
-    for (const { char, w } of positions) {
-      const ss = getShiShen(dayTg, char);
+
+    function addWeight(ss, w) {
       if (['比肩','劫财','正印','偏印'].includes(ss)) supportW += w;
       else if (['正财','偏财'].includes(ss)) caiW += w;
       else if (['正官','七杀'].includes(ss)) guanW += w;
       else if (['食神','伤官'].includes(ss)) shiW += w;
+    }
+
+    for (const { char, w } of positions) {
+      addWeight(getShiShen(dayTg, char), w);
+      // 地支藏干（折扣 0.4）
+      if (CANG_GAN[char]) {
+        getCangGan(char).forEach(({ tg, ratio }) => {
+          addWeight(getShiShen(dayTg, tg), w * ratio * 0.4);
+        });
+      }
     }
 
     if (supportW > 16) return null;
@@ -226,10 +273,20 @@
     ];
 
     let zhengCai = 0, pianCai = 0;
+    const cangGanCai = [];
     for (const c of chars) {
       const ss = getShiShen(dayTg, c);
       if (ss === '正财') zhengCai++;
       if (ss === '偏财') pianCai++;
+    }
+    // 地支藏干财星（按主气0.6/中气0.3/余气0.1 折扣计）
+    const branches = [bazi.year.dz, bazi.month.dz, bazi.day.dz, bazi.hour.dz];
+    for (const dz of branches) {
+      getCangGan(dz).forEach(({ tg, ratio, qi }) => {
+        const ss = getShiShen(dayTg, tg);
+        if (ss === '正财') { zhengCai += ratio * 0.5; cangGanCai.push(`${dz}中${tg}(${qi}正财)`); }
+        if (ss === '偏财') { pianCai  += ratio * 0.5; cangGanCai.push(`${dz}中${tg}(${qi}偏财)`); }
+      });
     }
 
     let style, holdPeriod, stockType;
@@ -251,7 +308,7 @@
       stockType = '价值股底仓 + 成长股卫星';
     }
 
-    return { zhengCai, pianCai, style, holdPeriod, stockType };
+    return { zhengCai, pianCai, cangGanCai, style, holdPeriod, stockType };
   }
 
   // ── 当前大运 ──────────────────────────────────────────────────────
