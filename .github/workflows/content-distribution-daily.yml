@@ -1,0 +1,82 @@
+name: Content Distribution Daily
+
+on:
+  schedule:
+    # 09:10, 15:10, 21:10 Asia/Singapore ~= 01:10, 07:10, 13:10 UTC
+    - cron: "10 1,7,13 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: content-distribution-daily
+  cancel-in-progress: false
+
+jobs:
+  distribution:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Pull growth snapshot
+        env:
+          BASE_URL: https://tengyunzi.com
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON: ${{ secrets.SUPABASE_ANON }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ADMIN_DASHBOARD_TOKEN: ${{ secrets.ADMIN_DASHBOARD_TOKEN }}
+          TRAFFIC_WINDOW_HOURS: ${{ vars.TRAFFIC_WINDOW_HOURS }}
+          TRAFFIC_WINDOW_HOURS_7D: ${{ vars.TRAFFIC_WINDOW_HOURS_7D }}
+          FUNNEL_WINDOW_DAYS: ${{ vars.FUNNEL_WINDOW_DAYS }}
+          TARGET_VISITS_24H: ${{ vars.TARGET_VISITS_24H }}
+          TARGET_ORDERS_7D: ${{ vars.TARGET_ORDERS_7D }}
+          TARGET_PAID_RATE_PCT: ${{ vars.TARGET_PAID_RATE_PCT }}
+          TARGET_DELIVERED_RATE_PCT: ${{ vars.TARGET_DELIVERED_RATE_PCT }}
+        run: node scripts/pull_growth_snapshot.mjs
+
+      - name: Generate distribution pack
+        env:
+          SITE_BASE_URL: https://tengyunzi.com
+          GROWTH_SNAPSHOT_PATH: data/growth_snapshot.json
+          DISTRIBUTION_OUTPUT_DIR: data/distribution
+          # Optional: configure this to send pack to your automation webhook (n8n/Make/Zapier)
+          GROWTH_DISTRIBUTION_WEBHOOK: ${{ secrets.GROWTH_DISTRIBUTION_WEBHOOK }}
+        run: node scripts/run_content_distribution.mjs
+
+      - name: Render run summary
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const growth = JSON.parse(fs.readFileSync('data/growth_snapshot.json','utf8'));
+          const pack = JSON.parse(fs.readFileSync('data/distribution/latest.json','utf8'));
+          const lines = [
+            '## Content Distribution',
+            '',
+            `- Growth score: ${growth?.score?.final_score ?? ''}`,
+            `- Growth policy: ${growth?.policy?.policy ?? ''}`,
+            `- Landing page: ${pack?.landing_page?.path ?? ''}`,
+            `- Post count: ${(pack?.posts || []).length}`,
+            `- Generated: ${pack?.generated_at_utc || ''}`,
+          ];
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n') + '\n');
+          NODE
+
+      - name: Upload distribution artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: distribution-pack
+          path: |
+            data/growth_snapshot.json
+            data/distribution/latest.json
+            data/distribution/latest.md
+            data/distribution/runtime.json
+

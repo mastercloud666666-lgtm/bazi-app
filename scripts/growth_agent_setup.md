@@ -94,3 +94,26 @@ After pushing to GitHub:
 1. Open `Actions` tab.
 2. Run `Growth Agent Hourly` once manually (`Run workflow`) to verify.
 3. Then it will execute every hour automatically.
+
+## 7) Content distribution automation (execution layer)
+
+Workflow file:
+
+`C:\Users\tgspc\bazi-app\.github\workflows\content-distribution-daily.yml`
+
+It runs 3 times/day and does:
+1. Pull latest growth snapshot.
+2. Generate platform-ready post pack with UTM links.
+3. Optionally push pack to your webhook for auto-publishing.
+
+Core script:
+
+`C:\Users\tgspc\bazi-app\scripts\run_content_distribution.mjs`
+
+Output:
+- `C:\Users\tgspc\bazi-app\data\distribution\latest.json`
+- `C:\Users\tgspc\bazi-app\data\distribution\latest.md`
+
+Optional secret:
+- `GROWTH_DISTRIBUTION_WEBHOOK`  
+  (connect this to n8n/Make/Zapier to auto-post into channels)
