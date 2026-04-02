@@ -1,0 +1,77 @@
+name: Growth Agent Hourly
+
+on:
+  schedule:
+    # Every hour (UTC). For Asia/Singapore, this is every hour local time as well.
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: growth-agent-hourly
+  cancel-in-progress: false
+
+jobs:
+  growth-agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run growth snapshot pull
+        env:
+          BASE_URL: https://tengyunzi.com
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON: ${{ secrets.SUPABASE_ANON }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ADMIN_DASHBOARD_TOKEN: ${{ secrets.ADMIN_DASHBOARD_TOKEN }}
+          TRAFFIC_WINDOW_HOURS: ${{ vars.TRAFFIC_WINDOW_HOURS }}
+          TRAFFIC_WINDOW_HOURS_7D: ${{ vars.TRAFFIC_WINDOW_HOURS_7D }}
+          FUNNEL_WINDOW_DAYS: ${{ vars.FUNNEL_WINDOW_DAYS }}
+          TARGET_VISITS_24H: ${{ vars.TARGET_VISITS_24H }}
+          TARGET_ORDERS_7D: ${{ vars.TARGET_ORDERS_7D }}
+          TARGET_PAID_RATE_PCT: ${{ vars.TARGET_PAID_RATE_PCT }}
+          TARGET_DELIVERED_RATE_PCT: ${{ vars.TARGET_DELIVERED_RATE_PCT }}
+        run: node scripts/pull_growth_snapshot.mjs
+
+      - name: Render run summary
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const file = 'data/growth_snapshot.json';
+          const d = JSON.parse(fs.readFileSync(file, 'utf8'));
+          const m = d.metrics || {};
+          const s = (d.score || {});
+          const policy = (d.policy || {}).policy || 'unknown';
+          const lines = [
+            '## Growth Agent Snapshot',
+            '',
+            `- Generated: ${d.generated_at_utc || ''}`,
+            `- Source mode: ${(d.raw || {}).source_mode || ''}`,
+            `- Final score: ${s.final_score ?? ''}`,
+            `- Policy: ${policy}`,
+            `- Visits(24h): ${m.visits_24h ?? 0}`,
+            `- Visits(7d): ${m.visits_7d ?? 0}`,
+            `- Orders(7d): ${m.orders_7d ?? 0}`,
+            `- Paid orders(7d): ${m.paid_orders_7d ?? 0}`,
+            `- Delivered orders(7d): ${m.delivered_orders_7d ?? 0}`,
+            `- Unresolved failures(7d): ${m.unresolved_failures_7d ?? 0}`,
+          ];
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n') + '\n');
+          NODE
+
+      - name: Upload growth snapshot artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: growth-snapshot
+          path: data/growth_snapshot.json
+
