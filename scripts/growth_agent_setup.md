@@ -74,10 +74,12 @@ Workflow file:
 `C:\Users\tgspc\bazi-app\.github\workflows\growth-agent-hourly.yml`
 
 Set these GitHub **Secrets** (Repo Settings -> Secrets and variables -> Actions):
-- `SUPABASE_URL`
-- `SUPABASE_ANON` (optional if you use service-role fallback only)
-- `SUPABASE_SERVICE_ROLE_KEY` (recommended)
-- `ADMIN_DASHBOARD_TOKEN` (optional, preferred mode if available)
+- No secret is strictly required for basic run (script auto-reads `public/js/app.js`).
+- Recommended secrets (for stability/security):
+  - `SUPABASE_URL`
+  - `SUPABASE_ANON`
+  - `SUPABASE_SERVICE_ROLE_KEY` (recommended)
+  - `ADMIN_DASHBOARD_TOKEN` (optional, preferred mode)
 
 Optional GitHub **Variables** (same page -> Variables):
 - `TRAFFIC_WINDOW_HOURS`

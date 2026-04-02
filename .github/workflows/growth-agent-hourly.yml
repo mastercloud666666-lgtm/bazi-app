@@ -29,9 +29,12 @@ jobs:
       - name: Run growth snapshot pull
         env:
           BASE_URL: https://tengyunzi.com
+          # Optional: leave empty to auto-read from public/js/app.js
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON: ${{ secrets.SUPABASE_ANON }}
+          # Optional: preferred for stricter backend read mode
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Optional: if set, script uses admin function mode first
           ADMIN_DASHBOARD_TOKEN: ${{ secrets.ADMIN_DASHBOARD_TOKEN }}
           TRAFFIC_WINDOW_HOURS: ${{ vars.TRAFFIC_WINDOW_HOURS }}
           TRAFFIC_WINDOW_HOURS_7D: ${{ vars.TRAFFIC_WINDOW_HOURS_7D }}
@@ -74,4 +77,3 @@ jobs:
         with:
           name: growth-snapshot
           path: data/growth_snapshot.json
-

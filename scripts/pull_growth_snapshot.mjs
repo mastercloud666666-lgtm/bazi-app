@@ -331,7 +331,7 @@ function computeFunnelDashboard(rows, days, sinceIso, sinceMs) {
   };
 }
 
-async function queryVisitRows({ supabaseUrl, serviceRoleKey, sinceIso, limit }) {
+async function queryVisitRows({ supabaseUrl, authKey, sinceIso, limit }) {
   const url = new URL(`${supabaseUrl}/rest/v1/api_abuse_logs`);
   url.searchParams.set('select', 'created_at,scope,event,identifier,meta');
   url.searchParams.set('scope', 'eq.site_visit');
@@ -343,8 +343,8 @@ async function queryVisitRows({ supabaseUrl, serviceRoleKey, sinceIso, limit }) 
   const { response, text, data } = await fetchJson(url.toString(), {
     method: 'GET',
     headers: {
-      apikey: serviceRoleKey,
-      Authorization: `Bearer ${serviceRoleKey}`,
+      apikey: authKey,
+      Authorization: `Bearer ${authKey}`,
     },
   });
   if (!response.ok) {
@@ -353,7 +353,7 @@ async function queryVisitRows({ supabaseUrl, serviceRoleKey, sinceIso, limit }) 
   return Array.isArray(data) ? data : [];
 }
 
-async function queryOrderRows({ supabaseUrl, serviceRoleKey, sinceIso, limit }) {
+async function queryOrderRows({ supabaseUrl, authKey, sinceIso, limit }) {
   const url = new URL(`${supabaseUrl}/rest/v1/orders`);
   url.searchParams.set('select', 'trade_no,paid,analysis,created_at,birth_input');
   url.searchParams.set('created_at', `gte.${sinceIso}`);
@@ -363,8 +363,8 @@ async function queryOrderRows({ supabaseUrl, serviceRoleKey, sinceIso, limit }) 
   const { response, text, data } = await fetchJson(url.toString(), {
     method: 'GET',
     headers: {
-      apikey: serviceRoleKey,
-      Authorization: `Bearer ${serviceRoleKey}`,
+      apikey: authKey,
+      Authorization: `Bearer ${authKey}`,
     },
   });
   if (!response.ok) {
@@ -499,6 +499,9 @@ async function run() {
   if (!supabaseUrl) {
     throw new Error('Missing SUPABASE_URL (env or app.js)');
   }
+  if (!supabaseAnon) {
+    throw new Error('Missing SUPABASE_ANON (env or app.js)');
+  }
 
   const hours24 = clamp(readNumberEnv('TRAFFIC_WINDOW_HOURS', 24), 1, 720);
   const hours7d = clamp(readNumberEnv('TRAFFIC_WINDOW_HOURS_7D', 168), 1, 720);
@@ -542,37 +545,66 @@ async function run() {
     });
     sourceMode = 'admin_orders_function';
   } else {
-    if (!serviceRoleKey) {
-      throw new Error('Missing ADMIN_DASHBOARD_TOKEN and SUPABASE_SERVICE_ROLE_KEY');
+    const primaryReadKey = serviceRoleKey || supabaseAnon;
+    if (!primaryReadKey) {
+      throw new Error('Missing readable key: SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON');
     }
     const since24Iso = new Date(Date.now() - hours24 * 60 * 60 * 1000).toISOString();
     const since7dIso = new Date(Date.now() - hours7d * 60 * 60 * 1000).toISOString();
     const sinceFunnelMs = Date.now() - funnelDays * 24 * 60 * 60 * 1000;
     const sinceFunnelIso = new Date(sinceFunnelMs).toISOString();
 
-    const rows24 = await queryVisitRows({
-      supabaseUrl,
-      serviceRoleKey,
-      sinceIso: since24Iso,
-      limit: maxVisitRows,
-    });
-    const rows7d = await queryVisitRows({
-      supabaseUrl,
-      serviceRoleKey,
-      sinceIso: since7dIso,
-      limit: maxVisitRows,
-    });
-    const orderRows = await queryOrderRows({
-      supabaseUrl,
-      serviceRoleKey,
-      sinceIso: sinceFunnelIso,
-      limit: maxOrderRows,
-    });
+    let rows24 = [];
+    let rows7d = [];
+    let orderRows = [];
+    let usedReadKey = primaryReadKey;
+    try {
+      rows24 = await queryVisitRows({
+        supabaseUrl,
+        authKey: usedReadKey,
+        sinceIso: since24Iso,
+        limit: maxVisitRows,
+      });
+      rows7d = await queryVisitRows({
+        supabaseUrl,
+        authKey: usedReadKey,
+        sinceIso: since7dIso,
+        limit: maxVisitRows,
+      });
+      orderRows = await queryOrderRows({
+        supabaseUrl,
+        authKey: usedReadKey,
+        sinceIso: sinceFunnelIso,
+        limit: maxOrderRows,
+      });
+    } catch (primaryErr) {
+      const canFallbackToAnon = Boolean(serviceRoleKey) && Boolean(supabaseAnon) && serviceRoleKey !== supabaseAnon;
+      if (!canFallbackToAnon) throw primaryErr;
+      usedReadKey = supabaseAnon;
+      rows24 = await queryVisitRows({
+        supabaseUrl,
+        authKey: usedReadKey,
+        sinceIso: since24Iso,
+        limit: maxVisitRows,
+      });
+      rows7d = await queryVisitRows({
+        supabaseUrl,
+        authKey: usedReadKey,
+        sinceIso: since7dIso,
+        limit: maxVisitRows,
+      });
+      orderRows = await queryOrderRows({
+        supabaseUrl,
+        authKey: usedReadKey,
+        sinceIso: sinceFunnelIso,
+        limit: maxOrderRows,
+      });
+    }
 
     traffic24h = computeTrafficDashboard(rows24, hours24, since24Iso);
     traffic7d = computeTrafficDashboard(rows7d, hours7d, since7dIso);
     funnel = computeFunnelDashboard(orderRows, funnelDays, sinceFunnelIso, sinceFunnelMs);
-    sourceMode = 'service_role_postgrest';
+    sourceMode = usedReadKey === serviceRoleKey ? 'service_role_postgrest' : 'anon_postgrest';
   }
 
   const summary24 = traffic24h.summary || {};
