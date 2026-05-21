@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文案 Agent 会审台 | 云子工具</title>
+  <meta name="description" content="文案 Agent 会审台内测入口：用于短视频口播标题、文案、去 AI 味、短视频节奏和多 Agent 会审。">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <link rel="canonical" href="https://www.tengyunzi.com/copy-agent.html">
+  <style>
+    :root {
+      --bg: #f5f1ea;
+      --paper: #fffaf2;
+      --ink: #242220;
+      --muted: #706a62;
+      --line: #ded4c8;
+      --accent: #c43c52;
+      --accent-dark: #8f2434;
+      --green: #14786f;
+      --shadow: 0 22px 70px rgba(49, 37, 28, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(36, 34, 32, 0.045) 1px, transparent 1px),
+        linear-gradient(180deg, #f8f3ec 0%, var(--bg) 100%);
+      background-size: 30px 30px, auto;
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      line-height: 1.7;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .shell {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 64px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 44px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      color: #fff;
+      background: var(--accent);
+      letter-spacing: 0;
+    }
+
+    .back-link {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    .hero-copy,
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 242, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy {
+      padding: 40px;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      color: var(--green);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .status::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--green);
+      box-shadow: 0 0 0 6px rgba(20, 120, 111, 0.12);
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 760px;
+      font-size: clamp(38px, 6vw, 72px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 690px;
+      margin: 22px 0 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 8px;
+      font-weight: 800;
+    }
+
+    .button-primary {
+      color: #fff;
+      background: var(--accent);
+      box-shadow: 0 14px 28px rgba(196, 60, 82, 0.24);
+    }
+
+    .button-secondary {
+      color: var(--accent-dark);
+      background: #f0ddd7;
+    }
+
+    .panel {
+      padding: 26px;
+    }
+
+    .panel h2 {
+      margin: 0 0 16px;
+      font-size: 21px;
+      line-height: 1.35;
+    }
+
+    .flow {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .flow li {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 12px;
+      border: 1px solid rgba(222, 212, 200, 0.8);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.54);
+    }
+
+    .step {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      color: #fff;
+      background: var(--accent-dark);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .flow strong {
+      display: block;
+      line-height: 1.35;
+    }
+
+    .flow span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .notes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .note {
+      min-height: 132px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 242, 0.9);
+    }
+
+    .note strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .note p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .foot {
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 880px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-copy {
+        padding: 28px;
+      }
+
+      .notes {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <nav class="topbar" aria-label="页面导航">
+      <a class="brand" href="/">
+        <span class="brand-mark">TA</span>
+        <span>云子工具</span>
+      </a>
+      <a class="back-link" href="/">返回主站</a>
+    </nav>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="status">内测入口</div>
+        <h1>文案 Agent 会审台</h1>
+        <p class="lead">面向短视频口播创作者的标题、文案、去 AI 味和多 Agent 会审工作台。当前入口用于内测演示，正式使用前需要先启动对应服务。</p>
+        <div class="actions">
+          <a class="button button-primary" href="https://agent.tengyunzi.com" rel="nofollow">打开会审台</a>
+          <a class="button button-secondary" href="https://agent.tengyunzi.com" target="_blank" rel="nofollow noopener">新窗口打开</a>
+        </div>
+        <p class="foot">如果页面无法打开，说明 `agent.tengyunzi.com` 尚未配置或本地 Agent 服务没有启动。</p>
+      </div>
+
+      <aside class="panel">
+        <h2>工作流</h2>
+        <ol class="flow">
+          <li>
+            <span class="step">1</span>
+            <div>
+              <strong>生成标题</strong>
+              <span>按人设、赛道和短视频停留逻辑生成候选标题。</span>
+            </div>
+          </li>
+          <li>
+            <span class="step">2</span>
+            <div>
+              <strong>生成文案</strong>
+              <span>围绕真实经历、低谷、财富焦虑和人性洞察生成口播稿。</span>
+            </div>
+          </li>
+          <li>
+            <span class="step">3</span>
+            <div>
+              <strong>多 Agent 会审</strong>
+              <span>从钩子、创伤识别、去 AI 味、节奏和边界安全打分。</span>
+            </div>
+          </li>
+          <li>
+            <span class="step">4</span>
+            <div>
+              <strong>改写优化</strong>
+              <span>保留真实感，强化停留、评论、收藏和转发触发。</span>
+            </div>
+          </li>
+        </ol>
+      </aside>
+    </section>
+
+    <section class="notes" aria-label="使用说明">
+      <article class="note">
+        <strong>不影响主站</strong>
+        <p>这是独立静态入口页，部署后地址为 `/copy-agent.html`，不会改动首页和现有八字功能。</p>
+      </article>
+      <article class="note">
+        <strong>需要服务映射</strong>
+        <p>正式访问需要把 `agent.tengyunzi.com` 映射到文案 Agent 服务，推荐使用 Cloudflare Tunnel 内测。</p>
+      </article>
+      <article class="note">
+        <strong>后续可商业化</strong>
+        <p>验证需求后，可以升级为登录、额度、付费和云端 API 的正式 SaaS 版本。</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
