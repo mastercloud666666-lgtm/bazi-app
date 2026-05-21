@@ -212,38 +212,6 @@
       font-size: 13px;
     }
 
-    .notes {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-      margin-top: 20px;
-    }
-
-    .note {
-      min-height: 132px;
-      padding: 18px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: rgba(255, 250, 242, 0.9);
-    }
-
-    .note strong {
-      display: block;
-      margin-bottom: 8px;
-    }
-
-    .note p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .foot {
-      margin-top: 24px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
     @media (max-width: 880px) {
       .hero {
         grid-template-columns: 1fr;
@@ -253,9 +221,6 @@
         padding: 28px;
       }
 
-      .notes {
-        grid-template-columns: 1fr;
-      }
     }
   </style>
 </head>
@@ -273,12 +238,11 @@
       <div class="hero-copy">
         <div class="status">内测入口</div>
         <h1>文案 Agent 会审台</h1>
-        <p class="lead">面向短视频口播创作者的标题、文案、去 AI 味和多 Agent 会审工作台。当前入口用于内测演示，正式使用前需要先启动对应服务。</p>
+        <p class="lead">面向短视频口播创作者的标题、文案、去 AI 味和多 Agent 会审工作台。</p>
         <div class="actions">
           <a class="button button-primary" href="https://agent.tengyunzi.com" rel="nofollow">打开会审台</a>
           <a class="button button-secondary" href="https://agent.tengyunzi.com" target="_blank" rel="nofollow noopener">新窗口打开</a>
         </div>
-        <p class="foot">如果页面无法打开，说明 `agent.tengyunzi.com` 尚未配置或本地 Agent 服务没有启动。</p>
       </div>
 
       <aside class="panel">
@@ -314,21 +278,6 @@
           </li>
         </ol>
       </aside>
-    </section>
-
-    <section class="notes" aria-label="使用说明">
-      <article class="note">
-        <strong>不影响主站</strong>
-        <p>这是独立静态入口页，部署后地址为 `/copy-agent.html`，不会改动首页和现有八字功能。</p>
-      </article>
-      <article class="note">
-        <strong>需要服务映射</strong>
-        <p>正式访问需要把 `agent.tengyunzi.com` 映射到文案 Agent 服务，推荐使用 Cloudflare Tunnel 内测。</p>
-      </article>
-      <article class="note">
-        <strong>后续可商业化</strong>
-        <p>验证需求后，可以升级为登录、额度、付费和云端 API 的正式 SaaS 版本。</p>
-      </article>
     </section>
   </main>
 </body>
