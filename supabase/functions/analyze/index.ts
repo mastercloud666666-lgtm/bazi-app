@@ -6,6 +6,7 @@ import {
   corsHeaders,
   extractClientIp,
   isAllowedRequestOrigin,
+  isLikelyAutomatedUa,
   maskIp,
   recordAbuseLog,
   resolveAllowedOrigins,
@@ -19,6 +20,7 @@ const supabase = createClient(
 const DEFAULT_RATE_LIMIT_WINDOW_SECONDS = 60;
 const DEFAULT_RATE_LIMIT_MAX_REQUESTS_FREE = 8;
 const DEFAULT_RATE_LIMIT_MAX_REQUESTS_PAID = 24;
+const DEFAULT_RATE_LIMIT_MAX_REQUESTS_PER_TRADE = 10;
 
 function readEnvNumber(name: string, fallback: number, min: number, max: number): number {
   const raw = Number(String(Deno.env.get(name) || '').trim());
@@ -60,28 +62,104 @@ function chineseDigitsToNumber(input: string): number {
   return total + current;
 }
 
+function parseSectionNumber(raw: string): number {
+  const input = String(raw || '').trim();
+  if (!input) return 0;
+  if (/^\d+$/.test(input)) return Number(input);
+
+  const map: Record<string, number> = {
+    零: 0, 〇: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9,
+  };
+  if (input === '十') return 10;
+  const tenPos = input.indexOf('十');
+  if (tenPos >= 0) {
+    const left = input.slice(0, tenPos);
+    const right = input.slice(tenPos + 1);
+    const leftNum = left ? (map[left] ?? 0) : 1;
+    const rightNum = right ? (map[right] ?? 0) : 0;
+    return leftNum * 10 + rightNum;
+  }
+  return map[input] ?? 0;
+}
+
+function normalizeSectionMarkers(text: string): string {
+  if (!text) return '';
+  return String(text)
+    .replace(/\r\n?/g, '\n')
+    .replace(/(^|\n)\s*(?:Section|section)\s*(\d{1,2})\s*[:：]/g, '$1第$2段：')
+    .replace(/(^|\n)\s*第\s*([0-9一二三四五六七八九十零〇两]{1,4})\s*段\s*[:：]/g, '$1第$2段：');
+}
+
 function countReportSections(text: string): number {
-  if (!text) return 0;
-  const pattern = /Section\s*(\d{1,2})\s*:|第([一二三四五六七八九十百零\d]{1,3})段[：:]/g;
+  const normalized = normalizeSectionMarkers(text);
+  if (!normalized) return 0;
+  const pattern = /第([0-9一二三四五六七八九十零〇两]{1,4})段：/g;
   let maxSection = 0;
   let match: RegExpExecArray | null = null;
-  while ((match = pattern.exec(text))) {
-    const numeric = match[1] ? Number(match[1]) : chineseDigitsToNumber(match[2] || '');
-    if (Number.isFinite(numeric) && numeric > maxSection) {
-      maxSection = numeric;
-    }
+  while ((match = pattern.exec(normalized))) {
+    const numeric = parseSectionNumber(match[1] || '');
+    if (Number.isFinite(numeric) && numeric > maxSection) maxSection = numeric;
   }
   return maxSection;
 }
 
 function buildSectionRangeConstraint(sectionStart: number, sectionEnd: number): string {
-  return `\n\nRange constraint: Only output section ${sectionStart} to section ${sectionEnd}. Start directly from section ${sectionStart}: and end immediately after section ${sectionEnd}. Do not repeat, preview, summarize, or mention sections outside this range. If output budget feels tight, compress each section slightly, but never skip a section in this range.`;
+  return `\n\n范围约束：只输出第${sectionStart}段到第${sectionEnd}段。必须从“第${sectionStart}段：”开始，写完“第${sectionEnd}段：”后立即结束。不得重复，不得预告，不得总结范围外内容。若字数紧张，可适度压缩单段，但绝不能跳段。`;
+}
+
+function clipBaziReportByTier(text: string, maxSection: number): string {
+  const normalized = normalizeSectionMarkers(text);
+  if (!normalized) return '';
+  const lines = normalized.split('\n');
+  const result: string[] = [];
+  let currentSection = 0;
+  let foundAnySection = false;
+  for (const rawLine of lines) {
+    const line = String(rawLine || '');
+    const marker = line.match(/^\s*第([0-9一二三四五六七八九十零〇两]{1,4})段：/);
+    if (marker) {
+      foundAnySection = true;
+      currentSection = parseSectionNumber(marker[1] || '');
+    }
+    if (!foundAnySection || (currentSection > 0 && currentSection <= maxSection)) {
+      result.push(line);
+    }
+  }
+  return result.join('\n').trim();
 }
 
 function getVipRangeMaxTokens(sectionStart: number, sectionEnd: number): number {
   const count = Math.max(1, sectionEnd - sectionStart + 1);
-  return Math.min(4800, 900 + count * 430);
+  return Math.min(7000, 1400 + count * 560);
 }
+
+const BAZI_SECTION_BLUEPRINT_24 = `
+Master section blueprint for paid BAZI report:
+第1段：用神喜忌
+第2段：五行扶抑精解
+第3段：性格底层驱动力
+第4段：天赋与优势能力画像
+第5段：事业财运
+第6段：赚钱方式拆解
+第7段：适合行业与黄金期
+第8段：创业 / 副业适配度
+第9段：感情婚姻
+第10段：婚恋相处说明书
+第11段：二婚 / 出轨 / 感情隐患深剖
+第12段：原生家庭影响
+第13段：子女缘分
+第14段：人际关系与贵人模式
+第15段：神煞分析
+第16段：地支刑冲合会
+第17段：空亡分析
+第18段：财库分析
+第19段：大运详解
+第20段：特殊流年 + 后五年逐年建议
+第21段：风险预警模块
+第22段：人生关键转折点
+第23段：改运与补运策略
+第24段：人生核心课题总结
+`;
 
 function cleanAnalysisText(rawAnalysis: string): string {
   let analysis = String(rawAnalysis || '')
@@ -92,6 +170,8 @@ function cleanAnalysisText(rawAnalysis: string): string {
     .replace(/Powered by DeepSeek.*$/gis, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+
+  analysis = normalizeSectionMarkers(analysis);
 
   const isPoemLine = (line: string) => {
     const t = line.trim();
@@ -129,7 +209,7 @@ async function requestDeepSeekCompletion(prompt: string, maxTokens: number, syst
     body: JSON.stringify({
       model: 'deepseek-chat',
       max_tokens: maxTokens,
-      temperature: 0.2,
+      temperature: 0,
       messages: [
         { role: 'system', content: systemMessage },
         { role: 'user', content: prompt }
@@ -143,6 +223,67 @@ async function requestDeepSeekCompletion(prompt: string, maxTokens: number, syst
   const dsData = await dsRes.json();
   const rawAnalysis = dsData.choices?.[0]?.message?.content || '';
   return { analysis: cleanAnalysisText(rawAnalysis) };
+}
+
+function buildSseResponseFromText(text: string, corsHeadersValue: Record<string, string>): Response {
+  const normalized = normalizeSectionMarkers(String(text || ''));
+  const encoder = new TextEncoder();
+  const lines = normalized.split('\n');
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      for (const line of lines) {
+        const payload = JSON.stringify({ choices: [{ delta: { content: `${line}\n` } }] });
+        controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
+      }
+      controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+      controller.close();
+    },
+  });
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache',
+      ...corsHeadersValue,
+    },
+  });
+}
+
+async function generatePaidBaziTierReport(
+  prompt: string,
+  systemMessage: string,
+  tier: 'basic' | 'pro' | 'vip',
+): Promise<string> {
+  const targetEnd = tier === 'basic' ? 8 : (tier === 'pro' ? 16 : 24);
+  const ranges: Array<[number, number]> = tier === 'basic'
+    ? [[1, 8]]
+    : (tier === 'pro' ? [[1, 8], [9, 16]] : [[1, 8], [9, 16], [17, 24]]);
+  const tierTokenCap = tier === 'basic' ? 4200 : (tier === 'pro' ? 6200 : 7000);
+
+  const parts: string[] = [];
+  for (const [start, end] of ranges) {
+    const pass = await requestDeepSeekCompletion(
+      prompt + buildSectionRangeConstraint(start, end),
+      Math.min(getVipRangeMaxTokens(start, end), tierTokenCap),
+      systemMessage
+    );
+    if (pass.analysis) parts.push(pass.analysis);
+  }
+
+  let combined = parts.join('\n\n').trim();
+  const maxSection = countReportSections(combined);
+  if (maxSection < targetEnd) {
+    const repairStart = Math.max(1, maxSection + 1);
+    const repairPass = await requestDeepSeekCompletion(
+      prompt +
+        buildSectionRangeConstraint(repairStart, targetEnd) +
+        `\n\n修复约束：前文已完成至第${repairStart - 1}段，只补写第${repairStart}段到第${targetEnd}段，不得重复前文。`,
+      Math.min(getVipRangeMaxTokens(repairStart, targetEnd), tierTokenCap),
+      systemMessage
+    );
+    combined = [combined, repairPass.analysis].filter(Boolean).join('\n\n').trim();
+  }
+
+  return clipBaziReportByTier(normalizeSectionMarkers(combined), targetEnd);
 }
 
 Deno.serve(async (req) => {
@@ -181,13 +322,16 @@ Deno.serve(async (req) => {
       windowSeconds: rateWindowSeconds,
       maxRequests: rateMaxRequests,
     });
+    const clientIpMasked = maskIp(extractClientIp(req));
+    const userAgent = String(req.headers.get('user-agent') || '').slice(0, 240);
+    const shouldBlockBotUa = Deno.env.get('SECURITY_BLOCK_BOT_UA_SENSITIVE') !== '0';
     if (!rateResult.allowed) {
       await recordAbuseLog(supabase, {
         scope: rateScope,
         identifier: rateIdentifier,
         event: 'rate_limited',
         meta: {
-          ip_masked: maskIp(extractClientIp(req)),
+          ip_masked: clientIpMasked,
           current_count: rateResult.currentCount,
           max_requests: rateMaxRequests,
           window_seconds: rateWindowSeconds,
@@ -205,8 +349,61 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (shouldBlockBotUa && isLikelyAutomatedUa(userAgent)) {
+      await recordAbuseLog(supabase, {
+        scope: rateScope,
+        identifier: rateIdentifier,
+        event: 'blocked_bot_ua',
+        meta: {
+          ip_masked: clientIpMasked,
+          ua: userAgent.slice(0, 160),
+          free_only: Boolean(free_only),
+          service: String(service || 'bazi'),
+        },
+      });
+      return new Response(JSON.stringify({
+        error: 'blocked_bot_ua',
+        message: 'Automated client is not allowed for report generation.',
+      }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json', ...CORS },
+      });
+    }
+
+    const tradeNoSafe = String(trade_no || '').trim();
+    if (tradeNoSafe && /^(bazi|hepan)-[a-z0-9_-]{4,140}$/i.test(tradeNoSafe)) {
+      const perTradeMaxRequests = readEnvNumber('RATE_LIMIT_ANALYZE_MAX_REQUESTS_PER_TRADE', DEFAULT_RATE_LIMIT_MAX_REQUESTS_PER_TRADE, 2, 200);
+      const perTradeResult = await consumeRateLimit(supabase, {
+        scope: `${rateScope}:trade`,
+        identifier: tradeNoSafe,
+        windowSeconds: rateWindowSeconds,
+        maxRequests: perTradeMaxRequests,
+      });
+      if (!perTradeResult.allowed) {
+        await recordAbuseLog(supabase, {
+          scope: `${rateScope}:trade`,
+          identifier: tradeNoSafe,
+          event: 'rate_limited_trade',
+          meta: {
+            ip_masked: clientIpMasked,
+            current_count: perTradeResult.currentCount,
+            max_requests: perTradeMaxRequests,
+            window_seconds: rateWindowSeconds,
+            free_only: Boolean(free_only),
+            service: String(service || 'bazi'),
+          },
+        });
+        return tooManyRequestsResponse(req, allowedOrigins, {
+          message: 'This order is being generated too frequently. Please retry shortly.',
+          retryAfterSeconds: perTradeResult.retryAfterSeconds,
+          scope: `${rateScope}:trade`,
+          currentCount: perTradeResult.currentCount,
+        });
+      }
+    }
+
     let prompt = '';
-    let maxTokens = free_only ? 1500 : 8192;
+    let maxTokens = free_only ? 600 : 8192;
     let resolvedPaymentOptionId = typeof payment_option_id === 'string' ? payment_option_id : '';
     const requestedSectionStart = Number.isInteger(section_start) ? Number(section_start) : Number.parseInt(String(section_start || ''), 10);
     const requestedSectionEnd = Number.isInteger(section_end) ? Number(section_end) : Number.parseInt(String(section_end || ''), 10);
@@ -439,197 +636,88 @@ Start age: ${start_age}
 Dayun: ${dayun_text}
 Special years: ${special_years_text}
 
-Use the exact same core logic as the full paid report (same 15-section framework), but FREE version must output only section 1 and section 2.
-Section 1: Day Master strength (month command, root support, stem support, combinations/clashes, final strength judgment).
-Section 2: Pattern judgment + personality baseline (pattern type, core temperament, key blind spot).
+你是一位经验丰富的研究员。FREE 基础版只输出第1段和第2段，共两段。
+
+第1段：日主强弱与性格轮廓（日主强弱结论、性格底色、适合的大方向）。
+第2段：未来一年的关键趋势提醒（综合大运和流年，给出1-2条具体趋势参考，不展开细节，留悬念）。
 
 Requirements:
-- Each section must include: conclusion + reason + practical advice.
-- Chinese output only, plain text only, no markdown, no poetry.
-- The first sentence must clearly state the tier name.
-- Total length: 500-900 Chinese characters.
-- Do NOT output section 3 or later.`;
+- 每段控制在150-250字，总字数严格控制在350-550汉字。
+- 第2段结尾必须自然引导："想完整看清未来十年的具体节奏、财运窗口和关键转折点，可以看看完整版的24维深度分析。"
+- 只输出中文纯文本，不用Markdown、不写诗、不引用古文。
+- 不用称呼对方为"你"，直接用口语陈述结论。
+- 不得输出第3段及以后的内容。`;
       } else {
       const nextFiveYears = Array.from({length: 5}, (_, i) => currentYear + i).join('、') + '年';
-      const paidTier = resolvedPaymentOptionId || 'basic';
-
-      if (paidTier === 'basic') {
-        prompt = `Client birth info: ${year}-${month}-${day} ${hour}:00, gender: ${gender}, bazi: ${bazi_str}, current year: ${currentYear}.
-
-Precomputed data:
-Start age: ${start_age}
-Dayun: ${dayun_text}
-Special years: ${special_years_text}
-
-This is BASIC tier. Keep the exact same framework as full report, but output only section 1 to section 3:
-Section 1: Day Master strength
-Section 2: Pattern judgment + personality baseline
-Section 3: Useful elements (yong shen) + decision advice
-
-Requirements:
-- Chinese output only, plain text only, no markdown, no poetry.
-- Each section must include: conclusion + reason + practical advice.
-- Total length: 1000-1400 Chinese characters.
-- The first sentence must clearly state the tier name.
-- Do NOT output section 4 or later.`;
-      } else if (paidTier === 'pro') {
-        prompt = `Client birth info: ${year}-${month}-${day} ${hour}:00, gender: ${gender}, bazi: ${bazi_str}, current year: ${currentYear}.
-
-Precomputed data:
-Start age: ${start_age}
-Dayun: ${dayun_text}
-Special years: ${special_years_text}
-
-This is PRO tier. Keep the exact same framework as full report, but output only section 1 to section 8:
-Section 1: Day Master strength
-Section 2: Pattern judgment
-Section 3: Useful elements (yong shen)
-Section 4: Personality traits
-Section 5: Career and wealth
-Section 6: Relationship and marriage
-Section 7: Health focus
-Section 8: ShenSha summary
-
-Requirements:
-- Chinese output only, plain text only, no markdown, no poetry.
-- Each section must include: judgment + reason + practical advice.
-- Total length: 2400-3200 Chinese characters.
-- The first sentence must clearly state the tier name.
-- Do NOT output section 9 or later.`;
-      } else {
       prompt = `客户生辰：${year}年${month}月${day}日${hour}时，${gender}命，八字：${bazi_str}，当前年份：${currentYear}年。
 
-以下大运和特殊年份数据已由专业软件算好，请直接用这些数据分析，不要自己重新推算：
-
+以下大运和特殊年份数据已由专业软件算好，请直接使用，不要自行重算：
 起运年龄：${start_age}岁
 大运排列：${dayun_text}
+特殊流年：${special_years_text}
+后五年：${nextFiveYears}
 
-特殊流年（天克地冲、岁运并临）：
-${special_years_text}
-
-请按以下顺序逐段深入分析，每段之间空一行，用大白话，用"你"称呼对方。每段都要展开细说，不能只说一两句话了事，要让对方真正看懂、有所收获：
-
-第一段：日主强弱。说出日主是哪个天干、属什么五行，然后逐步分析以下四个维度：
-一、得令：月支是否生扶日主（旺相休囚死）
-二、得地：地支中有无同气（比劫）或印绶生扶日主的根
-三、得助：天干中有无比劫、印绶透出来帮扶
-四、合冲变化：特别注意以下两种情况会改变日主的实际强弱——
-  a. 天干五合（甲己、乙庚、丙辛、丁壬、戊癸）：如果日主被合，要判断合化是否成立（化神在月令得气则化，否则合而不化）；合化成功则日主五行发生根本改变，合而不化则日主力量被牵制减弱；
-  b. 地支刑冲：若日主在地支的根（比劫、印绶之根）被六冲（子午冲、丑未冲、寅申冲、卯酉冲、辰戌冲、巳亥冲）冲去，则日主失去根基，即使天干有帮扶也要降低强度评估；
-综合以上判断日主的实际强弱程度（极强/偏强/中和偏强/中和偏弱/偏弱/极弱），说明分析过程。
-
-第二段：格局判断。先说月支藏干，找出月令用事之神，初步判断普通格局类型（食神/伤官/正财/偏财/正官/七杀/正印/偏印格）。然后重点检验是否构成特殊格局，判断时必须结合刑冲合化综合考量：
-
-从格成立的核心逻辑：日主极弱、无印绶和比劫生扶（或生扶之根已被冲去），且全局一种五行或相生五行一统，日主无力抗衡，只能顺势"从"之。
-- 从财格：日主极弱，财星旺透，无印化杀，且财星之根未被冲去
-- 从杀格：日主极弱，七杀独旺，无印绶化解，且官杀之根稳固
-- 从儿格（从食伤）：日主极弱，食伤旺透，无官杀克制，无印绶回头克
-- 从强格（专旺格）：日主五行极旺，比劫满盘，食伤泄秀，无财官克泄
-- 化气格：天干五合化神成立（化神在月令得气，全局无破），日主随合化改变属性
-
-特别强调：地支六合、三合、三会可以使原本弱势的某五行骤然变旺，从而可能打破从格条件；六冲则可以冲去某六亲的根，使日主失去帮扶、更易走向从格。在判断格局时必须把这些合冲变化纳入考量，不能只看天干表面。
-
-详细说明最终格局是什么、为什么是这个格局、格局的纯杂程度、对命主人生走向的根本性影响。
-
-第三段：用神喜忌。根据格局和日主强弱，明确说出用神是什么、喜用什么五行、忌讳什么五行，并且解释每个喜忌的理由。进一步说明这些喜忌五行对应的现实层面——喜用的五行旺时命主容易在哪些方面顺利，忌神来袭时容易出现哪些困境。结合命盘中喜忌的实际分布，说明命主天生的优势和薄弱环节。
-
-第四段：性格特点。从日主五行特性、格局类型、日支六亲宫、月支性情三方面综合分析，详细展开至少四到五个具体性格特点，每个特点说明在实际生活中的表现方式（比如在工作中怎样、在感情中怎样、与人相处时怎样），最后说一个需要特别注意的性格短板，以及这个短板容易在哪些情况下惹麻烦。
-
-第五段：事业财运。分析适合的事业方向和行业（结合喜用五行对应的行业类别），说明命主适合自己创业还是打工、适合技术路线还是管理路线、适合一份稳定工作还是多元发展。详细说明财运模式：是辛苦积累型、爆发横财型还是稳中有升型。指出哪个年龄段或哪步大运是事业财运的黄金期，哪个阶段需要保守低调。
-
-第六段：感情婚姻。综合分析以下几个维度，每个维度都要展开细说：
-
-一、婚姻星状态：${gender === '男' ? '男命正财代表配偶，看正财星的旺衰、是否透干、是否被合冲' : '女命正官代表配偶，看正官星的旺衰、是否透干、是否被合冲'}，分析婚姻来得早还是晚、感情路上顺不顺，配偶的性格特征、外貌气质倾向和职业方向。
-
-二、二婚迹象：日支代表配偶宫，若与日支相同的地支在命盘中出现两次或以上（即同一地支重复出现），说明命主感情中有另一段缘分，容易有二婚或感情多段。同时看官杀（女命）或财星（男命）是否有两颗以上，多颗同类感情星也暗示多段感情或二婚。
-
-三、出轨倾向分析：
-- ${gender === '男' ? '男命出轨判断：若命盘地支中正财在年支或月支（前位），偏财出现在日支或时支（后位，即正财之后），则有正财在前偏财在后的格局，容易在婚后出轨、金屋藏娇。' : '女命出轨判断：若命盘地支中正官在年支或月支（前位），七杀出现在日支或时支（后位，即正官之后），则有正官在前七杀在后的格局，容易在婚后出轨、出现婚外情。'}
-- 日支合化出轨：日支代表配偶宫，若日支与相邻地支发生六合（子丑、寅亥、卯戌、辰酉、巳申、午未），要看化出的五行是什么——${gender === '男' ? '男命若日支合化出财星（正财或偏财），说明配偶宫被财星渗入，命主本人容易动情出轨；' : '女命若日支合化出官杀（正官或七杀），说明配偶宫被官杀渗入，命主本人容易动情出轨；'}若化出的是忌神更需注意。
-
-四、伴侣出轨与暗合：若日支存在暗合（即日支地支所藏天干与其他柱藏干相合，表面看不出，实则两干在藏干层面相合），说明配偶宫有隐秘的感情线，伴侣可能出轨但命主难以察觉，事情往往在不知不觉中发生，等发现时已久。
-
-五、感情模式：是主动追求还是被动等待，桃花多还是感情迟钝，婚后感情是否稳固，综合给出感情建议。
-
-第七段：健康注意。根据五行的强弱和所代表的身体部位，逐一指出命主一生中需要重点关注的健康隐患。木对应肝胆，火对应心脏，土对应脾胃，金对应肺与大肠，水对应肾与泌尿系统。哪个五行过旺或过衰都要说清楚对应的健康风险，并给出实际的养生建议（饮食、作息、运动方向等）。
-
-第八段：神煞分析。根据八字四柱，逐一找出命局中存在的主要神煞，分吉神和凶煞两类说明。吉神如天乙贵人（甲戊庚牛羊，乙己鼠猴乡，丙丁猪鸡位，壬癸兔蛇藏，六辛逢马虎，此是贵人方）、文昌（甲乙巳午，丙戊申，丁己酉，庚亥，辛子，壬寅，癸卯）、将星、驿马（寅午戌申，申子辰寅，巳酉丑亥，亥卯未巳）、桃花（寅午戌卯，申子辰酉，巳酉丑午，亥卯未子）等；凶煞如羊刃（甲卯，乙辰，丙午，丁未，戊午，己未，庚酉，辛戌，壬子，癸丑）、魁罡（庚辰、庚戌、壬辰、戊戌）、孤辰寡宿等。结合日主强弱说明哪些神煞真正发力、对命主的实际影响是什么。
-
-第九段：子女缘分。${gender === '男' ? '男命以官杀为子女星（官为女儿，杀为儿子，按各派说法可灵活）' : '女命以食伤为子女星（食神为女儿，伤官为儿子，按各派说法可灵活）'}，同时看时柱（子女宫）的状态。请逐项分析：
-- 子女星的旺衰：子女星旺透则子女缘深、子女出色；子女星弱或被合绊被冲则子女缘薄、或子女与命主关系疏离
-- 子女星是否被合：若子女星被天干五合或地支六合/三合合住，轻则子女缘分特殊，重则子女难得或多波折
-- 子女星是否被冲：子女星根被六冲冲去，或时柱（子女宫）被冲，都暗示与子女聚少离多或子女有波折
-- 时柱地支：时支为子女宫，旺相则子女强健，休囚则子女体弱或缘浅
-综合判断：子女数量倾向（多子还是少子）、子女的性别倾向、与子女的感情深浅、子女的成就高低，以及最适合生育的年龄段或大运时机，哪些流年需要注意子女的健康或关系变化。
-
-第十段：大运分析。用上面给出的大运数据，从当前大运开始，逐步分析每一步大运的天干地支与命局的关系：是生扶用神还是克制用神，属于顺运还是逆运。对每步大运重点说明：这步运的总体吉凶走向，在事业财运、感情家庭、健康身体三方面各有什么特点，需要主动把握的机会和需要防范的风险各是什么。至少分析当前大运和接下来三步大运。
-
-第十一段：特殊年份提醒。根据上面给出的特殊流年数据，对每个年份详细分析：说明是天克地冲还是岁运并临，具体是哪两个干支在冲克，这种冲克对日主的五行造成了什么影响，在现实层面最容易引发哪些方面的变动（工作变动、感情波折、健康问题、财务损失、家庭变故等），并给出2-3条具体的应对建议。已过的年份简短回顾，今年和未来的重点展开说。如果没有特殊年份就说"未来几年运势平稳，无明显冲克"。
-
-第十二段：地支刑冲合局。检查命盘四柱地支之间是否存在以下关系，逐一说明找到的关系及其对命主的具体影响：
-- 三刑：寅巳申三刑（主是非纠纷、牢狱之灾）、丑未戌三刑（主变动破坏、身体损伤）、子卯相刑（主礼法官非、口舌是非）、自刑（午午/辰辰/亥亥/酉酉，主反复无常、自我伤害）
-- 六冲：子午、丑未、寅申、卯酉、辰戌、巳亥（主变动、离别、破坏，冲到哪宫说哪宫）
-- 相破：子酉、丑辰、寅亥、卯午、巳申、未戌（主损耗、暗伤，破财或身体暗病）
-- 相害：子未、丑午、寅巳、卯辰、申亥、酉戌（主妨碍拖累，六亲之间相互消耗）
-- 六合：子丑合土、寅亥合木、卯戌合火、辰酉合金、巳申合水、午未合火（主协调助力，看化神是否为喜用神，若是则吉，若化为忌神则反主牵绊）
-- 三合局：寅午戌火、巳酉丑金、申子辰水、亥卯未木（主该五行大旺，若为喜用神则大吉，若为忌神则为害）
-- 三会局：寅卯辰木、巳午未火、申酉戌金、亥子丑水（力量比三合更强，吉凶更明显）
-- 天干五合：甲己合土、乙庚合金、丙辛合水、丁壬合木、戊癸合火（合化看化神，合而不化则两者力量均被牵制）
-对每个找到的关系，说明影响的具体宫位（年柱管祖上/早年，月柱管父母/青年，日柱管自身/配偶，时柱管子女/晚年）以及对命主人生的实际意义。若命局无明显刑冲合害，说"命局地支关系简单，格局较纯，五行流通顺畅"。
-
-第十三段：空亡分析。空亡按六旬推算（甲子旬空戌亥、甲戌旬空申酉、甲申旬空午未、甲午旬空辰巳、甲辰旬空寅卯、甲寅旬空子丑）。先推算日柱所在旬的空亡地支，再推算年柱所在旬的空亡地支，然后详细分析：
-- 日柱空亡的具体地支是什么，命盘中是否有哪根柱的地支落在空亡中，落空的那根柱代表哪位六亲或哪个人生领域，落空后对这位六亲或领域有什么实质影响（缘分淡薄、作用减弱、虚耗等）
-- 年柱空亡的具体地支是什么，对祖上、父母、早年运势有什么影响，以及空亡地支在命盘中是否已被实填
-- 大运或流年中哪些年份可能"填实"空亡，填实后反而容易爆发被压制的能量，说明这意味着什么机遇或风险
-- 结合命主整体命局，说明空亡对其人生最大的实际影响是什么
-
-第十四段：财库分析。辰为水库，丑为金库，未为木库，戌为火库。先明确命主日主的五行，说明以什么五行为正财、什么为偏财，再逐步分析：
-- 命盘地支中是否出现对应财库（以水为财→辰为财库，以金为财→丑为财库，以木为财→未为财库，以火为财→戌为财库），若有，说明财有库藏，有积累资产的潜力
-- 财库是否已开：辰戌相冲可开辰库和戌库，丑未相冲可开丑库和未库；若命盘中已有自冲（辰戌同现或丑未同现），则财库早已冲开，财路通畅但有破耗；若无冲，则库门紧闭，财藏于内难以取用，需等大运或流年中带来冲动的地支才能开库
-- 若命盘中完全没有对应财库：说明财来财去，不善积累，适合投资流动资产而非固定资产
-- 结合大运分析：指出哪步大运或哪些流年可能带来开库契机，那段时间在财运上要特别把握
-
-第十五段：后五年流年运势（${nextFiveYears}）。逐年详细分析这五年的运势，每年分三个方面展开：
-一、事业财运：该年天干地支对命主喜用神的生克关系如何，对事业有何推动或阻碍，财星是否出现，适不适合投资、跳槽、创业，大致的财运走向如何
-二、感情健康：该年夫妻星、桃花星是否活跃，感情上容易有什么变化（新恋情、矛盾、分合），身体上需要注意什么部位或疾病
-三、家宅运势：该年对家庭的影响，是否适合搬家、置业、装修，家庭成员关系是否有变动，父母或子女方面是否需要关注
-
-绝对禁止：任何位置写诗或引用古文、使用Markdown符号（#*_等）、写祝福语收尾、自己重新推算大运流年（用提供的数据）。
-直接从分析内容开始，说完第十五段就结束。每一段宁可说得精炼一些，也要保证把十五段全部说完，不能在中途截断。`;
-      }
+写作总原则：
+1. 同一八字在不同档位的核心判断必须一致，尤其是日主强弱、格局、用神喜忌、事业主线、感情主线，不能前后矛盾。
+2. 每一段都按“结论→依据→建议”展开，依据必须回扣到命盘干支、十神、大运或流年。
+3. 语言必须具体，不要使用“可能、也许、大概、不排除”等模糊词。
+4. 只输出中文纯文本，不要Markdown、不要诗词古文、不要空话套话。
+5. 直接从分析开始，不写开场寒暄，不写收尾祝福。`;
       } // end if free_only else
     } // end else bazi
 
     // Bazi tiers use one unified framework, only output depth differs.
     if (service === 'bazi') {
       const baziTier = free_only ? 'free' : (resolvedPaymentOptionId || 'basic');
-      if (baziTier === 'vip') {
-        maxTokens = Math.min(maxTokens, 8192);
-        prompt += `
+      const forceCanonicalAllSections = !free_only && !hasSectionRange && baziTier === 'vip';
+      prompt += `
 
-Tier constraint: VIP must output section 1 to section 15 completely. Every section must start with "Section X:" on its own line. Suggested 260-360 Chinese characters per section, total target 4800-5200.`;
-      } else if (baziTier === 'pro') {
-        maxTokens = Math.min(maxTokens, 5600);
-        prompt += `
-
-Tier constraint: PRO can output only section 1 to section 8. Do not output section 9 or later. Total target 2400-3200 Chinese characters.`;
-      } else if (baziTier === 'basic') {
-        maxTokens = Math.min(maxTokens, 3200);
-        prompt += `
-
-Tier constraint: BASIC can output only section 1 to section 3. Do not output section 4 or later. Total target 1000-1400 Chinese characters.`;
-      } else {
-        maxTokens = Math.min(maxTokens, 1500);
-        prompt += `
-
-Tier constraint: FREE can output only section 1 to section 2. Do not output section 3 or later. Total target 500-900 Chinese characters.`;
-      }
-
+Output rule override for BAZI:
+Use this exact section blueprint and keep section order strictly.
+${BAZI_SECTION_BLUEPRINT_24}
+每一段必须以“第X段：”单独起行。
+禁止 Markdown、禁止列表符号、禁止表格、禁止重复开场、禁止收尾祝福语。
+`;
       if (hasSectionRange) {
-        prompt += buildSectionRangeConstraint(requestedSectionStart, requestedSectionEnd);
         if (baziTier === 'vip') {
           maxTokens = Math.min(maxTokens, getVipRangeMaxTokens(requestedSectionStart, requestedSectionEnd));
         }
+        prompt += `
+
+分段生成任务：
+当前只需生成第${requestedSectionStart}段到第${requestedSectionEnd}段。
+整份报告最终仍要满足24段完整结构与统一口径，但本次仅输出当前分段，不要输出分段外内容。`;
+        prompt += buildSectionRangeConstraint(requestedSectionStart, requestedSectionEnd);
+      } else if (forceCanonicalAllSections) {
+        maxTokens = Math.min(maxTokens, 12000);
+        prompt += `
+
+统一基准约束（用于三档一致性）：
+1. 必须完整写出第1段到第24段，不能跳段。
+2. 全文总字数目标：7000-9000字。
+3. 第1段到第8段累计目标：约3000字（供初级版截取）。
+4. 第1段到第16段累计目标：约5000字（供进阶版截取）。
+5. 同一八字三档口径必须一致，低档内容是高档内容的前置子集，不得出现前后结论冲突。`;
+      } else if (baziTier === 'vip') {
+        maxTokens = Math.min(maxTokens, 8192);
+        prompt += `
+
+档位约束：完整版必须完整输出第1段到第24段。总字数目标7000-9000字。`;
+      } else if (baziTier === 'pro') {
+        maxTokens = Math.min(maxTokens, 7200);
+        prompt += `
+
+档位约束：进阶版只能输出第1段到第16段，不得输出第17段及以后。总字数目标4800-5600字（约5000字）。`;
+      } else if (baziTier === 'basic') {
+        maxTokens = Math.min(maxTokens, 5200);
+        prompt += `
+
+档位约束：初级版只能输出第1段到第8段，不得输出第9段及以后。总字数目标2800-3400字（约3000字）。`;
+      } else {
+        maxTokens = Math.min(maxTokens, 2200);
+        prompt += `
+
+档位约束：免费版只能输出第1段到第3段，不得输出第4段及以后。总字数目标900-1400字。`;
       }
     }
 
@@ -651,7 +739,15 @@ Tier constraint: FREE can output only section 1 to section 2. Do not output sect
 凡做判断，必须给出具体年龄段、干支名称、五行原因，不得用"可能""也许""不会太X""有一定概率"等虚词搪塞。`;
 
 
-    // 合盘默认流式；八字四档在显式请求 stream=true 时都走流式输出。
+    // 合盘默认流式；八字在显式请求 stream=true 时：
+    // - 付费且非分段请求：按档位走分段聚合，再以 SSE 回放，兼顾一致性与速度
+    // - 其余情况：直连模型流式
+    if (service === 'bazi' && stream === true && !free_only && !hasSectionRange) {
+      const paidTier = (resolvedPaymentOptionId || 'basic') as 'basic' | 'pro' | 'vip';
+      const finalText = await generatePaidBaziTierReport(prompt, SYSTEM_MSG, paidTier);
+      return buildSseResponseFromText(finalText, CORS);
+    }
+
     if ((service === 'hepan' && stream === true) || (service === 'bazi' && stream === true)) {
       const dsStream = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
@@ -662,7 +758,7 @@ Tier constraint: FREE can output only section 1 to section 2. Do not output sect
         body: JSON.stringify({
           model: 'deepseek-chat',
           max_tokens: maxTokens,
-          temperature: 0.2,
+          temperature: 0,
           stream: true,
           messages: [
             { role: 'system', content: SYSTEM_MSG },
@@ -679,38 +775,18 @@ Tier constraint: FREE can output only section 1 to section 2. Do not output sect
       });
     }
 
-    const isVipBazi = service === 'bazi' && !free_only && (resolvedPaymentOptionId || 'basic') === 'vip';
+    const isPaidBaziNoRange = service === 'bazi' && !free_only && !hasSectionRange;
     let analysis = '';
 
-    if (isVipBazi && !hasSectionRange) {
-      const firstPass = await requestDeepSeekCompletion(
-        prompt + buildSectionRangeConstraint(1, 8),
-        getVipRangeMaxTokens(1, 8),
-        SYSTEM_MSG
-      );
-      const secondPass = await requestDeepSeekCompletion(
-        prompt + buildSectionRangeConstraint(9, 15),
-        getVipRangeMaxTokens(9, 15),
-        SYSTEM_MSG
-      );
-
-      analysis = [firstPass.analysis, secondPass.analysis].filter(Boolean).join('\n\n').trim();
-
-      const maxSection = countReportSections(analysis);
-      if (maxSection < 15) {
-        const repairStart = Math.max(1, maxSection + 1);
-        const repairPass = await requestDeepSeekCompletion(
-          prompt +
-            buildSectionRangeConstraint(repairStart, 15) +
-            `\n\nRepair constraint: Previous content has already completed through section ${repairStart - 1}. Only write the missing section ${repairStart} to section 15. Do not repeat earlier sections.`,
-          getVipRangeMaxTokens(repairStart, 15),
-          SYSTEM_MSG
-        );
-        analysis = [analysis, repairPass.analysis].filter(Boolean).join('\n\n').trim();
-      }
+    if (isPaidBaziNoRange) {
+      const paidTier = (resolvedPaymentOptionId || 'basic') as 'basic' | 'pro' | 'vip';
+      analysis = await generatePaidBaziTierReport(prompt, SYSTEM_MSG, paidTier);
     } else {
       const singlePass = await requestDeepSeekCompletion(prompt, maxTokens, SYSTEM_MSG);
-      analysis = singlePass.analysis;
+      analysis = normalizeSectionMarkers(singlePass.analysis);
+      if (service === 'bazi' && free_only) {
+        analysis = clipBaziReportByTier(analysis, 3);
+      }
     }
 
     // 有 trade_no 时才写数据库（付费流程用），免费模式跳过
