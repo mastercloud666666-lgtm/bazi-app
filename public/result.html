@@ -212,6 +212,18 @@
         line-height: 1.2;
       }
     }
+    @media (max-width: 640px) {
+      #pay-prompt .pay-card > div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 6px !important;
+      }
+      #pay-prompt .pay-card > div[style*="grid-template-columns"] > div {
+        padding: 8px 4px !important;
+      }
+      .pay-features span {
+        font-size: 12px !important;
+      }
+    }
   </style>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#0A2540">
@@ -345,12 +357,12 @@
       <div class="mk-card" id="analysis-section">
         <div class="mk-card-header">
           <div class="mk-card-dot"></div>
-          <span class="mk-card-title" id="result-analysis-title">资 深 命 理 师 解 读</span>
+          <span class="mk-card-title" id="result-analysis-title">免 费 基 础 解 读</span>
         </div>
         <div class="mk-card-body">
 
           <div id="analysis-locked" style="display:none">
-            <p class="price-desc">由资深研究员为您分析日主强弱、用神喜忌、性格财运</p>
+            <p class="price-desc">正在解读您的日主强弱、性格轮廓与未来一年趋势…</p>
           </div>
 
           <div id="analysis-loading" style="display:none">
@@ -366,23 +378,41 @@
 
           <div id="pay-prompt" style="display:none">
             <div class="pay-card">
-              <p class="pay-card-title">解锁深度传统文化报告</p>
-              <p class="pay-card-sub">以上仅为入门性格预览，完整报告涵盖 24 大维度 · 深度解析约 7000-9000 字</p>
-              <div class="pay-features">
-                <span>▸ 用神喜忌 · 五行扶抑精解</span>
-                <span>▸ 性格底层驱动力 · 天赋优势能力画像</span>
-                <span>▸ 事业财运 · 赚钱方式拆解</span>
-                <span>▸ 适合行业与黄金期 · 创业/副业适配度</span>
-                <span>▸ 感情婚姻 · 婚恋相处说明书</span>
-                <span>▸ 二婚/出轨/感情隐患深剖 · 原生家庭影响</span>
-                <span>▸ 子女缘分 · 人际关系与贵人模式</span>
-                <span>▸ 神煞分析 · 地支刑冲合会</span>
-                <span>▸ 空亡分析 · 财库分析</span>
-                <span>▸ 大运详解 · 特殊流年 + 后五年逐年建议</span>
-                <span>▸ 风险预警模块 · 人生关键转折点</span>
-                <span class="span-full">▸ 生活建议与补运策略 · 人生核心课题总结</span>
+              <p class="pay-card-title">解锁完整深度分析报告</p>
+              <p class="pay-card-sub">以上为基础预览。完整报告覆盖 24 大维度，约 7000-9000 字，逐项拆解你的命局</p>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:16px 0;">
+                <div style="border:2px solid #dbeafe;border-radius:10px;padding:12px 8px;text-align:center;background:#f8fbff;">
+                  <div style="font-size:12px;color:#64748b;margin-bottom:4px;">入门版</div>
+                  <div style="font-size:22px;font-weight:900;color:#0A2540;">¥19.9</div>
+                  <div style="font-size:11px;color:#94a3b8;text-decoration:line-through;">¥128</div>
+                  <div style="font-size:10px;color:#dc2626;margin-top:2px;">限时活动</div>
+                </div>
+                <div style="border:2px solid #3b82f6;border-radius:10px;padding:12px 8px;text-align:center;background:#eff6ff;position:relative;">
+                  <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#dc2626;color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;white-space:nowrap;">推荐</div>
+                  <div style="font-size:12px;color:#64748b;margin-bottom:4px;">进阶版</div>
+                  <div style="font-size:22px;font-weight:900;color:#0A2540;">¥49.9</div>
+                  <div style="font-size:11px;color:#94a3b8;text-decoration:line-through;">¥298</div>
+                  <div style="font-size:10px;color:#dc2626;margin-top:2px;">限时活动</div>
+                </div>
+                <div style="border:2px solid #dbeafe;border-radius:10px;padding:12px 8px;text-align:center;background:#f8fbff;">
+                  <div style="font-size:12px;color:#64748b;margin-bottom:4px;">完整版</div>
+                  <div style="font-size:22px;font-weight:900;color:#0A2540;">¥99.9</div>
+                  <div style="font-size:11px;color:#94a3b8;text-decoration:line-through;">¥498</div>
+                  <div style="font-size:10px;color:#dc2626;margin-top:2px;">限时活动</div>
+                </div>
               </div>
-              <button id="pay-btn" class="pay-btn">立即解锁完整传统文化报告</button>
+
+              <div class="pay-features">
+                <span>用神喜忌 · 五行扶抑精解</span>
+                <span>性格底层驱动力 · 天赋优势能力画像</span>
+                <span>事业财运 · 赚钱方式拆解</span>
+                <span>感情婚姻 · 婚恋相处说明书</span>
+                <span>大运详解 · 特殊流年 + 后五年逐年建议</span>
+                <span>风险预警模块 · 人生关键转折点</span>
+              </div>
+              <p style="text-align:center;font-size:12px;color:#dc2626;margin:8px 0;">首次访问用户享限时 8 折优惠，3 天内有效</p>
+              <button id="pay-btn" class="pay-btn">选择方案，查看完整报告 →</button>
             </div>
           </div>
 
