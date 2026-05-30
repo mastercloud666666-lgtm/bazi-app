@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>八字排盘结果 · 云子命理</title>
+  <title>八字排盘结果 · 云子文化</title>
   <meta name="robots" content="noindex">
   <link rel="canonical" href="https://www.tengyunzi.com/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -68,7 +68,7 @@
     .mk-card.warning-card .mk-card-title {
       color: #C53030;
     }
-    /* 命理解读 */
+    /* 文化解读 */
     .price-desc {
       font-size: 14px;
       color: var(--text-gray);
@@ -213,6 +213,12 @@
       }
     }
   </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0A2540">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="云子文化">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="/images/icon-192.png">
 </head>
 <body>
   <!-- Navbar -->
@@ -227,7 +233,7 @@
           </svg>
         </div>
         <div class="navbar-brand-text">
-          <span class="navbar-brand-name">云子命理</span>
+          <span class="navbar-brand-name">云子文化</span>
           <span class="navbar-brand-en">Yunzi</span>
         </div>
       </a>
@@ -237,7 +243,7 @@
       </div>
       <div class="navbar-right">
         <a href="/hepan.html" class="mobile-hepan-link" aria-label="合盘分析">合盘分析</a>
-        <a href="/blog/" class="mobile-blog-link" aria-label="命理知识">命理知识</a>
+        <a href="/blog/" class="mobile-blog-link" aria-label="干支文化知识">干支文化知识</a>
         <span class="navbar-lang">EN</span>
       </div>
     </div>
@@ -335,7 +341,7 @@
         </div>
       </div>
 
-      <!-- 命理解读（付费） -->
+      <!-- 文化解读（付费） -->
       <div class="mk-card" id="analysis-section">
         <div class="mk-card-header">
           <div class="mk-card-dot"></div>
@@ -344,13 +350,13 @@
         <div class="mk-card-body">
 
           <div id="analysis-locked" style="display:none">
-            <p class="price-desc">由资深命理师为您分析日主强弱、用神喜忌、性格财运</p>
+            <p class="price-desc">由资深研究员为您分析日主强弱、用神喜忌、性格财运</p>
           </div>
 
           <div id="analysis-loading" style="display:none">
             <div class="loading-card" style="display:block; border:none; padding:24px 0;">
               <div class="loading-spinner"></div>
-              <p class="loading-text">命理师正在为您解读，请稍候…</p>
+              <p class="loading-text">研究员正在为您解读，请稍候…</p>
             </div>
           </div>
 
@@ -360,7 +366,7 @@
 
           <div id="pay-prompt" style="display:none">
             <div class="pay-card">
-              <p class="pay-card-title">解锁深度命理报告</p>
+              <p class="pay-card-title">解锁深度传统文化报告</p>
               <p class="pay-card-sub">以上仅为入门性格预览，完整报告涵盖 24 大维度 · 深度解析约 7000-9000 字</p>
               <div class="pay-features">
                 <span>▸ 用神喜忌 · 五行扶抑精解</span>
@@ -374,9 +380,9 @@
                 <span>▸ 空亡分析 · 财库分析</span>
                 <span>▸ 大运详解 · 特殊流年 + 后五年逐年建议</span>
                 <span>▸ 风险预警模块 · 人生关键转折点</span>
-                <span class="span-full">▸ 改运与补运策略 · 人生核心课题总结</span>
+                <span class="span-full">▸ 生活建议与补运策略 · 人生核心课题总结</span>
               </div>
-              <button id="pay-btn" class="pay-btn">立即解锁完整命理报告</button>
+              <button id="pay-btn" class="pay-btn">立即解锁完整传统文化报告</button>
             </div>
           </div>
 
@@ -395,5 +401,10 @@
       document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
     });
   </script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(function() {});
+}
+</script>
 </body>
 </html>

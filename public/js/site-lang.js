@@ -4,17 +4,17 @@
 
   const TITLES = {
     'index.html': {
-      'zh-Hans': '云子命理 · 专业八字命理解读',
+      'zh-Hans': '云子文化 · 专业八字命理解读',
       'zh-Hant': '雲子命理 · 專業八字命理解讀',
       en: 'Yunzi Destiny · Professional Bazi Reading',
     },
     'hepan.html': {
-      'zh-Hans': '合盘配对 · 云子命理',
+      'zh-Hans': '合盘配对 · 云子文化',
       'zh-Hant': '合盤配對 · 雲子命理',
       en: 'Compatibility Analysis · Yunzi Destiny',
     },
     'result.html': {
-      'zh-Hans': '八字排盘结果 · 云子命理',
+      'zh-Hans': '八字排盘结果 · 云子文化',
       'zh-Hant': '八字排盤結果 · 雲子命理',
       en: 'Bazi Result · Yunzi Destiny',
     },
@@ -220,8 +220,8 @@
       en: 'Used for true-solar-time correction to improve chart accuracy',
     },
     freeBtn: { 'zh-Hans': '免费排盘解读', 'zh-Hant': '免費排盤解讀', en: 'Free Bazi Reading' },
-    paidBtn: { 'zh-Hans': '立即解锁完整命理报告', 'zh-Hant': '立即解鎖完整命理報告', en: 'Unlock Full Destiny Report' },
-    payTitle: { 'zh-Hans': '解锁完整深度命理报告', 'zh-Hant': '解鎖完整深度命理報告', en: 'Unlock Full In-depth Report' },
+    paidBtn: { 'zh-Hans': '立即解锁完整分析报告', 'zh-Hant': '立即解鎖完整命理報告', en: 'Unlock Full Destiny Report' },
+    payTitle: { 'zh-Hans': '解锁完整深度分析报告', 'zh-Hant': '解鎖完整深度命理報告', en: 'Unlock Full In-depth Report' },
     paySub: {
       'zh-Hans': '免费版仅含基础排盘，完整报告涵盖 24 大维度 · 深度解析约 7000-9000 字',
       'zh-Hant': '免費版僅含基礎排盤，完整報告涵蓋 24 大維度 · 深度解析約 7000-9000 字',
@@ -262,7 +262,7 @@
       en: 'Pay for 1-on-1 Consultation (Promo ¥{price})',
     },
     consultPayNotice: {
-      'zh-Hans': '免责条款：1对1咨询为虚拟服务，支付完成后不支持退款，请确认后再付款。交付方式：专属命理师 1 小时语音或电话咨询交付。',
+      'zh-Hans': '免责条款：1对1咨询为虚拟服务，支付完成后不支持退款，请确认后再付款。交付方式：专属研究员 1 小时语音或电话咨询交付。',
       'zh-Hant': '免責條款：1對1諮詢為虛擬服務，支付完成後不支持退款，請確認後再付款。交付方式：專屬命理師 1 小時語音或電話諮詢交付。',
       en: 'Disclaimer: 1-on-1 consultation is a virtual service and non-refundable after payment. Delivery: 1-hour voice or phone consultation with a dedicated consultant.',
     },
@@ -446,7 +446,7 @@
     hourOptions: INDEX_TEXT.hourOptions,
     resultTitle: { 'zh-Hans': '合盘分析', 'zh-Hant': '合盤分析', en: 'Compatibility Analysis' },
     loadingHtml: {
-      'zh-Hans': '<div class="loading-spinner" style="margin: 0 auto 12px;"></div>命理师正在为您解读合盘，请稍候...',
+      'zh-Hans': '<div class="loading-spinner" style="margin: 0 auto 12px;"></div>研究员正在为您解读合盘，请稍候...',
       'zh-Hant': '<div class="loading-spinner" style="margin: 0 auto 12px;"></div>命理師正在為您解讀合盤，請稍候...',
       en: '<div class="loading-spinner" style="margin: 0 auto 12px;"></div>Analyzing compatibility, please wait...',
     },
@@ -455,9 +455,9 @@
 const RESULT_TEXT = {
     birthInfo: { 'zh-Hans': '出生信息', 'zh-Hant': '出生信息', en: 'Birth Information' },
     chartTitle: { 'zh-Hans': '命局细盘（表格版）', 'zh-Hant': '命局細盤（表格版）', en: 'Natal Chart (Table)' },
-    analysisTitle: { 'zh-Hans': '资深命理师解读', 'zh-Hant': '資深命理師解讀', en: 'Expert Interpretation' },
-  paidBtn: { 'zh-Hans': '立即解锁完整命理报告', 'zh-Hant': '立即解鎖完整命理報告', en: 'Unlock Full Destiny Report' },
-  payBtn: { 'zh-Hans': '立即解锁完整命理报告', 'zh-Hant': '立即解鎖完整命理報告', en: 'Unlock Full Destiny Report' },
+    analysisTitle: { 'zh-Hans': '资深文化师解读', 'zh-Hant': '資深命理師解讀', en: 'Expert Interpretation' },
+  paidBtn: { 'zh-Hans': '立即解锁完整分析报告', 'zh-Hant': '立即解鎖完整命理報告', en: 'Unlock Full Destiny Report' },
+  payBtn: { 'zh-Hans': '立即解锁完整分析报告', 'zh-Hant': '立即解鎖完整命理報告', en: 'Unlock Full Destiny Report' },
 };
 
   function pageName() {

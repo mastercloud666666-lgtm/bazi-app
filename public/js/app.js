@@ -49,18 +49,18 @@ const PDF_PRODUCT = {
   storageBucket: 'paid-docs',
   storagePath: 'pdfs/yunzi-bazi-guide.pdf',
   signedTtlSeconds: 600,
-  fileName: '云子命理-八字命理合集.pdf',
+  fileName: '云子文化-八字命理合集.pdf',
 };
 const CONSULT_PRODUCT = {
   id: 'consult',
-  title: '专属命理师1对1咨询',
+  title: '专属研究员1对1咨询',
   promoFee: '499',
   formalFee: '699',
 };
 const CONSULT_PAYMENT_OPTION = {
   id: CONSULT_PRODUCT.id,
   title: CONSULT_PRODUCT.title,
-  subtitle: '1对1专属命理师深度咨询（1小时语音或电话交付），支付成功后可自动校验订单并完成预约。',
+  subtitle: '1对1专属研究员深度咨询（1小时语音或电话交付），支付成功后可自动校验订单并完成预约。',
   fee: CONSULT_PRODUCT.promoFee,
 };
 const ONE_TIME_PAID_NOTICE = '\u672c\u6b21\u62a5\u544a\u662f\u4e00\u6b21\u6027\u670d\u52a1\uff0c\u8bf7\u81ea\u884c\u622a\u56fe\u4fdd\u5b58\uff0c\u9875\u9762\u5173\u95ed\u540e\u4e0d\u53ef\u518d\u6b21\u67e5\u770b\u3002';
@@ -232,7 +232,7 @@ const CUSTOMER_SERVICE_SUBTITLE = '长按识别二维码添加客服';
 const PAYMENT_NON_REFUND_NOTICE = '免责条款：命理分析为虚拟服务，支付完成后不支持退款，请确认后再付款。';
 const PDF_NON_REFUND_NOTICE = '免责条款：PDF为虚拟知识文档，支付完成后不支持退款，请确认后再付款。';
 const CONSULT_NON_REFUND_NOTICE = '免责条款：1对1咨询为虚拟服务，支付完成后不支持退款，请确认后再付款。';
-const CONSULT_DELIVERY_NOTICE = '交付方式：专属命理师 1 小时语音或电话咨询交付。';
+const CONSULT_DELIVERY_NOTICE = '交付方式：专属研究员 1 小时语音或电话咨询交付。';
 const WECHAT_PAYMENT_CLOSE_NOTICE = '微信浏览器支付完成后，当前页面可能会自动关闭。请重新打开首页点击“继续上次订单”，或选择微信外浏览器完成支付。';
 
 function getUiLang() {
@@ -668,7 +668,7 @@ function getPaymentAbCopySet() {
         vip: {
           tag: '完整版',
           desc: '完整覆盖24个维度，增加风险预警、关键转折点、改运策略与人生课题总结（约7000-9000字）。',
-          point: '24维全景报告 + 7000-9000字：命局底盘 × 事业财运 × 婚恋家庭 × 大运流年 × 决策策略',
+          point: '24维全景报告 + 7000-9000字：命局参考 × 事业财运 × 婚恋家庭 × 大运流年 × 决策策略',
           cta: '解锁至尊完整版',
         },
       },
@@ -2550,7 +2550,7 @@ function pickPaymentOption() {
     customTitle.style.cssText = 'font-size:14px;font-weight:700;color:#0A2540;';
 
     const customSub = document.createElement('div');
-    customSub.textContent = '适合希望获得更细致、个性化指导的用户：专属命理师1对1深度沟通，付款后自动校验订单并进入咨询预约流程（1小时语音或电话交付）。';
+    customSub.textContent = '适合希望获得更细致、个性化指导的用户：专属研究员1对1深度沟通，付款后自动校验订单并进入咨询预约流程（1小时语音或电话交付）。';
     customSub.style.cssText = 'margin-top:6px;font-size:12px;line-height:1.6;color:#334155;';
 
     const customNotice = document.createElement('div');
@@ -2921,7 +2921,7 @@ if (form) {
       paidBtn.type = 'button';
       paidBtn.id = 'paid-btn';
       paidBtn.className = 'form-submit';
-      paidBtn.textContent = '立即解锁完整命理报告';
+      paidBtn.textContent = '立即解锁完整分析报告';
       paidBtn.dataset.defaultText = paidBtn.textContent;
       paidBtn.style.marginTop = '12px';
       submitBtn.insertAdjacentElement('afterend', paidBtn);
@@ -3657,7 +3657,7 @@ async function startPayment(birthData, bazi, paymentOption) {
       const btn = document.getElementById(id);
       if (!btn) return;
       btn.disabled = false;
-      btn.textContent = btn.dataset.defaultText || '立即解锁完整命理报告';
+      btn.textContent = btn.dataset.defaultText || '立即解锁完整分析报告';
     });
   };
 

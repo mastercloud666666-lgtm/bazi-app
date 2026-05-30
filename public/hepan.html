@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>八字合盘配对·算命婚姻缘分 | 云子命理</title>
-  <meta name="description" content="八字合盘配对算命：输入双方生辰八字，从五行相生相克、日支合缘、婚姻星等10大维度深度解读两人命理缘分与婚姻契合度。">
-  <meta name="keywords" content="合盘,八字合盘,配对算命,婚姻算命,命理配对,八字配对,缘分,婚姻命理,玄学配对">
-  <meta property="og:title" content="八字合盘配对·算命婚姻缘分 | 云子命理">
-  <meta property="og:description" content="八字合盘配对算命，10大维度深度解读两人命理缘分与婚姻契合度。">
+  <title>八字合盘配对·八字分析婚姻缘分 | 云子文化</title>
+  <meta name="description" content="八字合盘配对八字分析：输入双方生辰八字，从五行相生相克、日支合缘、婚姻星等10大维度深度解读两人性格缘分与婚姻契合度。">
+  <meta name="keywords" content="合盘,八字合盘,配对八字分析,婚姻八字分析,性格配对分析,八字配对,缘分,婚姻传统文化,智慧配对">
+  <meta property="og:title" content="八字合盘配对·八字分析婚姻缘分 | 云子文化">
+  <meta property="og:description" content="八字合盘配对八字分析，10大维度深度解读两人性格缘分与婚姻契合度。">
   <meta property="og:url" content="https://www.tengyunzi.com/hepan.html">
-  <meta property="og:site_name" content="云子命理">
+  <meta property="og:site_name" content="云子文化">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://www.tengyunzi.com/hepan.html">
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"WebPage","name":"八字合盘配对算命","url":"https://www.tengyunzi.com/hepan.html","description":"八字合盘配对算命，深度解读两人命理缘分","isPartOf":{"@type":"WebSite","name":"云子命理","url":"https://www.tengyunzi.com/"}}
+  {"@context":"https://schema.org","@type":"WebPage","name":"八字合盘配对八字分析","url":"https://www.tengyunzi.com/hepan.html","description":"八字合盘配对八字分析，深度解读两人性格缘分","isPartOf":{"@type":"WebSite","name":"云子文化","url":"https://www.tengyunzi.com/"}}
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet">
@@ -265,6 +265,12 @@
       .hepan-pay-now { font-size: 24px; }
     }
   </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0A2540">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="云子文化">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="/images/icon-192.png">
 </head>
 <body>
   <nav class="navbar" id="navbar">
@@ -278,17 +284,17 @@
           </svg>
         </div>
         <div class="navbar-brand-text">
-          <span class="navbar-brand-name">云子命理</span>
+          <span class="navbar-brand-name">云子文化</span>
           <span class="navbar-brand-en">Yunzi</span>
         </div>
       </a>
       <div class="navbar-nav">
         <a href="index.html">八字排盘</a>
         <a href="hepan.html" class="active">合盘分析</a>
-        <a href="blog/">命理知识</a>
+        <a href="blog/">干支文化知识</a>
       </div>
       <div class="navbar-right">
-        <a href="/blog/" class="mobile-blog-link" aria-label="命理知识">命理知识</a>
+        <a href="/blog/" class="mobile-blog-link" aria-label="干支文化知识">干支文化知识</a>
         <span class="navbar-lang">EN</span>
       </div>
     </div>
@@ -300,7 +306,7 @@
       <div class="page-header">
         <span class="page-tag">Compatibility Analysis</span>
         <h1 class="page-title">合盘配对</h1>
-        <p class="page-subtitle">输入双方生辰八字，深度分析两人命理契合度</p>
+        <p class="page-subtitle">输入双方生辰八字，深度分析两人传统文化契合度</p>
       </div>
 
       <form id="hepan-form">
@@ -506,7 +512,7 @@
         <!-- 加载中 -->
         <div id="hepan-loading">
           <div class="loading-spinner" style="margin: 0 auto 12px;"></div>
-          命理师正在为您解读合盘，请稍候…
+          研究员正在为您解读合盘，请稍候…
         </div>
 
         <!-- 分析内容 -->
@@ -556,5 +562,10 @@
   <script src="js/bazi.js"></script>
   <script src="js/site-lang.js?v=20260329-langsync-v1"></script>
   <script src="js/hepan.js?v=20260317hepanbeautyv5"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(function() {});
+}
+</script>
 </body>
 </html>
