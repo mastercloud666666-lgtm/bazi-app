@@ -53,80 +53,85 @@ def build_zodiac_shorts(zodiac: str, date_str: str, fortune: dict, output_name: 
     """创建一条生肖运势 Shorts (1080x1920)"""
     project = JyProject(output_name, width=1080, height=1920, overwrite=True)
 
-    # 1. 背景 — 纯色深色背景（用 Pillow 生成图片）
+    # 0. Duration
+    total_dur_us = 20_000_000  # 20 seconds in microseconds
+
+    # 1. 背景
     bg_path = _make_gradient_bg(zodiac)
-    project.add_media_safe(bg_path, start_time="0s", duration="18s", track_name="VideoTrack")
+    project.add_media_safe(bg_path, start_time="0s", duration="20s", track_name="VideoTrack")
 
     # 2. BGM
     if os.path.exists(BGM_PATH):
-        project.add_audio_safe(BGM_PATH, start_time="0s", duration="18s", track_name="AudioTrack")
+        project.add_audio_safe(BGM_PATH, start_time="0s", duration="20s", track_name="AudioTrack")
 
-    # 3. 片头 — 日期 + 生肖
+    # 3. TTS 中文语音旁白（需要剪映运行中）
+    tts_text = f"{date_str}，属{zodiac}今日运势。综合{fortune['overall']}。事业方面，{fortune['career']}。感情方面，{fortune['love']}。幸运色是{fortune['lucky_color']}，幸运数字{fortune['lucky_number']}。{fortune['advice']}"
+    try:
+        project.add_narrated_subtitles(
+            text=tts_text,
+            speaker="zh_male_iclvop_xiaolinkepu",
+            start_time=0,
+            track_name="TTSNarration",
+        )
+    except Exception as e:
+        print(f"  TTS skipped (剪映未运行?): {e}")
+
+    # 4. 片头 — 日期 + 生肖
     project.add_text_simple(
-        text=f"{date_str} · 属{zodiac}运势",
-        start_time="0.3s", duration="3.0s",
-        font_size=13.0, color_rgb=(1, 1, 1),
-        transform_y=-0.65,
+        text=f"{date_str}\n属{zodiac} · 今日运势",
+        start_time="0.5s", duration="4.0s",
+        font_size=14.0, color_rgb=(1, 1, 1),
+        transform_y=-0.60,
         anim_in="复古打字机",
         track_name="TitleTrack",
     )
 
-    # 4. 综合运势星级
+    # 5. 综合运势
     project.add_text_simple(
         text=f"综合运势 {fortune['overall']}",
-        start_time="3.5s", duration="2.5s",
-        font_size=16.0, color_rgb=(1, 0.84, 0),
-        transform_y=-0.4,
+        start_time="5.0s", duration="3.0s",
+        font_size=18.0, color_rgb=(1, 0.84, 0),
+        transform_y=-0.30,
         anim_in="轻微放大",
         track_name="TextTrack1",
     )
 
-    # 5. 事业
+    # 6. 事业 + 感情
     project.add_text_simple(
-        text=f"事业：{fortune['career']}",
-        start_time="6.3s", duration="2.5s",
-        font_size=12.0, color_rgb=(1, 1, 1),
-        transform_y=-0.15,
+        text=f"事业：{fortune['career']}\n感情：{fortune['love']}",
+        start_time="8.5s", duration="3.5s",
+        font_size=11.0, color_rgb=(1, 1, 1),
+        transform_y=0.05,
         anim_in="向右滑动",
         track_name="TextTrack2",
-    )
-
-    # 6. 感情
-    project.add_text_simple(
-        text=f"感情：{fortune['love']}",
-        start_time="9.0s", duration="2.5s",
-        font_size=12.0, color_rgb=(1, 1, 1),
-        transform_y=0.1,
-        anim_in="向左滑动",
-        track_name="TextTrack3",
     )
 
     # 7. 幸运提示
     project.add_text_simple(
         text=f"幸运色：{fortune['lucky_color']}   幸运数字：{fortune['lucky_number']}",
-        start_time="11.8s", duration="2.5s",
+        start_time="12.5s", duration="3.0s",
         font_size=11.0, color_rgb=(0.8, 0.9, 1),
         transform_y=0.35,
         anim_in="轻微放大",
-        track_name="TextTrack4",
+        track_name="TextTrack3",
     )
 
     # 8. 今日建议
     project.add_text_simple(
-        text=fortune['advice'],
-        start_time="14.5s", duration="2.5s",
+        text=f"今日建议：{fortune['advice']}",
+        start_time="16.0s", duration="2.5s",
         font_size=10.0, color_rgb=(0.7, 0.7, 0.7),
-        transform_y=0.6,
+        transform_y=0.60,
         anim_in="向上滑动",
-        track_name="TextTrack5",
+        track_name="TextTrack4",
     )
 
-    # 9. CTA — 引导到网站
+    # 9. CTA
     project.add_text_simple(
-        text="想了解完整命盘？tengyunzi.com",
-        start_time="16.0s", duration="2.0s",
-        font_size=8.0, color_rgb=(0.5, 0.5, 0.5),
-        transform_y=0.8,
+        text="完整命盘解读 · tengyunzi.com",
+        start_time="17.5s", duration="2.5s",
+        font_size=7.0, color_rgb=(0.5, 0.5, 0.5),
+        transform_y=0.80,
         anim_in="淡入",
         track_name="CTATrack",
     )
