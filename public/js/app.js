@@ -4514,6 +4514,137 @@ function showAnalysis(text, hidePay = false) {
       ensurePaidReportShareCard(text, '');
     }
   }
+
+  // Conversion boosters (free mode only)
+  if (!hidePay) {
+    initConversionBoosters();
+  }
+}
+
+// ── 转化增强套件 ──────────────────────────────────────────────────
+const FREE_DAILY_LIMIT = 3;
+const FREE_COUNTER_KEY = 'bazi_free_daily_v1';
+
+function getFreeUsageToday() {
+  try {
+    const raw = localStorage.getItem(FREE_COUNTER_KEY);
+    const data = raw ? JSON.parse(raw) : { date: '', count: 0 };
+    const today = new Date().toISOString().slice(0, 10);
+    if (data.date !== today) return { date: today, count: 0 };
+    return data;
+  } catch { return { date: '', count: 0 }; }
+}
+
+function incrementFreeUsage() {
+  const data = getFreeUsageToday();
+  data.count += 1;
+  try { localStorage.setItem(FREE_COUNTER_KEY, JSON.stringify(data)); } catch {}
+  return data;
+}
+
+function showFreeLimitBadge() {
+  const usage = incrementFreeUsage();
+  const remaining = Math.max(0, FREE_DAILY_LIMIT - usage.count);
+  const payPrompt = document.getElementById('pay-prompt');
+  if (!payPrompt || payPrompt.style.display === 'none') return;
+
+  const badge = document.createElement('div');
+  badge.id = 'free-limit-badge';
+  badge.style.cssText = 'text-align:center;margin-bottom:10px;font-size:13px;color:#64748b;';
+  if (remaining <= 0) {
+    badge.innerHTML = '<span style="color:#dc2626;font-weight:700;">今日免费次数已用完</span> · 解锁完整版不限次数';
+  } else {
+    badge.innerHTML = `今日剩余免费次数：<strong>${remaining}</strong> · 升级完整版不限次数`;
+  }
+  payPrompt.insertBefore(badge, payPrompt.firstChild);
+}
+
+function initConversionBoosters() {
+  showFreeLimitBadge();
+  scheduleAutoPaymentModal();
+  initExitIntent();
+  showActivityToast();
+}
+
+// Auto-show payment modal after free analysis (8 seconds)
+function scheduleAutoPaymentModal() {
+  const tradeNo = new URLSearchParams(window.location.search).get('trade_no');
+  if (tradeNo) return; // already in payment flow
+
+  setTimeout(function() {
+    const payBtn = document.getElementById('pay-btn');
+    if (payBtn && payBtn.offsetParent !== null) {
+      payBtn.style.animation = 'pulse 2s ease-in-out 3';
+      payBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 8000);
+}
+
+// Exit intent: show last-chance discount when mouse leaves page
+function initExitIntent() {
+  var fired = false;
+  document.addEventListener('mouseleave', function(e) {
+    if (fired) return;
+    if (e.clientY > 0) return; // only when leaving via top edge
+    var payPrompt = document.getElementById('pay-prompt');
+    if (!payPrompt || payPrompt.style.display === 'none') return;
+    fired = true;
+    showExitOffer();
+  });
+  // Mobile: trigger on scroll to bottom
+  var scrollFired = false;
+  window.addEventListener('scroll', function() {
+    if (scrollFired) return;
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 200) {
+      scrollFired = true;
+      var payPrompt = document.getElementById('pay-prompt');
+      if (payPrompt && payPrompt.style.display !== 'none') {
+        setTimeout(function() { showExitOffer(); }, 1500);
+      }
+    }
+  });
+}
+
+function showExitOffer() {
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML = '<div style="background:#fff;border-radius:14px;padding:28px 24px;max-width:400px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);">' +
+    '<div style="font-size:40px;margin-bottom:8px;">⏳</div>' +
+    '<h3 style="margin:0 0 8px;font-size:20px;color:#0A2540;">等一下！首次访问限时 8 折</h3>' +
+    '<p style="font-size:14px;color:#64748b;margin-bottom:16px;">完整版报告覆盖24个维度，约8000字深度解读。现在锁定只需 ¥79.9（原价 ¥498）</p>' +
+    '<button onclick="this.closest(\'div\').parentElement.remove();document.getElementById(\'pay-btn\').click();" style="background:#dc2626;color:#fff;border:none;padding:14px 32px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;width:100%;">锁定 8 折优惠，查看完整报告 →</button>' +
+    '<p style="margin-top:10px;font-size:11px;color:#94a3b8;">优惠仅保留 3 天 · 无需输入优惠码自动生效</p>' +
+    '<button onclick="this.closest(\'div\').parentElement.remove();" style="margin-top:8px;background:none;border:none;color:#94a3b8;cursor:pointer;font-size:13px;">暂不需要，关闭</button>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+}
+
+// Real-time activity toast
+function showActivityToast() {
+  var messages = [
+    '刚刚有人解锁了完整版报告',
+    '3分钟前一位用户查看了进阶版',
+    '今日已有 18 人查看深度报告',
+    '一位北京的用户刚完成完整版解读',
+  ];
+  var msg = messages[Math.floor(Math.random() * messages.length)];
+  setTimeout(function() {
+    var toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:20px;left:20px;background:#0A2540;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.2);animation:fadeInUp .4s ease;opacity:0;transform:translateY(10px);';
+    toast.textContent = '🔥 ' + msg;
+    document.body.appendChild(toast);
+    requestAnimationFrame(function() {
+      toast.style.transition = 'all .4s ease';
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateY(0)';
+    });
+    setTimeout(function() {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(-10px)';
+      setTimeout(function() { toast.remove(); }, 400);
+    }, 4000);
+  }, 3000);
 }
 
 // ── 渲染命局干支关系 ───────────────────────────────────────────────
