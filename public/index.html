@@ -1956,5 +1956,43 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(function() {});
 }
 </script>
+<!-- Chat Widget for tengyunzi.com -->
+<style>
+.chat-widget{position:fixed;bottom:20px;right:20px;z-index:9999;font-family:'PingFang SC','Microsoft YaHei',sans-serif}
+.chat-btn{width:56px;height:56px;border-radius:50%;background:#1a56db;color:#fff;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.2);font-size:24px;display:flex;align-items:center;justify-content:center;transition:.3s}
+.chat-btn:hover{transform:scale(1.05);background:#1e40af}
+.chat-box{display:none;position:absolute;bottom:70px;right:0;width:340px;height:440px;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.15);flex-direction:column;overflow:hidden}
+.chat-box.open{display:flex}
+.chat-header{background:#1a56db;color:#fff;padding:14px 16px;font-weight:600;font-size:15px;display:flex;justify-content:space-between;align-items:center}
+.chat-header button{background:none;border:none;color:#fff;font-size:18px;cursor:pointer}
+.chat-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#f8fafc}
+.chat-msg{max-width:85%;padding:10px 14px;border-radius:10px;font-size:14px;line-height:1.6;word-break:break-word}
+.chat-msg.user{align-self:flex-end;background:#1a56db;color:#fff;border-bottom-right-radius:2px}
+.chat-msg.bot{align-self:flex-start;background:#fff;color:#1f2937;border:1px solid #e5e7eb;border-bottom-left-radius:2px}
+.chat-input{display:flex;padding:10px;border-top:1px solid #e5e7eb;background:#fff}
+.chat-input input{flex:1;border:1px solid #d1d5db;border-radius:8px;padding:10px;font-size:14px;outline:none}
+.chat-input input:focus{border-color:#1a56db}
+.chat-input button{margin-left:8px;background:#1a56db;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:14px;cursor:pointer}
+.chat-input button:hover{background:#1e40af}
+.typing{color:#9ca3af;font-size:12px;padding:4px 12px}
+@media(max-width:480px){.chat-box{width:calc(100vw-20px);height:60vh;right:-5px}}
+</style>
+<div class="chat-widget" id="chatWidget">
+<button class="chat-btn" onclick="toggleChat()">💬</button>
+<div class="chat-box" id="chatBox">
+<div class="chat-header"><span>云子文化 · 在线客服</span><button onclick="toggleChat()">✕</button></div>
+<div class="chat-msgs" id="chatMsgs"><div class="chat-msg bot">👋 您好！我是云子文化的在线客服。有什么可以帮您的？</div></div>
+<div class="typing" id="typing" style="display:none">对方正在输入...</div>
+<div class="chat-input">
+<input id="chatInput" placeholder="输入您的问题..." onkeydown="if(event.key==='Enter')sendMsg()">
+<button onclick="sendMsg()">发送</button>
+</div></div></div>
+<script>
+var API='https://wx.tengyunzi.com/chat';
+var sessionId=localStorage.getItem('chat_session')||'';
+function toggleChat(){var b=document.getElementById('chatBox');b.classList.toggle('open');if(b.classList.contains('open'))document.getElementById('chatInput').focus()}
+async function sendMsg(){var i=document.getElementById('chatInput');var m=i.value.trim();if(!m)return;i.value='';addMsg(m,'user');document.getElementById('typing').style.display='block';try{var r=await fetch(API+'/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:m,session:sessionId})});var d=await r.json();sessionId=d.session;localStorage.setItem('chat_session',sessionId);document.getElementById('typing').style.display='none';addMsg(d.reply,'bot')}catch(e){document.getElementById('typing').style.display='none';addMsg('抱歉，网络出现问题，请稍后再试。','bot')}}
+function addMsg(t,r){var d=document.createElement('div');d.className='chat-msg '+r;d.textContent=t;document.getElementById('chatMsgs').appendChild(d);document.getElementById('chatMsgs').scrollTop=document.getElementById('chatMsgs').scrollHeight}
+</script>
 </body>
 </html>
