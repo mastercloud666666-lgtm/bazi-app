@@ -1,5 +1,7 @@
 // supabase/functions/payment-callback/index.ts
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendOrderNotify } from '../_shared/order-notify.ts';
+import { grantCopyAgentCredits, isCopyAgentOrder } from '../_shared/copy-agent.ts';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -18,6 +20,10 @@ function parseBirthInput(value: unknown): Record<string, any> {
   } catch {
     return {};
   }
+}
+
+function asString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
 }
 
 function applyTrackingEvent(
@@ -39,6 +45,33 @@ function applyTrackingEvent(
   tracking.last_event_at = now;
   events.push({ event, at: now, meta });
   tracking.events = events.slice(-30);
+  next.tracking = tracking;
+  return next;
+}
+
+function attachGatewayTracking(
+  birth: Record<string, any>,
+  gatewayMeta: Record<string, unknown>,
+): Record<string, any> {
+  const next = { ...birth };
+  const tracking = next.tracking && typeof next.tracking === 'object' && !Array.isArray(next.tracking)
+    ? { ...next.tracking as Record<string, any> }
+    : {};
+
+  const setIfText = (key: string, value: unknown) => {
+    const text = asString(value);
+    if (text) tracking[key] = text;
+  };
+
+  setIfText('gateway_transaction_id', gatewayMeta.gateway_transaction_id);
+  setIfText('gateway_open_order_id', gatewayMeta.gateway_open_order_id);
+  setIfText('gateway_trade_order_id', gatewayMeta.gateway_trade_order_id);
+  setIfText('gateway_appid', gatewayMeta.gateway_appid);
+  setIfText('gateway_plugins', gatewayMeta.gateway_plugins);
+  setIfText('gateway_total_fee', gatewayMeta.gateway_total_fee);
+  setIfText('gateway_status', gatewayMeta.gateway_status);
+  tracking.gateway_source = 'payment-callback';
+
   next.tracking = tracking;
   return next;
 }
@@ -157,30 +190,92 @@ Deno.serve(async (req) => {
 
   // 查询订单并标记已支付
   const { data: order } = await supabase
-    .from('orders').select('birth_input').eq('trade_no', trade_order_id).single();
+    .from('orders').select('paid,birth_input').eq('trade_no', trade_order_id).single();
 
   if (!order) {
     return new Response('order not found', { status: 404 });
   }
 
+  const gatewayMeta = {
+    gateway_status: status,
+    gateway_trade_order_id: trade_order_id,
+    gateway_transaction_id: asString(data.transaction_id),
+    gateway_open_order_id: asString(data.open_order_id),
+    gateway_total_fee: asString(data.total_fee),
+    gateway_appid: asString(data.appid),
+    gateway_plugins: asString(data.plugins),
+  };
   const trackedBirth = applyTrackingEvent(parseBirthInput(order.birth_input), 'payment_paid', {
     source: 'payment-callback',
-    gateway_status: status,
+    ...gatewayMeta,
   });
+  const trackedBirthWithGateway = attachGatewayTracking(trackedBirth, gatewayMeta);
   await supabase
     .from('orders')
-    .update({ paid: true, birth_input: JSON.stringify(trackedBirth) })
+    .update({ paid: true, birth_input: JSON.stringify(trackedBirthWithGateway) })
     .eq('trade_no', trade_order_id);
 
   console.log(`Order ${trade_order_id} marked as paid, triggering analysis...`);
 
   // 异步触发 AI 分析（不等待结果，但添加错误处理）
-  const birth = parseBirthInput(order.birth_input);
+  let birth = trackedBirthWithGateway;
+  const optionId = asString(birth?.payment_option?.id).toLowerCase();
   const orderService = birth?.order_service === 'hepan'
     ? 'hepan'
-    : (birth?.order_service === 'pdf' ? 'pdf' : 'bazi');
-  if (orderService === 'pdf') {
-    console.log(`PDF order ${trade_order_id} paid, skip analyze trigger`);
+    : (birth?.order_service === 'pdf' || optionId === 'pdf'
+      ? 'pdf'
+      : (birth?.order_service === 'consult' || optionId === 'consult'
+        ? 'consult'
+        : (isCopyAgentOrder(birth, optionId) ? 'copy_agent' : 'bazi')));
+
+  if (orderService === 'copy_agent') {
+    try {
+      const grant = await grantCopyAgentCredits(birth, trade_order_id);
+      birth = grant.birth;
+      await supabase
+        .from('orders')
+        .update({ paid: true, birth_input: JSON.stringify(birth) })
+        .eq('trade_no', trade_order_id);
+      await sendOrderNotify('copy_agent_credited', {
+        trade_no: trade_order_id,
+        service: orderService,
+        payment_option_id: optionId || 'copy_agent_100',
+        total_fee: asString(data.total_fee),
+        status: grant.skipped ? 'SKIPPED_ALREADY_GRANTED' : 'CREDITED',
+        source: 'payment-callback',
+        note: `${grant.email} +${grant.credits} until ${grant.paidUntil}`,
+      });
+      return new Response('success', { status: 200 });
+    } catch (err) {
+      const failedBirth = {
+        ...birth,
+        tracking: {
+          ...(birth.tracking && typeof birth.tracking === 'object' && !Array.isArray(birth.tracking) ? birth.tracking : {}),
+          copy_agent_grant_error: err instanceof Error ? err.message : String(err),
+          copy_agent_grant_error_at: new Date().toISOString(),
+        },
+      };
+      await supabase
+        .from('orders')
+        .update({ paid: true, birth_input: JSON.stringify(failedBirth) })
+        .eq('trade_no', trade_order_id);
+      console.error(`Copy Agent credit grant failed for ${trade_order_id}:`, err);
+      return new Response('copy agent grant failed', { status: 500 });
+    }
+  }
+
+  await sendOrderNotify('payment_paid', {
+    trade_no: trade_order_id,
+    service: orderService,
+    payment_option_id: optionId || '-',
+    total_fee: asString(data.total_fee),
+    status: 'OD',
+    source: 'payment-callback',
+    note: asString(data.transaction_id),
+  });
+
+  if (orderService === 'pdf' || orderService === 'consult') {
+    console.log(`${orderService.toUpperCase()} order ${trade_order_id} paid, skip analyze trigger`);
     return new Response('success', { status: 200 });
   }
 
@@ -210,8 +305,11 @@ Deno.serve(async (req) => {
     analyzePayload.start_age = birth.start_age;
   }
 
-  // ????????? fetch???????????????????????
-  fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/analyze`, {
+  // 异步触发 AI 分析：用 EdgeRuntime.waitUntil 让 worker 在返回响应后继续存活，
+  // 直到 analyze 调用 DeepSeek 生成并写回报告（耗时约 30-70s）。
+  // 否则未 await 的 fetch 会在本函数 return 时被运行时回收，
+  // 导致已支付订单的报告永远不生成（paid_not_delivered）。
+  const analyzeTask = fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/analyze`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -222,6 +320,11 @@ Deno.serve(async (req) => {
     console.error(`Failed to trigger analysis for order ${trade_order_id}:`, err);
     // 分析失败不影响支付状态，用户可以手动刷新页面获取结果
   });
+  try {
+    (globalThis as any).EdgeRuntime?.waitUntil?.(analyzeTask);
+  } catch (err) {
+    console.error(`waitUntil unavailable for order ${trade_order_id}:`, err);
+  }
 
   console.log(`Analysis triggered for order ${trade_order_id}`);
   return new Response('success', { status: 200 });

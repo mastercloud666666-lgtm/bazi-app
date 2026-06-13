@@ -1,16 +1,19 @@
-﻿import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   buildRateLimitIdentifier,
   consumeRateLimit,
   corsHeaders,
   extractClientIp,
   isAllowedRequestOrigin,
+  isLikelyAutomatedUa,
   json,
   maskIp,
   recordAbuseLog,
   resolveAllowedOrigins,
   tooManyRequestsResponse,
 } from '../_shared/security.ts';
+import { sendOrderNotify } from '../_shared/order-notify.ts';
+import { grantCopyAgentCredits, isCopyAgentOrder } from '../_shared/copy-agent.ts';
 
 const DEFAULT_PRIMARY_API_BASE = 'https://api.xunhupay.com';
 const DEFAULT_BACKUP_API_BASE = 'https://api.dpweixin.com';
@@ -20,6 +23,7 @@ const DEFAULT_PDF_STORAGE_PATH = 'pdfs/yunzi-bazi-guide.pdf';
 const DEFAULT_PDF_SIGNED_TTL_SECONDS = 600;
 const DEFAULT_RATE_LIMIT_WINDOW_SECONDS = 60;
 const DEFAULT_RATE_LIMIT_MAX_REQUESTS = 36;
+const DEFAULT_TRADE_RATE_LIMIT_MAX_REQUESTS = 12;
 
 function normalizeApiBase(base: string | undefined, fallback: string) {
   const value = (base || fallback).trim();
@@ -98,6 +102,33 @@ function applyTrackingEvent(
   tracking.last_event_at = now;
   events.push({ event, at: now, meta });
   tracking.events = events.slice(-30);
+  next.tracking = tracking;
+  return next;
+}
+
+function attachGatewayTracking(
+  birth: Record<string, any>,
+  gatewayMeta: Record<string, unknown>,
+): Record<string, any> {
+  const next = { ...birth };
+  const tracking = next.tracking && typeof next.tracking === 'object' && !Array.isArray(next.tracking)
+    ? { ...next.tracking as Record<string, any> }
+    : {};
+
+  const setIfText = (key: string, value: unknown) => {
+    const text = asString(value);
+    if (text) tracking[key] = text;
+  };
+
+  setIfText('gateway_transaction_id', gatewayMeta.gateway_transaction_id);
+  setIfText('gateway_open_order_id', gatewayMeta.gateway_open_order_id);
+  setIfText('gateway_trade_order_id', gatewayMeta.gateway_trade_order_id);
+  setIfText('gateway_appid', gatewayMeta.gateway_appid);
+  setIfText('gateway_plugins', gatewayMeta.gateway_plugins);
+  setIfText('gateway_total_fee', gatewayMeta.gateway_total_fee);
+  setIfText('gateway_status', gatewayMeta.gateway_status);
+  tracking.gateway_source = 'reconcile-payment';
+
   next.tracking = tracking;
   return next;
 }
@@ -230,32 +261,58 @@ async function triggerAnalyzeIfNeeded(order: { analysis: string | null; birth_in
   if (!supabaseUrl || !anonKey) return false;
 
   const birth: Record<string, any> = parseBirthInput(order.birth_input);
-  if (birth?.order_service === 'pdf') return false;
+  const optionId = asString(birth?.payment_option?.id).toLowerCase();
+  const service = birth?.order_service === 'hepan'
+    ? 'hepan'
+    : (birth?.order_service === 'pdf' || optionId === 'pdf'
+      ? 'pdf'
+      : (birth?.order_service === 'consult' || optionId === 'consult'
+        ? 'consult'
+        : (isCopyAgentOrder(birth, optionId) ? 'copy_agent' : 'bazi')));
+  if (service === 'pdf' || service === 'consult' || service === 'copy_agent') return false;
 
-  fetch(`${supabaseUrl}/functions/v1/analyze`, {
+  const payload: Record<string, unknown> = {
+    trade_no: tradeNo,
+    service,
+  };
+  if (service === 'hepan') {
+    payload.man_bazi_str = birth.man_bazi_str;
+    payload.woman_bazi_str = birth.woman_bazi_str;
+    payload.man_dayun = birth.man_dayun;
+    payload.woman_dayun = birth.woman_dayun;
+    payload.current_year = Number(birth.current_year) || new Date().getFullYear();
+    payload.stream = false;
+  } else {
+    payload.free_only = false;
+    payload.payment_option_id = birth?.payment_option?.id || 'basic';
+    payload.year = birth.year;
+    payload.month = birth.month;
+    payload.day = birth.day;
+    payload.hour = birth.hour;
+    payload.gender = birth.gender;
+    payload.bazi_str = birth.bazi_str;
+    payload.dayun_text = birth.dayun_text;
+    payload.special_years_text = birth.special_years_text;
+    payload.start_age = birth.start_age;
+  }
+
+  // 用 EdgeRuntime.waitUntil 让 worker 在返回响应后继续存活，直到 analyze 跑完，
+  // 否则未 await 的 fetch 会在函数返回时被运行时回收，导致付费报告永远不生成。
+  const analyzeTask = fetch(`${supabaseUrl}/functions/v1/analyze`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${anonKey}`,
     },
-    body: JSON.stringify({
-      trade_no: tradeNo,
-      service: 'bazi',
-      free_only: false,
-      payment_option_id: birth?.payment_option?.id || 'basic',
-      year: birth.year,
-      month: birth.month,
-      day: birth.day,
-      hour: birth.hour,
-      gender: birth.gender,
-      bazi_str: birth.bazi_str,
-      dayun_text: birth.dayun_text,
-      special_years_text: birth.special_years_text,
-      start_age: birth.start_age,
-    }),
+    body: JSON.stringify(payload),
   }).catch((err) => {
     console.error('trigger analyze failed:', err);
   });
+  try {
+    (globalThis as any).EdgeRuntime?.waitUntil?.(analyzeTask);
+  } catch (err) {
+    console.error('waitUntil unavailable for analyze task:', err);
+  }
 
   return true;
 }
@@ -306,13 +363,16 @@ Deno.serve(async (req) => {
       windowSeconds: rateWindowSeconds,
       maxRequests: rateMaxRequests,
     });
+    const userAgent = String(req.headers.get('user-agent') || '').slice(0, 240);
+    const clientIpMasked = maskIp(extractClientIp(req));
+    const shouldBlockBotUa = Deno.env.get('SECURITY_BLOCK_BOT_UA_SENSITIVE') !== '0';
     if (!rateResult.allowed) {
       await recordAbuseLog(supabase, {
         scope: 'reconcile-payment',
         identifier: rateIdentifier,
         event: 'rate_limited',
         meta: {
-          ip_masked: maskIp(extractClientIp(req)),
+          ip_masked: clientIpMasked,
           current_count: rateResult.currentCount,
           max_requests: rateMaxRequests,
           window_seconds: rateWindowSeconds,
@@ -323,6 +383,49 @@ Deno.serve(async (req) => {
         retryAfterSeconds: rateResult.retryAfterSeconds,
         scope: 'reconcile-payment',
         currentCount: rateResult.currentCount,
+      });
+    }
+
+    if (shouldBlockBotUa && isLikelyAutomatedUa(userAgent)) {
+      await recordAbuseLog(supabase, {
+        scope: 'reconcile-payment',
+        identifier: rateIdentifier,
+        event: 'blocked_bot_ua',
+        meta: {
+          ip_masked: clientIpMasked,
+          ua: userAgent.slice(0, 160),
+        },
+      });
+      return jsonResponse(req, {
+        error: 'blocked_bot_ua',
+        details: 'Automated client is not allowed for payment reconciliation',
+      }, 403, allowedOrigins);
+    }
+
+    const tradeRateMaxRequests = readEnvNumber('RATE_LIMIT_RECONCILE_TRADE_MAX_REQUESTS', DEFAULT_TRADE_RATE_LIMIT_MAX_REQUESTS, 2, 200);
+    const tradeRateResult = await consumeRateLimit(supabase, {
+      scope: 'reconcile-payment-trade',
+      identifier: tradeNo,
+      windowSeconds: rateWindowSeconds,
+      maxRequests: tradeRateMaxRequests,
+    });
+    if (!tradeRateResult.allowed) {
+      await recordAbuseLog(supabase, {
+        scope: 'reconcile-payment-trade',
+        identifier: tradeNo,
+        event: 'rate_limited_trade',
+        meta: {
+          ip_masked: clientIpMasked,
+          current_count: tradeRateResult.currentCount,
+          max_requests: tradeRateMaxRequests,
+          window_seconds: rateWindowSeconds,
+        },
+      });
+      return tooManyRequestsResponse(req, allowedOrigins, {
+        message: 'Order reconciliation for this trade is too frequent, please retry shortly.',
+        retryAfterSeconds: tradeRateResult.retryAfterSeconds,
+        scope: 'reconcile-payment-trade',
+        currentCount: tradeRateResult.currentCount,
       });
     }
 
@@ -443,17 +546,72 @@ Deno.serve(async (req) => {
       }, 200, allowedOrigins);
     }
 
-    const trackedBirth = applyTrackingEvent(birth, 'payment_verified', {
+    const queryData = ((queryResult as any)?.data && typeof (queryResult as any).data === 'object')
+      ? (queryResult as any).data
+      : {};
+    const gatewayMeta = {
+      gateway_status: 'OD',
+      gateway_trade_order_id: tradeNo,
+      gateway_transaction_id: asString(queryData.transaction_id || (queryResult as any)?.transaction_id),
+      gateway_open_order_id: asString(queryData.open_order_id || (queryResult as any)?.open_order_id),
+      gateway_total_fee: asString(queryData.total_fee || (queryResult as any)?.total_fee),
+      gateway_appid: asString(queryData.appid || (queryResult as any)?.appid),
+      gateway_plugins: asString(queryData.plugins || (queryResult as any)?.plugins),
+    };
+    let trackedBirth = applyTrackingEvent(birth, 'payment_verified', {
       source: 'reconcile-payment',
       api_base: selectedApiBase || '',
+      ...gatewayMeta,
     });
+    let trackedBirthWithGateway = attachGatewayTracking(trackedBirth, gatewayMeta);
+
+    const copyAgentOptionId = asString(trackedBirthWithGateway?.payment_option?.id).toLowerCase();
+    let copyAgentGrant: Awaited<ReturnType<typeof grantCopyAgentCredits>> | null = null;
+    if (isCopyAgentOrder(trackedBirthWithGateway, copyAgentOptionId)) {
+      copyAgentGrant = await grantCopyAgentCredits(trackedBirthWithGateway, tradeNo);
+      trackedBirthWithGateway = copyAgentGrant.birth;
+      trackedBirth = trackedBirthWithGateway;
+    }
+
     await supabase
       .from('orders')
-      .update({ paid: true, birth_input: JSON.stringify(trackedBirth) })
+      .update({ paid: true, birth_input: JSON.stringify(trackedBirthWithGateway) })
       .eq('trade_no', tradeNo);
 
+    if (!order.paid) {
+      const optionId = asString(trackedBirthWithGateway?.payment_option?.id).toLowerCase();
+      const orderService = trackedBirthWithGateway?.order_service === 'hepan'
+        ? 'hepan'
+        : (trackedBirthWithGateway?.order_service === 'pdf' || optionId === 'pdf'
+          ? 'pdf'
+          : (trackedBirthWithGateway?.order_service === 'consult' || optionId === 'consult'
+            ? 'consult'
+            : (isCopyAgentOrder(trackedBirthWithGateway, optionId) ? 'copy_agent' : 'bazi')));
+      await sendOrderNotify('payment_verified', {
+        trade_no: tradeNo,
+        service: orderService,
+        payment_option_id: optionId || '-',
+        total_fee: asString(gatewayMeta.gateway_total_fee),
+        status: 'OD',
+        source: 'reconcile-payment',
+        note: selectedApiBase || '',
+      });
+    }
+
+    if (copyAgentGrant) {
+      await sendOrderNotify('copy_agent_credited', {
+        trade_no: tradeNo,
+        service: 'copy_agent',
+        payment_option_id: 'copy_agent_100',
+        total_fee: asString(gatewayMeta.gateway_total_fee),
+        status: copyAgentGrant.skipped ? 'SKIPPED_ALREADY_GRANTED' : 'CREDITED',
+        source: 'reconcile-payment',
+        note: `${copyAgentGrant.email} +${copyAgentGrant.credits} until ${copyAgentGrant.paidUntil}`,
+      });
+    }
+
     const analysisTriggered = await triggerAnalyzeIfNeeded(order, tradeNo);
-    const signedPdf = isPdfOrder ? await createPdfSignedUrl(supabase, supabaseUrl, trackedBirth) : null;
+    const signedPdf = isPdfOrder ? await createPdfSignedUrl(supabase, supabaseUrl, trackedBirthWithGateway) : null;
 
     return jsonResponse(req, {
       errcode: 0,
