@@ -23,20 +23,20 @@ const PAYMENT_OPTIONS = [
   {
     id: 'basic',
     title: '初级版：8大核心维度',
-    subtitle: '聚焦命主底盘、天赋与现实决策（约3000字）｜正式价 128 元｜当前活动价 99 元',
-    fee: '99',
+    subtitle: '聚焦命主底盘、天赋与现实决策（约3000字）｜正式价 128 元｜当前活动价 19 元',
+    fee: '19',
   },
   {
     id: 'pro',
     title: '进阶版：16大实战维度',
-    subtitle: '覆盖事业、财运、婚恋、人际与运势节奏（约5000字）｜正式价 258 元｜当前活动价 199 元',
-    fee: '199',
+    subtitle: '覆盖事业、财运、婚恋、人际与运势节奏（约5000字）｜正式价 258 元｜当前活动价 49 元',
+    fee: '49',
   },
   {
     id: 'vip',
     title: '尊享完整版：24维全景深度报告',
-    subtitle: '24个维度系统拆解命局与未来节奏（约7000-9000字）｜正式价 398 元｜当前活动价 299 元',
-    fee: '299',
+    subtitle: '24个维度系统拆解命局与未来节奏（约7000-9000字）｜正式价 398 元｜当前活动价 99 元',
+    fee: '99',
   },
 ];
 const DEFAULT_PAYMENT_OPTION = PAYMENT_OPTIONS[0];
@@ -1919,6 +1919,7 @@ function showMobilePayPanel(payUrl, tradeNo, mountEl, options = {}) {
 }
 
 function ensurePdfPurchaseUI() {
+  return null; // PDF 合集已下架，不再展示购买入口
   const payCard = document.querySelector('.pay-card');
   if (!payCard) return null;
 

@@ -14,13 +14,22 @@ import {
 } from '../_shared/security.ts';
 import { sendOrderNotify } from '../_shared/order-notify.ts';
 
-const PAYMENT_OPTION_MAP: Record<'basic' | 'pro' | 'vip' | 'pdf' | 'consult', { title: string; total_fee: string }> = {
-  basic: { title: 'Bazi Starter Report', total_fee: '99' },
-  pro: { title: 'Bazi Advanced Report', total_fee: '199' },
-  vip: { title: 'Bazi Premium Full Report', total_fee: '299' },
-  pdf: { title: 'Bazi PDF Document', total_fee: '19.9' },
+type PaymentOptionId = 'basic' | 'pro' | 'vip' | 'pdf' | 'consult' | 'copy_agent_100';
+type OrderService = 'bazi' | 'hepan' | 'pdf' | 'consult' | 'copy_agent';
+
+const PAYMENT_OPTION_MAP: Record<PaymentOptionId, { title: string; total_fee: string }> = {
+  basic: { title: 'Bazi Starter Report', total_fee: '19' },
+  pro: { title: 'Bazi Advanced Report', total_fee: '49' },
+  vip: { title: 'Bazi Premium Full Report', total_fee: '99' },
+  pdf: { title: 'Bazi PDF Document', total_fee: '19' },
   consult: { title: '1v1 Destiny Consultation', total_fee: '499' },
+  copy_agent_100: { title: 'Copy Agent 100 Credits', total_fee: '10' },
 };
+const PRICE_LOCKED_PAYMENT_OPTION_IDS = new Set(['basic', 'pro', 'vip', 'copy_agent_100']);
+const FIRST_VISIT_DISCOUNT_OPTION_IDS = new Set(['basic', 'pro', 'vip']);
+const FIRST_VISIT_DISCOUNT_ID = 'FIRST3D_20OFF';
+const FIRST_VISIT_DISCOUNT_RATE = 0.8;
+const FIRST_VISIT_DISCOUNT_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 const HEPAN_PAYMENT_CONFIG = { title: 'Compatibility Analysis Report', total_fee: '199' } as const;
 
 const DEFAULT_PRIMARY_API_BASE = 'https://api.xunhupay.com';
@@ -45,13 +54,14 @@ function validateTradeNo(value: string): boolean {
   return /^bazi-[a-z0-9_-]{4,120}$/i.test(value);
 }
 
-function normalizePaymentOptionId(value: unknown, fallback: 'basic' | 'pro' | 'vip' | 'pdf' | 'consult' | '' = 'basic'): 'basic' | 'pro' | 'vip' | 'pdf' | 'consult' | '' {
+function normalizePaymentOptionId(value: unknown, fallback: PaymentOptionId | '' = 'basic'): PaymentOptionId | '' {
   const id = String(value || '').trim();
   if (id === 'pro') return 'pro';
   if (id === 'vip') return 'vip';
   if (id === 'basic') return 'basic';
   if (id === 'pdf') return 'pdf';
   if (id === 'consult') return 'consult';
+  if (id === 'copy_agent_100') return 'copy_agent_100';
   return fallback;
 }
 
@@ -219,21 +229,105 @@ function resolveDiscountedPrice(params: {
   };
 }
 
-function detectOrderService(birth: Record<string, unknown>): 'bazi' | 'hepan' | 'pdf' | 'consult' {
+function parseServerTimestampMs(value: unknown): number {
+  if (value === null || value === undefined || value === '') return 0;
+  const numeric = Number(value);
+  if (Number.isFinite(numeric) && numeric > 0) {
+    return numeric < 100000000000 ? numeric * 1000 : numeric;
+  }
+  const parsed = Date.parse(String(value));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function resolveFirstVisitDiscount(params: {
+  baseAmount: number;
+  paymentOptionId: string;
+  service: string;
+  body: Record<string, unknown>;
+  birth: Record<string, unknown>;
+  clientEnv: Record<string, unknown>;
+}) {
+  const sources = [
+    params.body?.visit_discount,
+    params.birth?.visit_discount,
+    (params.birth as Record<string, any>)?.tracking?.visit_discount,
+    (params.clientEnv as Record<string, any>)?.visit_discount,
+  ];
+  let payload: Record<string, unknown> = {};
+  for (const source of sources) {
+    const candidate = parseBirthInput(source);
+    if (Object.keys(candidate).length) {
+      payload = candidate;
+      break;
+    }
+  }
+
+  const now = Date.now();
+  const promoId = String(payload.id || payload.discount_id || '').trim();
+  const firstSeenMs = parseServerTimestampMs(payload.first_seen_at || payload.firstSeenAt);
+  const activatedAtMs = parseServerTimestampMs(payload.activated_at || payload.activatedAt);
+  const expiresAtMs = firstSeenMs ? firstSeenMs + FIRST_VISIT_DISCOUNT_WINDOW_MS : 0;
+  const allowedClockSkewMs = 5 * 60 * 1000;
+  const invalid = (reason: string) => ({
+    applied: false,
+    finalAmount: params.baseAmount,
+    discountAmount: 0,
+    promoId,
+    discountRule: '',
+    discountNote: '',
+    discountLabel: '',
+    expiresAt: expiresAtMs ? new Date(expiresAtMs).toISOString() : '',
+    invalidReason: reason,
+  });
+
+  if (params.service !== 'bazi') return invalid('service_not_eligible');
+  if (!FIRST_VISIT_DISCOUNT_OPTION_IDS.has(params.paymentOptionId)) return invalid('option_not_eligible');
+  if (promoId !== FIRST_VISIT_DISCOUNT_ID) return invalid('promo_id_mismatch');
+  if (!firstSeenMs || !activatedAtMs) return invalid('missing_timestamp');
+  if (firstSeenMs > now + allowedClockSkewMs) return invalid('first_seen_in_future');
+  if (activatedAtMs < firstSeenMs - allowedClockSkewMs) return invalid('activated_before_first_seen');
+  if (activatedAtMs > now + allowedClockSkewMs) return invalid('activated_in_future');
+  if (activatedAtMs > expiresAtMs + allowedClockSkewMs) return invalid('activated_after_window');
+  if (now > expiresAtMs + allowedClockSkewMs) return invalid('expired');
+
+  const finalAmount = Math.max(
+    DEFAULT_MIN_PAY_AMOUNT,
+    Math.round(params.baseAmount * FIRST_VISIT_DISCOUNT_RATE * 100) / 100,
+  );
+  const discountAmount = Math.max(0, Math.round((params.baseAmount - finalAmount) * 100) / 100);
+  return {
+    applied: discountAmount > 0,
+    finalAmount,
+    discountAmount,
+    promoId,
+    discountRule: 'first_visit_3d_20off',
+    discountNote: '首访3天内8折',
+    discountLabel: '首访3天内8折',
+    expiresAt: new Date(expiresAtMs).toISOString(),
+    invalidReason: '',
+  };
+}
+
+function detectOrderService(birth: Record<string, unknown>): OrderService {
   const service = String(birth?.order_service || '').trim().toLowerCase();
   if (service === 'hepan') return 'hepan';
   if (service === 'pdf') return 'pdf';
   if (service === 'consult') return 'consult';
+  if (service === 'copy_agent') return 'copy_agent';
+  const paymentOption = parseBirthInput(birth?.payment_option);
+  const optionId = String(paymentOption.id || birth?.payment_option_id || '').trim().toLowerCase();
+  if (optionId === 'copy_agent_100') return 'copy_agent';
   return 'bazi';
 }
 
-function inferOrderServiceFromOptionId(optionId: 'basic' | 'pro' | 'vip' | 'pdf' | 'consult'): 'bazi' | 'pdf' | 'consult' {
+function inferOrderServiceFromOptionId(optionId: PaymentOptionId): OrderService {
   if (optionId === 'pdf') return 'pdf';
   if (optionId === 'consult') return 'consult';
+  if (optionId === 'copy_agent_100') return 'copy_agent';
   return 'bazi';
 }
 
-function buildFallbackOrderBirthInput(rawInput: unknown, optionId: 'basic' | 'pro' | 'vip' | 'pdf' | 'consult'): Record<string, unknown> {
+function buildFallbackOrderBirthInput(rawInput: unknown, optionId: PaymentOptionId): Record<string, unknown> {
   const next = parseBirthInput(rawInput);
   if (!String(next.order_service || '').trim()) {
     next.order_service = inferOrderServiceFromOptionId(optionId);
@@ -314,12 +408,13 @@ function resolveReturnOrigin(req: Request, fallbackOrigin: string): string {
   return fallbackOrigin;
 }
 
-function resolveReturnPath(value: unknown): '/payment-fallback.html' | '/result.html' | '/hepan.html' | '/index.html' {
+function resolveReturnPath(value: unknown): '/payment-fallback.html' | '/result.html' | '/hepan.html' | '/index.html' | '/upgrade.html' {
   const path = String(value || '').trim();
   if (path === '/payment-fallback.html') return '/payment-fallback.html';
   if (path === '/hepan.html') return '/hepan.html';
   if (path === '/index.html') return '/index.html';
   if (path === '/result.html') return '/result.html';
+  if (path === '/upgrade.html') return '/upgrade.html';
   return '/payment-fallback.html';
 }
 
@@ -479,7 +574,7 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const tradeNo = String(body?.trade_no || '').trim();
-    const requestedPaymentOptionId = normalizePaymentOptionId(body?.payment_option_id, 'basic') as 'basic' | 'pro' | 'vip' | 'pdf' | 'consult';
+    const requestedPaymentOptionId = normalizePaymentOptionId(body?.payment_option_id, 'basic') as PaymentOptionId;
     const clientEnv = body?.client_env && typeof body.client_env === 'object' ? body.client_env : {};
 
     if (!tradeNo || !validateTradeNo(tradeNo)) {
@@ -628,24 +723,51 @@ Deno.serve(async (req) => {
     // Lock payment option to the one stored in order if present.
     const birth = parseBirthInput(order.birth_input);
     const paymentOptionObj = parseBirthInput(birth.payment_option);
-    const lockedPaymentOptionId = normalizePaymentOptionId(paymentOptionObj.id, '') as '' | 'basic' | 'pro' | 'vip' | 'pdf' | 'consult';
+    const lockedPaymentOptionId = normalizePaymentOptionId(paymentOptionObj.id, '') as '' | PaymentOptionId;
     const paymentOptionId = lockedPaymentOptionId || requestedPaymentOptionId;
     const service = detectOrderService(birth);
     const optionConfig = service === 'hepan'
       ? HEPAN_PAYMENT_CONFIG
       : PAYMENT_OPTION_MAP[paymentOptionId];
     const discountOptionId = service === 'hepan' ? 'hepan' : paymentOptionId;
-    const inviteCode = normalizeInviteCode(
+    const rawInviteCode = normalizeInviteCode(
       body?.invite_code
       || (birth as Record<string, unknown>)?.invite_code
       || ((birth as Record<string, any>)?.tracking?.invite_code),
     );
+    const inviteCode = PRICE_LOCKED_PAYMENT_OPTION_IDS.has(paymentOptionId) ? '' : rawInviteCode;
     const baseAmount = toMoneyNumber(optionConfig.total_fee) || DEFAULT_MIN_PAY_AMOUNT;
-    const discountMeta = resolveDiscountedPrice({
+    const inviteDiscountMeta = resolveDiscountedPrice({
       baseAmount,
       inviteCode,
       optionId: discountOptionId,
     });
+    const visitDiscountMeta = resolveFirstVisitDiscount({
+      baseAmount: inviteDiscountMeta.finalAmount,
+      paymentOptionId,
+      service,
+      body: body as Record<string, unknown>,
+      birth,
+      clientEnv: clientEnv as Record<string, unknown>,
+    });
+    const finalAmount = visitDiscountMeta.applied
+      ? visitDiscountMeta.finalAmount
+      : inviteDiscountMeta.finalAmount;
+    const discountMeta = {
+      ...inviteDiscountMeta,
+      finalAmount,
+      discountApplied: inviteDiscountMeta.discountApplied || visitDiscountMeta.applied,
+      discountAmount: Math.max(0, Math.round((baseAmount - finalAmount) * 100) / 100),
+      discountRule: visitDiscountMeta.applied ? visitDiscountMeta.discountRule : inviteDiscountMeta.discountRule,
+      discountNote: visitDiscountMeta.applied ? visitDiscountMeta.discountNote : inviteDiscountMeta.discountNote,
+      discountLabel: visitDiscountMeta.applied
+        ? visitDiscountMeta.discountLabel
+        : (inviteDiscountMeta.discountApplied ? '优惠码折扣' : ''),
+      visitDiscountApplied: visitDiscountMeta.applied,
+      visitDiscountId: visitDiscountMeta.applied ? visitDiscountMeta.promoId : '',
+      visitDiscountExpiresAt: visitDiscountMeta.applied ? visitDiscountMeta.expiresAt : '',
+      visitDiscountInvalidReason: visitDiscountMeta.applied ? '' : visitDiscountMeta.invalidReason,
+    };
     const totalFee = formatMoney(discountMeta.finalAmount);
 
     const isWeChatClient = Boolean(clientEnv?.is_wechat) || /MicroMessenger/i.test(userAgent);
@@ -663,10 +785,17 @@ Deno.serve(async (req) => {
       attempted_api_bases: candidateApiBases,
       payment_option_id: paymentOptionId,
       invite_code: discountMeta.inviteCode || null,
-      invite_discount_applied: discountMeta.discountApplied,
-      invite_discount_amount: discountMeta.discountAmount,
+      invite_discount_applied: inviteDiscountMeta.discountApplied,
+      invite_discount_amount: inviteDiscountMeta.discountAmount,
       invite_rules_loaded: discountMeta.rulesLoaded || 0,
       invite_env_len: discountMeta.envRuleLen || 0,
+      discount_applied: discountMeta.discountApplied,
+      discount_amount: discountMeta.discountAmount,
+      discount_label: discountMeta.discountLabel || null,
+      visit_discount_applied: discountMeta.visitDiscountApplied,
+      visit_discount_id: discountMeta.visitDiscountId || null,
+      visit_discount_expires_at: discountMeta.visitDiscountExpiresAt || null,
+      visit_discount_invalid_reason: discountMeta.visitDiscountInvalidReason || null,
       total_fee_original: formatMoney(baseAmount),
       total_fee_final: totalFee,
     };
@@ -765,6 +894,8 @@ Deno.serve(async (req) => {
       return_path: returnPath,
       invite_discount_rule: discountMeta.discountRule || null,
       invite_discount_note: discountMeta.discountNote || null,
+      discount_rule: discountMeta.discountRule || null,
+      discount_note: discountMeta.discountNote || null,
       gateway_last_errcode: lastGatewayErrCode,
       gateway_last_errmsg: lastGatewayErrMsg || null,
     };
@@ -800,10 +931,17 @@ Deno.serve(async (req) => {
           invite_code: discountMeta.inviteCode || null,
           discount_applied: discountMeta.discountApplied,
           discount_amount: discountMeta.discountAmount,
+          discount_label: discountMeta.discountLabel || null,
           total_fee_original: formatMoney(baseAmount),
           total_fee_final: totalFee,
           discount_rule: discountMeta.discountRule || null,
           discount_note: discountMeta.discountNote || null,
+          invite_discount_applied: inviteDiscountMeta.discountApplied,
+          invite_discount_amount: inviteDiscountMeta.discountAmount,
+          visit_discount_applied: discountMeta.visitDiscountApplied,
+          visit_discount_id: discountMeta.visitDiscountId || null,
+          visit_discount_expires_at: discountMeta.visitDiscountExpiresAt || null,
+          visit_discount_invalid_reason: discountMeta.visitDiscountInvalidReason || null,
           rules_loaded: discountMeta.rulesLoaded || 0,
           env_rule_len: discountMeta.envRuleLen || 0,
         },
@@ -816,10 +954,17 @@ Deno.serve(async (req) => {
           invite_code: discountMeta.inviteCode || null,
           discount_applied: discountMeta.discountApplied,
           discount_amount: discountMeta.discountAmount,
+          discount_label: discountMeta.discountLabel || null,
           total_fee_original: formatMoney(baseAmount),
           total_fee_final: totalFee,
           discount_rule: discountMeta.discountRule || null,
           discount_note: discountMeta.discountNote || null,
+          invite_discount_applied: inviteDiscountMeta.discountApplied,
+          invite_discount_amount: inviteDiscountMeta.discountAmount,
+          visit_discount_applied: discountMeta.visitDiscountApplied,
+          visit_discount_id: discountMeta.visitDiscountId || null,
+          visit_discount_expires_at: discountMeta.visitDiscountExpiresAt || null,
+          visit_discount_invalid_reason: discountMeta.visitDiscountInvalidReason || null,
           rules_loaded: discountMeta.rulesLoaded || 0,
           env_rule_len: discountMeta.envRuleLen || 0,
         },
@@ -832,8 +977,12 @@ Deno.serve(async (req) => {
           api_base: selectedApiBase || preferredApiBase,
           is_wechat: isWeChatClient,
           invite_code: discountMeta.inviteCode || '',
-          invite_discount_applied: discountMeta.discountApplied,
-          invite_discount_amount: discountMeta.discountAmount,
+          invite_discount_applied: inviteDiscountMeta.discountApplied,
+          invite_discount_amount: inviteDiscountMeta.discountAmount,
+          visit_discount_applied: discountMeta.visitDiscountApplied,
+          visit_discount_id: discountMeta.visitDiscountId,
+          discount_label: discountMeta.discountLabel,
+          discount_amount: discountMeta.discountAmount,
           total_fee_final: totalFee,
         });
         await supabase
@@ -850,7 +999,8 @@ Deno.serve(async (req) => {
           source: 'create-payment',
           note: [
             selectedApiBase || preferredApiBase,
-            discountMeta.discountApplied ? `invite:${discountMeta.inviteCode}` : '',
+            inviteDiscountMeta.discountApplied ? `invite:${discountMeta.inviteCode}` : '',
+            discountMeta.visitDiscountApplied ? `promo:${discountMeta.visitDiscountId}` : '',
           ].filter(Boolean).join(' | '),
         });
       }
