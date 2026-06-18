@@ -824,6 +824,8 @@ function buildOrderRecoveryUrl(tradeNo = '') {
 
 function ensureOrderRecoveryEntry(formEl) {
   if (!formEl || document.getElementById('order-recovery-entry')) return;
+  // 仅在确有待支付/待找回订单时显示，冷访客首屏保持干净、零支付焦虑
+  if (!getPendingTradeNo()) return;
 
   const panel = document.createElement('div');
   panel.id = 'order-recovery-entry';
