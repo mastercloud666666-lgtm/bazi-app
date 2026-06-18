@@ -2969,6 +2969,13 @@ if (form) {
       consultNotice.textContent = `${CONSULT_NON_REFUND_NOTICE} ${CONSULT_DELIVERY_NOTICE}`;
     }
 
+    // 首页只保留「免费排盘解读」——付费/咨询选项移到出结果后(result.html 已有完整升级)。
+    // 先让冷访客动手排盘、看到价值，再谈钱，避免首屏价格焦虑劝退。
+    const heroPayCard = (paidBtn.closest && paidBtn.closest('.pay-card')) || paidBtn;
+    if (heroPayCard) heroPayCard.style.display = 'none';
+    if (consultPayBtn) consultPayBtn.style.display = 'none';
+    if (consultNotice) consultNotice.style.display = 'none';
+
     const collectBirthAndBazi = () => {
       const yearEl = document.getElementById('year');
       const monthEl = document.getElementById('month');
