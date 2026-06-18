@@ -353,6 +353,7 @@ function trackSiteVisitOnce() {
     sessionStorage.setItem(key, '1');
 
     const testerId = getSiteTesterId();
+    const visitParams = new URLSearchParams(window.location.search || '');
     const payload = {
       action: 'site_visit_track',
       page_path: path,
@@ -363,6 +364,11 @@ function trackSiteVisitOnce() {
       user_agent: String(navigator.userAgent || '').slice(0, 240),
       tester_id: testerId,
       is_tester: !!testerId,
+      entry_url: String(window.location.href || '').slice(0, 320),
+      utm_source: String(visitParams.get('utm_source') || visitParams.get('channel') || visitParams.get('src') || '').slice(0, 64),
+      utm_medium: String(visitParams.get('utm_medium') || '').slice(0, 64),
+      utm_campaign: String(visitParams.get('utm_campaign') || '').slice(0, 100),
+      utm_content: String(visitParams.get('utm_content') || visitParams.get('content_id') || '').slice(0, 100),
     };
 
     fetch(`${SUPABASE_URL}/functions/v1/admin-orders`, {

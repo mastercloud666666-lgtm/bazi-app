@@ -190,6 +190,11 @@ function trackSiteVisitOnce() {
         referrer: String(document.referrer || '').slice(0, 260),
         visitor_id: getSiteVisitorId(),
         user_agent: String(navigator.userAgent || '').slice(0, 240),
+        entry_url: String(window.location.href || '').slice(0, 320),
+        utm_source: String(new URLSearchParams(window.location.search || '').get('utm_source') || new URLSearchParams(window.location.search || '').get('channel') || '').slice(0, 64),
+        utm_medium: String(new URLSearchParams(window.location.search || '').get('utm_medium') || '').slice(0, 64),
+        utm_campaign: String(new URLSearchParams(window.location.search || '').get('utm_campaign') || '').slice(0, 100),
+        utm_content: String(new URLSearchParams(window.location.search || '').get('utm_content') || '').slice(0, 100),
       }),
       keepalive: true,
     }).catch(() => {});
