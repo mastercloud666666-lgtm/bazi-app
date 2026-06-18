@@ -116,14 +116,14 @@
       en: 'Professional Destiny Reading · In-depth Report',
     },
     titleHtml: {
-      'zh-Hans': '探索您的人生<br>命理密码',
-      'zh-Hant': '探索您的人生<br>命理密碼',
-      en: 'Unlock Your Life<br>Destiny Code',
+      'zh-Hans': '3 分钟看懂自己<br>性格 · 财运 · 事业 · 婚恋的节奏',
+      'zh-Hant': '3 分鐘看懂自己<br>性格 · 財運 · 事業 · 婚戀的節奏',
+      en: 'Understand Yourself in 3 Minutes<br>Personality · Wealth · Career · Love',
     },
     subtitle: {
-      'zh-Hans': '以专业八字命理为核心，深度拆解先天格局、用神喜忌与未来运势节奏，帮助你看清趋势、把握时机。',
-      'zh-Hant': '以專業八字命理為核心，深度拆解先天格局、用神喜忌與未來運勢節奏，幫助你看清趨勢、把握時機。',
-      en: 'Built on professional Bazi methodology to decode your natal structure, useful elements, and future timing for clearer decisions.',
+      'zh-Hans': '填好生辰，免费生成你的八字基础解读——看清先天格局与未来趋势节奏，财运、事业、婚恋关键点一目了然。不玄乎、不套路，只做靠谱参考。',
+      'zh-Hant': '填好生辰，免費生成你的八字基礎解讀——看清先天格局與未來趨勢節奏，財運、事業、婚戀關鍵點一目了然。不玄乎、不套路，只做靠譜參考。',
+      en: 'Enter your birth details for a free Bazi reading — see your natal structure and timing for wealth, career, and relationships at a glance. No mysticism, just a solid reference.',
     },
     hepanEntry: {
       'zh-Hans': '进入合盘分析（双人）',
