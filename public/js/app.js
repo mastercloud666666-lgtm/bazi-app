@@ -2519,6 +2519,8 @@ function pickPaymentOption() {
         cta: '立即解锁',
         variant: 'basic',
       };
+      // 显示价强制等于真实扣款价(PAYMENT_OPTIONS.fee)，避免弹窗显示与实际扣款/结果页不一致
+      meta.sale = opt.fee;
 
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -4626,10 +4628,10 @@ function showExitOffer() {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
   overlay.innerHTML = '<div style="background:#fff;border-radius:14px;padding:28px 24px;max-width:400px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);">' +
     '<div style="font-size:40px;margin-bottom:8px;">⏳</div>' +
-    '<h3 style="margin:0 0 8px;font-size:20px;color:#0A2540;">等一下！首次访问限时 8 折</h3>' +
-    '<p style="font-size:14px;color:#64748b;margin-bottom:16px;">完整版报告覆盖24个维度，约8000字深度解读。现在锁定只需 ¥79.9（原价 ¥498）</p>' +
-    '<button onclick="this.closest(\'div\').parentElement.remove();document.getElementById(\'pay-btn\').click();" style="background:#dc2626;color:#fff;border:none;padding:14px 32px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;width:100%;">锁定 8 折优惠，查看完整报告 →</button>' +
-    '<p style="margin-top:10px;font-size:11px;color:#94a3b8;">优惠仅保留 3 天 · 无需输入优惠码自动生效</p>' +
+    '<h3 style="margin:0 0 8px;font-size:20px;color:#0A2540;">等一下！完整版限时优惠</h3>' +
+    '<p style="font-size:14px;color:#64748b;margin-bottom:16px;">完整版报告覆盖24个维度，约8000字深度解读。现在锁定只需 ¥99（原价 ¥398）</p>' +
+    '<button onclick="this.closest(\'div\').parentElement.remove();document.getElementById(\'pay-btn\').click();" style="background:#dc2626;color:#fff;border:none;padding:14px 32px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;width:100%;">立即解锁完整报告 →</button>' +
+    '<p style="margin-top:10px;font-size:11px;color:#94a3b8;">限时活动价 ¥99，原价 ¥398</p>' +
     '<button onclick="this.closest(\'div\').parentElement.remove();" style="margin-top:8px;background:none;border:none;color:#94a3b8;cursor:pointer;font-size:13px;">暂不需要，关闭</button>' +
     '</div>';
   document.body.appendChild(overlay);
