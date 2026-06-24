@@ -1,0 +1,280 @@
+/* ═══════════════════════════════════════════════════════════
+   宋韵雅色 · 云子文化首页视觉系统
+   committed-restrained：青白瓷底 / 墨黛为文 / 青瓷为构 / 朱砂点睛
+   仅作用于首页(index.html)，覆盖 mckinsey-style.css。
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  /* 色 —— OKLCH */
+  --paper:        oklch(0.975 0.007 196);   /* 青白瓷底（冷调，非暖米白） */
+  --paper-deep:   oklch(0.955 0.010 196);   /* 略深的纸，做分区 */
+  --surface:      oklch(0.998 0.002 196);   /* 表单/卡片 近白净面 */
+  --ink:          oklch(0.27 0.022 256);    /* 墨黛 正文/标题 */
+  --ink-soft:     oklch(0.43 0.018 252);    /* 次级文字 */
+  --ink-muted:    oklch(0.53 0.014 240);    /* 辅助/标签（仍≥4.5:1） */
+  --celadon:      oklch(0.60 0.055 188);    /* 青瓷 结构色 */
+  --celadon-deep: oklch(0.46 0.050 192);    /* 深青瓷 */
+  --celadon-wash: oklch(0.94 0.020 190);    /* 青瓷淡彩 底纹/选中 */
+  --cinnabar:     oklch(0.535 0.158 33);    /* 朱砂 唯一强调（主CTA） */
+  --cinnabar-deep:oklch(0.475 0.150 33);
+  --gold:         oklch(0.68 0.080 78);     /* 落款赭金 极少量点缀 */
+  --line:         oklch(0.90 0.012 200);    /* 发丝边 */
+  --line-soft:    oklch(0.93 0.010 200);
+
+  /* 覆盖旧 token，让未单独改写的旧组件也跟上新色 */
+  --primary: var(--ink);
+  --primary-light: var(--ink-soft);
+  --accent: var(--celadon-deep);
+  --accent-hover: var(--celadon);
+  --bg-white: var(--surface);
+  --bg-light: var(--paper);
+  --bg-gray: var(--paper-deep);
+  --text-dark: var(--ink);
+  --text-gray: var(--ink-soft);
+  --text-light: var(--ink-muted);
+  --border: var(--line);
+
+  --font-display: 'Noto Serif SC', 'Songti SC', serif;
+  --font-zh: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);     /* ease-out-expo 风 */
+}
+
+/* ── 纸底 + 极淡绢纹 + 远山微光 ─────────────────────── */
+body {
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(120% 80% at 82% -12%, var(--celadon-wash) 0%, transparent 42%),
+    radial-gradient(80% 55% at -12% 112%, oklch(0.95 0.02 78 / 0.4) 0%, transparent 50%);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--font-zh);
+  letter-spacing: 0.01em;
+}
+
+/* ── 导航：墨字 + 发丝边 + 青瓷品牌印 ─────────────────── */
+.navbar {
+  background: oklch(0.99 0.005 196 / 0.82);
+  backdrop-filter: saturate(1.1) blur(10px);
+  border-bottom: 1px solid var(--line-soft);
+}
+.navbar-brand-logo {
+  background: var(--ink);
+  border-radius: 7px;
+  box-shadow: inset 0 0 0 1px oklch(0.6 0.06 188 / 0.4);
+}
+.navbar-brand-logo svg circle:first-of-type { fill: var(--celadon); }
+.navbar-brand-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.18em;
+}
+.navbar-brand-en {
+  color: var(--celadon-deep);
+  letter-spacing: 0.34em;
+}
+.navbar-nav a { color: var(--ink-soft); font-weight: 500; }
+.navbar-nav a:hover { color: var(--ink); background: var(--celadon-wash); }
+.navbar-nav a.active { color: var(--cinnabar); background: transparent; }
+.navbar-lang { color: var(--ink-muted); letter-spacing: 0.1em; }
+
+/* ── HERO ───────────────────────────────────────────── */
+.hero { background: transparent; padding-top: clamp(96px, 12vh, 140px); }
+.hero-inner { gap: clamp(32px, 5vw, 72px); align-items: start; }
+
+/* 远山留白纹样：极淡，藏在 hero 背后 */
+.hero-pattern {
+  background-image:
+    radial-gradient(60% 40% at 70% 30%, var(--celadon-wash) 0%, transparent 60%);
+  opacity: 0.7;
+}
+
+/* 眉签：一处，含赭金小印 */
+.hero-badge {
+  background: oklch(0.99 0.004 196 / 0.7);
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  backdrop-filter: blur(6px);
+}
+.hero-badge-dot {
+  background: var(--cinnabar);
+  box-shadow: 0 0 0 4px oklch(0.535 0.158 33 / 0.14);
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink);
+  font-size: clamp(2rem, 1.2rem + 3.4vw, 3.5rem);
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.hero-subtitle {
+  color: var(--ink-soft);
+  font-size: clamp(15px, 14px + 0.3vw, 17px);
+  line-height: 1.95;
+  max-width: 34em;
+  text-wrap: pretty;
+}
+.hero-subtitle strong { color: var(--cinnabar); font-weight: 600; }
+
+/* 适合你 / 卡点 —— 弃厚卡片，改细线分栏 */
+.hero-sales-grid { gap: clamp(20px, 3vw, 36px); margin-top: clamp(24px, 3vh, 36px); }
+.hero-sales-card {
+  background: transparent;
+  border: none;
+  border-top: 2px solid var(--celadon);
+  border-radius: 0;
+  padding: 16px 2px 0;
+  box-shadow: none;
+}
+.hero-sales-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  margin-bottom: 12px;
+}
+.hero-sales-list { display: grid; gap: 10px; }
+.hero-sales-list li {
+  position: relative;
+  padding-left: 18px;
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  line-height: 1.7;
+  list-style: none;
+}
+.hero-sales-list li::before {
+  content: '';
+  position: absolute; left: 2px; top: 0.62em;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--celadon);
+}
+
+/* 24 维度区：素雅小印章网格 */
+.hero-dimensions-shell {
+  margin-top: clamp(28px, 4vh, 44px);
+  padding-top: clamp(22px, 3vh, 32px);
+  border-top: 1px solid var(--line);
+}
+.hero-dimensions-title {
+  font-family: var(--font-display);
+  color: var(--ink);
+  font-weight: 600; font-size: 15px;
+  letter-spacing: 0.02em;
+}
+.hero-dimensions-sub { color: var(--ink-muted); font-size: 12.5px; margin-top: 6px; line-height: 1.7; }
+.hero-left-dimensions { margin-top: 16px; gap: 8px; }
+.hero-left-dimensions > * {
+  background: oklch(0.99 0.004 196 / 0.6);
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  color: var(--ink-soft);
+}
+
+/* ── 表单卡：净白瓷面 + 青瓷聚焦 + 朱砂主钮 ──────────── */
+.hero-form-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow:
+    0 1px 0 oklch(1 0 0 / 0.6) inset,
+    0 18px 50px -28px oklch(0.4 0.04 230 / 0.45),
+    0 2px 10px -4px oklch(0.4 0.04 230 / 0.12);
+  padding: clamp(22px, 2.4vw, 30px);
+  position: relative;
+  overflow: hidden;
+}
+/* 卡顶一线青瓷 */
+.hero-form-card::before {
+  content: '';
+  position: absolute; inset: 0 0 auto 0; height: 3px;
+  background: linear-gradient(90deg, var(--celadon) 0%, var(--celadon-deep) 60%, var(--gold) 100%);
+  opacity: 0.85;
+}
+.form-title {
+  font-family: var(--font-display);
+  color: var(--ink); font-weight: 600;
+  font-size: 22px; letter-spacing: 0.02em;
+}
+.form-subtitle { color: var(--ink-muted); font-size: 13.5px; margin-top: 4px; }
+
+.form-label { color: var(--ink-soft); font-weight: 500; letter-spacing: 0.02em; }
+.form-input, .form-select {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  border-radius: 10px;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease), background 0.2s var(--ease);
+}
+.form-input::placeholder { color: var(--ink-muted); }
+.form-input:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--celadon);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px oklch(0.6 0.055 188 / 0.18);
+}
+
+/* 阳历/农历切换 */
+.form-toggle { background: var(--paper-deep); border: 1px solid var(--line-soft); border-radius: 10px; }
+.form-toggle-label { color: var(--ink-muted); border-radius: 8px; transition: all 0.25s var(--ease); }
+.form-toggle-label.active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 4px -1px oklch(0.4 0.04 230 / 0.2);
+}
+
+/* 主按钮：朱砂 —— 全站唯一的强调色，给“免费排盘解读” */
+.form-submit {
+  background: var(--cinnabar);
+  color: oklch(0.99 0.01 60);
+  border: none;
+  border-radius: 11px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  font-size: 16px;
+  box-shadow: 0 8px 22px -10px oklch(0.535 0.158 33 / 0.7);
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), background 0.2s var(--ease);
+}
+.form-submit:hover {
+  background: var(--cinnabar-deep);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px -10px oklch(0.535 0.158 33 / 0.7);
+}
+.form-submit:active { transform: translateY(0); }
+
+/* 表单底部特性条 */
+.form-features { border-top: 1px solid var(--line-soft); }
+.form-feature-icon { color: var(--celadon-deep); }
+.form-feature-text { color: var(--ink-muted); }
+
+/* 地理提示 */
+.form-geo-hint, .geo-hint { color: var(--ink-muted); }
+
+/* ── 入场动效（克制，一次，尊重 reduced-motion） ─────── */
+@keyframes sy-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.hero-content > * { animation: sy-rise 0.7s var(--ease) both; }
+.hero-content > *:nth-child(2) { animation-delay: 0.06s; }
+.hero-content > *:nth-child(3) { animation-delay: 0.12s; }
+.hero-content > *:nth-child(4) { animation-delay: 0.18s; }
+.hero-content > *:nth-child(5) { animation-delay: 0.24s; }
+.hero-form-card { animation: sy-rise 0.8s 0.12s var(--ease) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-content > *, .hero-form-card { animation: none; }
+  * { scroll-behavior: auto; }
+}
+
+/* ── 响应式微调 ─────────────────────────────────────── */
+@media (max-width: 880px) {
+  .hero-sales-grid { grid-template-columns: 1fr; }
+  .hero-title { font-size: clamp(1.8rem, 1.2rem + 5vw, 2.4rem); }
+}
