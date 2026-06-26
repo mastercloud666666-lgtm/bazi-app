@@ -278,3 +278,108 @@ body {
   .hero-sales-grid { grid-template-columns: 1fr; }
   .hero-title { font-size: clamp(1.8rem, 1.2rem + 5vw, 2.4rem); }
 }
+
+/* ── 名人命例画廊 ─────────────────────────────────────── */
+.famous-cases {
+  padding: clamp(48px, 8vh, 96px) 24px;
+  background:
+    linear-gradient(180deg, transparent, var(--paper-deep) 30%, var(--paper-deep) 70%, transparent);
+}
+.fc-inner { max-width: 1180px; margin: 0 auto; }
+.fc-head { text-align: center; margin-bottom: clamp(28px, 4vh, 44px); }
+.fc-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink);
+  font-size: clamp(1.4rem, 1.1rem + 1.4vw, 2rem);
+  letter-spacing: 0.04em;
+  text-wrap: balance;
+}
+.fc-sub { color: var(--ink-muted); font-size: 14px; margin-top: 10px; line-height: 1.8; }
+
+.fc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
+  gap: clamp(14px, 1.6vw, 20px);
+}
+.fc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 20px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease), border-color 0.3s var(--ease);
+}
+.fc-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--celadon);
+  box-shadow: 0 18px 40px -22px oklch(0.46 0.05 192 / 0.55);
+}
+.fc-top { display: flex; align-items: center; gap: 12px; }
+/* 朱砂印 */
+.fc-seal {
+  flex: none;
+  width: 42px; height: 42px;
+  display: grid; place-items: center;
+  background: var(--cinnabar);
+  color: oklch(0.985 0.01 60);
+  font-family: var(--font-display);
+  font-weight: 600; font-size: 22px;
+  border-radius: 7px;
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.25), 0 4px 12px -6px oklch(0.535 0.158 33 / 0.6);
+}
+.fc-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.fc-name {
+  font-family: var(--font-display);
+  font-weight: 600; color: var(--ink);
+  font-size: 18px; letter-spacing: 0.04em;
+}
+.fc-role { color: var(--ink-muted); font-size: 12.5px; }
+
+/* 四柱预览 */
+.fc-pillars {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 12px 8px;
+  background: var(--celadon-wash);
+  border-radius: 10px;
+}
+.fc-pillar {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  font-family: var(--font-display);
+  line-height: 1;
+}
+.fc-tg { color: var(--ink); font-size: 19px; font-weight: 600; }
+.fc-dz { color: var(--celadon-deep); font-size: 17px; font-weight: 600; }
+
+.fc-cta {
+  color: var(--celadon-deep);
+  font-size: 13px; font-weight: 500; letter-spacing: 0.04em;
+  transition: color 0.25s var(--ease);
+}
+.fc-card:hover .fc-cta { color: var(--cinnabar); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-card, .fc-card:hover { transition: none; transform: none; }
+}
+
+/* ── 24 维度卡（hero 左下 + 付费区）改宋韵 ─────────────── */
+.pay-dimension-item {
+  border: 1px solid var(--line) !important;
+  background: oklch(0.99 0.004 196 / 0.55) !important;
+  border-radius: 10px;
+}
+.pay-dimension-item h4 {
+  color: var(--ink) !important;
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+.pay-dimension-item h4 span,
+.pay-dimension-item h4 b,
+.pay-dimension-item h4 strong { color: var(--cinnabar) !important; }
+.pay-dimension-item p { color: var(--ink-soft) !important; }
