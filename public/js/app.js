@@ -3295,6 +3295,76 @@ function getShenShaList(targetPillar, ctx) {
   return all;
 }
 
+// \u2500\u2500 \u7eb3\u97f3 / \u5341\u4e8c\u957f\u751f(\u661f\u8fd0) / \u80ce\u5143\u547d\u5bab\u8eab\u5bab \u2014\u2014 \u516c\u57df\u547d\u7406\u7b97\u6cd5 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+const NAYIN_PAIRS = ['\u6d77\u4e2d\u91d1','\u7089\u4e2d\u706b','\u5927\u6797\u6728','\u8def\u65c1\u571f','\u5251\u950b\u91d1','\u5c71\u5934\u706b','\u6da7\u4e0b\u6c34','\u57ce\u5934\u571f','\u767d\u8721\u91d1','\u6768\u67f3\u6728','\u6cc9\u4e2d\u6c34','\u5c4b\u4e0a\u571f','\u9739\u96f3\u706b','\u677e\u67cf\u6728','\u957f\u6d41\u6c34','\u7802\u4e2d\u91d1','\u5c71\u4e0b\u706b','\u5e73\u5730\u6728','\u58c1\u4e0a\u571f','\u91d1\u7b94\u91d1','\u8986\u706f\u706b','\u5929\u6cb3\u6c34','\u5927\u9a7f\u571f','\u91f5\u948f\u91d1','\u6851\u67d8\u6728','\u5927\u6eaa\u6c34','\u6c99\u4e2d\u571f','\u5929\u4e0a\u706b','\u77f3\u69b4\u6728','\u5927\u6d77\u6c34'];
+function getNaYin(tg, dz) {
+  const idx = getSexagenaryIndex(tg, dz);
+  return idx < 0 ? '--' : (NAYIN_PAIRS[Math.floor(idx / 2)] || '--');
+}
+
+const CHANGSHENG_START_BRANCH = { '\u7532':'\u4ea5','\u4e59':'\u5348','\u4e19':'\u5bc5','\u4e01':'\u9149','\u620a':'\u5bc5','\u5df1':'\u9149','\u5e9a':'\u5df3','\u8f9b':'\u5b50','\u58ec':'\u7533','\u7678':'\u536f' };
+const CHANGSHENG_STATES = ['\u957f\u751f','\u6c90\u6d74','\u51a0\u5e26','\u4e34\u5b98','\u5e1d\u65fa','\u8870','\u75c5','\u6b7b','\u5893','\u7edd','\u80ce','\u517b'];
+const YANG_STEMS_SET = ['\u7532','\u4e19','\u620a','\u5e9a','\u58ec'];
+function getChangSheng(tg, dz) {
+  const DZ = (window.BaziCalc && window.BaziCalc.DIZHI) || [];
+  const start = DZ.indexOf(CHANGSHENG_START_BRANCH[tg]);
+  const cur = DZ.indexOf(dz);
+  if (start < 0 || cur < 0) return '--';
+  const fwd = YANG_STEMS_SET.includes(tg);
+  const steps = fwd ? ((cur - start) + 12) % 12 : ((start - cur) + 12) % 12;
+  return CHANGSHENG_STATES[steps];
+}
+
+function buildShenShaCtx(bazi) {
+  return {
+    refs: [
+      { stem: bazi.day.tg, branch: bazi.day.dz, label: '\u65e5' },
+      { stem: bazi.year.tg, branch: bazi.year.dz, label: '\u5e74' },
+    ],
+    yearBranch: bazi.year.dz,
+    monthBranch: bazi.month.dz,
+  };
+}
+
+function getTaiYuan(bazi) {
+  const TG = (window.BaziCalc && window.BaziCalc.TIANGAN) || [];
+  const DZ = (window.BaziCalc && window.BaziCalc.DIZHI) || [];
+  const mTg = STEM_INDEX_MAP[bazi.month.tg];
+  const mDz = DZ.indexOf(bazi.month.dz);
+  if (mTg === undefined || mDz < 0) return '--';
+  return TG[(mTg + 1) % 10] + DZ[(mDz + 3) % 12];
+}
+
+function yinMonthStemIdx(yearTg) {
+  const y = STEM_INDEX_MAP[yearTg];
+  return y === undefined ? 2 : ((y % 5) * 2 + 2) % 10; // \u4e94\u864e\u9041: \u5e74\u5e72\u2192\u5bc5\u6708\u5929\u5e72
+}
+function gongByOrd(bazi, ord) {
+  const TG = (window.BaziCalc && window.BaziCalc.TIANGAN) || [];
+  const DZ = (window.BaziCalc && window.BaziCalc.DIZHI) || [];
+  const yinIdx = DZ.indexOf('\u5bc5');
+  const dz = DZ[(yinIdx + (ord - 1)) % 12];
+  const tg = TG[(yinMonthStemIdx(bazi.year.tg) + (ord - 1)) % 10];
+  return tg + dz;
+}
+function getMingGong(bazi) {
+  const DZ = (window.BaziCalc && window.BaziCalc.DIZHI) || [];
+  const yinIdx = DZ.indexOf('\u5bc5');
+  const mOrd = ((DZ.indexOf(bazi.month.dz) - yinIdx) + 12) % 12 + 1;
+  const hOrd = ((DZ.indexOf(bazi.hour.dz) - yinIdx) + 12) % 12 + 1;
+  const sum = mOrd + hOrd;
+  const g = sum <= 14 ? (14 - sum) : (26 - sum);
+  return gongByOrd(bazi, g === 0 ? 12 : g);
+}
+function getShenGong(bazi) {
+  const DZ = (window.BaziCalc && window.BaziCalc.DIZHI) || [];
+  const yinIdx = DZ.indexOf('\u5bc5');
+  const mOrd = ((DZ.indexOf(bazi.month.dz) - yinIdx) + 12) % 12 + 1;
+  const hOrd = ((DZ.indexOf(bazi.hour.dz) - yinIdx) + 12) % 12 + 1;
+  let s = (mOrd + hOrd) % 12; if (s === 0) s = 12;
+  return gongByOrd(bazi, s);
+}
+
 function renderBaziDetailGrid(bazi) {
   const titleEl = document.getElementById('bazi-detail-title');
   if (titleEl) titleEl.textContent = '\u547d\u5c40\u7ec6\u76d8\uff08\u8868\u683c\u7248\uff09';
@@ -3305,6 +3375,7 @@ function renderBaziDetailGrid(bazi) {
   const columns = GRID_PILLARS.map((item) => bazi[item.key]);
   const dayStem = bazi.day.tg;
   const hiddenStemsColumns = columns.map((pillar) => HIDDEN_STEMS_MAP[pillar.dz] || []);
+  const shenShaCtx = buildShenShaCtx(bazi);
 
   const rows = [
     {
@@ -3341,8 +3412,29 @@ function renderBaziDetailGrid(bazi) {
       }),
     },
     {
+      label: '\u661f\u8fd0',  // \u5404\u67f1\u5929\u5e72\u5728\u672c\u67f1\u5730\u652f\u7684\u5341\u4e8c\u957f\u751f
+      cells: columns.map((pillar) => getChangSheng(pillar.tg, pillar.dz)),
+    },
+    {
+      label: '\u81ea\u5750',  // \u65e5\u4e3b\u5728\u5404\u67f1\u5730\u652f\u7684\u5341\u4e8c\u957f\u751f
+      cells: columns.map((pillar) => getChangSheng(dayStem, pillar.dz)),
+    },
+    {
+      label: '\u7eb3\u97f3',
+      cells: columns.map((pillar) => getNaYin(pillar.tg, pillar.dz)),
+    },
+    {
       label: '\u7a7a\u4ea1',
       cells: columns.map((pillar) => getKongWangByPillar(pillar)),
+    },
+    {
+      label: '\u795e\u715e',
+      cells: columns.map((pillar) => {
+        const list = getShenShaList(pillar, shenShaCtx);
+        return list.length
+          ? renderStackLines(list, (s) => `<span class="bzg-shensha">${escapeHtml(s)}</span>`)
+          : '\u2014';
+      }),
     },
   ];
 
@@ -3361,6 +3453,11 @@ function renderBaziDetailGrid(bazi) {
   });
 
   html += '</tbody></table>';
+  html += `<div style="margin-top:14px;padding-top:12px;border-top:1px solid #e8edf3;font-size:13px;color:#475569;line-height:1.9;">`
+    + `胎元 <b style="color:#0A2540;">${escapeHtml(getTaiYuan(bazi))}</b>`
+    + `　·　命宫 <b style="color:#0A2540;">${escapeHtml(getMingGong(bazi))}</b>`
+    + `　·　身宫 <b style="color:#0A2540;">${escapeHtml(getShenGong(bazi))}</b>`
+    + `<br><span style="font-size:12px;color:#94a3b8;">命宫·身宫采用通行「寅起」法，不同流派排法或有差异</span></div>`;
   gridEl.innerHTML = html;
 }
 
