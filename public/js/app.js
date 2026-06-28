@@ -3488,11 +3488,14 @@ function renderBaziDetailGrid(bazi) {
   };
 
   // 优先从 trade_no 恢复订单
-  const tradeNo = p.get('trade_no')
+  const urlTradeNo = p.get('trade_no')
     || p.get('trade_order_id')
     || hashParams.get('trade_no')
-    || hashParams.get('trade_order_id')
-    || getPendingTradeNo();
+    || hashParams.get('trade_order_id');
+  // 免费排盘(URL 直接带生辰且非付费回调)不继承浏览器里残留的旧待支付订单号，
+  // 否则会被误判为"未支付订单"而挡掉免费解读的自动生成。
+  const isFreshFreeReading = !!p.get('year') && p.get('paid') !== 'true';
+  const tradeNo = urlTradeNo || (isFreshFreeReading ? '' : getPendingTradeNo());
   if (tradeNo) setPendingTradeNo(tradeNo);
   if (tradeNo && !p.get('year')) {
     // 从 orders 表拉取 birth_input（多次重试）
