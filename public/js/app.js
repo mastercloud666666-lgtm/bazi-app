@@ -4701,6 +4701,8 @@ function scheduleAutoPaymentModal() {
 
 // Exit intent: show last-chance discount when mouse leaves page
 function initExitIntent() {
+  if (window.__exitIntentInit) return; // 防重复绑定监听器
+  window.__exitIntentInit = true;
   var fired = false;
   document.addEventListener('mouseleave', function(e) {
     if (fired) return;
@@ -4725,6 +4727,8 @@ function initExitIntent() {
 }
 
 function showExitOffer() {
+  if (window.__exitOfferShown) return; // 整个会话只弹一次
+  window.__exitOfferShown = true;
   var overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
   overlay.innerHTML = '<div style="background:#fff;border-radius:14px;padding:28px 24px;max-width:400px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);">' +
