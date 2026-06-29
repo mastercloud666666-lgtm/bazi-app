@@ -79,7 +79,11 @@
     .shake-btn { margin-top:18px; background:#0066CC; color:#fff; border:none; border-radius:10px; padding:13px 34px; font-size:16px; font-weight:700; cursor:pointer; letter-spacing:2px; transition:background .2s ease; }
     .shake-btn:hover:not(:disabled) { background:#0052A3; }
     .shake-btn:disabled { opacity:.55; cursor:default; }
-    @media (prefers-reduced-motion: reduce) { .shaking .shake-hands, .shaking .shake-coins { animation:none; } }
+    .divining .shake-hands { animation:handShake 1.1s ease-in-out infinite; }
+    .divining .shake-coins { animation:coinShake 1.1s ease-in-out infinite; }
+    .dots::after { content:''; animation:dots 1.4s steps(4,end) infinite; }
+    @keyframes dots { 0%{content:''} 25%{content:'·'} 50%{content:'··'} 75%{content:'···'} 100%{content:''} }
+    @media (prefers-reduced-motion: reduce) { .shaking .shake-hands, .shaking .shake-coins, .divining .shake-hands, .divining .shake-coins { animation:none; } }
   </style>
 </head>
 <body>
@@ -224,8 +228,9 @@
             status.textContent = '第 ' + (step + 1) + ' / 3 次：摇出「' + stepLabel[step] + '」';
             btn.disabled = false;
           } else {
-            status.textContent = '三爻已成卦，正在为你解卦…';
+            status.innerHTML = '三爻已成卦（' + slotName[0] + nums[0] + '·' + slotName[1] + nums[1] + '·' + slotName[2] + nums[2] + '），正在为你解卦，约需 10–20 秒，请稍候<span class="dots"></span>';
             btn.textContent = '解 卦 中…';
+            stage.classList.add('divining');
             castDivination(nums);
           }
         }, 680);
@@ -240,6 +245,8 @@
         };
         try {
           const text = await callAnalyze(payload);
+          stage.classList.remove('divining');
+          if (!text || !text.trim()) throw new Error('empty');
           showResult(text);
           document.getElementById('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
           status.textContent = '已成卦：' + slotName[0] + n[0] + ' · ' + slotName[1] + n[1] + ' · ' + slotName[2] + n[2] + '，解读见下方';
@@ -247,8 +254,9 @@
           btn.disabled = false;
           btn.onclick = () => location.reload();
         } catch (err) {
-          status.textContent = '解卦失败，请点下方按钮重试';
-          btn.textContent = '重 试';
+          stage.classList.remove('divining');
+          status.textContent = '解卦超时或失败，请点下方按钮重试';
+          btn.textContent = '重新摇卦';
           btn.disabled = false;
           btn.onclick = () => location.reload();
         }
