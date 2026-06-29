@@ -1995,8 +1995,8 @@ if ('serviceWorker' in navigator) {
 <div class="chat-widget" id="chatWidget">
 <button class="chat-btn" onclick="toggleChat()">💬</button>
 <div class="chat-box" id="chatBox">
-<div class="chat-header"><span>云子文化 · 在线客服</span><button onclick="toggleChat()">✕</button></div>
-<div class="chat-msgs" id="chatMsgs"><div class="chat-msg bot">👋 您好！我是云子文化的在线客服。有什么可以帮您的？</div></div>
+<div class="chat-header"><span>云子 · 命理咨询</span><span style="display:flex;gap:10px;align-items:center"><button onclick="if(window.openCustomerServiceModal)openCustomerServiceModal()" title="加微信真人" style="font-size:13px;font-weight:500">微信</button><button onclick="toggleChat()">✕</button></span></div>
+<div class="chat-msgs" id="chatMsgs"><div class="chat-msg bot">👋 你好，我是云子。八字是一面照见自己的镜子——性格、节奏、扬长避短。你最近在烦什么？财运、感情还是事业？也可以先去首页免费排个盘。</div></div>
 <div class="typing" id="typing" style="display:none">对方正在输入...</div>
 <div class="chat-input">
 <input id="chatInput" placeholder="输入您的问题..." onkeydown="if(event.key==='Enter')sendMsg()">

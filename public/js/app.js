@@ -897,7 +897,8 @@ function initCustomerServiceWidget() {
     </div>
   `;
 
-  document.body.appendChild(openBtn);
+  // 浮动「客服微信」按钮已并入右下角 AI 对话框头部的「微信」入口，避免两个浮标重叠
+  // document.body.appendChild(openBtn);
   document.body.appendChild(modal);
 
   const img = modal.querySelector('#kefu-image');
