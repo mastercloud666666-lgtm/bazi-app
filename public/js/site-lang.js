@@ -455,7 +455,7 @@
 const RESULT_TEXT = {
     birthInfo: { 'zh-Hans': '出生信息', 'zh-Hant': '出生信息', en: 'Birth Information' },
     chartTitle: { 'zh-Hans': '命局细盘（表格版）', 'zh-Hant': '命局細盤（表格版）', en: 'Natal Chart (Table)' },
-    analysisTitle: { 'zh-Hans': '资深文化师解读', 'zh-Hant': '資深命理師解讀', en: 'Expert Interpretation' },
+    analysisTitle: { 'zh-Hans': '你的命盘解读', 'zh-Hant': '你的命盤解讀', en: 'Your Reading' },
   paidBtn: { 'zh-Hans': '立即解锁完整分析报告', 'zh-Hant': '立即解鎖完整命理報告', en: 'Unlock Full Destiny Report' },
   payBtn: { 'zh-Hans': '立即解锁完整分析报告', 'zh-Hant': '立即解鎖完整命理報告', en: 'Unlock Full Destiny Report' },
 };

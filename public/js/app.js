@@ -3457,7 +3457,7 @@ function renderBaziDetailGrid(bazi) {
     + `胎元 <b style="color:#0A2540;">${escapeHtml(getTaiYuan(bazi))}</b>`
     + `　·　命宫 <b style="color:#0A2540;">${escapeHtml(getMingGong(bazi))}</b>`
     + `　·　身宫 <b style="color:#0A2540;">${escapeHtml(getShenGong(bazi))}</b>`
-    + `<br><span style="font-size:12px;color:#94a3b8;">命宫·身宫采用通行「寅起」法，不同流派排法或有差异</span></div>`;
+    + `</div>`;
   gridEl.innerHTML = html;
 }
 
