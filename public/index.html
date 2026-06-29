@@ -267,7 +267,8 @@
       position: relative;
       min-height: 90vh;
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      align-items: stretch;
       background: linear-gradient(135deg, var(--bg-white) 0%, var(--bg-light) 100%);
       padding-top: 72px;
       overflow: hidden;
@@ -302,12 +303,55 @@
       z-index: 1;
     }
 
-    /* 通栏堆叠：标题置顶 → 表单 → 适合你/卡点 → 24维度横屏 */
-    .hero-top { order: 1; text-align: center; }
-    .hero-top .hero-badge { margin-bottom: 16px; }
-    .hero-top .hero-subtitle { margin-left: auto; margin-right: auto; max-width: 760px; }
-    .hero-form-card { order: 2; width: 100%; }
-    .hero-content { order: 3; width: 100%; min-width: 0; }
+    /* 顶部通栏 Banner：满屏宽 + 闪烁 + 可关闭 */
+    .hero-banner {
+      position: relative;
+      width: 100%;
+      text-align: center;
+      padding: 26px 56px 30px;
+      background: linear-gradient(120deg, #eef4ff 0%, #f7faff 45%, #eaf1ff 100%);
+      border-bottom: 1px solid #d9e6ff;
+      box-shadow: inset 0 -1px 0 rgba(15,59,130,.04);
+      animation: bannerPulse 2.4s ease-in-out infinite;
+      z-index: 2;
+    }
+    @keyframes bannerPulse {
+      0%, 100% { background-position: 0% 50%; box-shadow: inset 0 0 0 rgba(26,86,219,0); }
+      50% { background-position: 100% 50%; box-shadow: inset 0 0 60px rgba(26,86,219,.06); }
+    }
+    .hero-banner { background-size: 200% 200%; }
+    .hero-banner .hero-badge { margin-bottom: 12px; }
+    .hero-banner .hero-badge-dot { animation: dotBlink 1s steps(2, jump-none) infinite; }
+    @keyframes dotBlink { 0%,100% { opacity: 1; } 50% { opacity: .15; } }
+    .hero-banner .hero-title { margin: 0; }
+    .hero-banner .hero-subtitle { margin: 14px auto 0; max-width: 820px; }
+    .hero-banner-close {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid #cdddf7;
+      background: rgba(255,255,255,.8);
+      color: #4a5a72;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      transition: background .2s ease, color .2s ease;
+    }
+    .hero-banner-close:hover { background: #fff; color: #0f3b82; }
+    .hero-banner.closing { display: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .hero-banner { animation: none; }
+      .hero-banner .hero-badge-dot { animation: none; }
+    }
+
+    /* 通栏堆叠 + 24维度移到表单上方 */
+    .hero-inner > .hero-content { display: contents; }
+    .hero-inner .hero-dimensions-shell { order: 1; width: 100%; }
+    .hero-inner > .hero-form-card { order: 2; width: 100%; }
+    .hero-inner .hero-sales-grid { order: 3; width: 100%; }
 
     /* 扁平表单：字段两列横排，整体更矮 */
     @media (min-width: 681px) {
@@ -1487,18 +1531,19 @@
        ══════════════════════════════════════════ -->
   <section class="hero">
     <div class="hero-pattern"></div>
-    <div class="hero-inner">
-      <div class="hero-top">
-        <div class="hero-badge">
-          <span class="hero-badge-dot"></span>
-          <span>专业文化解读 · 深度分析报告</span>
-        </div>
-        <h1 class="hero-title">3 分钟看懂自己<br>性格 · 财运 · 事业 · 婚恋的节奏</h1>
-        <p class="hero-subtitle">
-          填好生辰，<strong>免费</strong>生成你的八字基础解读——看清先天格局与未来趋势节奏，
-          财运起伏、事业机会、婚恋关键点一目了然。不玄乎、不套路，只做靠谱参考，帮你少走弯路。
-        </p>
+    <div class="hero-top hero-banner" id="hero-banner">
+      <button class="hero-banner-close" id="hero-banner-close" type="button" aria-label="关闭横幅">×</button>
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        <span>专业文化解读 · 深度分析报告</span>
       </div>
+      <h1 class="hero-title">3 分钟看懂自己<br>性格 · 财运 · 事业 · 婚恋的节奏</h1>
+      <p class="hero-subtitle">
+        填好生辰，<strong>免费</strong>生成你的八字基础解读——看清先天格局与未来趋势节奏，
+        财运起伏、事业机会、婚恋关键点一目了然。不玄乎、不套路，只做靠谱参考，帮你少走弯路。
+      </p>
+    </div>
+    <div class="hero-inner">
       <div class="hero-content">
         <div class="hero-sales-grid">
           <article class="hero-sales-card reveal">
@@ -2086,7 +2131,7 @@
   });
 })();
 </script>
-<script src="js/site-lang.js?v=20260630-stack-v1"></script>
+<script src="js/site-lang.js?v=20260630-banner-v1"></script>
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(function() {});
@@ -2180,6 +2225,17 @@ if ('serviceWorker' in navigator) {
   };
   if(document.readyState!=='loading')window.initDimCarousel();
   else document.addEventListener('DOMContentLoaded',window.initDimCarousel);
+
+  // 顶部 Banner 关闭
+  function initBanner(){
+    var b=document.getElementById('hero-banner');
+    var x=document.getElementById('hero-banner-close');
+    if(!b||!x)return;
+    if(localStorage.getItem('hero_banner_closed')==='1')b.classList.add('closing');
+    x.addEventListener('click',function(){b.classList.add('closing');try{localStorage.setItem('hero_banner_closed','1')}catch(e){}});
+  }
+  if(document.readyState!=='loading')initBanner();
+  else document.addEventListener('DOMContentLoaded',initBanner);
 })();
 var API='https://wx.tengyunzi.com/chat';
 var sessionId=localStorage.getItem('chat_session')||'';
