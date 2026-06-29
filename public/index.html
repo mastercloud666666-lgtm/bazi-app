@@ -291,15 +291,53 @@
     }
 
     .hero-inner {
-      max-width: 1400px;
+      max-width: 1080px;
       margin: 0 auto;
-      padding: 60px 24px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 80px;
-      align-items: center;
+      padding: 48px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      align-items: stretch;
       position: relative;
       z-index: 1;
+    }
+
+    /* 通栏堆叠：标题置顶 → 表单 → 适合你/卡点 → 24维度横屏 */
+    .hero-top { order: 1; text-align: center; }
+    .hero-top .hero-badge { margin-bottom: 16px; }
+    .hero-top .hero-subtitle { margin-left: auto; margin-right: auto; max-width: 760px; }
+    .hero-form-card { order: 2; width: 100%; }
+    .hero-content { order: 3; width: 100%; min-width: 0; }
+
+    /* 扁平表单：字段两列横排，整体更矮 */
+    @media (min-width: 681px) {
+      #bazi-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px 18px;
+        align-items: end;
+      }
+      #bazi-form > .form-toggle,
+      #bazi-form > .form-row,
+      #bazi-form > .form-submit,
+      #bazi-form > #leap-group,
+      #bazi-form > .pay-card,
+      #bazi-form > .form-features,
+      #bazi-form > .form-group:has(#birthplace) { grid-column: 1 / -1; }
+      #bazi-form > .form-group { margin: 0; }
+    }
+
+    /* 24 维度放大横屏：通栏大卡 */
+    .hero-content .hero-dimensions-shell { padding: 22px 24px; }
+    .hero-content .pay-dimensions.hero-left-dimensions .pay-dimension-item {
+      flex: 0 0 calc(33.333% - 8px);
+      min-height: 120px;
+      padding: 16px 18px;
+    }
+    .hero-content .pay-dimensions.hero-left-dimensions .pay-dimension-item h4 { font-size: 16px; }
+    .hero-content .pay-dimensions.hero-left-dimensions .pay-dimension-item p { font-size: 13.5px; }
+    @media (max-width: 680px) {
+      .hero-content .pay-dimensions.hero-left-dimensions .pay-dimension-item { flex: 0 0 82%; }
     }
 
     .hero-content {
@@ -1450,7 +1488,7 @@
   <section class="hero">
     <div class="hero-pattern"></div>
     <div class="hero-inner">
-      <div class="hero-content">
+      <div class="hero-top">
         <div class="hero-badge">
           <span class="hero-badge-dot"></span>
           <span>专业文化解读 · 深度分析报告</span>
@@ -1460,6 +1498,8 @@
           填好生辰，<strong>免费</strong>生成你的八字基础解读——看清先天格局与未来趋势节奏，
           财运起伏、事业机会、婚恋关键点一目了然。不玄乎、不套路，只做靠谱参考，帮你少走弯路。
         </p>
+      </div>
+      <div class="hero-content">
         <div class="hero-sales-grid">
           <article class="hero-sales-card reveal">
             <h3 class="hero-sales-title" id="hero-audience-title">Ideal if you are currently:</h3>
@@ -2046,7 +2086,7 @@
   });
 })();
 </script>
-<script src="js/site-lang.js?v=20260629-carousel-v1"></script>
+<script src="js/site-lang.js?v=20260630-stack-v1"></script>
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(function() {});
