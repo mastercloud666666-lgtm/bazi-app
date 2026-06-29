@@ -54,6 +54,14 @@
     @media (max-width: 768px) {
       .method-grid { grid-template-columns: 1fr; }
     }
+    .label-hint { font-weight: 400; font-size: 12px; color: var(--text-gray); }
+    .ask-tips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .ask-tip {
+      font-size: 12px; color: #1d4ed8; background: #eff5ff;
+      border: 1px solid #cfe0ff; border-radius: 999px;
+      padding: 5px 12px; cursor: pointer; transition: background .15s ease;
+    }
+    .ask-tip:hover { background: #dbe9ff; }
   </style>
 </head>
 <body>
@@ -94,8 +102,13 @@
         <div class="form-group">
           <label class="form-label">选择参考分析方式</label>
           <div class="method-grid">
-            <label class="method-card active" id="card-meihua">
-              <input type="radio" name="method" value="meihua" checked>
+            <label class="method-card active" id="card-gaodao">
+              <input type="radio" name="method" value="gaodao" checked>
+              <div class="method-name">高岛易断 · 周易六十四卦</div>
+              <div class="method-desc">以数起卦得本卦与变爻，依《周易》卦辞爻辞，用高岛易断之法沉稳直断，最适合具体一事的吉凶进退</div>
+            </label>
+            <label class="method-card" id="card-meihua">
+              <input type="radio" name="method" value="meihua">
               <div class="method-name">梅花易数</div>
               <div class="method-desc">以数起卦，万物皆可成卦象，随机取数即可占问，适合任何事项</div>
             </label>
@@ -118,9 +131,27 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">你想问什么</label>
-          <textarea id="question" class="form-textarea" rows="3"
-            placeholder="例：我今年事业发展如何？这次合作能否成功？" required></textarea>
+          <label class="form-label">问事类别</label>
+          <select id="category" class="form-select">
+            <option value="决策抉择">决策抉择（要不要做、选 A 还是 B）</option>
+            <option value="事业工作">事业工作（求职、升迁、创业、项目）</option>
+            <option value="财运求财">财运求财（投资、合作、回款、买卖）</option>
+            <option value="感情婚姻">感情婚姻（缘分、复合、关系走向）</option>
+            <option value="出行人事">出行人事（搬迁、考试、寻人、健康）</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">你想问什么 <span class="label-hint">· 一事一问，把背景和顾虑写清楚，卦才准</span></label>
+          <textarea id="question" class="form-textarea" rows="4"
+            placeholder="好的提问示例：&#10;・我手上这个新项目要不要在下个月启动？目前缺资金但机会难得。&#10;・和某人这段感情还有没有必要继续？最近常冷战。&#10;・这次跳槽到这家公司，发展会比现在好吗？" required></textarea>
+          <div class="ask-tips">
+            <span class="ask-tip" data-q="我手上这件事，现在适合推进还是再等等？">该不该现在做</span>
+            <span class="ask-tip" data-q="这次合作/生意能不能成？需要注意什么？">这件事能不能成</span>
+            <span class="ask-tip" data-q="这段感情接下来会怎么发展，该进还是该守？">感情怎么走</span>
+            <span class="ask-tip" data-q="这次机会要不要抓住，背后有没有风险？">要不要抓住机会</span>
+          </div>
         </div>
 
         <div id="input-numbers" class="form-group">
@@ -215,11 +246,20 @@
       if (o.value === hourNames[now.getHours()]) keHourSel.value = o.value;
     });
 
+    document.querySelectorAll('.ask-tip').forEach(t => {
+      t.addEventListener('click', () => {
+        const q = document.getElementById('question');
+        q.value = t.dataset.q || t.textContent;
+        q.focus();
+      });
+    });
+
     document.getElementById('zhanbu-form').addEventListener('submit', async e => {
       e.preventDefault();
       const method   = document.querySelector('input[name=method]:checked').value;
       const question = document.getElementById('question').value.trim();
-      let payload = { service: 'zhanbu', method, question };
+      const category = document.getElementById('category').value;
+      let payload = { service: 'zhanbu', method, question, category };
 
       if (method === 'daliuren' || method === 'xiaoliuren') {
         payload.ke_month = document.getElementById('ke-month').value || now.getMonth() + 1;

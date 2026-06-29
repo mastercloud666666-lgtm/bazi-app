@@ -470,9 +470,62 @@ Deno.serve(async (req) => {
 要求：用口语，像朋友在帮你取名字一样，不要写标题符号，每个名字之间空一行，直接从第一个名字开始说。`;
 
     } else if (service === 'zhanbu') {
-      const { question, method, number1, number2, number3, ke_month, ke_day, ke_hour } = body;
+      const { question, method, category, number1, number2, number3, ke_month, ke_day, ke_hour } = body;
 
-      if (method === 'daliuren') {
+      if (method === 'gaodao') {
+        // 高岛易断：以数起卦，得本卦 + 动爻 -> 之卦
+        const rnd = () => Math.floor(Math.random() * 999 + 1);
+        const n1 = Number(number1) || rnd();
+        const n2 = Number(number2) || rnd();
+        const n3 = Number(number3) || rnd();
+        // 先天八卦数 1..8 -> [名, 自下而上三爻 bottom,mid,top]
+        const TRI: Record<number, [string, number[]]> = {
+          1: ['乾', [1, 1, 1]], 2: ['兑', [1, 1, 0]], 3: ['离', [1, 0, 1]], 4: ['震', [1, 0, 0]],
+          5: ['巽', [0, 1, 1]], 6: ['坎', [0, 1, 0]], 7: ['艮', [0, 0, 1]], 8: ['坤', [0, 0, 0]],
+        };
+        const bitsToName = (b: number, m: number, t: number): string =>
+          ({ 7: '乾', 6: '兑', 5: '离', 4: '震', 3: '巽', 2: '坎', 1: '艮', 0: '坤' } as Record<number, string>)[b * 4 + m * 2 + t];
+        const NAME64: Record<string, Record<string, string>> = {
+          乾: { 乾: '乾为天', 兑: '天泽履', 离: '天火同人', 震: '天雷无妄', 巽: '天风姤', 坎: '天水讼', 艮: '天山遁', 坤: '天地否' },
+          兑: { 乾: '泽天夬', 兑: '兑为泽', 离: '泽火革', 震: '泽雷随', 巽: '泽风大过', 坎: '泽水困', 艮: '泽山咸', 坤: '泽地萃' },
+          离: { 乾: '火天大有', 兑: '火泽睽', 离: '离为火', 震: '火雷噬嗑', 巽: '火风鼎', 坎: '火水未济', 艮: '火山旅', 坤: '火地晋' },
+          震: { 乾: '雷天大壮', 兑: '雷泽归妹', 离: '雷火丰', 震: '震为雷', 巽: '雷风恒', 坎: '雷水解', 艮: '雷山小过', 坤: '雷地豫' },
+          巽: { 乾: '风天小畜', 兑: '风泽中孚', 离: '风火家人', 震: '风雷益', 巽: '巽为风', 坎: '风水涣', 艮: '风山渐', 坤: '风地观' },
+          坎: { 乾: '水天需', 兑: '水泽节', 离: '水火既济', 震: '水雷屯', 巽: '水风井', 坎: '坎为水', 艮: '水山蹇', 坤: '水地比' },
+          艮: { 乾: '山天大畜', 兑: '山泽损', 离: '山火贲', 震: '山雷颐', 巽: '山风蛊', 坎: '山水蒙', 艮: '艮为山', 坤: '山地剥' },
+          坤: { 乾: '地天泰', 兑: '地泽临', 离: '地火明夷', 震: '地雷复', 巽: '地风升', 坎: '地水师', 艮: '地山谦', 坤: '坤为地' },
+        };
+        const uNum = (n1 % 8) || 8;
+        const lNum = (n2 % 8) || 8;
+        const dong = ((n1 + n2 + n3) % 6) || 6;
+        const [uName, uBits] = TRI[uNum];
+        const [lName, lBits] = TRI[lNum];
+        // 本卦自下而上六爻：下卦(1-3) + 上卦(4-6)
+        const lines = [lBits[0], lBits[1], lBits[2], uBits[0], uBits[1], uBits[2]];
+        const benName = NAME64[uName][lName];
+        // 之卦：翻动第 dong 爻
+        const zLines = lines.slice();
+        zLines[dong - 1] = zLines[dong - 1] ? 0 : 1;
+        const zLowerName = bitsToName(zLines[0], zLines[1], zLines[2]);
+        const zUpperName = bitsToName(zLines[3], zLines[4], zLines[5]);
+        const zhiName = NAME64[zUpperName][zLowerName];
+
+        prompt = `客户所占之事属「${category || '综合'}」类。
+客户问事：${question}
+
+【起卦】以数起卦：上卦${uName}、下卦${lName}，动爻为第${dong}爻（自下而上数）。
+本卦：${benName}　　变爻：第${dong}爻　　之卦：${zhiName}
+
+请以「高岛易断」的方式，为客户解此卦：
+1. 先点出本卦「${benName}」的卦象与卦德，说明此卦整体在讲一种什么样的处境。
+2. 重点解第${dong}爻的爻辞之意——这是本次占问的核心指示，结合客户所问把它讲透。
+3. 由本卦变为之卦「${zhiName}」，说明事情的发展方向与最终倾向。
+4. 针对客户所问，给出明确占断：可成/不可成、宜进/宜守、利在何时。
+5. 给出两三条务实可行的行动建议。
+
+用高岛易断那种沉稳、笃定、直断的口吻；引爻辞但用白话讲清楚，不堆砌古文、不写小标题、不分点编号，像一位老易者当面断卦，从卦象说起，一气讲到建议为止。最后单独一句收尾：以上为传统易学参考，请理性看待、自行决断。`;
+
+      } else if (method === 'daliuren') {
         prompt = `客户问事：${question}
 起课时间：${ke_month}月${ke_day}日${ke_hour}时
 
