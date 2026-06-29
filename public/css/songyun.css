@@ -383,36 +383,3 @@ body {
 .pay-dimension-item h4 b,
 .pay-dimension-item h4 strong { color: var(--cinnabar) !important; }
 .pay-dimension-item p { color: var(--ink-soft) !important; }
-
-/* ── 首页可滑动卡片(Swiper) ───────────────────────────── */
-.hero-card-swiper { padding-bottom: 30px; width: 100%; }
-.hero-card-swiper .swiper-slide { height: auto; box-sizing: border-box; }
-.hero-card-swiper .swiper-slide > * { height: 100%; box-sizing: border-box; }
-/* 24维度叠卡 */
-.sw-dims { max-width: 100%; }
-.sw-dims .swiper-slide {
-  min-height: 132px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px -16px oklch(0.46 0.05 192 / 0.5);
-}
-.sw-dims .pay-dimension-item {
-  border: none !important; background: transparent !important;
-  border-radius: 12px; padding: 16px 16px !important;
-}
-.sw-dims .pay-dimension-item h4 { font-size: 15px; }
-/* 适合你/卡点卡 */
-.sw-sales .swiper-slide { padding-top: 4px; }
-/* 分页点：青瓷 */
-.hero-card-swiper .swiper-pagination-bullet {
-  background: var(--celadon); opacity: 0.35;
-  width: 7px; height: 7px; transition: all 0.25s var(--ease);
-}
-.hero-card-swiper .swiper-pagination-bullet-active {
-  background: var(--ink); opacity: 1; width: 20px; border-radius: 4px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-card-swiper .swiper-pagination-bullet { transition: none; }
-}
