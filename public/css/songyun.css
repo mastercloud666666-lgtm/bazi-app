@@ -233,21 +233,21 @@ body {
 
 /* 主按钮：朱砂 —— 全站唯一的强调色，给“免费排盘解读” */
 .form-submit {
-  background: var(--cinnabar);
-  color: oklch(0.99 0.01 60);
+  background: #0066CC;
+  color: #ffffff;
   border: none;
   border-radius: 11px;
   font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: 0.08em;
   font-size: 16px;
-  box-shadow: 0 8px 22px -10px oklch(0.535 0.158 33 / 0.7);
+  box-shadow: 0 8px 22px -10px rgba(0, 102, 204, 0.65);
   transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), background 0.2s var(--ease);
 }
 .form-submit:hover {
-  background: var(--cinnabar-deep);
+  background: #0052A3;
   transform: translateY(-1px);
-  box-shadow: 0 12px 28px -10px oklch(0.535 0.158 33 / 0.7);
+  box-shadow: 0 12px 28px -10px rgba(0, 102, 204, 0.65);
 }
 .form-submit:active { transform: translateY(0); }
 
