@@ -473,11 +473,11 @@ Deno.serve(async (req) => {
       const { question, method, category, number1, number2, number3, ke_month, ke_day, ke_hour } = body;
 
       if (method === 'gaodao') {
-        // 高岛易断：以数起卦，得本卦 + 动爻 -> 之卦
-        const rnd = () => Math.floor(Math.random() * 999 + 1);
-        const n1 = Number(number1) || rnd();
-        const n2 = Number(number2) || rnd();
-        const n3 = Number(number3) || rnd();
+        // 周易六十四卦：摇卦三次 -> 上卦(1-8)、下卦(1-8)、动爻(1-6)
+        const ri = (max: number) => Math.floor(Math.random() * max) + 1;
+        const n1 = Number(number1) || ri(8);
+        const n2 = Number(number2) || ri(8);
+        const n3 = Number(number3) || ri(6);
         // 先天八卦数 1..8 -> [名, 自下而上三爻 bottom,mid,top]
         const TRI: Record<number, [string, number[]]> = {
           1: ['乾', [1, 1, 1]], 2: ['兑', [1, 1, 0]], 3: ['离', [1, 0, 1]], 4: ['震', [1, 0, 0]],
@@ -495,9 +495,9 @@ Deno.serve(async (req) => {
           艮: { 乾: '山天大畜', 兑: '山泽损', 离: '山火贲', 震: '山雷颐', 巽: '山风蛊', 坎: '山水蒙', 艮: '艮为山', 坤: '山地剥' },
           坤: { 乾: '地天泰', 兑: '地泽临', 离: '地火明夷', 震: '地雷复', 巽: '地风升', 坎: '地水师', 艮: '地山谦', 坤: '坤为地' },
         };
-        const uNum = (n1 % 8) || 8;
-        const lNum = (n2 % 8) || 8;
-        const dong = ((n1 + n2 + n3) % 6) || 6;
+        const uNum = ((n1 - 1) % 8 + 8) % 8 + 1; // 上卦先天数 1-8
+        const lNum = ((n2 - 1) % 8 + 8) % 8 + 1; // 下卦先天数 1-8
+        const dong = ((n3 - 1) % 6 + 6) % 6 + 1; // 动爻 1-6
         const [uName, uBits] = TRI[uNum];
         const [lName, lBits] = TRI[lNum];
         // 本卦自下而上六爻：下卦(1-3) + 上卦(4-6)

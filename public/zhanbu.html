@@ -62,6 +62,24 @@
       padding: 5px 12px; cursor: pointer; transition: background .15s ease;
     }
     .ask-tip:hover { background: #dbe9ff; }
+    .zy-intro { text-align:center; padding:18px 16px 6px; }
+    .zy-intro-name { font-size:22px; font-weight:700; color:var(--accent); letter-spacing:2px; }
+    .zy-intro-desc { font-size:13px; color:var(--text-gray); line-height:1.7; margin-top:8px; max-width:560px; margin-left:auto; margin-right:auto; }
+    .shake-stage { text-align:center; background:#f8fbff; border:1px solid #dbeafe; border-radius:16px; padding:26px 16px 22px; }
+    .shake-hands { font-size:66px; line-height:1; display:inline-block; }
+    .shake-coins { font-size:24px; letter-spacing:10px; margin-top:4px; color:#b45309; display:inline-block; }
+    .shaking .shake-hands { animation:handShake .68s ease-in-out; }
+    .shaking .shake-coins { animation:coinShake .68s ease-in-out; }
+    @keyframes handShake { 0%,100%{transform:translateY(0) rotate(0)} 20%{transform:translateY(-10px) rotate(-10deg)} 45%{transform:translateY(2px) rotate(8deg)} 70%{transform:translateY(-6px) rotate(-5deg)} }
+    @keyframes coinShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-12px) rotate(-12deg)} 45%{transform:translateX(10px) rotate(10deg)} 70%{transform:translateX(-5px)} }
+    .shake-status { margin-top:14px; font-size:14px; color:#0f3b82; font-weight:600; }
+    .shake-results { display:flex; justify-content:center; gap:10px; margin-top:14px; flex-wrap:wrap; }
+    .shake-slot { font-size:13px; color:#64748b; background:#fff; border:1px solid #e2e8f0; border-radius:999px; padding:6px 16px; min-width:76px; }
+    .shake-slot.filled { color:#0066CC; border-color:#0066CC; font-weight:700; }
+    .shake-btn { margin-top:18px; background:#0066CC; color:#fff; border:none; border-radius:10px; padding:13px 34px; font-size:16px; font-weight:700; cursor:pointer; letter-spacing:2px; transition:background .2s ease; }
+    .shake-btn:hover:not(:disabled) { background:#0052A3; }
+    .shake-btn:disabled { opacity:.55; cursor:default; }
+    @media (prefers-reduced-motion: reduce) { .shaking .shake-hands, .shaking .shake-coins { animation:none; } }
   </style>
 </head>
 <body>
@@ -94,40 +112,14 @@
       <div class="page-header">
         <span class="page-tag">Divination</span>
         <h1 class="page-title">占 卜</h1>
-        <p class="page-subtitle">多种方式，为你解惑</p>
+        <p class="page-subtitle">周易六十四卦 · 摇卦问事</p>
       </div>
 
       <form id="zhanbu-form" class="form-card">
 
-        <div class="form-group">
-          <label class="form-label">选择参考分析方式</label>
-          <div class="method-grid">
-            <label class="method-card active" id="card-gaodao">
-              <input type="radio" name="method" value="gaodao" checked>
-              <div class="method-name">高岛易断 · 周易六十四卦</div>
-              <div class="method-desc">以数起卦得本卦与变爻，依《周易》卦辞爻辞，用高岛易断之法沉稳直断，最适合具体一事的吉凶进退</div>
-            </label>
-            <label class="method-card" id="card-meihua">
-              <input type="radio" name="method" value="meihua">
-              <div class="method-name">梅花易数</div>
-              <div class="method-desc">以数起卦，万物皆可成卦象，随机取数即可占问，适合任何事项</div>
-            </label>
-            <label class="method-card" id="card-liuyao">
-              <input type="radio" name="method" value="liuyao">
-              <div class="method-name">六爻</div>
-              <div class="method-desc">以铜钱摇卦，六爻层层深入，卦象详细，可问人事吉凶走向</div>
-            </label>
-            <label class="method-card" id="card-daliuren">
-              <input type="radio" name="method" value="daliuren">
-              <div class="method-name">大六壬</div>
-              <div class="method-desc">古代官方占术，以起课时间推四课三传，精准趋势解读重大事件和时间节点</div>
-            </label>
-            <label class="method-card" id="card-xiaoliuren">
-              <input type="radio" name="method" value="xiaoliuren">
-              <div class="method-name">小六壬</div>
-              <div class="method-desc">民间最常用，以月日时三数起六将，简便快捷</div>
-            </label>
-          </div>
+        <div class="zy-intro">
+          <div class="zy-intro-name">周易六十四卦</div>
+          <div class="zy-intro-desc">心中默想所问之事，诚心摇卦三次成卦，依《周易》卦象爻辞为你解答此事的进退吉凶。</div>
         </div>
 
         <div class="form-group">
@@ -154,57 +146,21 @@
           </div>
         </div>
 
-        <div id="input-numbers" class="form-group">
-          <label class="form-label">起卦数字 <span class="label-hint">· 随心输入 1–999，不填则随机</span></label>
-          <div class="form-row">
-            <div class="form-group">
-              <input type="number" id="num1" min="1" max="999" placeholder="数字一" class="form-input">
+        <div class="form-group">
+          <label class="form-label">摇卦起卦 <span class="label-hint">· 静心默念所问，连摇三次成卦</span></label>
+          <div class="shake-stage" id="shake-stage">
+            <div class="shake-hands" id="shake-hands">🤲</div>
+            <div class="shake-coins" id="shake-coins"><span>☯</span><span>☯</span><span>☯</span></div>
+            <div class="shake-status" id="shake-status">第 1 / 3 次：摇出「上卦」（1–8）</div>
+            <div class="shake-results">
+              <span class="shake-slot" data-i="0">上卦 ·</span>
+              <span class="shake-slot" data-i="1">下卦 ·</span>
+              <span class="shake-slot" data-i="2">动爻 ·</span>
             </div>
-            <div class="form-group">
-              <input type="number" id="num2" min="1" max="999" placeholder="数字二" class="form-input">
-            </div>
-            <div class="form-group">
-              <input type="number" id="num3" min="1" max="999" placeholder="数字三" class="form-input">
-            </div>
+            <button type="button" class="shake-btn" id="shake-btn">摇 一 摇</button>
           </div>
         </div>
-
-        <div id="input-time" class="form-group" style="display:none">
-          <label class="form-label">起课时间 <span class="label-hint">· 默认当前时间</span></label>
-          <div class="form-row">
-            <div class="form-group">
-              <input type="number" id="ke-month" min="1" max="12" placeholder="月" class="form-input">
-            </div>
-            <div class="form-group">
-              <input type="number" id="ke-day" min="1" max="31" placeholder="日" class="form-input">
-            </div>
-            <div class="form-group">
-              <select id="ke-hour" class="form-select">
-                <option value="">时辰</option>
-                <option value="子">子时 23-01</option>
-                <option value="丑">丑时 01-03</option>
-                <option value="寅">寅时 03-05</option>
-                <option value="卯">卯时 05-07</option>
-                <option value="辰">辰时 07-09</option>
-                <option value="巳">巳时 09-11</option>
-                <option value="午">午时 11-13</option>
-                <option value="未">未时 13-15</option>
-                <option value="申">申时 15-17</option>
-                <option value="酉">酉时 17-19</option>
-                <option value="戌">戌时 19-21</option>
-                <option value="亥">亥时 21-23</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <button type="submit" class="form-submit">开始参考分析</button>
       </form>
-
-      <div id="result-loading" class="loading-card" style="margin-top:24px;">
-        <div class="loading-spinner"></div>
-        <p class="loading-text">正在为你起卦解读，请稍候…</p>
-      </div>
 
       <div id="result-section" style="display:none; margin-top:24px;">
         <div class="mk-card">
@@ -227,25 +183,6 @@
       document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
     });
 
-    document.querySelectorAll('input[name=method]').forEach(r => {
-      r.addEventListener('change', () => {
-        document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
-        r.closest('.method-card').classList.add('active');
-        const needTime = r.value === 'daliuren' || r.value === 'xiaoliuren';
-        document.getElementById('input-numbers').style.display = needTime ? 'none' : 'block';
-        document.getElementById('input-time').style.display    = needTime ? 'block' : 'none';
-      });
-    });
-
-    const now = new Date();
-    document.getElementById('ke-month').value = now.getMonth() + 1;
-    document.getElementById('ke-day').value   = now.getDate();
-    const hourNames = ['子','丑','丑','寅','寅','卯','卯','辰','辰','巳','巳','午','午','未','未','申','申','酉','酉','戌','戌','亥','亥','子'];
-    const keHourSel = document.getElementById('ke-hour');
-    Array.from(keHourSel.options).forEach(o => {
-      if (o.value === hourNames[now.getHours()]) keHourSel.value = o.value;
-    });
-
     document.querySelectorAll('.ask-tip').forEach(t => {
       t.addEventListener('click', () => {
         const q = document.getElementById('question');
@@ -254,31 +191,69 @@
       });
     });
 
-    document.getElementById('zhanbu-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      const method   = document.querySelector('input[name=method]:checked').value;
-      const question = document.getElementById('question').value.trim();
-      const category = document.getElementById('category').value;
-      let payload = { service: 'zhanbu', method, question, category };
+    // 摇卦：连摇三次（上卦1-8 / 下卦1-8 / 动爻1-6），摇完自动解卦
+    (function () {
+      const stage  = document.getElementById('shake-stage');
+      const btn    = document.getElementById('shake-btn');
+      const status = document.getElementById('shake-status');
+      const ranges = [8, 8, 6];
+      const stepLabel = ['上卦（1–8）', '下卦（1–8）', '动爻（1–6）'];
+      const slotName  = ['上卦', '下卦', '动爻'];
+      const nums = [];
+      let step = 0;
 
-      if (method === 'daliuren' || method === 'xiaoliuren') {
-        payload.ke_month = document.getElementById('ke-month').value || now.getMonth() + 1;
-        payload.ke_day   = document.getElementById('ke-day').value   || now.getDate();
-        payload.ke_hour  = document.getElementById('ke-hour').value  || hourNames[now.getHours()];
-      } else {
-        payload.number1 = document.getElementById('num1').value || Math.floor(Math.random()*999+1);
-        payload.number2 = document.getElementById('num2').value || Math.floor(Math.random()*999+1);
-        payload.number3 = document.getElementById('num3').value || Math.floor(Math.random()*999+1);
-      }
+      btn.addEventListener('click', () => {
+        if (step >= 3) return;
+        const q = document.getElementById('question').value.trim();
+        if (!q) {
+          document.getElementById('question').focus();
+          status.textContent = '请先写下你要问的事，再静心摇卦';
+          return;
+        }
+        btn.disabled = true;
+        stage.classList.add('shaking');
+        setTimeout(() => {
+          stage.classList.remove('shaking');
+          const n = Math.floor(Math.random() * ranges[step]) + 1;
+          nums[step] = n;
+          const slot = stage.querySelector('.shake-slot[data-i="' + step + '"]');
+          slot.textContent = slotName[step] + ' ' + n;
+          slot.classList.add('filled');
+          step++;
+          if (step < 3) {
+            status.textContent = '第 ' + (step + 1) + ' / 3 次：摇出「' + stepLabel[step] + '」';
+            btn.disabled = false;
+          } else {
+            status.textContent = '三爻已成卦，正在为你解卦…';
+            btn.textContent = '解 卦 中…';
+            castDivination(nums);
+          }
+        }, 680);
+      });
 
-      showLoading();
-      try {
-        const text = await callAnalyze(payload);
-        showResult(text);
-      } catch {
-        showError('获取失败，请刷新重试');
+      async function castDivination(n) {
+        const payload = {
+          service: 'zhanbu', method: 'gaodao',
+          category: document.getElementById('category').value,
+          question: document.getElementById('question').value.trim(),
+          number1: n[0], number2: n[1], number3: n[2]
+        };
+        try {
+          const text = await callAnalyze(payload);
+          showResult(text);
+          document.getElementById('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          status.textContent = '已成卦：' + slotName[0] + n[0] + ' · ' + slotName[1] + n[1] + ' · ' + slotName[2] + n[2] + '，解读见下方';
+          btn.textContent = '重新摇卦';
+          btn.disabled = false;
+          btn.onclick = () => location.reload();
+        } catch (err) {
+          status.textContent = '解卦失败，请点下方按钮重试';
+          btn.textContent = '重 试';
+          btn.disabled = false;
+          btn.onclick = () => location.reload();
+        }
       }
-    });
+    })();
   </script>
   <script src="js/site-lang.js"></script>
 </body>
