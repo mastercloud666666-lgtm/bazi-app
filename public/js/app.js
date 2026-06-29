@@ -4727,7 +4727,13 @@ function initExitIntent() {
 }
 
 function showExitOffer() {
-  if (window.__exitOfferShown) return; // 整个会话只弹一次
+  if (window.__exitOfferShown) return; // 本次会话只弹一次
+  // 跨会话：看过一次后 7 天内不再弹
+  try {
+    var last = parseInt(localStorage.getItem('exit_offer_seen') || '0', 10);
+    if (last && (Date.now() - last) < 7 * 24 * 60 * 60 * 1000) return;
+    localStorage.setItem('exit_offer_seen', String(Date.now()));
+  } catch (e) {}
   window.__exitOfferShown = true;
   var overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
