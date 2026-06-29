@@ -414,6 +414,26 @@
       box-shadow: 0 10px 28px rgba(15, 59, 130, 0.08);
     }
 
+    /* 滚动进入动效：卡片渐入上浮 */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px) scale(.985);
+      transition: opacity .7s cubic-bezier(.22,.68,.16,1), transform .7s cubic-bezier(.22,.68,.16,1);
+      will-change: opacity, transform;
+    }
+    .reveal.in {
+      opacity: 1;
+      transform: none;
+    }
+    .hero-sales-card.reveal.in:hover,
+    .pay-dimension-item.reveal.in:hover {
+      transform: translateY(-3px);
+      transition: transform .25s ease;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+    }
+
     .hero-dimensions-title {
       margin: 0;
       font-size: 18px;
@@ -431,6 +451,63 @@
 
     .hero-left-dimensions {
       margin-top: 14px;
+    }
+
+    /* 维度卡横向轮播 */
+    .dim-carousel {
+      position: relative;
+      margin-top: 14px;
+    }
+    .pay-dimensions.hero-left-dimensions {
+      display: flex;
+      grid-template-columns: none;
+      gap: 12px;
+      margin-top: 0;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      padding: 2px 2px 6px;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .pay-dimensions.hero-left-dimensions::-webkit-scrollbar { display: none; }
+    .pay-dimensions.hero-left-dimensions .pay-dimension-item {
+      flex: 0 0 calc(50% - 6px);
+      scroll-snap-align: start;
+      transition: box-shadow .25s ease, transform .25s ease;
+    }
+    .pay-dimensions.hero-left-dimensions .pay-dimension-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(15, 59, 130, .12);
+    }
+    .dim-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid #dbeafe;
+      background: #fff;
+      color: #0f3b82;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(15, 59, 130, .18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+      transition: background .2s ease, opacity .2s ease;
+    }
+    .dim-arrow:hover { background: #eff5ff; }
+    .dim-arrow:disabled { opacity: .35; cursor: default; }
+    .dim-prev { left: -8px; }
+    .dim-next { right: -8px; }
+    @media (max-width: 480px) {
+      .pay-dimensions.hero-left-dimensions .pay-dimension-item { flex: 0 0 80%; }
+      .dim-prev { left: -4px; }
+      .dim-next { right: -4px; }
     }
 
 
@@ -1384,7 +1461,7 @@
           财运起伏、事业机会、婚恋关键点一目了然。不玄乎、不套路，只做靠谱参考，帮你少走弯路。
         </p>
         <div class="hero-sales-grid">
-          <article class="hero-sales-card">
+          <article class="hero-sales-card reveal">
             <h3 class="hero-sales-title" id="hero-audience-title">Ideal if you are currently:</h3>
             <ul class="hero-sales-list" id="hero-audience-list">
               <li>Unsure whether to focus on job, business, or side-income</li>
@@ -1393,7 +1470,7 @@
               <li>Facing relocation/career switch and afraid of wrong timing</li>
             </ul>
           </article>
-          <article class="hero-sales-card">
+          <article class="hero-sales-card reveal">
             <h3 class="hero-sales-title" id="hero-problem-title">You may be stuck on these questions:</h3>
             <ul class="hero-sales-list" id="hero-problem-list">
               <li>Why do key decisions always end in hesitation or regret?</li>
@@ -1407,7 +1484,11 @@
         <div class="hero-dimensions-shell">
           <h3 class="hero-dimensions-title" id="hero-dimensions-title">Full 24-Dimension System Analysis</h3>
           <p class="hero-dimensions-sub" id="hero-dimensions-sub">Covers personality, career, wealth, relationships, risk alerts, and key-year guidance.</p>
-          <div class="pay-dimensions hero-left-dimensions" id="hero-dimensions-grid"></div>
+          <div class="dim-carousel">
+            <button class="dim-arrow dim-prev" type="button" id="dim-prev" aria-label="上一张">‹</button>
+            <div class="pay-dimensions hero-left-dimensions" id="hero-dimensions-grid"></div>
+            <button class="dim-arrow dim-next" type="button" id="dim-next" aria-label="下一张">›</button>
+          </div>
         </div>
 
       </div>
@@ -1965,7 +2046,7 @@
   });
 })();
 </script>
-<script src="js/site-lang.js?v=20260621-v7"></script>
+<script src="js/site-lang.js?v=20260629-carousel-v1"></script>
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(function() {});
@@ -2003,6 +2084,63 @@ if ('serviceWorker' in navigator) {
 <button onclick="sendMsg()">发送</button>
 </div></div></div>
 <script>
+(function(){
+  var io;
+  function ensureIO(){
+    if(io||!('IntersectionObserver' in window))return io;
+    io=new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(!en.isIntersecting)return;
+        var el=en.target;
+        var sibs=el.parentNode?el.parentNode.querySelectorAll(':scope > .reveal'):[el];
+        var idx=Array.prototype.indexOf.call(sibs,el);
+        el.style.transitionDelay=(Math.max(0,idx)*80)+'ms';
+        el.classList.add('in');
+        io.unobserve(el);
+      });
+    },{threshold:0.12,rootMargin:'0px 0px -8% 0px'});
+    return io;
+  }
+  window.observeReveals=function(){
+    var o=ensureIO();
+    var nodes=document.querySelectorAll('.reveal:not(.in)');
+    if(!o){ // 不支持则直接显示
+      nodes.forEach(function(n){n.classList.add('in')});
+      return;
+    }
+    nodes.forEach(function(n){ if(!n.dataset.ro){ n.dataset.ro='1'; o.observe(n); } });
+  };
+  if(document.readyState!=='loading')window.observeReveals();
+  else document.addEventListener('DOMContentLoaded',window.observeReveals);
+
+  // 维度卡横向轮播：左右箭头翻动 + 端点禁用
+  var dimWired=false;
+  function dimStep(track){
+    var card=track.querySelector('.pay-dimension-item');
+    var gap=12;
+    return card?(card.getBoundingClientRect().width+gap)*2:track.clientWidth; // 一次翻两张
+  }
+  function dimUpdate(track,prev,next){
+    var max=track.scrollWidth-track.clientWidth-2;
+    if(prev)prev.disabled=track.scrollLeft<=2;
+    if(next)next.disabled=track.scrollLeft>=max;
+  }
+  window.initDimCarousel=function(){
+    var track=document.getElementById('hero-dimensions-grid');
+    var prev=document.getElementById('dim-prev');
+    var next=document.getElementById('dim-next');
+    if(!track||!prev||!next)return;
+    if(!dimWired){
+      dimWired=true;
+      prev.addEventListener('click',function(){track.scrollBy({left:-dimStep(track),behavior:'smooth'})});
+      next.addEventListener('click',function(){track.scrollBy({left:dimStep(track),behavior:'smooth'})});
+      track.addEventListener('scroll',function(){dimUpdate(track,prev,next)},{passive:true});
+    }
+    dimUpdate(track,prev,next);
+  };
+  if(document.readyState!=='loading')window.initDimCarousel();
+  else document.addEventListener('DOMContentLoaded',window.initDimCarousel);
+})();
 var API='https://wx.tengyunzi.com/chat';
 var sessionId=localStorage.getItem('chat_session')||'';
 function toggleChat(){var b=document.getElementById('chatBox');b.classList.toggle('open');if(b.classList.contains('open'))document.getElementById('chatInput').focus()}

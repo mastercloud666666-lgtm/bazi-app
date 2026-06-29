@@ -581,6 +581,8 @@ const RESULT_TEXT = {
       article.appendChild(p);
       host.appendChild(article);
     });
+    if (window.observeReveals) window.observeReveals();
+    if (window.initDimCarousel) window.initDimCarousel();
   }
 
   function syncButtonDefault(node) {
