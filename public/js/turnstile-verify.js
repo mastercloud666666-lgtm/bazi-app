@@ -2,7 +2,7 @@
 // 配置：把下面 SITEKEY 换成你 Cloudflare Turnstile 的 Site Key 即启用。
 // 未配置（仍为占位符）时，自动降级为本地滑块验证(YZVerify)。
 (function () {
-  const SITEKEY = '__TURNSTILE_SITEKEY__'; // ← 替换为真实 Site Key
+  const SITEKEY = '0x4AAAAAADtPotu7LEYsxLGt'; // Cloudflare Turnstile Site Key（公开）
   const configured = SITEKEY && SITEKEY.indexOf('__') !== 0;
   let token = '';
   let scriptLoaded = false;
