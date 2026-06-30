@@ -18,6 +18,11 @@
       'zh-Hant': '八字排盤結果 · 雲子命理',
       en: 'Bazi Result · Yunzi Destiny',
     },
+    'zhanbu.html': {
+      'zh-Hans': '占卜 · 周易六十四卦 · 云子文化',
+      'zh-Hant': '占卜 · 周易六十四卦 · 雲子命理',
+      en: 'I Ching Divination · Yunzi Destiny',
+    },
   };
 
   const COMMON_TEXT = {

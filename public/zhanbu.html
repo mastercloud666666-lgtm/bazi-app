@@ -127,7 +127,7 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">问事类别</label>
+          <label class="form-label" id="z-cat-label">问事类别</label>
           <select id="category" class="form-select">
             <option value="决策抉择">决策抉择（要不要做、选 A 还是 B）</option>
             <option value="事业工作">事业工作（求职、升迁、创业、项目）</option>
@@ -139,7 +139,7 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">你想问什么 <span class="label-hint">· 一事一问，把背景和顾虑写清楚，卦才准</span></label>
+          <label class="form-label" id="z-q-label">你想问什么 <span class="label-hint">· 一事一问，把背景和顾虑写清楚，卦才准</span></label>
           <textarea id="question" class="form-textarea" rows="4"
             placeholder="好的提问示例：&#10;・我手上这个新项目要不要在下个月启动？目前缺资金但机会难得。&#10;・和某人这段感情还有没有必要继续？最近常冷战。&#10;・这次跳槽到这家公司，发展会比现在好吗？" required></textarea>
           <div class="ask-tips">
@@ -151,7 +151,7 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">摇卦起卦 <span class="label-hint">· 静心默念所问，连摇三次成卦</span></label>
+          <label class="form-label" id="z-shake-label">摇卦起卦 <span class="label-hint">· 静心默念所问，连摇三次成卦</span></label>
           <div class="shake-stage" id="shake-stage">
             <div class="shake-hands" id="shake-hands">🤲</div>
             <div class="shake-coins" id="shake-coins"><span>☯</span><span>☯</span><span>☯</span></div>
@@ -187,12 +187,102 @@
       document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
     });
 
-    document.querySelectorAll('.ask-tip').forEach(t => {
-      t.addEventListener('click', () => {
-        const q = document.getElementById('question');
-        q.value = t.dataset.q || t.textContent;
-        q.focus();
-      });
+    // ============ 占卜页三语 ============
+    const Z = {
+      'zh-Hans': {
+        title: '占 卜', subtitle: '周易六十四卦 · 摇卦问事',
+        introName: '周易六十四卦',
+        introDesc: '心中默想所问之事，诚心摇卦三次成卦，依《周易》卦象爻辞为你解答此事的进退吉凶。',
+        catLabel: '问事类别',
+        catOptions: ['决策抉择（要不要做、选 A 还是 B）','事业工作（求职、升迁、创业、项目）','财运求财（投资、合作、回款、买卖）','感情婚姻（缘分、复合、关系走向）','出行人事（搬迁、考试、寻人、健康）','其他'],
+        qLabelHtml: '你想问什么 <span class="label-hint">· 一事一问，把背景和顾虑写清楚，卦才准</span>',
+        qPlaceholder: '好的提问示例：\n・我手上这个新项目要不要在下个月启动？目前缺资金但机会难得。\n・和某人这段感情还有没有必要继续？最近常冷战。\n・这次跳槽到这家公司，发展会比现在好吗？',
+        chips: [{t:'该不该现在做',q:'我手上这件事，现在适合推进还是再等等？'},{t:'这件事能不能成',q:'这次合作/生意能不能成？需要注意什么？'},{t:'感情怎么走',q:'这段感情接下来会怎么发展，该进还是该守？'},{t:'要不要抓住机会',q:'这次机会要不要抓住，背后有没有风险？'}],
+        shakeLabelHtml: '摇卦起卦 <span class="label-hint">· 静心默念所问，连摇三次成卦</span>',
+        slotName: ['上卦','下卦','动爻'], stepLabel: ['上卦（1–8）','下卦（1–8）','动爻（1–6）'],
+        statusStep: (n,l)=>'第 '+n+' / 3 次：摇出「'+l+'」',
+        needQ: '请先写下你要问的事，再静心摇卦',
+        btnShake: '摇 一 摇', btnRedo: '重新摇卦',
+        divining: (tag)=>'三爻已成卦（'+tag+'），正在为你解卦，约需 10–20 秒，请稍候',
+        writing: '正在书写卦象解读…', done: (tag)=>'已成卦：'+tag+'，解读见下方',
+        fail: '解卦超时或失败，请点按钮重新摇卦',
+        cardTitle: '卦 象 解 读',
+        disclaimer: '\n\n以上内容为传统文化推演，仅供参考，请理性看待，切勿迷信。'
+      },
+      'zh-Hant': {
+        title: '占 卜', subtitle: '周易六十四卦 · 搖卦問事',
+        introName: '周易六十四卦',
+        introDesc: '心中默想所問之事，誠心搖卦三次成卦，依《周易》卦象爻辭為你解答此事的進退吉凶。',
+        catLabel: '問事類別',
+        catOptions: ['決策抉擇（要不要做、選 A 還是 B）','事業工作（求職、升遷、創業、專案）','財運求財（投資、合作、回款、買賣）','感情婚姻（緣分、復合、關係走向）','出行人事（搬遷、考試、尋人、健康）','其他'],
+        qLabelHtml: '你想問什麼 <span class="label-hint">· 一事一問，把背景和顧慮寫清楚，卦才準</span>',
+        qPlaceholder: '好的提問示例：\n・我手上這個新專案要不要在下個月啟動？目前缺資金但機會難得。\n・和某人這段感情還有沒有必要繼續？最近常冷戰。\n・這次跳槽到這家公司，發展會比現在好嗎？',
+        chips: [{t:'該不該現在做',q:'我手上這件事，現在適合推進還是再等等？'},{t:'這件事能不能成',q:'這次合作/生意能不能成？需要注意什麼？'},{t:'感情怎麼走',q:'這段感情接下來會怎麼發展，該進還是該守？'},{t:'要不要抓住機會',q:'這次機會要不要抓住，背後有沒有風險？'}],
+        shakeLabelHtml: '搖卦起卦 <span class="label-hint">· 靜心默念所問，連搖三次成卦</span>',
+        slotName: ['上卦','下卦','動爻'], stepLabel: ['上卦（1–8）','下卦（1–8）','動爻（1–6）'],
+        statusStep: (n,l)=>'第 '+n+' / 3 次：搖出「'+l+'」',
+        needQ: '請先寫下你要問的事，再靜心搖卦',
+        btnShake: '搖 一 搖', btnRedo: '重新搖卦',
+        divining: (tag)=>'三爻已成卦（'+tag+'），正在為你解卦，約需 10–20 秒，請稍候',
+        writing: '正在書寫卦象解讀…', done: (tag)=>'已成卦：'+tag+'，解讀見下方',
+        fail: '解卦逾時或失敗，請點按鈕重新搖卦',
+        cardTitle: '卦 象 解 讀',
+        disclaimer: '\n\n以上內容為傳統文化推演，僅供參考，請理性看待，切勿迷信。'
+      },
+      en: {
+        title: 'I Ching', subtitle: 'Book of Changes · 64 Hexagrams',
+        introName: 'Zhou Yi · 64 Hexagrams',
+        introDesc: 'Hold your question in mind and cast three times with a sincere heart to form a hexagram. The Book of Changes will guide you on whether to advance or hold.',
+        catLabel: 'Type of question',
+        catOptions: ['Decision (whether to act, A or B)','Career & work (job, promotion, venture, project)','Wealth (investment, deals, payments, trade)','Love & marriage (fate, reconciliation, direction)','Travel & affairs (relocation, exams, people, health)','Other'],
+        qLabelHtml: 'What do you want to ask <span class="label-hint">· One question at a time. The clearer the background, the truer the reading.</span>',
+        qPlaceholder: 'Good examples:\n・Should I launch this new project next month? I am short on funds but the chance is rare.\n・Is it worth continuing this relationship? We keep having cold standoffs.\n・Will switching to this company be better for my growth?',
+        chips: [{t:'Act now or wait?',q:'Is it the right time to push this forward, or should I wait?'},{t:'Will it work out?',q:'Will this deal or venture succeed? What should I watch out for?'},{t:'Where is this love going?',q:'How will this relationship develop, and should I advance or hold?'},{t:'Seize this chance?',q:'Should I seize this opportunity, and what are the hidden risks?'}],
+        shakeLabelHtml: 'Cast the hexagram <span class="label-hint">· Focus on your question and cast three times</span>',
+        slotName: ['Upper','Lower','Line'], stepLabel: ['Upper trigram (1–8)','Lower trigram (1–8)','Moving line (1–6)'],
+        statusStep: (n,l)=>'Cast '+n+' / 3: roll the “'+l+'”',
+        needQ: 'Please write your question first, then cast with a calm mind.',
+        btnShake: 'Cast', btnRedo: 'Cast again',
+        divining: (tag)=>'Hexagram formed ('+tag+'). Interpreting, about 10–20 sec, please wait',
+        writing: 'Writing your reading…', done: (tag)=>'Hexagram: '+tag+'. See the reading below.',
+        fail: 'Reading timed out or failed. Tap the button to cast again.',
+        cardTitle: 'Hexagram Reading',
+        disclaimer: '\n\nThis reading is a traditional-culture interpretation for reference only. Please view it rationally.'
+      }
+    };
+    function zLang(){ const l = localStorage.getItem('site_lang_pref_v2') || 'zh-Hans'; return Z[l] ? l : 'zh-Hans'; }
+    function T(){ return Z[zLang()]; }
+    const Zstate = { step: 0, busy: false };
+
+    function applyZhanbuLang(){
+      const t = T();
+      const setTxt = (sel,v)=>{ const e=document.querySelector(sel); if(e) e.textContent=v; };
+      setTxt('.page-title', t.title);
+      setTxt('.page-subtitle', t.subtitle);
+      setTxt('.zy-intro-name', t.introName);
+      setTxt('.zy-intro-desc', t.introDesc);
+      setTxt('#z-cat-label', t.catLabel);
+      const sel = document.getElementById('category');
+      if (sel) Array.from(sel.options).forEach((o,i)=>{ if(t.catOptions[i]) o.textContent = t.catOptions[i]; });
+      const ql = document.getElementById('z-q-label'); if (ql) ql.innerHTML = t.qLabelHtml;
+      const q = document.getElementById('question'); if (q) q.setAttribute('placeholder', t.qPlaceholder);
+      document.querySelectorAll('.ask-tip').forEach((c,i)=>{ if(t.chips[i]){ c.textContent=t.chips[i].t; c.dataset.q=t.chips[i].q; } });
+      const sl = document.getElementById('z-shake-label'); if (sl) sl.innerHTML = t.shakeLabelHtml;
+      setTxt('.mk-card-title', t.cardTitle);
+      // 仅在未开始摇卦时重置动态文案
+      if (Zstate.step === 0 && !Zstate.busy){
+        const st = document.getElementById('shake-status'); if (st) st.textContent = t.statusStep(1, t.stepLabel[0]);
+        const bt = document.getElementById('shake-btn'); if (bt) bt.textContent = t.btnShake;
+        document.querySelectorAll('.shake-slot').forEach((s,i)=>{ s.textContent = t.slotName[i] + ' ·'; s.classList.remove('filled'); });
+      }
+    }
+
+    document.addEventListener('click', e => {
+      const c = e.target.closest && e.target.closest('.ask-tip');
+      if (!c) return;
+      const q = document.getElementById('question');
+      q.value = c.dataset.q || c.textContent;
+      q.focus();
     });
 
     // 摇卦：连摇三次（上卦1-8 / 下卦1-8 / 动爻1-6），摇完自动解卦
@@ -201,35 +291,36 @@
       const btn    = document.getElementById('shake-btn');
       const status = document.getElementById('shake-status');
       const ranges = [8, 8, 6];
-      const stepLabel = ['上卦（1–8）', '下卦（1–8）', '动爻（1–6）'];
-      const slotName  = ['上卦', '下卦', '动爻'];
       const nums = [];
       let step = 0;
 
       btn.addEventListener('click', () => {
         if (step >= 3) return;
+        const t = T();
         const q = document.getElementById('question').value.trim();
         if (!q) {
           document.getElementById('question').focus();
-          status.textContent = '请先写下你要问的事，再静心摇卦';
+          status.textContent = t.needQ;
           return;
         }
         btn.disabled = true;
+        Zstate.busy = true;
         stage.classList.add('shaking');
         setTimeout(() => {
           stage.classList.remove('shaking');
           const n = Math.floor(Math.random() * ranges[step]) + 1;
           nums[step] = n;
           const slot = stage.querySelector('.shake-slot[data-i="' + step + '"]');
-          slot.textContent = slotName[step] + ' ' + n;
+          slot.textContent = t.slotName[step] + ' ' + n;
           slot.classList.add('filled');
-          step++;
+          step++; Zstate.step = step;
           if (step < 3) {
-            status.textContent = '第 ' + (step + 1) + ' / 3 次：摇出「' + stepLabel[step] + '」';
+            status.textContent = t.statusStep(step + 1, t.stepLabel[step]);
             btn.disabled = false;
           } else {
-            status.innerHTML = '三爻已成卦（' + slotName[0] + nums[0] + '·' + slotName[1] + nums[1] + '·' + slotName[2] + nums[2] + '），正在为你解卦，约需 10–20 秒，请稍候<span class="dots"></span>';
-            btn.textContent = '解 卦 中…';
+            const tag = t.slotName[0]+nums[0]+'·'+t.slotName[1]+nums[1]+'·'+t.slotName[2]+nums[2];
+            status.innerHTML = t.divining(tag) + '<span class="dots"></span>';
+            btn.textContent = '…';
             stage.classList.add('divining');
             castDivination(nums);
           }
@@ -237,21 +328,21 @@
       });
 
       async function castDivination(n) {
-        const guaTag = slotName[0] + n[0] + ' · ' + slotName[1] + n[1] + ' · ' + slotName[2] + n[2];
+        const t = T();
+        const guaTag = t.slotName[0] + n[0] + ' · ' + t.slotName[1] + n[1] + ' · ' + t.slotName[2] + n[2];
         const payload = {
           service: 'zhanbu', method: 'gaodao',
           category: document.getElementById('category').value,
           question: document.getElementById('question').value.trim(),
           number1: n[0], number2: n[1], number3: n[2],
-          stream: true
+          lang: zLang(), stream: true
         };
         const resultEl = document.getElementById('result-text');
         const section = document.getElementById('result-section');
-        const DISCLAIMER = '\n\n以上内容为传统文化推演，仅供参考，请理性看待，切勿迷信。';
         const finish = (label) => {
           stage.classList.remove('divining');
           status.textContent = label;
-          btn.textContent = '重新摇卦';
+          btn.textContent = t.btnRedo;
           btn.disabled = false;
           btn.onclick = () => location.reload();
         };
@@ -285,7 +376,7 @@
                   if (!shown) {
                     shown = true;
                     stage.classList.remove('divining');
-                    status.textContent = '正在书写卦象解读…';
+                    status.textContent = t.writing;
                     section.style.display = 'block';
                     section.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
@@ -294,22 +385,29 @@
               }
             }
             if (!full.trim()) throw new Error('empty');
-            resultEl.textContent = (typeof cleanAnalysis === 'function' ? cleanAnalysis(full) : full) + DISCLAIMER;
-            finish('已成卦：' + guaTag + '，解读见下方');
+            resultEl.textContent = (typeof cleanAnalysis === 'function' ? cleanAnalysis(full) : full) + t.disclaimer;
+            finish(t.done(guaTag));
           } else {
-            // 回退：非流式
             const data = await res.json().catch(() => ({}));
             const text = data.analysis || '';
             if (!text.trim()) throw new Error('empty');
-            showResult(text);
+            resultEl.textContent = (typeof cleanAnalysis === 'function' ? cleanAnalysis(text) : text) + t.disclaimer;
+            section.style.display = 'block';
             section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            finish('已成卦：' + guaTag + '，解读见下方');
+            finish(t.done(guaTag));
           }
         } catch (err) {
-          finish('解卦超时或失败，请点按钮重新摇卦');
+          finish(t.fail);
         }
       }
     })();
+
+    applyZhanbuLang();
+    document.addEventListener('change', e => {
+      if (e.target && e.target.classList && e.target.classList.contains('navbar-lang-select')) {
+        applyZhanbuLang();
+      }
+    });
   </script>
   <script src="js/site-lang.js"></script>
 </body>

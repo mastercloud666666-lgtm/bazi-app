@@ -525,6 +525,13 @@ Deno.serve(async (req) => {
 
 用高岛易断那种沉稳、笃定、直断的口吻；引爻辞但用白话讲清楚，不堆砌古文、不写小标题、不分点编号，像一位老易者当面断卦，从卦象说起，一气讲到建议为止。最后单独一句收尾：以上为传统易学参考，请理性看待、自行决断。`;
 
+        const outLang = (body as Record<string, unknown>).lang;
+        if (outLang === 'en') {
+          prompt += '\n\nWrite the entire reading in natural, fluent English. After each hexagram name, you may add a short English gloss (e.g. 风地观 → Guan, Contemplation). End with one line: "This is a traditional I Ching interpretation for reference only; please decide for yourself."';
+        } else if (outLang === 'zh-Hant') {
+          prompt += '\n\n請全程用繁體中文作答。';
+        }
+
       } else if (method === 'daliuren') {
         prompt = `客户问事：${question}
 起课时间：${ke_month}月${ke_day}日${ke_hour}时
