@@ -133,7 +133,7 @@
     const L = en ? {
       title: 'Email Login', sub: 'Log in to save and revisit your readings and reports.',
       email: 'Enter your email', send: 'Get code',
-      code: 'Enter the 6-digit code from your email', login: 'Log in', back: '← Use another email',
+      code: 'Enter the code from your email', login: 'Log in', back: '← Use another email',
       badEmail: 'Please enter a valid email', sending: 'Sending code…',
       sent: function (m) { return 'Code sent to ' + m + ' (check spam too)'; },
       sendFail: function (m) { return 'Failed to send: ' + m; }, retry: 'please try again',
@@ -141,7 +141,7 @@
     } : {
       title: '邮箱登录', sub: '登录后可保存并随时查看你的占卜与命理记录',
       email: '输入你的邮箱', send: '获取验证码',
-      code: '输入邮箱收到的 6 位验证码', login: '登录', back: '← 换个邮箱',
+      code: '输入邮箱收到的验证码', login: '登录', back: '← 换个邮箱',
       badEmail: '请输入正确的邮箱', sending: '正在发送验证码…',
       sent: function (m) { return '验证码已发送到 ' + m + '，请查收（含垃圾箱）'; },
       sendFail: function (m) { return '发送失败：' + m; }, retry: '请稍后重试',
