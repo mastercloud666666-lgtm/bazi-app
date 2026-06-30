@@ -6,10 +6,11 @@ import { corsHeaders, resolveAllowedOrigins } from '../_shared/security.ts';
 const PP_ENV = (Deno.env.get('PAYPAL_ENV') || 'live').toLowerCase();
 const PP_BASE = PP_ENV === 'sandbox' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
 
-// 海外美元定价（按需调整）
+// 海外美元定价（按需调整）。consult 暂不开放（无 WhatsApp/Telegram 交付渠道）。
 const USD_PRICE: Record<string, string> = {
-  basic: '3.99', pro: '8.99', vip: '15.99', pdf: '3.99', consult: '69.00', hepan: '29.00',
+  basic: '3.99', pro: '9.99', vip: '16.99', pdf: '3.99', zhanbu: '9.99', hepan: '29.00',
 };
+const OVERSEAS_DISABLED = new Set(['consult']);
 
 function asString(v: unknown): string { return typeof v === 'string' ? v.trim() : ''; }
 function parseBirth(v: unknown): Record<string, any> {
@@ -61,8 +62,11 @@ Deno.serve(async (req) => {
       const service = asString(body.service).toLowerCase() || 'bazi';
       const origin = asString(body.origin) || (allowedOrigins[0] || 'https://www.tengyunzi.com');
       if (!tradeNo) return json({ error: 'trade_no required' }, 400);
+      if (OVERSEAS_DISABLED.has(optionId) || OVERSEAS_DISABLED.has(service)) {
+        return json({ error: 'option_unavailable_overseas', message: '该服务暂未对海外开放。' }, 400);
+      }
 
-      const priceKey = service === 'hepan' ? 'hepan' : (optionId || 'basic');
+      const priceKey = service === 'zhanbu' ? 'zhanbu' : (service === 'hepan' ? 'hepan' : (optionId || 'basic'));
       const amount = USD_PRICE[priceKey] || USD_PRICE.basic;
 
       const token = await ppToken();
