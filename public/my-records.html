@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>我的记录 · 云子文化</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{--navy:#0a2540;--accent:#0066CC;--line:#e2e8f0;--gray:#64748b;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"PingFang SC","Microsoft YaHei",sans-serif;color:#1f2937;background:#f7fafc;}
+  .nav{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+  .nav-in{max-width:860px;margin:0 auto;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;}
+  .brand{color:var(--navy);font-weight:700;text-decoration:none;}
+  .nav-links a{margin-left:16px;color:#4b5563;text-decoration:none;font-size:14px;}
+  .wrap{max-width:860px;margin:0 auto;padding:28px 20px 80px;}
+  h1{font-size:26px;color:var(--navy);margin:6px 0 4px;}
+  .sub{color:var(--gray);font-size:14px;margin:0 0 22px;}
+  .userbar{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:18px;}
+  .userbar .email{font-size:14px;color:var(--navy);font-weight:600;}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px 22px;font-size:15px;font-weight:700;cursor:pointer;}
+  .btn-ghost{background:#fff;color:var(--accent);border:1px solid var(--accent);}
+  .gate{text-align:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:48px 22px;}
+  .gate p{color:var(--gray);font-size:14px;margin:0 0 18px;}
+  .rec{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px;}
+  .rec-head{display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;}
+  .rec-tag{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:var(--accent);border-radius:999px;padding:2px 10px;margin-right:8px;}
+  .rec-tag.zhanbu{background:#7c3aed;} .rec-tag.bazi{background:#0066CC;} .rec-tag.hepan{background:#0a8a3a;}
+  .rec-title{font-size:15px;color:var(--navy);font-weight:600;}
+  .rec-date{font-size:12px;color:#94a3b8;white-space:nowrap;}
+  .rec-body{display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);white-space:pre-wrap;font-size:14px;line-height:1.85;color:#334155;}
+  .rec.open .rec-body{display:block;}
+  .empty{text-align:center;color:var(--gray);padding:40px 0;}
+  .loading{text-align:center;color:var(--gray);padding:30px 0;}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-in">
+    <a class="brand" href="/index.html">云子文化</a>
+    <div class="nav-links">
+      <a href="/index.html">八字排盘</a>
+      <a href="/zhanbu.html">占卜</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <h1>我的记录</h1>
+  <p class="sub">登录后可查看你保存的占卜与命理解读</p>
+
+  <div id="gate" class="gate" style="display:none">
+    <p>请用邮箱登录，查看你之前问过的事与命盘报告</p>
+    <button class="btn" id="gate-login">邮箱登录</button>
+  </div>
+
+  <div id="panel" style="display:none">
+    <div class="userbar">
+      <span class="email" id="user-email"></span>
+      <button class="btn btn-ghost" id="logout-btn">退出登录</button>
+    </div>
+    <div id="rec-list"></div>
+  </div>
+</div>
+
+<script src="js/auth-records.js"></script>
+<script>
+  const gate = document.getElementById('gate');
+  const panel = document.getElementById('panel');
+  const list = document.getElementById('rec-list');
+  const TAGNAME = { zhanbu: '占卜', bazi: '八字', hepan: '合盘' };
+
+  function fmtDate(s) { try { const d = new Date(s); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); } catch(e){ return ''; } }
+  function esc(t){ const d=document.createElement('div'); d.textContent=t||''; return d.innerHTML; }
+
+  async function render() {
+    if (!YZAuth.isLoggedIn()) { gate.style.display = 'block'; panel.style.display = 'none'; return; }
+    gate.style.display = 'none'; panel.style.display = 'block';
+    document.getElementById('user-email').textContent = YZAuth.currentEmail();
+    list.innerHTML = '<div class="loading">正在加载…</div>';
+    try {
+      const recs = await YZAuth.listRecords();
+      if (!recs.length) { list.innerHTML = '<div class="empty">还没有记录。去占卜或排盘后，记录会自动保存在这里。</div>'; return; }
+      list.innerHTML = recs.map(r => {
+        const tag = TAGNAME[r.type] || r.type || '记录';
+        const title = r.title || r.question || (TAGNAME[r.type] || '解读');
+        return '<div class="rec"><div class="rec-head"><div><span class="rec-tag ' + esc(r.type) + '">' + esc(tag) + '</span><span class="rec-title">' + esc(title) + '</span></div><span class="rec-date">' + fmtDate(r.created_at) + '</span></div><div class="rec-body">' + esc(r.result_text || '') + '</div></div>';
+      }).join('');
+      list.querySelectorAll('.rec-head').forEach(h => h.addEventListener('click', () => h.parentElement.classList.toggle('open')));
+    } catch (e) {
+      list.innerHTML = '<div class="empty">加载失败，请刷新或重新登录。</div>';
+    }
+  }
+
+  document.getElementById('gate-login').addEventListener('click', () => YZAuth.openLogin(render));
+  document.getElementById('logout-btn').addEventListener('click', () => { YZAuth.signOut(); render(); });
+  render();
+</script>
+</body>
+</html>

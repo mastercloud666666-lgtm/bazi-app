@@ -105,6 +105,7 @@
       <div class="navbar-nav">
         <a href="index.html">八字排盘</a>
         <a href="hepan.html">合盘分析</a>
+        <a href="my-records.html">我的记录</a>
       </div>
       <div class="navbar-right"><span class="navbar-lang">EN</span></div>
     </div>
@@ -174,6 +175,7 @@
           </div>
           <div class="mk-card-body">
             <div id="result-text" class="analysis-text"></div>
+            <div id="zb-save-bar" style="margin-top:16px;text-align:center;"></div>
           </div>
         </div>
       </div>
@@ -181,11 +183,29 @@
     </div>
   </div>
 
+  <script src="js/auth-records.js"></script>
   <script src="js/services.js"></script>
   <script>
     window.addEventListener('scroll', () => {
       document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
     });
+
+    // 解卦完成后：登录则自动保存，未登录则提示登录保存
+    function zbOfferSave(rec){
+      const bar = document.getElementById('zb-save-bar');
+      if (!bar || !window.YZAuth) return;
+      if (YZAuth.isLoggedIn()){
+        bar.innerHTML = '<span style="font-size:13px;color:#94a3b8;">正在保存到「我的记录」…</span>';
+        YZAuth.saveRecord(rec).then(function(){
+          bar.innerHTML = '<span style="font-size:13px;color:#0a8a3a;">✓ 已保存到</span> <a href="/my-records.html" style="font-size:13px;color:#0066CC;">我的记录</a>';
+        }).catch(function(){ bar.innerHTML = '<span style="font-size:13px;color:#dc2626;">保存失败，可稍后在「我的记录」重试</span>'; });
+      } else {
+        bar.innerHTML = '<button id="zb-login-save" style="background:#0066CC;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;">登录并保存此卦</button>';
+        document.getElementById('zb-login-save').onclick = function(){
+          YZAuth.openLogin(function(){ zbOfferSave(rec); });
+        };
+      }
+    }
 
     // ============ 占卜页三语 ============
     const Z = {
@@ -387,6 +407,7 @@
             if (!full.trim()) throw new Error('empty');
             resultEl.textContent = (typeof cleanAnalysis === 'function' ? cleanAnalysis(full) : full) + t.disclaimer;
             finish(t.done(guaTag));
+            zbOfferSave({ type:'zhanbu', category: payload.category, question: payload.question, title: (payload.question||'').slice(0,40), meta:{ numbers:n, gua: guaTag }, result_text: resultEl.textContent });
           } else {
             const data = await res.json().catch(() => ({}));
             const text = data.analysis || '';
@@ -395,6 +416,7 @@
             section.style.display = 'block';
             section.scrollIntoView({ behavior: 'smooth', block: 'start' });
             finish(t.done(guaTag));
+            zbOfferSave({ type:'zhanbu', category: payload.category, question: payload.question, title: (payload.question||'').slice(0,40), meta:{ numbers:n, gua: guaTag }, result_text: resultEl.textContent });
           }
         } catch (err) {
           finish(t.fail);

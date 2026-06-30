@@ -432,7 +432,8 @@
         <div class="mk-card-body" style="text-align:center;">
           <p id="save-tip" style="font-size:13px;color:#64748b;margin:0 0 12px;">把这份命盘保存下来，方便随时查看</p>
           <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-            <button type="button" id="save-img-btn" class="save-btn">📷 保存为图片</button>
+            <button type="button" id="save-rec-btn" class="save-btn">☁ 保存到我的记录</button>
+            <button type="button" id="save-img-btn" class="save-btn save-btn-outline">📷 保存为图片</button>
             <button type="button" id="save-pdf-btn" class="save-btn save-btn-outline">📄 保存为 PDF</button>
           </div>
           <p id="save-hint" style="font-size:12px;color:#94a3b8;margin:12px 0 0;display:none;"></p>
@@ -456,9 +457,26 @@
     }
   </style>
 
+  <script src="js/auth-records.js"></script>
   <script src="js/html2canvas.min.js"></script>
   <script>
     (function(){
+      var recBtn=document.getElementById('save-rec-btn');
+      var rhint=document.getElementById('save-hint');
+      function birthSummary(){ var b=document.getElementById('birth-info'); return b? (b.textContent||'').replace(/\s+/g,' ').trim().slice(0,60):''; }
+      function doSaveRec(){
+        var txt=(document.getElementById('analysis-text')||{}).textContent||'';
+        if(txt.trim().length<60){ rhint.style.display='block'; rhint.textContent='解读还没生成，稍候再保存'; return; }
+        rhint.style.display='block'; rhint.textContent='正在保存到「我的记录」…';
+        YZAuth.saveRecord({ type:'bazi', title: birthSummary()||'八字命盘', meta:{ url: location.search }, result_text: txt }).then(function(){
+          rhint.innerHTML='<span style="color:#0a8a3a;">✓ 已保存到</span> <a href="/my-records.html" style="color:#0066CC;">我的记录</a>';
+        }).catch(function(){ rhint.textContent='保存失败，请重试'; });
+      }
+      if(recBtn) recBtn.addEventListener('click', function(){
+        if(!window.YZAuth){ return; }
+        if(YZAuth.isLoggedIn()) doSaveRec();
+        else YZAuth.openLogin(doSaveRec);
+      });
       var imgBtn=document.getElementById('save-img-btn');
       var pdfBtn=document.getElementById('save-pdf-btn');
       var hint=document.getElementById('save-hint');
