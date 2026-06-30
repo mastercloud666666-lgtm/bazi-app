@@ -463,6 +463,7 @@ const RESULT_TEXT = {
     analysisTitle: { 'zh-Hans': '你的命盘解读', 'zh-Hant': '你的命盤解讀', en: 'Your Reading' },
   paidBtn: { 'zh-Hans': '立即解锁完整分析报告', 'zh-Hant': '立即解鎖完整命理報告', en: 'Unlock Full Destiny Report' },
   payBtn: { 'zh-Hans': '立即解锁完整分析报告', 'zh-Hant': '立即解鎖完整命理報告', en: 'Unlock Full Destiny Report' },
+  paypalBtn: { 'zh-Hans': '🌐 海外 PayPal / 信用卡支付（USD）', 'zh-Hant': '🌐 海外 PayPal／信用卡支付（USD）', en: '🌐 Pay with PayPal / Card (USD)' },
 };
 
   function pageName() {
@@ -781,6 +782,7 @@ const RESULT_TEXT = {
     setText('.back-link', pick(RESULT_TEXT.backLink, lang));
     setText('#paid-btn', pick(RESULT_TEXT.paidBtn, lang));
     setText('#pay-btn', pick(RESULT_TEXT.payBtn, lang));
+    setText('#paypal-pay-btn', pick(RESULT_TEXT.paypalBtn, lang));
   }
 
   function applyLanguage(lang) {
