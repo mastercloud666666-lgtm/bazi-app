@@ -155,9 +155,7 @@
     mask.addEventListener('click', (e) => { if (e.target === mask) close(); });
 
     let email = '';
-    $('yz-send').onclick = async () => {
-      email = ($('yz-email').value || '').trim();
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg('请输入正确的邮箱'); return; }
+    const doSend = async () => {
       $('yz-send').disabled = true; msg('正在发送验证码…', true);
       try {
         await sendCode(email);
@@ -167,6 +165,11 @@
         $('yz-code').focus();
       } catch (e) { msg('发送失败：' + (e.message || '请稍后重试')); }
       $('yz-send').disabled = false;
+    };
+    $('yz-send').onclick = () => {
+      email = ($('yz-email').value || '').trim();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg('请输入正确的邮箱'); return; }
+      if (window.YZGate) window.YZGate.require(doSend); else doSend();
     };
     $('yz-back').onclick = () => { $('yz-step2').style.display = 'none'; $('yz-step1').style.display = 'block'; msg(''); };
     $('yz-verify').onclick = async () => {

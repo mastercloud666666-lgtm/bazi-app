@@ -5316,6 +5316,16 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
       free_only: true,
     };
 
+    // 人机验证（Turnstile/滑块）：免费排盘也需通过，防 BOT 刷 AI
+    try {
+      const tsToken = await new Promise((resolve) => {
+        if (!window.YZGate) return resolve('');
+        if (YZGate.passed && YZGate.passed()) return resolve(YZGate.getToken ? YZGate.getToken() : '');
+        YZGate.require(() => resolve(YZGate.getToken ? YZGate.getToken() : ''));
+      });
+      basePayload.turnstile_token = tsToken;
+    } catch (e) {}
+
     const tryNonStreamFallback = async () => {
       let lastErr = null;
       for (let attempt = 0; attempt < 3; attempt++) {

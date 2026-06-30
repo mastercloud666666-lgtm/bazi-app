@@ -389,6 +389,16 @@ Deno.serve(async (req) => {
       });
     }
 
+    // 免费排盘也需通过人机验证（Turnstile，未配密钥则放行）
+    if (service === 'bazi' && free_only === true) {
+      const tsOk = await verifyTurnstile((body as Record<string, unknown>).turnstile_token);
+      if (!tsOk) {
+        return new Response(JSON.stringify({ error: 'turnstile_failed', message: '人机验证未通过，请重试。' }), {
+          status: 403, headers: { ...CORS, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
     const tradeNoSafe = String(trade_no || '').trim();
     if (tradeNoSafe && /^(bazi|hepan)-[a-z0-9_-]{4,140}$/i.test(tradeNoSafe)) {
       const perTradeMaxRequests = readEnvNumber('RATE_LIMIT_ANALYZE_MAX_REQUESTS_PER_TRADE', DEFAULT_RATE_LIMIT_MAX_REQUESTS_PER_TRADE, 2, 200);
