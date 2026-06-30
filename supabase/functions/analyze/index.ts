@@ -516,20 +516,29 @@ Deno.serve(async (req) => {
 【起卦】以数起卦：上卦${uName}、下卦${lName}，动爻为第${dong}爻（自下而上数）。
 本卦：${benName}　　变爻：第${dong}爻　　之卦：${zhiName}
 
-请以「高岛易断」的方式，为客户解此卦：
-1. 先点出本卦「${benName}」的卦象与卦德，说明此卦整体在讲一种什么样的处境。
-2. 重点解第${dong}爻的爻辞之意——这是本次占问的核心指示，结合客户所问把它讲透。
-3. 由本卦变为之卦「${zhiName}」，说明事情的发展方向与最终倾向。
-4. 针对客户所问，给出明确占断：可成/不可成、宜进/宜守、利在何时。
-5. 给出两三条务实可行的行动建议。
+请以「高岛易断」之法，按「原始 → 原因 → 结果」的脉络，层层为客户深入解此卦。要求详尽透彻，全文不少于 2000 字，分成清楚的四段，每段都先引《周易》原文（用引号标出），再逐句白话讲透。
 
-用高岛易断那种沉稳、笃定、直断的口吻；引爻辞但用白话讲清楚，不堆砌古文、不写小标题、不分点编号，像一位老易者当面断卦，从卦象说起，一气讲到建议为止。最后单独一句收尾：以上为传统易学参考，请理性看待、自行决断。`;
+【开头要求】第一句必须直接就是「一、原卦（本卦「${benName}」）——事情的原始格局」这一段的内容，绝对不要任何开场白、寒暄、问候、复述客户问题，也不要出现「好的」「我明白了」「我这就用高岛易断的法子」「为你把卦象一层层剥开」这类客套话，开门见山直接解卦。
+
+一、原卦（本卦「${benName}」）——事情的原始格局
+先完整写出本卦「${benName}」的卦辞原文，如有助于说理可一并引《彖传》《大象传》之辞，原文务必准确并用引号标出；然后逐句白话解释卦辞之意。再详析上卦${uName}、下卦${lName}两象如何相处、相生还是相逆，卦德卦象在讲一种什么处境。结合高岛易断的断卦理路（高岛嘉右卫门善以卦象比附时势人事、由象数直指吉凶进退、并常引实际断例印证），说清这件事眼下的根本格局与现状，这是事情的「原始」状态。此段必须充分展开。
+
+二、动爻（第${dong}爻）——变化为何而起、如何而变
+先写出第${dong}爻的爻辞原文（引号标出），逐句白话解释。再分析这一爻的爻位（当位与否、得中与否、与上下爻的承乘比应关系），说明为什么此事的变化恰恰发生在这一爻上，它就是事情由「原始」走向「结果」的关键转折与原因。引高岛易断对动爻的断法思路，把这个变化的来龙去脉、推动力讲透，这是全卦的核心。
+
+三、变卦（之卦「${zhiName}」）——事情最终走向的结果
+写出之卦「${zhiName}」的卦辞原文（引号标出）并白话解释；说明本卦因第${dong}爻一动而变成之卦，前后两卦一对比，事态会朝什么方向演变、最终落到什么结果与倾向，这是事情的「结果」。
+
+四、占断与建议
+综合「原始格局 → 变化原因 → 最终结果」，以高岛易断那种笃定、直断的口吻给出明确占断（可成/不可成、宜进/宜守、利在何时），再给三条以上务实可行的建议。
+
+通篇所引《周易》卦辞爻辞原文务必准确，白话解释要透彻，适当融入高岛易断的解卦风格与思路。四段递进清晰，像一位老易者当面断卦、层层推演，全文不少于 2000 字。最后单独一句收尾：以上为传统易学参考，请理性看待、自行决断。`;
 
         const outLang = (body as Record<string, unknown>).lang;
         if (outLang === 'en') {
-          prompt += '\n\nWrite the entire reading in natural, fluent English. After each hexagram name, you may add a short English gloss (e.g. 风地观 → Guan, Contemplation). End with one line: "This is a traditional I Ching interpretation for reference only; please decide for yourself."';
+          prompt += '\n\nWrite the entire reading in natural, fluent English, at least 1500 words. For each hexagram and the moving line, first quote the original Classical Chinese text (the 卦辞/爻辞) in quotation marks, then translate and explain it line by line. Add a short gloss after each hexagram name (e.g. 风地观 → Guan, Contemplation). Keep the four-part structure (original hexagram → moving line → resulting hexagram → judgment & advice). End with one line: "This is a traditional I Ching interpretation for reference only; please decide for yourself."';
         } else if (outLang === 'zh-Hant') {
-          prompt += '\n\n請全程用繁體中文作答。';
+          prompt += '\n\n請全程用繁體中文作答，並維持上述四段結構與引用原文、不少於 2000 字的要求。';
         }
 
       } else if (method === 'daliuren') {
