@@ -842,13 +842,21 @@ ${BAZI_SECTION_BLUEPRINT_24}
 "感情路上可能有波折"→必须说"XX岁前感情容易反复，因为日支被X冲/正财被X合绊"；
 凡做判断，必须给出具体年龄段、干支名称、五行原因，不得用"可能""也许""不会太X""有一定概率"等虚词搪塞。`;
 
+    // 按界面语言输出：en→英文，zh-Hant→繁体，其余保持简体
+    const _outLang = (body as Record<string, unknown>).lang;
+    const SYSTEM_MSG_L = _outLang === 'en'
+      ? SYSTEM_MSG + '\n\n【LANGUAGE — TOP PRIORITY, OVERRIDES ALL ABOVE】Write the ENTIRE response in natural, fluent English. Translate every Chinese concept into English (e.g. 用神 = Useful God, 喜忌 = favorable/unfavorable elements, 大运 = Luck Pillar/decade, 日主 = Day Master, 十神 = Ten Gods, 财星 = Wealth star). Keep the four-pillar characters as-is the first time (e.g. 甲午 Jiǎ-Wǔ) with a short English gloss, then refer in English. Address the reader as "you". Do NOT output any Chinese sentences.'
+      : _outLang === 'zh-Hant'
+      ? SYSTEM_MSG + '\n\n【語言】請全程改用繁體中文作答。'
+      : SYSTEM_MSG;
+
 
     // 合盘默认流式；八字在显式请求 stream=true 时：
     // - 付费且非分段请求：按档位走分段聚合，再以 SSE 回放，兼顾一致性与速度
     // - 其余情况：直连模型流式
     if (service === 'bazi' && stream === true && !free_only && !hasSectionRange) {
       const paidTier = (resolvedPaymentOptionId || 'basic') as 'basic' | 'pro' | 'vip';
-      const finalText = await generatePaidBaziTierReport(prompt, SYSTEM_MSG, paidTier);
+      const finalText = await generatePaidBaziTierReport(prompt, SYSTEM_MSG_L, paidTier);
       return buildSseResponseFromText(finalText, CORS);
     }
 
@@ -865,7 +873,7 @@ ${BAZI_SECTION_BLUEPRINT_24}
           temperature: 0,
           stream: true,
           messages: [
-            { role: 'system', content: SYSTEM_MSG },
+            { role: 'system', content: SYSTEM_MSG_L },
             { role: 'user', content: prompt },
           ],
         }),
@@ -884,9 +892,9 @@ ${BAZI_SECTION_BLUEPRINT_24}
 
     if (isPaidBaziNoRange) {
       const paidTier = (resolvedPaymentOptionId || 'basic') as 'basic' | 'pro' | 'vip';
-      analysis = await generatePaidBaziTierReport(prompt, SYSTEM_MSG, paidTier);
+      analysis = await generatePaidBaziTierReport(prompt, SYSTEM_MSG_L, paidTier);
     } else {
-      const singlePass = await requestDeepSeekCompletion(prompt, maxTokens, SYSTEM_MSG);
+      const singlePass = await requestDeepSeekCompletion(prompt, maxTokens, SYSTEM_MSG_L);
       analysis = normalizeSectionMarkers(singlePass.analysis);
       if (service === 'bazi' && free_only) {
         analysis = clipBaziReportByTier(analysis, 3);

@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
         return json({ ok: true, paid: true, service: orderService });
       }
 
-      const analyzePayload: Record<string, unknown> = { trade_no: tradeNo, service: orderService };
+      const analyzePayload: Record<string, unknown> = { trade_no: tradeNo, service: orderService, lang: birth?.lang };
       if (orderService === 'hepan') {
         analyzePayload.man_bazi_str = birth.man_bazi_str;
         analyzePayload.woman_bazi_str = birth.woman_bazi_str;

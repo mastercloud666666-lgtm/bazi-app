@@ -3864,6 +3864,7 @@ async function startPayment(birthData, bazi, paymentOption, gateway = 'hupijiao'
       start_age: daYunData.startAge,
       order_service: orderService,
       payment_option: chosenOption,
+      lang: (localStorage.getItem('site_lang_pref_v2') || 'zh-Hans'),
       invite_code: inviteCode || undefined,
       tracking: buildOrderTrackingSeed(orderService, chosenOption.id),
       ...buildKocFieldsForBirthInput(),
@@ -5359,6 +5360,7 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
       special_years_text: specialText,
       start_age: daYunData.startAge,
       free_only: true,
+      lang: (localStorage.getItem('site_lang_pref_v2') || 'zh-Hans'),
     };
 
     // 人机验证（Turnstile/滑块）：免费排盘也需通过，防 BOT 刷 AI

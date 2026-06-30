@@ -282,6 +282,7 @@ Deno.serve(async (req) => {
   const analyzePayload: Record<string, unknown> = {
     trade_no: trade_order_id,
     service: orderService,
+    lang: birth?.lang,
   };
 
   if (orderService === 'hepan') {
