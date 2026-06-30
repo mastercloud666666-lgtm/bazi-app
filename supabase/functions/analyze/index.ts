@@ -545,7 +545,33 @@ Deno.serve(async (req) => {
         const zUpperName = bitsToName(zLines[3], zLines[4], zLines[5]);
         const zhiName = NAME64[zUpperName][zLowerName];
 
-        prompt = `客户所占之事属「${category || '综合'}」类。
+        const outLang = (body as Record<string, unknown>).lang;
+        if (outLang === 'en') {
+          prompt = `The querent's question concerns "${category || 'general'}".
+Question: ${question}
+
+Cast: upper trigram ${uName}, lower trigram ${lName}; the moving line is line ${dong} (counting from the bottom).
+Original hexagram: ${benName}　Moving line: ${dong}　Resulting hexagram: ${zhiName}
+
+Interpret this casting in the style of Takashima Ekidan (高岛易断), following the thread "starting situation → cause of change → outcome". Be thorough; at least 1500 words, in FOUR clearly separated sections. Write the ENTIRE answer in natural, fluent English.
+
+CRITICAL: Your very first sentence must be the heading of Section 1 below. Do NOT write any greeting, small talk, or restatement of the question. Begin the interpretation directly. Keep hexagram names as their Chinese characters with a short English gloss in parentheses, e.g. ${benName} (gloss).
+
+1. The Original Hexagram — ${benName} — the starting situation
+First quote the original Classical Chinese judgment text (卦辞) of ${benName} in quotation marks, and if helpful the 彖传 / 大象传, then translate and explain it line by line in English. Analyse how the upper trigram ${uName} and lower trigram ${lName} relate (generating or opposing) and what situation the hexagram describes. In Takashima's image-based reasoning (he read the hexagram image against real affairs and pointed directly to advance/retreat and fortune), explain the querent's fundamental present situation. Develop this section fully.
+
+2. The Moving Line — line ${dong} — why and how change arises
+Quote the original line text (爻辞) of line ${dong} in quotation marks, then translate and explain it line by line. Analyse the position of this line (correct/incorrect place, centrality, its relations with the lines above and below) and explain why the change happens precisely here — this is the pivot from the starting situation to the outcome. This is the core of the reading.
+
+3. The Resulting Hexagram — ${zhiName} — where things finally head
+Quote and translate the judgment text of ${zhiName}; explain how the original hexagram becomes this one through the moving line, compare the two, and state the direction and final tendency of the matter (the outcome).
+
+4. Judgment & Advice
+Combining starting situation → cause → outcome, give a firm, direct judgment in Takashima's voice (can it succeed or not; advance or hold; when it is favourable), then give three or more practical pieces of advice.
+
+Quote the Classical Chinese source texts accurately. End with one separate line: "This is a traditional I Ching interpretation for reference only; please view it rationally and decide for yourself."`;
+        } else {
+          prompt = `客户所占之事属「${category || '综合'}」类。
 客户问事：${question}
 
 【起卦】以数起卦：上卦${uName}、下卦${lName}，动爻为第${dong}爻（自下而上数）。
@@ -568,12 +594,9 @@ Deno.serve(async (req) => {
 综合「原始格局 → 变化原因 → 最终结果」，以高岛易断那种笃定、直断的口吻给出明确占断（可成/不可成、宜进/宜守、利在何时），再给三条以上务实可行的建议。
 
 通篇所引《周易》卦辞爻辞原文务必准确，白话解释要透彻，适当融入高岛易断的解卦风格与思路。四段递进清晰，像一位老易者当面断卦、层层推演，全文不少于 2000 字。最后单独一句收尾：以上为传统易学参考，请理性看待、自行决断。`;
-
-        const outLang = (body as Record<string, unknown>).lang;
-        if (outLang === 'en') {
-          prompt += '\n\nWrite the entire reading in natural, fluent English, at least 1500 words. For each hexagram and the moving line, first quote the original Classical Chinese text (the 卦辞/爻辞) in quotation marks, then translate and explain it line by line. Add a short gloss after each hexagram name (e.g. 风地观 → Guan, Contemplation). Keep the four-part structure (original hexagram → moving line → resulting hexagram → judgment & advice). End with one line: "This is a traditional I Ching interpretation for reference only; please decide for yourself."';
-        } else if (outLang === 'zh-Hant') {
-          prompt += '\n\n請全程用繁體中文作答，並維持上述四段結構與引用原文、不少於 2000 字的要求。';
+          if (outLang === 'zh-Hant') {
+            prompt += '\n\n請全程用繁體中文作答，並維持上述四段結構與引用原文、不少於 2000 字的要求。';
+          }
         }
 
       } else if (method === 'daliuren') {
@@ -849,6 +872,17 @@ ${BAZI_SECTION_BLUEPRINT_24}
       : _outLang === 'zh-Hant'
       ? SYSTEM_MSG + '\n\n【語言】請全程改用繁體中文作答。'
       : SYSTEM_MSG;
+
+    // 在 prompt 末尾再压一道语言强制（比 system message 更强势，覆盖上文大量中文指令）
+    if (_outLang === 'en') {
+      if (service === 'bazi') {
+        prompt += '\n\n================ OUTPUT LANGUAGE: ENGLISH (HIGHEST PRIORITY) ================\nRegardless of the Chinese wording above, write your ENTIRE answer in fluent English. Keep EACH section marker EXACTLY as 第1段：, 第2段： … (these are structural markers, do NOT translate or remove them), but write the section title and ALL content after each marker in English. The only Chinese permitted is raw Ganzhi/pillar characters such as 甲午, each with a short English gloss in parentheses. Output ZERO Chinese sentences.';
+      } else {
+        prompt += '\n\n================ OUTPUT LANGUAGE: ENGLISH (HIGHEST PRIORITY) ================\nRegardless of the Chinese wording above, write your ENTIRE answer in fluent English, including translating every section header into English. The only Chinese permitted is raw hexagram / pillar characters (e.g. 火地晋), each with a short English gloss in parentheses. Output ZERO Chinese sentences.';
+      }
+    } else if (_outLang === 'zh-Hant') {
+      prompt += '\n\n【輸出語言】請全程改用繁體中文作答。';
+    }
 
 
     // 合盘默认流式；八字在显式请求 stream=true 时：

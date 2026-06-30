@@ -40,21 +40,31 @@
     document.head.appendChild(st);
   }
 
+  function isEn() { try { return (localStorage.getItem('site_lang_pref_v2') || 'zh-Hans') === 'en'; } catch (e) { return false; } }
+
   function showTurnstile(onPass) {
     injectStyle();
     if (document.getElementById('yz-ts-mask')) return;
+    const en = isEn();
+    const t1 = en ? 'Quick verification' : '请完成人机验证';
+    const t2 = en ? 'Confirm you are human' : '确认你不是机器人';
     const mask = document.createElement('div');
     mask.id = 'yz-ts-mask';
-    mask.innerHTML = '<div id="yz-ts-card"><button class="yz-ts-x" id="yz-ts-x">×</button><h3>请完成人机验证</h3><p>确认你不是机器人</p><div id="yz-ts-box"></div></div>';
+    mask.innerHTML = '<div id="yz-ts-card"><button class="yz-ts-x" id="yz-ts-x">×</button><h3>' + t1 + '</h3><p>' + t2 + '</p><div id="yz-ts-box"></div></div>';
     document.body.appendChild(mask);
     document.getElementById('yz-ts-x').onclick = function () { mask.remove(); };
+    var done = false;
     waitTurnstile(function () {
       if (!window.turnstile) { mask.remove(); fallback(onPass); return; }
       window.turnstile.render('#yz-ts-box', {
         sitekey: SITEKEY,
+        language: en ? 'en' : 'zh-cn',
+        appearance: 'interaction-only',
         callback: function (t) {
+          if (done) return; done = true;
           token = t;
-          setTimeout(function () { mask.remove(); if (typeof onPass === 'function') onPass(); }, 250);
+          try { sessionStorage.setItem('yz_ts_ok', '1'); } catch (e) {}
+          setTimeout(function () { mask.remove(); if (typeof onPass === 'function') onPass(); }, 200);
         },
         'error-callback': function () {},
         'expired-callback': function () { token = ''; }
