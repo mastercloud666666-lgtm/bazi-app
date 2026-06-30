@@ -427,9 +427,59 @@
         </div>
       </div>
 
+      <!-- 保存命盘 -->
+      <div class="mk-card no-capture" id="save-card">
+        <div class="mk-card-body" style="text-align:center;">
+          <p id="save-tip" style="font-size:13px;color:#64748b;margin:0 0 12px;">把这份命盘保存下来，方便随时查看</p>
+          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+            <button type="button" id="save-img-btn" class="save-btn">📷 保存为图片</button>
+            <button type="button" id="save-pdf-btn" class="save-btn save-btn-outline">📄 保存为 PDF</button>
+          </div>
+          <p id="save-hint" style="font-size:12px;color:#94a3b8;margin:12px 0 0;display:none;"></p>
+        </div>
+      </div>
+
     </div>
   </div>
 
+  <style>
+    .save-btn{background:#0066CC;color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s ease;}
+    .save-btn:hover{background:#0052A3;}
+    .save-btn:disabled{opacity:.55;cursor:default;}
+    .save-btn-outline{background:#fff;color:#0066CC;border:1.5px solid #0066CC;}
+    .save-btn-outline:hover{background:#eff5ff;}
+    @media print{
+      .navbar,.back-link,#save-card,#pay-prompt,#analysis-locked,.chat-widget,#kefu-float-btn{display:none !important;}
+      body{background:#fff !important;}
+      .page-wrapper{padding:0 !important;}
+      .mk-card{box-shadow:none !important;border:1px solid #e5e7eb !important;break-inside:avoid;}
+    }
+  </style>
+
+  <script src="js/html2canvas.min.js"></script>
+  <script>
+    (function(){
+      var imgBtn=document.getElementById('save-img-btn');
+      var pdfBtn=document.getElementById('save-pdf-btn');
+      var hint=document.getElementById('save-hint');
+      var target=document.querySelector('.page-inner');
+      function fname(ext){return '云子命盘_'+new Date().toISOString().slice(0,10)+'.'+ext;}
+      if(imgBtn) imgBtn.addEventListener('click', async function(){
+        if(!window.html2canvas){hint.style.display='block';hint.textContent='图片功能加载失败，请刷新重试';return;}
+        hint.style.display='block';hint.textContent='正在生成图片，请稍候…';imgBtn.disabled=true;
+        try{
+          var canvas=await html2canvas(target,{backgroundColor:'#ffffff',scale:2,useCORS:true,ignoreElements:function(el){return el.classList&&el.classList.contains('no-capture');}});
+          var a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=fname('png');a.click();
+          hint.textContent='图片已保存到下载文件夹';
+        }catch(e){hint.textContent='生成失败，请重试';}
+        imgBtn.disabled=false;
+      });
+      if(pdfBtn) pdfBtn.addEventListener('click', function(){
+        if(hint){hint.style.display='block';hint.textContent='在弹出的打印窗口选择“另存为 PDF”即可';}
+        setTimeout(function(){window.print();},120);
+      });
+    })();
+  </script>
   <script src="js/bazi.js"></script>
   <script src="js/site-lang.js?v=20260621-v7"></script>
   <script src="js/config.js"></script>
