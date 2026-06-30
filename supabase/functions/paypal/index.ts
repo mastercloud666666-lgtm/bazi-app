@@ -70,8 +70,9 @@ Deno.serve(async (req) => {
       const amount = USD_PRICE[priceKey] || USD_PRICE.basic;
 
       const token = await ppToken();
-      const returnUrl = `${origin}/result.html?trade_no=${encodeURIComponent(tradeNo)}&pp=1`;
-      const cancelUrl = `${origin}/result.html?trade_no=${encodeURIComponent(tradeNo)}&pp=cancel`;
+      const retPage = service === 'zhanbu' ? 'zhanbu.html' : 'result.html';
+      const returnUrl = `${origin}/${retPage}?trade_no=${encodeURIComponent(tradeNo)}&pp=1`;
+      const cancelUrl = `${origin}/${retPage}?trade_no=${encodeURIComponent(tradeNo)}&pp=cancel`;
       const res = await fetch(`${PP_BASE}/v2/checkout/orders`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -124,11 +125,12 @@ Deno.serve(async (req) => {
 
       const optionId = asString(birth?.payment_option?.id).toLowerCase();
       const orderService = birth?.order_service === 'hepan' ? 'hepan'
-        : (birth?.order_service === 'pdf' || optionId === 'pdf' ? 'pdf'
-          : (birth?.order_service === 'consult' || optionId === 'consult' ? 'consult' : 'bazi'));
+        : (birth?.order_service === 'zhanbu' ? 'zhanbu'
+          : (birth?.order_service === 'pdf' || optionId === 'pdf' ? 'pdf'
+            : (birth?.order_service === 'consult' || optionId === 'consult' ? 'consult' : 'bazi')));
 
-      // pdf/consult 无需生成报告
-      if (orderService === 'pdf' || orderService === 'consult') {
+      // pdf/consult/zhanbu 无需在此生成报告（占卜的解读在用户摇卦时才生成）
+      if (orderService === 'pdf' || orderService === 'consult' || orderService === 'zhanbu') {
         return json({ ok: true, paid: true, service: orderService });
       }
 

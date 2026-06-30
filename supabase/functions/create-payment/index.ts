@@ -15,7 +15,7 @@ import {
 import { sendOrderNotify } from '../_shared/order-notify.ts';
 
 type PaymentOptionId = 'basic' | 'pro' | 'vip' | 'pdf' | 'consult' | 'copy_agent_100';
-type OrderService = 'bazi' | 'hepan' | 'pdf' | 'consult' | 'copy_agent';
+type OrderService = 'bazi' | 'hepan' | 'pdf' | 'consult' | 'copy_agent' | 'zhanbu';
 
 const PAYMENT_OPTION_MAP: Record<PaymentOptionId, { title: string; total_fee: string }> = {
   basic: { title: 'Bazi Starter Report', total_fee: '19' },
@@ -31,6 +31,7 @@ const FIRST_VISIT_DISCOUNT_ID = 'FIRST3D_20OFF';
 const FIRST_VISIT_DISCOUNT_RATE = 0.8;
 const FIRST_VISIT_DISCOUNT_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 const HEPAN_PAYMENT_CONFIG = { title: 'Compatibility Analysis Report', total_fee: '199' } as const;
+const ZHANBU_PAYMENT_CONFIG = { title: '周易六十四卦占卜解卦', total_fee: '69' } as const;
 
 const DEFAULT_PRIMARY_API_BASE = 'https://api.xunhupay.com';
 const DEFAULT_BACKUP_API_BASE = 'https://api.dpweixin.com';
@@ -311,6 +312,7 @@ function resolveFirstVisitDiscount(params: {
 function detectOrderService(birth: Record<string, unknown>): OrderService {
   const service = String(birth?.order_service || '').trim().toLowerCase();
   if (service === 'hepan') return 'hepan';
+  if (service === 'zhanbu') return 'zhanbu';
   if (service === 'pdf') return 'pdf';
   if (service === 'consult') return 'consult';
   if (service === 'copy_agent') return 'copy_agent';
@@ -728,6 +730,8 @@ Deno.serve(async (req) => {
     const service = detectOrderService(birth);
     const optionConfig = service === 'hepan'
       ? HEPAN_PAYMENT_CONFIG
+      : service === 'zhanbu'
+      ? ZHANBU_PAYMENT_CONFIG
       : PAYMENT_OPTION_MAP[paymentOptionId];
     const discountOptionId = service === 'hepan' ? 'hepan' : paymentOptionId;
     const rawInviteCode = normalizeInviteCode(
@@ -750,9 +754,9 @@ Deno.serve(async (req) => {
       birth,
       clientEnv: clientEnv as Record<string, unknown>,
     });
-    const finalAmount = visitDiscountMeta.applied
-      ? visitDiscountMeta.finalAmount
-      : inviteDiscountMeta.finalAmount;
+    const finalAmount = service === 'zhanbu'
+      ? baseAmount  // 占卜固定价 ¥69，不参与任何优惠
+      : (visitDiscountMeta.applied ? visitDiscountMeta.finalAmount : inviteDiscountMeta.finalAmount);
     const discountMeta = {
       ...inviteDiscountMeta,
       finalAmount,

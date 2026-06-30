@@ -222,11 +222,13 @@ Deno.serve(async (req) => {
   const optionId = asString(birth?.payment_option?.id).toLowerCase();
   const orderService = birth?.order_service === 'hepan'
     ? 'hepan'
-    : (birth?.order_service === 'pdf' || optionId === 'pdf'
-      ? 'pdf'
-      : (birth?.order_service === 'consult' || optionId === 'consult'
-        ? 'consult'
-        : (isCopyAgentOrder(birth, optionId) ? 'copy_agent' : 'bazi')));
+    : (birth?.order_service === 'zhanbu'
+      ? 'zhanbu'
+      : (birth?.order_service === 'pdf' || optionId === 'pdf'
+        ? 'pdf'
+        : (birth?.order_service === 'consult' || optionId === 'consult'
+          ? 'consult'
+          : (isCopyAgentOrder(birth, optionId) ? 'copy_agent' : 'bazi'))));
 
   if (orderService === 'copy_agent') {
     try {
@@ -274,7 +276,7 @@ Deno.serve(async (req) => {
     note: asString(data.transaction_id),
   });
 
-  if (orderService === 'pdf' || orderService === 'consult') {
+  if (orderService === 'pdf' || orderService === 'consult' || orderService === 'zhanbu') {
     console.log(`${orderService.toUpperCase()} order ${trade_order_id} paid, skip analyze trigger`);
     return new Response('success', { status: 200 });
   }

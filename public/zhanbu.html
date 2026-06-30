@@ -276,6 +276,74 @@
     function T(){ return Z[zLang()]; }
     const Zstate = { step: 0, busy: false };
 
+    // ===== 占卜付费（国内 ¥69 虎皮椒 / 海外 $9.99 PayPal，先付费再摇卦） =====
+    function zbPaid(){ return localStorage.getItem('zhanbu_paid') === '1'; }
+    function zbCid(){ var c = localStorage.getItem('yz_cid'); if(!c){ c = Math.random().toString(36).slice(2,10); localStorage.setItem('yz_cid', c); } return c; }
+    function zbStartPay(){
+      if (document.getElementById('zb-pay-mask')) return;
+      var en = zLang()==='en';
+      var mask = document.createElement('div'); mask.id='zb-pay-mask';
+      mask.style.cssText='position:fixed;inset:0;background:rgba(10,37,64,.5);z-index:100000;display:flex;align-items:center;justify-content:center;padding:18px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;';
+      mask.innerHTML='<div style="background:#fff;border-radius:16px;padding:26px 22px;max-width:360px;width:92vw;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);">'
+        +'<div style="font-size:40px">🔮</div>'
+        +'<h3 style="margin:8px 0 6px;font-size:19px;color:#0A2540">'+(en?'Unlock your reading':'解锁完整解卦')+'</h3>'
+        +'<p style="font-size:13px;color:#64748b;margin:0 0 18px;line-height:1.6">'+(en?'Pay once, then cast and receive your full I Ching reading.':'付费后即可摇卦，获得依《周易》卦象爻辞的完整高岛易断解读。')+'</p>'
+        +'<button id="zb-pay-go" style="width:100%;background:'+(en?'#ffc439':'#0066CC')+';color:'+(en?'#003087':'#fff')+';border:none;border-radius:10px;padding:14px;font-size:16px;font-weight:700;cursor:pointer">'+(en?'🌐 Pay $9.99 with PayPal / Card':'立即支付 ¥69 解锁')+'</button>'
+        +'<button id="zb-pay-x" style="margin-top:12px;background:none;border:none;color:#94a3b8;font-size:13px;cursor:pointer">'+(en?'Maybe later':'暂不')+'</button>'
+        +'</div>';
+      document.body.appendChild(mask);
+      mask.addEventListener('click', function(e){ if(e.target===mask) mask.remove(); });
+      document.getElementById('zb-pay-x').onclick=function(){ mask.remove(); };
+      document.getElementById('zb-pay-go').onclick=function(){ this.textContent = en?'Redirecting…':'正在跳转…'; this.disabled=true; zbDoPay(); };
+    }
+    async function zbDoPay(){
+      var en = zLang()==='en';
+      var tradeNo = 'zhanbu-' + zbCid() + '-' + Date.now();
+      try { localStorage.setItem('zhanbu_q', document.getElementById('question').value || ''); localStorage.setItem('zhanbu_cat', document.getElementById('category').value || ''); } catch(e){}
+      var birth = { order_service:'zhanbu', lang: zLang(), payment_option:{ id:'zhanbu', fee:'69', title:'占卜解卦' } };
+      try {
+        await fetch(SUPABASE_URL + '/rest/v1/orders', { method:'POST', headers:{ apikey:SUPABASE_ANON, Authorization:'Bearer '+SUPABASE_ANON, 'Content-Type':'application/json', Prefer:'return=minimal' }, body: JSON.stringify({ trade_no: tradeNo, birth_input: JSON.stringify(birth) }) });
+      } catch(e){}
+      localStorage.setItem('zhanbu_pending_trade', tradeNo);
+      try {
+        if (en) {
+          var r = await fetch(SUPABASE_URL+'/functions/v1/paypal', { method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer '+SUPABASE_ANON}, body: JSON.stringify({ action:'create', trade_no: tradeNo, service:'zhanbu', origin: location.origin }) });
+          var d = await r.json().catch(function(){return {};});
+          if (d.approve_url){ location.href = d.approve_url; return; }
+        } else {
+          var r2 = await fetch(SUPABASE_URL+'/functions/v1/create-payment', { method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer '+SUPABASE_ANON}, body: JSON.stringify({ trade_no: tradeNo, payment_option_id:'basic', total_fee:'69', return_path:'/zhanbu.html', birth_input: birth }) });
+          var d2 = await r2.json().catch(function(){return {};});
+          var url = d2.url || d2.url_qrcode || '';
+          if (url){ location.href = url; return; }
+        }
+      } catch(e){}
+      alert(en?'Payment unavailable, please try again.':'支付创建失败，请重试。');
+      var m=document.getElementById('zb-pay-mask'); if(m) m.remove();
+    }
+    async function zbHandleReturn(){
+      var q = new URLSearchParams(location.search);
+      if (q.get('pp')==='1' && q.get('token')){
+        try {
+          var r = await fetch(SUPABASE_URL+'/functions/v1/paypal', { method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer '+SUPABASE_ANON}, body: JSON.stringify({ action:'capture', paypal_order_id: q.get('token'), trade_no: localStorage.getItem('zhanbu_pending_trade')||'' }) });
+          var d = await r.json().catch(function(){return {};});
+          if (d.ok && d.paid) localStorage.setItem('zhanbu_paid','1');
+        } catch(e){}
+        history.replaceState(null,'',location.pathname);
+      } else if (q.get('paid')==='true' && q.get('trade_no')){
+        var paid=false;
+        for (var i=0;i<4 && !paid;i++){
+          try {
+            var rr = await fetch(SUPABASE_URL+'/rest/v1/orders?trade_no=eq.'+encodeURIComponent(q.get('trade_no'))+'&select=paid&limit=1', { headers:{ apikey:SUPABASE_ANON, Authorization:'Bearer '+SUPABASE_ANON } });
+            var rows = await rr.json().catch(function(){return [];});
+            if (rows[0] && rows[0].paid){ paid=true; break; }
+          } catch(e){}
+          await new Promise(function(res){ setTimeout(res,1500); });
+        }
+        if (paid) localStorage.setItem('zhanbu_paid','1');
+        history.replaceState(null,'',location.pathname);
+      }
+    }
+
     function applyZhanbuLang(){
       const t = T();
       const setTxt = (sel,v)=>{ const e=document.querySelector(sel); if(e) e.textContent=v; };
@@ -317,7 +385,6 @@
       let step = 0;
 
       btn.addEventListener('click', () => {
-        if (window.YZGate && !YZGate.passed()) { YZGate.require(function(){}); return; }
         if (step >= 3) return;
         const t = T();
         const q = document.getElementById('question').value.trim();
@@ -326,6 +393,8 @@
           status.textContent = t.needQ;
           return;
         }
+        if (!zbPaid()) { zbStartPay(); return; }           // 先付费再摇卦
+        if (window.YZGate && !YZGate.passed()) { YZGate.require(function(){}); return; }
         btn.disabled = true;
         Zstate.busy = true;
         stage.classList.add('shaking');
@@ -411,6 +480,7 @@
             if (!full.trim()) throw new Error('empty');
             resultEl.textContent = (typeof cleanAnalysis === 'function' ? cleanAnalysis(full) : full) + t.disclaimer;
             finish(t.done(guaTag));
+            try { localStorage.removeItem('zhanbu_paid'); } catch(e){}
             zbOfferSave({ type:'zhanbu', category: payload.category, question: payload.question, title: (payload.question||'').slice(0,40), meta:{ numbers:n, gua: guaTag }, result_text: resultEl.textContent });
           } else {
             const data = await res.json().catch(() => ({}));
@@ -420,6 +490,7 @@
             section.style.display = 'block';
             section.scrollIntoView({ behavior: 'smooth', block: 'start' });
             finish(t.done(guaTag));
+            try { localStorage.removeItem('zhanbu_paid'); } catch(e){}
             zbOfferSave({ type:'zhanbu', category: payload.category, question: payload.question, title: (payload.question||'').slice(0,40), meta:{ numbers:n, gua: guaTag }, result_text: resultEl.textContent });
           }
         } catch (err) {
@@ -429,6 +500,13 @@
     })();
 
     applyZhanbuLang();
+    // 付款返回后恢复之前填的问题
+    try {
+      var _qp = new URLSearchParams(location.search);
+      var _sq = localStorage.getItem('zhanbu_q');
+      if (_sq && (_qp.get('pp') || _qp.get('paid'))) { document.getElementById('question').value = _sq; var _sc = localStorage.getItem('zhanbu_cat'); if(_sc) document.getElementById('category').value = _sc; }
+    } catch(e){}
+    zbHandleReturn();
     document.addEventListener('change', e => {
       if (e.target && e.target.classList && e.target.classList.contains('navbar-lang-select')) {
         applyZhanbuLang();
