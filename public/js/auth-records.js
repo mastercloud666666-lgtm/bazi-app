@@ -129,21 +129,39 @@
   function openLogin(onSuccess) {
     injectStyle();
     if (document.getElementById('yz-auth-mask')) return;
+    var en = false; try { en = (localStorage.getItem('site_lang_pref_v2') || 'zh-Hans') === 'en'; } catch (e) {}
+    const L = en ? {
+      title: 'Email Login', sub: 'Log in to save and revisit your readings and reports.',
+      email: 'Enter your email', send: 'Get code',
+      code: 'Enter the 6-digit code from your email', login: 'Log in', back: '← Use another email',
+      badEmail: 'Please enter a valid email', sending: 'Sending code…',
+      sent: function (m) { return 'Code sent to ' + m + ' (check spam too)'; },
+      sendFail: function (m) { return 'Failed to send: ' + m; }, retry: 'please try again',
+      noCode: 'Please enter the code', loggingIn: 'Logging in…', codeErr: 'Invalid code'
+    } : {
+      title: '邮箱登录', sub: '登录后可保存并随时查看你的占卜与命理记录',
+      email: '输入你的邮箱', send: '获取验证码',
+      code: '输入邮箱收到的 6 位验证码', login: '登录', back: '← 换个邮箱',
+      badEmail: '请输入正确的邮箱', sending: '正在发送验证码…',
+      sent: function (m) { return '验证码已发送到 ' + m + '，请查收（含垃圾箱）'; },
+      sendFail: function (m) { return '发送失败：' + m; }, retry: '请稍后重试',
+      noCode: '请输入验证码', loggingIn: '正在登录…', codeErr: '验证码错误'
+    };
     const mask = document.createElement('div');
     mask.id = 'yz-auth-mask';
     mask.innerHTML = `
       <div id="yz-auth-card">
         <button class="yz-x" id="yz-x">×</button>
-        <h3>邮箱登录</h3>
-        <p class="sub">登录后可保存并随时查看你的占卜与命理记录</p>
+        <h3>${L.title}</h3>
+        <p class="sub">${L.sub}</p>
         <div id="yz-step1">
-          <input class="yz-inp" id="yz-email" type="email" placeholder="输入你的邮箱" autocomplete="email">
-          <button class="yz-btn" id="yz-send">获取验证码</button>
+          <input class="yz-inp" id="yz-email" type="email" placeholder="${L.email}" autocomplete="email">
+          <button class="yz-btn" id="yz-send">${L.send}</button>
         </div>
         <div id="yz-step2" style="display:none">
-          <input class="yz-inp" id="yz-code" type="text" inputmode="numeric" placeholder="输入邮箱收到的 6 位验证码" autocomplete="one-time-code">
-          <button class="yz-btn" id="yz-verify">登录</button>
-          <button class="yz-link" id="yz-back">← 换个邮箱</button>
+          <input class="yz-inp" id="yz-code" type="text" inputmode="numeric" placeholder="${L.code}" autocomplete="one-time-code">
+          <button class="yz-btn" id="yz-verify">${L.login}</button>
+          <button class="yz-link" id="yz-back">${L.back}</button>
         </div>
         <div class="yz-msg" id="yz-msg"></div>
       </div>`;
@@ -156,31 +174,31 @@
 
     let email = '';
     const doSend = async () => {
-      $('yz-send').disabled = true; msg('正在发送验证码…', true);
+      $('yz-send').disabled = true; msg(L.sending, true);
       try {
         await sendCode(email);
         $('yz-step1').style.display = 'none';
         $('yz-step2').style.display = 'block';
-        msg('验证码已发送到 ' + email + '，请查收（含垃圾箱）', true);
+        msg(L.sent(email), true);
         $('yz-code').focus();
-      } catch (e) { msg('发送失败：' + (e.message || '请稍后重试')); }
+      } catch (e) { msg(L.sendFail(e.message || L.retry)); }
       $('yz-send').disabled = false;
     };
     $('yz-send').onclick = () => {
       email = ($('yz-email').value || '').trim();
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg('请输入正确的邮箱'); return; }
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg(L.badEmail); return; }
       if (window.YZGate) window.YZGate.require(doSend); else doSend();
     };
     $('yz-back').onclick = () => { $('yz-step2').style.display = 'none'; $('yz-step1').style.display = 'block'; msg(''); };
     $('yz-verify').onclick = async () => {
       const code = ($('yz-code').value || '').trim();
-      if (!code) { msg('请输入验证码'); return; }
-      $('yz-verify').disabled = true; msg('正在登录…', true);
+      if (!code) { msg(L.noCode); return; }
+      $('yz-verify').disabled = true; msg(L.loggingIn, true);
       try {
         await verifyCode(email, code);
         close();
         if (typeof onSuccess === 'function') onSuccess();
-      } catch (e) { msg(e.message || '验证码错误'); $('yz-verify').disabled = false; }
+      } catch (e) { msg(e.message || L.codeErr); $('yz-verify').disabled = false; }
     };
   }
 
