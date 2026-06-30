@@ -225,6 +225,25 @@ async function requestDeepSeekCompletion(prompt: string, maxTokens: number, syst
   return { analysis: cleanAnalysisText(rawAnalysis) };
 }
 
+// Cloudflare Turnstile 人机验证。未配置 TURNSTILE_SECRET 时跳过（不阻断）。
+async function verifyTurnstile(token: unknown): Promise<boolean> {
+  const secret = Deno.env.get('TURNSTILE_SECRET');
+  if (!secret) return true; // 尚未配置密钥，放行（降级到前端滑块）
+  if (!token || typeof token !== 'string') return false;
+  try {
+    const form = new URLSearchParams();
+    form.append('secret', secret);
+    form.append('response', token);
+    const r = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST', body: form,
+    });
+    const d = await r.json().catch(() => ({ success: false }));
+    return !!d.success;
+  } catch (_e) {
+    return false;
+  }
+}
+
 function buildSseResponseFromText(text: string, corsHeadersValue: Record<string, string>): Response {
   const normalized = normalizeSectionMarkers(String(text || ''));
   const encoder = new TextEncoder();
@@ -470,6 +489,12 @@ Deno.serve(async (req) => {
 要求：用口语，像朋友在帮你取名字一样，不要写标题符号，每个名字之间空一行，直接从第一个名字开始说。`;
 
     } else if (service === 'zhanbu') {
+      const tsOk = await verifyTurnstile((body as Record<string, unknown>).turnstile_token);
+      if (!tsOk) {
+        return new Response(JSON.stringify({ error: 'turnstile_failed', message: '人机验证未通过，请重试。' }), {
+          status: 403, headers: { ...CORS, 'Content-Type': 'application/json' },
+        });
+      }
       const { question, method, category, number1, number2, number3, ke_month, ke_day, ke_hour } = body;
 
       if (method === 'gaodao') {
