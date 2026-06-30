@@ -3681,6 +3681,18 @@ function renderBaziDetailGrid(bazi) {
     });
   }
 
+  // 海外 PayPal 支付按钮（USD）
+  const ppPayBtn = document.getElementById('paypal-pay-btn');
+  if (ppPayBtn) {
+    ppPayBtn.addEventListener('click', async () => {
+      const selectedOption = await pickPaymentOption();
+      if (!selectedOption) return;
+      ppPayBtn.disabled = true;
+      ppPayBtn.textContent = 'Redirecting to PayPal…';
+      startPayment({ year, month, day, hour, gender, birthplace }, bazi, selectedOption, 'paypal');
+    });
+  }
+
   // 检查 URL 中是否有回调参数（支付成功后跳回）
   if (tradeNo) {
     const analysisLocked = document.getElementById('analysis-locked');
@@ -3691,6 +3703,19 @@ function renderBaziDetailGrid(bazi) {
     if (payPrompt) payPrompt.style.display = 'none';
     if (analysisContent) analysisContent.style.display = 'none';
     if (analysisLoading) analysisLoading.style.display = 'block';
+
+    // PayPal 返回：先捕获付款再走后续解锁
+    try {
+      const _q = new URLSearchParams(location.search);
+      if (_q.get('pp') === '1' && _q.get('token')) {
+        if (analysisLoading) analysisLoading.innerHTML = '<p class="price-desc">正在确认 PayPal 付款，请稍候…</p>';
+        await fetch(`${SUPABASE_URL}/functions/v1/paypal`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SUPABASE_ANON}` },
+          body: JSON.stringify({ action: 'capture', paypal_order_id: _q.get('token'), trade_no: tradeNo }),
+        });
+      }
+    } catch (ppErr) { console.warn('paypal capture on return failed:', ppErr); }
 
     let orderSnapshot = null;
     let snapshotOptionId = '';
@@ -3764,7 +3789,7 @@ function renderBaziDetailGrid(bazi) {
   }
 })();
 // ── 支付 ──────────────────────────────────────────────────────────
-async function startPayment(birthData, bazi, paymentOption) {
+async function startPayment(birthData, bazi, paymentOption, gateway = 'hupijiao') {
   const chosenOption = paymentOption || DEFAULT_PAYMENT_OPTION;
   const orderService = isConsultOptionId(chosenOption?.id) ? 'consult' : 'bazi';
   const inviteCode = setInviteCode(chosenOption?.invite_code || getInviteCode() || '');
@@ -3923,6 +3948,26 @@ async function startPayment(birthData, bazi, paymentOption) {
     if (loadingSection) {
       loadingSection.innerHTML = '<p class="price-desc">\u7f51\u7edc\u6ce2\u52a8\uff0c\u6b63\u5728\u7ee7\u7eed\u751f\u6210\u652f\u4ed8\u94fe\u63a5\uff08\u540e\u7aef\u5c06\u81ea\u52a8\u8865\u5efa\u8ba2\u5355\uff09...</p>';
     }
+  }
+
+  // 海外 PayPal 支付：订单行已写入，直接创建 PayPal 订单并跳转
+  if (gateway === 'paypal') {
+    try {
+      const ppRes = await fetch(`${SUPABASE_URL}/functions/v1/paypal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SUPABASE_ANON}` },
+        body: JSON.stringify({ action: 'create', trade_no: tradeNo, option_id: chosenOption.id, service: orderService, origin: location.origin }),
+      });
+      const ppData = await ppRes.json().catch(() => ({}));
+      if (ppRes.ok && ppData.approve_url) { window.location.href = ppData.approve_url; return; }
+      console.warn('paypal create failed', ppData);
+      if (loadingSection) loadingSection.innerHTML = '<p class="price-desc">PayPal 下单失败，请重试或改用其他支付方式。</p>';
+    } catch (e) {
+      console.error('paypal create error', e);
+      if (loadingSection) loadingSection.innerHTML = '<p class="price-desc">PayPal 暂时不可用，请稍后重试。</p>';
+    }
+    resetPayButtons();
+    return;
   }
 
   console.log('调用后端代理创建支付...');
