@@ -65,7 +65,8 @@ const CONSULT_PAYMENT_OPTION = {
   fee: CONSULT_PRODUCT.promoFee,
 };
 const ONE_TIME_PAID_NOTICE = '\u672c\u6b21\u62a5\u544a\u662f\u4e00\u6b21\u6027\u670d\u52a1\uff0c\u8bf7\u81ea\u884c\u622a\u56fe\u4fdd\u5b58\uff0c\u9875\u9762\u5173\u95ed\u540e\u4e0d\u53ef\u518d\u6b21\u67e5\u770b\u3002';
-const PAID_ONE_TIME_NOTICE_HTML = '<p style="margin-top:10px;color:#dc2626;font-weight:700;">' + ONE_TIME_PAID_NOTICE + '</p>';
+// 已有「保存到我的记录」，报告可重复查看，去掉「一次性、关闭不可再看」提示
+const PAID_ONE_TIME_NOTICE_HTML = '';
 window.__BAZI_APP_BUILD = APP_BUILD;
 window.__BAZI_PAYMENT_OPTION_IDS = [...PAYMENT_OPTIONS.map((x) => x.id), PDF_PRODUCT.id, CONSULT_PRODUCT.id];
 console.log('[bazi-app build]', APP_BUILD);
