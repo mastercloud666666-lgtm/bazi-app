@@ -237,28 +237,76 @@
       });
 
       async function castDivination(n) {
+        const guaTag = slotName[0] + n[0] + ' · ' + slotName[1] + n[1] + ' · ' + slotName[2] + n[2];
         const payload = {
           service: 'zhanbu', method: 'gaodao',
           category: document.getElementById('category').value,
           question: document.getElementById('question').value.trim(),
-          number1: n[0], number2: n[1], number3: n[2]
+          number1: n[0], number2: n[1], number3: n[2],
+          stream: true
+        };
+        const resultEl = document.getElementById('result-text');
+        const section = document.getElementById('result-section');
+        const DISCLAIMER = '\n\n以上内容为传统文化推演，仅供参考，请理性看待，切勿迷信。';
+        const finish = (label) => {
+          stage.classList.remove('divining');
+          status.textContent = label;
+          btn.textContent = '重新摇卦';
+          btn.disabled = false;
+          btn.onclick = () => location.reload();
         };
         try {
-          const text = await callAnalyze(payload);
-          stage.classList.remove('divining');
-          if (!text || !text.trim()) throw new Error('empty');
-          showResult(text);
-          document.getElementById('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-          status.textContent = '已成卦：' + slotName[0] + n[0] + ' · ' + slotName[1] + n[1] + ' · ' + slotName[2] + n[2] + '，解读见下方';
-          btn.textContent = '重新摇卦';
-          btn.disabled = false;
-          btn.onclick = () => location.reload();
+          const res = await fetch('https://rcyssrsnalefzhzsvswm.supabase.co/functions/v1/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON },
+            body: JSON.stringify(payload)
+          });
+          const ctype = res.headers.get('Content-Type') || '';
+          const canStream = res.ok && res.body && res.body.getReader && ctype.includes('text/event-stream');
+
+          if (canStream) {
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let full = '', buf = '', shown = false;
+            outer: while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buf += decoder.decode(value, { stream: true });
+              const lines = buf.split('\n');
+              buf = lines.pop() || '';
+              for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                const data = line.slice(6).trim();
+                if (data === '[DONE]') break outer;
+                try {
+                  const delta = JSON.parse(data).choices?.[0]?.delta?.content || '';
+                  if (!delta) continue;
+                  full += delta;
+                  if (!shown) {
+                    shown = true;
+                    stage.classList.remove('divining');
+                    status.textContent = '正在书写卦象解读…';
+                    section.style.display = 'block';
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                  resultEl.textContent = (typeof cleanAnalysis === 'function' ? cleanAnalysis(full) : full);
+                } catch {}
+              }
+            }
+            if (!full.trim()) throw new Error('empty');
+            resultEl.textContent = (typeof cleanAnalysis === 'function' ? cleanAnalysis(full) : full) + DISCLAIMER;
+            finish('已成卦：' + guaTag + '，解读见下方');
+          } else {
+            // 回退：非流式
+            const data = await res.json().catch(() => ({}));
+            const text = data.analysis || '';
+            if (!text.trim()) throw new Error('empty');
+            showResult(text);
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            finish('已成卦：' + guaTag + '，解读见下方');
+          }
         } catch (err) {
-          stage.classList.remove('divining');
-          status.textContent = '解卦超时或失败，请点下方按钮重试';
-          btn.textContent = '重新摇卦';
-          btn.disabled = false;
-          btn.onclick = () => location.reload();
+          finish('解卦超时或失败，请点按钮重新摇卦');
         }
       }
     })();

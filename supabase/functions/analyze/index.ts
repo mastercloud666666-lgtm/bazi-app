@@ -801,7 +801,7 @@ ${BAZI_SECTION_BLUEPRINT_24}
       return buildSseResponseFromText(finalText, CORS);
     }
 
-    if ((service === 'hepan' && stream === true) || (service === 'bazi' && stream === true)) {
+    if ((service === 'hepan' && stream === true) || (service === 'bazi' && stream === true) || (service === 'zhanbu' && stream === true)) {
       const dsStream = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {
