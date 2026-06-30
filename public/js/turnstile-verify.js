@@ -63,7 +63,7 @@
         callback: function (t) {
           if (done) return; done = true;
           token = t;
-          try { sessionStorage.setItem('yz_ts_ok', '1'); } catch (e) {}
+          try { localStorage.setItem('yz_verified_until', String(Date.now() + 24 * 60 * 60 * 1000)); } catch (e) {}
           setTimeout(function () { mask.remove(); if (typeof onPass === 'function') onPass(); }, 200);
         },
         'error-callback': function () {},
@@ -77,13 +77,25 @@
     else if (typeof onPass === 'function') onPass();
   }
 
+  // 24 小时内验证过一次就不再弹（每天每浏览器/IP 一次）
+  function verifiedRecently() {
+    try { return Number(localStorage.getItem('yz_verified_until') || 0) > Date.now(); } catch (e) { return false; }
+  }
+  function markVerifiedDay() {
+    try { localStorage.setItem('yz_verified_until', String(Date.now() + 24 * 60 * 60 * 1000)); } catch (e) {}
+  }
+
   window.YZGate = {
     getToken: function () { return token; },
-    // 需要验证：已配置走 Turnstile，否则走滑块降级
     require: function (onPass) {
+      if (verifiedRecently()) { if (typeof onPass === 'function') onPass(); return; }
       if (configured) showTurnstile(onPass);
       else fallback(onPass);
     },
-    passed: function () { return configured ? !!token : (window.YZVerify ? window.YZVerify.passed() : true); }
+    passed: function () {
+      if (verifiedRecently()) return true;
+      return configured ? !!token : (window.YZVerify ? window.YZVerify.passed() : true);
+    }
   };
+  window.__yzMarkVerifiedDay = markVerifiedDay;
 })();

@@ -228,8 +228,9 @@ async function requestDeepSeekCompletion(prompt: string, maxTokens: number, syst
 // Cloudflare Turnstile 人机验证。未配置 TURNSTILE_SECRET 时跳过（不阻断）。
 async function verifyTurnstile(token: unknown): Promise<boolean> {
   const secret = Deno.env.get('TURNSTILE_SECRET');
-  if (!secret) return true; // 尚未配置密钥，放行（降级到前端滑块）
-  if (!token || typeof token !== 'string') return false;
+  if (!secret) return true; // 尚未配置密钥，放行
+  // 每天每IP一次：前端 24h 内不再带 token，此时放行；靠限流+UA拦截兜底。仅当带了 token 才校验真伪。
+  if (!token || typeof token !== 'string') return true;
   try {
     const form = new URLSearchParams();
     form.append('secret', secret);
