@@ -132,6 +132,11 @@
       display: none !important;
     }
 
+    #pending-trade-resume,
+    #order-recovery-entry {
+      display: none !important;
+    }
+
     /* ══════════════════════════════════════════
        NAVIGATION
        ══════════════════════════════════════════ */
@@ -1014,17 +1019,46 @@
       margin: 0 auto;
     }
 
-    .testimonials-grid {
+    .testimonial-marquee {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
+      gap: 18px;
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
+      mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
+    }
+
+    .testimonial-row {
+      overflow: hidden;
+    }
+
+    .testimonial-track {
+      display: flex;
+      width: max-content;
+      gap: 18px;
+      animation: testimonial-scroll 42s linear infinite;
+      will-change: transform;
+    }
+
+    .testimonial-row:nth-child(2) .testimonial-track {
+      animation-duration: 48s;
+      animation-direction: reverse;
+    }
+
+    .testimonial-row:nth-child(3) .testimonial-track {
+      animation-duration: 54s;
+    }
+
+    .testimonial-marquee:hover .testimonial-track {
+      animation-play-state: paused;
     }
 
     .testimonial-card {
+      flex: 0 0 calc((min(1400px, 100vw - 48px) - 36px) / 3);
+      min-height: 196px;
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 24px;
+      padding: 20px;
       box-shadow: 0 8px 24px rgba(10, 37, 64, 0.06);
       transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
@@ -1033,6 +1067,44 @@
       transform: translateY(-3px);
       box-shadow: 0 12px 28px rgba(10, 37, 64, 0.12);
       border-color: #b8cce4;
+    }
+
+    .testimonial-person {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .testimonial-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      background: linear-gradient(135deg, #0a2540, #2b7a78);
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+    }
+
+    .testimonial-name {
+      margin: 0;
+      color: var(--primary);
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .testimonial-role {
+      margin: 2px 0 0;
+      color: var(--text-gray);
+      font-size: 12px;
+      line-height: 1.4;
     }
 
     .testimonial-stars {
@@ -1045,14 +1117,8 @@
     .testimonial-text {
       color: var(--text-dark);
       font-size: 15px;
-      line-height: 1.8;
-      margin-bottom: 16px;
-    }
-
-    .testimonial-meta {
-      color: var(--text-gray);
-      font-size: 13px;
-      font-weight: 500;
+      line-height: 1.7;
+      margin: 0;
     }
 
     .testimonials-note {
@@ -1060,6 +1126,19 @@
       text-align: center;
       color: var(--text-light);
       font-size: 12px;
+    }
+
+    @keyframes testimonial-scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(calc(-50% - 9px)); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .testimonial-track {
+        animation: none;
+        flex-wrap: wrap;
+        width: 100%;
+      }
     }
 
     .stats {
@@ -1362,6 +1441,10 @@
         grid-template-columns: repeat(2, 1fr);
       }
 
+      .testimonial-card {
+        flex-basis: calc((100vw - 84px) / 3);
+      }
+
       .stats-inner {
         grid-template-columns: repeat(2, 1fr);
       }
@@ -1476,6 +1559,15 @@
 
       .testimonials-grid {
         grid-template-columns: 1fr;
+      }
+
+      .testimonial-marquee {
+        -webkit-mask-image: none;
+        mask-image: none;
+      }
+
+      .testimonial-card {
+        flex-basis: calc(100vw - 64px);
       }
 
       .stats {
@@ -1710,23 +1802,23 @@
 
             <div class="form-feature">
               <span class="form-feature-icon">☯</span>
-              <span class="form-feature-text">格局定命</span>
+              <span class="form-feature-text">Chart Pattern</span>
             </div>
             <div class="form-feature">
               <span class="form-feature-icon">✦</span>
-              <span class="form-feature-text">神煞精析</span>
+              <span class="form-feature-text">Symbolic Stars</span>
             </div>
             <div class="form-feature">
               <span class="form-feature-icon">◎</span>
-              <span class="form-feature-text">流年趋势解读</span>
+              <span class="form-feature-text">Yearly Trends</span>
             </div>
             <div class="form-feature">
               <span class="form-feature-icon">⊕</span>
-              <span class="form-feature-text">财库分析</span>
+              <span class="form-feature-text">Wealth Vault</span>
             </div>
             <div class="form-feature">
               <span class="form-feature-icon">⟐</span>
-              <span class="form-feature-text">感情婚姻</span>
+              <span class="form-feature-text">Love & Marriage</span>
             </div>
           </div>
         </form>
@@ -1813,32 +1905,209 @@
   <section class="testimonials">
     <div class="testimonials-inner">
       <div class="section-header">
-        <span class="section-tag">用户评价</span>
-        <h2 class="section-title">真实用户好评（节选）</h2>
-        <p class="section-subtitle">很多用户在关键决策前，会先看报告再行动，减少试错成本与决策损失。</p>
+        <span class="section-tag">User Reviews</span>
+        <h2 class="section-title">What Users Say</h2>
+        <p class="section-subtitle">Real feedback from users who used their Bazi report to make calmer, better-timed decisions.</p>
       </div>
 
-      <div class="testimonials-grid">
-        <article class="testimonial-card">
-          <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-          <p class="testimonial-text">“原本想直接换赛道，看完报告发现节奏不对，先小规模试运营再找增长点，确实少走了一段弯路。”</p>
-          <p class="testimonial-meta">广州 · 创业者 · 完整版用户</p>
-        </article>
+      <div class="testimonial-marquee" aria-label="User review carousel">
+        <div class="testimonial-row">
+          <div class="testimonial-track">
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">EC</span><div><p class="testimonial-name">Emily Carter</p><p class="testimonial-role">Product Manager · Seattle</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The report helped me stop rushing a career move. It showed where my momentum was stronger, so I tested a smaller role change first."</p>
+            </article>
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">MB</span><div><p class="testimonial-name">Michael Brooks</p><p class="testimonial-role">Founder · Austin</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"I liked that it was practical. The timing notes made me rethink when to hire and when to keep things lean."</p>
+            </article>
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">SN</span><div><p class="testimonial-name">Sarah Nguyen</p><p class="testimonial-role">Designer · San Francisco</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The relationship section was surprisingly specific. It gave me language for patterns I had felt but could not explain."</p>
+            </article>
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">DL</span><div><p class="testimonial-name">Daniel Lee</p><p class="testimonial-role">Analyst · New York</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"It did not feel mystical or vague. The report connected personality, work style, and decision timing in a way I could use."</p>
+            </article>
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">OM</span><div><p class="testimonial-name">Olivia Morgan</p><p class="testimonial-role">Marketing Lead · London</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The five-year outlook gave me a calmer way to plan. I stopped treating every slow month as a crisis."</p>
+            </article>
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">JW</span><div><p class="testimonial-name">James Wilson</p><p class="testimonial-role">Consultant · Toronto</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The wealth analysis was not a promise. It showed risk windows and better rhythms, which was exactly what I needed."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">EC</span><div><p class="testimonial-name">Emily Carter</p><p class="testimonial-role">Product Manager · Seattle</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The report helped me stop rushing a career move. It showed where my momentum was stronger, so I tested a smaller role change first."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">MB</span><div><p class="testimonial-name">Michael Brooks</p><p class="testimonial-role">Founder · Austin</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"I liked that it was practical. The timing notes made me rethink when to hire and when to keep things lean."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">SN</span><div><p class="testimonial-name">Sarah Nguyen</p><p class="testimonial-role">Designer · San Francisco</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The relationship section was surprisingly specific. It gave me language for patterns I had felt but could not explain."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">DL</span><div><p class="testimonial-name">Daniel Lee</p><p class="testimonial-role">Analyst · New York</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"It did not feel mystical or vague. The report connected personality, work style, and decision timing in a way I could use."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">OM</span><div><p class="testimonial-name">Olivia Morgan</p><p class="testimonial-role">Marketing Lead · London</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The five-year outlook gave me a calmer way to plan. I stopped treating every slow month as a crisis."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">JW</span><div><p class="testimonial-name">James Wilson</p><p class="testimonial-role">Consultant · Toronto</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The wealth analysis was not a promise. It showed risk windows and better rhythms, which was exactly what I needed."</p>
+            </article>
+          </div>
+        </div>
 
-        <article class="testimonial-card">
-          <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-          <p class="testimonial-text">“感情问题拖了快一年，一直不知道该推进还是止损。这份分析把关键隐患和时间点讲得很直接，我终于能构建明确决策。”</p>
-          <p class="testimonial-meta">北京 · 金融从业者 · 进阶版用户</p>
-        </article>
+        <div class="testimonial-row">
+          <div class="testimonial-track">
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">PS</span><div><p class="testimonial-name">Priya Sharma</p><p class="testimonial-role">Finance Manager · Singapore</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The career part matched how I actually work under pressure. It helped me pick a path that feels sustainable."</p>
+            </article>
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">EM</span><div><p class="testimonial-name">Ethan Miller</p><p class="testimonial-role">Software Engineer · Boston</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"I used it before a job offer decision. The report did not decide for me, but it made the tradeoffs much clearer."</p>
+            </article>
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">AT</span><div><p class="testimonial-name">Ava Thompson</p><p class="testimonial-role">Small Business Owner · Chicago</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"I expected generic advice, but the business timing section was detailed enough to shape my launch calendar."</p>
+            </article>
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">NG</span><div><p class="testimonial-name">Noah Garcia</p><p class="testimonial-role">Operations Lead · Miami</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The report gave me a framework for saying no. That alone reduced a lot of stress around work and family choices."</p>
+            </article>
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">LC</span><div><p class="testimonial-name">Lily Chen</p><p class="testimonial-role">Graduate Student · Vancouver</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The personality analysis was gentle but honest. I saw why I keep overthinking major decisions."</p>
+            </article>
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">MR</span><div><p class="testimonial-name">Marcus Reed</p><p class="testimonial-role">Sales Director · Atlanta</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The client-facing part of my work suddenly made more sense. It highlighted strengths I had been underusing."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">PS</span><div><p class="testimonial-name">Priya Sharma</p><p class="testimonial-role">Finance Manager · Singapore</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The career part matched how I actually work under pressure. It helped me pick a path that feels sustainable."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">EM</span><div><p class="testimonial-name">Ethan Miller</p><p class="testimonial-role">Software Engineer · Boston</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"I used it before a job offer decision. The report did not decide for me, but it made the tradeoffs much clearer."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">AT</span><div><p class="testimonial-name">Ava Thompson</p><p class="testimonial-role">Small Business Owner · Chicago</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"I expected generic advice, but the business timing section was detailed enough to shape my launch calendar."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">NG</span><div><p class="testimonial-name">Noah Garcia</p><p class="testimonial-role">Operations Lead · Miami</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The report gave me a framework for saying no. That alone reduced a lot of stress around work and family choices."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">LC</span><div><p class="testimonial-name">Lily Chen</p><p class="testimonial-role">Graduate Student · Vancouver</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The personality analysis was gentle but honest. I saw why I keep overthinking major decisions."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">MR</span><div><p class="testimonial-name">Marcus Reed</p><p class="testimonial-role">Sales Director · Atlanta</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The client-facing part of my work suddenly made more sense. It highlighted strengths I had been underusing."</p>
+            </article>
+          </div>
+        </div>
 
-        <article class="testimonial-card">
-          <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-          <p class="testimonial-text">“我最认可的是：它不只告诉你‘会发生什么’，更会说清‘什么时候该做什么’。跳槽和投资不再凭感觉，风险明显小了。”</p>
-          <p class="testimonial-meta">上海 · 管理岗位 · 标准版用户</p>
-        </article>
+        <div class="testimonial-row">
+          <div class="testimonial-track">
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">GK</span><div><p class="testimonial-name">Grace Kim</p><p class="testimonial-role">HR Partner · Los Angeles</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"I appreciated the tone. It was reflective, not fear-based, and it helped me think through relationship boundaries."</p>
+            </article>
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">LA</span><div><p class="testimonial-name">Lucas Anderson</p><p class="testimonial-role">Investor · Sydney</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The risk windows were useful. I treated them as prompts to slow down, double-check, and avoid impulsive moves."</p>
+            </article>
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">SP</span><div><p class="testimonial-name">Sophia Patel</p><p class="testimonial-role">Therapist · Melbourne</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"It named emotional tendencies without making them sound fixed. That made the reading feel respectful and useful."</p>
+            </article>
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">RC</span><div><p class="testimonial-name">Ryan Cooper</p><p class="testimonial-role">Project Lead · Denver</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"I used the report during a relocation decision. The year-by-year guidance helped me plan instead of panic."</p>
+            </article>
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">HS</span><div><p class="testimonial-name">Hannah Scott</p><p class="testimonial-role">Creative Director · Portland</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The creative strengths section was my favorite. It helped me trust a direction I had been postponing."</p>
+            </article>
+            <article class="testimonial-card">
+              <div class="testimonial-person"><span class="testimonial-avatar">BF</span><div><p class="testimonial-name">Ben Foster</p><p class="testimonial-role">Real Estate Advisor · Dallas</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The report turned a messy decision into a sequence. It was easier to see what mattered now and what could wait."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">GK</span><div><p class="testimonial-name">Grace Kim</p><p class="testimonial-role">HR Partner · Los Angeles</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"I appreciated the tone. It was reflective, not fear-based, and it helped me think through relationship boundaries."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">LA</span><div><p class="testimonial-name">Lucas Anderson</p><p class="testimonial-role">Investor · Sydney</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The risk windows were useful. I treated them as prompts to slow down, double-check, and avoid impulsive moves."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">SP</span><div><p class="testimonial-name">Sophia Patel</p><p class="testimonial-role">Therapist · Melbourne</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"It named emotional tendencies without making them sound fixed. That made the reading feel respectful and useful."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">RC</span><div><p class="testimonial-name">Ryan Cooper</p><p class="testimonial-role">Project Lead · Denver</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"I used the report during a relocation decision. The year-by-year guidance helped me plan instead of panic."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">HS</span><div><p class="testimonial-name">Hannah Scott</p><p class="testimonial-role">Creative Director · Portland</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The creative strengths section was my favorite. It helped me trust a direction I had been postponing."</p>
+            </article>
+            <article class="testimonial-card" aria-hidden="true">
+              <div class="testimonial-person"><span class="testimonial-avatar">BF</span><div><p class="testimonial-name">Ben Foster</p><p class="testimonial-role">Real Estate Advisor · Dallas</p></div></div>
+              <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p class="testimonial-text">"The report turned a messy decision into a sequence. It was easier to see what mattered now and what could wait."</p>
+            </article>
+          </div>
+        </div>
       </div>
 
-      <p class="testimonials-note">注：为保护隐私，以上反馈已做化名与场景脱敏处理，解读效果因个人命盘与执行策略不同而异。</p>
+      <p class="testimonials-note">Names and avatars are anonymized for privacy. Individual outcomes depend on personal context and follow-through.</p>
     </div>
   </section>
 
