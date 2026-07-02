@@ -3424,7 +3424,7 @@ function applyEnPayPanel() {
         const styleAttr = d.getAttribute('style') || '';
         if (txt === '入门版' || txt === '进阶版' || txt === '完整版') d.textContent = tier.name;
         else if (/line-through/.test(styleAttr)) d.style.display = 'none';
-        else if (/^￥\d+$/.test(txt)) d.textContent = tier.price;
+        else if (/^[¥￥]\d+$/.test(txt)) d.textContent = tier.price;
         else if (txt === '限时活动') d.textContent = 'One-time';
         else if (txt === '推荐') d.textContent = 'Most popular';
       });
