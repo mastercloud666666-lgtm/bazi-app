@@ -32,6 +32,21 @@
     navQiming: { 'zh-Hans': '起名服务', 'zh-Hant': '起名服務', en: 'Naming' },
     navZhanbu: { 'zh-Hans': '占卜咨询', 'zh-Hant': '占卜諮詢', en: 'Divination' },
     navFengshui: { 'zh-Hans': '风水调理', 'zh-Hant': '風水調理', en: 'Feng Shui' },
+    footerBizHtml: {
+      'zh-Hans': '本站提供基于中国传统干支文化的数字内容服务（在线报告与解读）。所有付费内容为虚拟数字商品，支付成功后即时在线交付。支持支付方式：微信支付 / 支付宝（人民币），PayPal 及主流信用卡（美元）。',
+      'zh-Hant': '本站提供基於中國傳統干支文化的數位內容服務（線上報告與解讀）。所有付費內容為虛擬數位商品，支付成功後即時線上交付。支援支付方式：微信支付 / 支付寶（人民幣），PayPal 及主流信用卡（美元）。',
+      en: 'Yunzi Culture provides digital content services based on traditional Chinese Ganzhi culture (online reports and readings). All paid items are virtual digital goods, delivered online instantly after payment. Payment methods: PayPal and major credit/debit cards (USD); WeChat Pay / Alipay (CNY).',
+    },
+    footerSupportHtml: {
+      'zh-Hans': '客服邮箱：<a href="mailto:tgspc2008@163.com">tgspc2008@163.com</a>（1 个工作日内回复）。购买前如有疑问，欢迎先来信咨询；退款事宜请见退款政策。',
+      'zh-Hant': '客服信箱：<a href="mailto:tgspc2008@163.com">tgspc2008@163.com</a>（1 個工作日內回覆）。購買前如有疑問，歡迎先來信諮詢；退款事宜請見退款政策。',
+      en: 'Customer support: <a href="mailto:tgspc2008@163.com">tgspc2008@163.com</a> (we reply within 1 business day). Questions before purchase are welcome. For refunds, please see our Refund Policy.',
+    },
+    footerDisclaimerHtml: {
+      'zh-Hans': '<strong>免责声明：</strong>本站内容基于中国传统干支文化，所有分析结果仅供文化参考与娱乐，不构成预测、决策建议或命运判断，请理性看待、切勿迷信。付费服务为知识型数字内容，非占卜改运服务。',
+      'zh-Hant': '<strong>免責聲明：</strong>本站內容基於中國傳統干支文化，所有分析結果僅供文化參考與娛樂，不構成預測、決策建議或命運判斷，請理性看待、切勿迷信。付費服務為知識型數位內容，非占卜改運服務。',
+      en: '<strong>Disclaimer:</strong> The content of this website is based on traditional Chinese Ganzhi culture. All results are for cultural reference and entertainment only and do not constitute predictions, decision-making advice, or fate judgments. Please view them rationally. Paid services are knowledge-based digital content, not divination or luck-changing services.',
+    },
   };
   const INDEX_DIMENSION_CARDS = {
     'zh-Hans': [
@@ -651,6 +666,9 @@ const RESULT_TEXT = {
     setText('.navbar-nav a[href="qiming.html"]', pick(COMMON_TEXT.navQiming, lang));
     setText('.navbar-nav a[href="zhanbu.html"]', pick(COMMON_TEXT.navZhanbu, lang));
     setText('.navbar-nav a[href="fengshui.html"]', pick(COMMON_TEXT.navFengshui, lang));
+    setHTML('#footer-biz', pick(COMMON_TEXT.footerBizHtml, lang));
+    setHTML('#footer-support', pick(COMMON_TEXT.footerSupportHtml, lang));
+    setHTML('#footer-disclaimer', pick(COMMON_TEXT.footerDisclaimerHtml, lang));
   }
 
   function applyIndex(lang) {
