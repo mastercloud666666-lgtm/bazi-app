@@ -5363,14 +5363,9 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
       lang: (localStorage.getItem('site_lang_pref_v2') || 'zh-Hans'),
     };
 
-    // 人机验证（Turnstile/滑块）：免费排盘也需通过，防 BOT 刷 AI
+    // 免费排盘不再弹验证（防刷交给后端限流+UA拦截）；已有 token 则静默携带
     try {
-      const tsToken = await new Promise((resolve) => {
-        if (!window.YZGate) return resolve('');
-        if (YZGate.passed && YZGate.passed()) return resolve(YZGate.getToken ? YZGate.getToken() : '');
-        YZGate.require(() => resolve(YZGate.getToken ? YZGate.getToken() : ''));
-      });
-      basePayload.turnstile_token = tsToken;
+      basePayload.turnstile_token = (window.YZGate && YZGate.getToken) ? (YZGate.getToken() || '') : '';
     } catch (e) {}
 
     const tryNonStreamFallback = async () => {
