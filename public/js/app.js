@@ -3,6 +3,32 @@
 const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const DISCLAIMER = '\n\n以上内容为传统文化推演，仅供参考，请理性看待，切勿迷信。';
+
+// ===== 英文界面：命盘/预览翻译层 =====
+function yzIsEn() { try { return (localStorage.getItem('site_lang_pref_v2') || 'zh-Hans') === 'en'; } catch (e) { return false; } }
+const BZEN = {
+  tenGod: { 比肩: 'Friend', 劫财: 'Rob Wealth', 食神: 'Eating God', 伤官: 'Hurting Officer', 正财: 'Direct Wealth', 偏财: 'Indirect Wealth', 正官: 'Direct Officer', 七杀: 'Seven Killings', 正印: 'Direct Resource', 偏印: 'Indirect Resource', 日主: 'Day Master', 比劫: 'Peer Stars' },
+  cs: { 长生: 'Birth', 沐浴: 'Bath', 冠带: 'Youth', 临官: 'Rising', 帝旺: 'Prime', 衰: 'Decline', 病: 'Weak', 死: 'Dormant', 墓: 'Storage', 绝: 'End', 胎: 'Embryo', 养: 'Nurture' },
+  wx: { 木: 'Wood', 火: 'Fire', 土: 'Earth', 金: 'Metal', 水: 'Water' },
+  stem: { 甲: 'Jia·Wood', 乙: 'Yi·Wood', 丙: 'Bing·Fire', 丁: 'Ding·Fire', 戊: 'Wu·Earth', 己: 'Ji·Earth', 庚: 'Geng·Metal', 辛: 'Xin·Metal', 壬: 'Ren·Water', 癸: 'Gui·Water' },
+  branch: { 子: 'Zi·Rat', 丑: 'Chou·Ox', 寅: 'Yin·Tiger', 卯: 'Mao·Rabbit', 辰: 'Chen·Dragon', 巳: 'Si·Snake', 午: 'Wu·Horse', 未: 'Wei·Goat', 申: 'Shen·Monkey', 酉: 'You·Rooster', 戌: 'Xu·Dog', 亥: 'Hai·Pig' },
+  nayin: { 海中金: 'Sea Gold', 炉中火: 'Furnace Fire', 大林木: 'Forest Wood', 路旁土: 'Roadside Earth', 剑锋金: 'Sword Metal', 山头火: 'Mountain Fire', 涧下水: 'Stream Water', 城头土: 'City Wall Earth', 白蜡金: 'Wax Metal', 杨柳木: 'Willow Wood', 泉中水: 'Spring Water', 屋上土: 'Rooftop Earth', 霹雳火: 'Thunder Fire', 松柏木: 'Pine Wood', 长流水: 'River Water', 沙中金: 'Sand Gold', 山下火: 'Hillside Fire', 平地木: 'Plain Wood', 壁上土: 'Wall Earth', 金箔金: 'Gold Foil', 覆灯火: 'Lamp Fire', 天河水: 'Sky River Water', 大驿土: 'Highway Earth', 钗钏金: 'Hairpin Metal', 桑柘木: 'Mulberry Wood', 大溪水: 'Great Stream Water', 沙中土: 'Sand Earth', 天上火: 'Sky Fire', 石榴木: 'Pomegranate Wood', 大海水: 'Ocean Water' },
+  shensha: { 天乙贵人: 'Nobleman', 太极贵人: 'Taiji Nobleman', 文昌贵人: 'Scholar Star', 天德贵人: 'Heavenly Virtue', 月德贵人: 'Monthly Virtue', 禄神: 'Prosperity Star', 羊刃: 'Blade', 桃花: 'Peach Blossom', 驿马: 'Travel Horse', 华盖: 'Canopy', 将星: 'General Star', 红鸾: 'Marriage Star', 天喜: 'Joy Star', 孤辰: 'Solitude', 寡宿: 'Loneliness', 劫煞: 'Robbery Star', 灾煞: 'Calamity Star', 亡神: 'Loss Star' },
+  ssSuffix: { 日: 'D', 年: 'Y', 年支: 'Y', 日支: 'D', 月: 'M', 时: 'H' },
+  strength: { 身强: 'strong', 偏强: 'fairly strong', 中和: 'balanced', 偏弱: 'fairly weak', 身弱: 'weak' },
+};
+function bzenTenGod(t) { return BZEN.tenGod[t] || t; }
+function bzenCs(t) { return BZEN.cs[t] || t; }
+function bzenNaYin(t) { return BZEN.nayin[t] || t; }
+function bzenShenSha(raw) {
+  const m = String(raw).match(/^(.+?)[（(]([^）)]+)[）)]$/);
+  const base = m ? m[1] : String(raw);
+  const suf = m ? (BZEN.ssSuffix[m[2]] || m[2]) : '';
+  const en = BZEN.shensha[base] || base;
+  return suf ? en + ' (' + suf + ')' : en;
+}
+function bzenWx(pair) { return String(pair).replace(/[木火土金水]/g, (c) => BZEN.wx[c] || c); }
+
 const PENDING_TRADE_KEY = 'bazi_pending_trade_no';
 const PENDING_PAYMENT_OPTION_KEY = 'bazi_pending_payment_option_id';
 const PENDING_BIRTH_INPUT_KEY = 'bazi_pending_birth_input';
@@ -3368,9 +3394,57 @@ function getShenGong(bazi) {
   return gongByOrd(bazi, s);
 }
 
+
+// 英文界面：付费区改为利益点导向的英文文案（USD），隐藏人民币通道
+function applyEnPayPanel() {
+  if (!yzIsEn()) return;
+  try {
+    const pp = document.getElementById('pay-prompt');
+    if (!pp) return;
+    const t = pp.querySelector('.pay-card-title'); if (t) t.textContent = 'Unlock Your Full Life Blueprint';
+    const sub = pp.querySelector('.pay-card-sub'); if (sub) sub.textContent = 'The preview is just the surface. Your full personal report answers the questions that actually matter:';
+    const enFeats = [
+      'Who you really are - personality drivers & hidden strengths',
+      'What careers and work styles genuinely fit you',
+      'Your money pattern - how you earn best, and when to push',
+      'Love & relationships - what you need, what to avoid',
+      'Your next 5 years - opportunities and risk alerts',
+      'Key turning points of your life, and how to use them',
+    ];
+    pp.querySelectorAll('.pay-features span').forEach((el, i) => { if (enFeats[i]) el.textContent = enFeats[i]; });
+    const tiers = [
+      { name: 'Starter', price: '$3.99' },
+      { name: 'Advanced', price: '$9.99' },
+      { name: 'Complete', price: '$16.99' },
+    ];
+    pp.querySelectorAll('div[style*="grid-template-columns"] > div').forEach((box, i) => {
+      const tier = tiers[i]; if (!tier) return;
+      box.querySelectorAll('div').forEach((d) => {
+        const txt = (d.textContent || '').trim();
+        const styleAttr = d.getAttribute('style') || '';
+        if (txt === '入门版' || txt === '进阶版' || txt === '完整版') d.textContent = tier.name;
+        else if (/line-through/.test(styleAttr)) d.style.display = 'none';
+        else if (/^￥\d+$/.test(txt)) d.textContent = tier.price;
+        else if (txt === '限时活动') d.textContent = 'One-time';
+        else if (txt === '推荐') d.textContent = 'Most popular';
+      });
+    });
+    pp.querySelectorAll('p').forEach((el) => {
+      const txt = (el.textContent || '').trim();
+      if (txt.indexOf('限时活动价') === 0) el.textContent = 'One-time payment · instant online delivery · yours to keep';
+      if (txt.indexOf('以上为基础预览') === 0) el.textContent = 'The preview is just the surface. Your full personal report answers the questions that actually matter:';
+    });
+    const cnyBtn = document.getElementById('pay-btn');
+    if (cnyBtn) cnyBtn.style.display = 'none';
+    const ppBtn = document.getElementById('paypal-pay-btn');
+    if (ppBtn) ppBtn.textContent = 'Get My Full Report - Pay with PayPal / Card';
+  } catch (e) {}
+}
+
 function renderBaziDetailGrid(bazi) {
+  const EN = yzIsEn();
   const titleEl = document.getElementById('bazi-detail-title');
-  if (titleEl) titleEl.textContent = '\u547d\u5c40\u7ec6\u76d8\uff08\u8868\u683c\u7248\uff09';
+  if (titleEl) titleEl.textContent = EN ? 'Natal Chart (Table)' : '命局细盘（表格版）';
 
   const gridEl = document.getElementById('bazi-detail-grid');
   if (!gridEl || !bazi) return;
@@ -3380,70 +3454,80 @@ function renderBaziDetailGrid(bazi) {
   const hiddenStemsColumns = columns.map((pillar) => HIDDEN_STEMS_MAP[pillar.dz] || []);
   const shenShaCtx = buildShenShaCtx(bazi);
 
+  const token = (ch, cls) => {
+    const base = renderColorToken(ch, cls);
+    if (!EN) return base;
+    const gloss = BZEN.stem[ch] || BZEN.branch[ch] || '';
+    return gloss ? base + '<div style="font-size:10px;color:#94a3b8;margin-top:2px;">' + gloss + '</div>' : base;
+  };
+  const tg10 = (t) => EN ? bzenTenGod(t) : t;
+  const tcs = (t) => EN ? bzenCs(t) : t;
+
   const rows = [
     {
-      label: '\u4e3b\u661f',
-      cells: columns.map((pillar, idx) => idx === 2 ? '\u65e5\u4e3b' : getTenGod(dayStem, pillar.tg)),
+      label: EN ? 'Main Star' : '主星',
+      cells: columns.map((pillar, idx) => idx === 2 ? tg10('日主') : tg10(getTenGod(dayStem, pillar.tg))),
     },
     {
-      label: '\u5929\u5e72',
-      cells: columns.map((pillar) => renderColorToken(pillar.tg)),
+      label: EN ? 'Stem' : '天干',
+      cells: columns.map((pillar) => token(pillar.tg)),
     },
     {
-      label: '\u5730\u652f',
-      cells: columns.map((pillar) => renderColorToken(pillar.dz, 'bzg-branch')),
+      label: EN ? 'Branch' : '地支',
+      cells: columns.map((pillar) => token(pillar.dz, 'bzg-branch')),
     },
     {
-      label: '\u85cf\u5e72',
-      cells: hiddenStemsColumns.map((stems) => renderStackLines(stems, (s) => renderColorToken(s, 'bzg-sub'))),
+      label: EN ? 'Hidden Stems' : '藏干',
+      cells: hiddenStemsColumns.map((stems) => renderStackLines(stems, (st) => renderColorToken(st, 'bzg-sub'))),
     },
     {
-      label: '\u526f\u661f',
+      label: EN ? 'Sub Stars' : '副星',
       cells: hiddenStemsColumns.map((stems, idx) =>
-        renderStackLines(stems, (s) => {
-          const tg = idx === 2 && s === dayStem ? '\u6bd4\u80a9' : getTenGod(dayStem, s);
-          return `<span class="bzg-sub-label">${escapeHtml(tg)}</span>`;
+        renderStackLines(stems, (st) => {
+          const tg = idx === 2 && st === dayStem ? '比肩' : getTenGod(dayStem, st);
+          return `<span class="bzg-sub-label">${escapeHtml(tg10(tg))}</span>`;
         })
       ),
     },
     {
-      label: '\u4e94\u884c',
+      label: EN ? 'Elements' : '五行',
       cells: columns.map((pillar) => {
         const tgWx = ELEMENT_LABELS[STEM_ELEMENT_INDEX[pillar.tg]] || '--';
         const dzWx = ELEMENT_LABELS[BRANCH_ELEMENT_INDEX[pillar.dz]] || '--';
-        return `${tgWx} / ${dzWx}`;
+        return EN ? `${bzenWx(tgWx)} / ${bzenWx(dzWx)}` : `${tgWx} / ${dzWx}`;
       }),
     },
     {
-      label: '\u661f\u8fd0',  // \u5404\u67f1\u5929\u5e72\u5728\u672c\u67f1\u5730\u652f\u7684\u5341\u4e8c\u957f\u751f
-      cells: columns.map((pillar) => getChangSheng(pillar.tg, pillar.dz)),
+      label: EN ? 'Stem Stage' : '星运',
+      cells: columns.map((pillar) => tcs(getChangSheng(pillar.tg, pillar.dz))),
     },
     {
-      label: '\u81ea\u5750',  // \u65e5\u4e3b\u5728\u5404\u67f1\u5730\u652f\u7684\u5341\u4e8c\u957f\u751f
-      cells: columns.map((pillar) => getChangSheng(dayStem, pillar.dz)),
+      label: EN ? 'DM Stage' : '自坐',
+      cells: columns.map((pillar) => tcs(getChangSheng(dayStem, pillar.dz))),
     },
     {
-      label: '\u7eb3\u97f3',
-      cells: columns.map((pillar) => getNaYin(pillar.tg, pillar.dz)),
+      label: EN ? 'Na Yin' : '纳音',
+      cells: columns.map((pillar) => EN ? bzenNaYin(getNaYin(pillar.tg, pillar.dz)) : getNaYin(pillar.tg, pillar.dz)),
     },
     {
-      label: '\u7a7a\u4ea1',
+      label: EN ? 'Void' : '空亡',
       cells: columns.map((pillar) => getKongWangByPillar(pillar)),
     },
     {
-      label: '\u795e\u715e',
+      label: EN ? 'Symbolic Stars' : '神煞',
       cells: columns.map((pillar) => {
         const list = getShenShaList(pillar, shenShaCtx);
         return list.length
-          ? renderStackLines(list, (s) => `<span class="bzg-shensha">${escapeHtml(s)}</span>`)
-          : '\u2014';
+          ? renderStackLines(list, (st) => `<span class="bzg-shensha">${escapeHtml(EN ? bzenShenSha(st) : st)}</span>`)
+          : '—';
       }),
     },
   ];
 
-  let html = '<table class="bzg-table"><thead><tr><th>\u9879\u76ee</th>';
+  const pillarEn = { year: 'Year Pillar', month: 'Month Pillar', day: 'Day Pillar', hour: 'Hour Pillar' };
+  let html = '<table class="bzg-table"><thead><tr><th>' + (EN ? 'Item' : '项目') + '</th>';
   GRID_PILLARS.forEach((item) => {
-    html += `<th>${escapeHtml(item.label)}</th>`;
+    html += `<th>${escapeHtml(EN ? (pillarEn[item.key] || item.label) : item.label)}</th>`;
   });
   html += '</tr></thead><tbody>';
 
@@ -3456,10 +3540,11 @@ function renderBaziDetailGrid(bazi) {
   });
 
   html += '</tbody></table>';
+  const ftL = EN ? ['Conception 胎元', 'Life Palace 命宫', 'Body Palace 身宫'] : ['胎元', '命宫', '身宫'];
   html += `<div style="margin-top:14px;padding-top:12px;border-top:1px solid #e8edf3;font-size:13px;color:#475569;line-height:1.9;">`
-    + `胎元 <b style="color:#0A2540;">${escapeHtml(getTaiYuan(bazi))}</b>`
-    + `　·　命宫 <b style="color:#0A2540;">${escapeHtml(getMingGong(bazi))}</b>`
-    + `　·　身宫 <b style="color:#0A2540;">${escapeHtml(getShenGong(bazi))}</b>`
+    + `${ftL[0]} <b style="color:#0A2540;">${escapeHtml(getTaiYuan(bazi))}</b>`
+    + `　·　${ftL[1]} <b style="color:#0A2540;">${escapeHtml(getMingGong(bazi))}</b>`
+    + `　·　${ftL[2]} <b style="color:#0A2540;">${escapeHtml(getShenGong(bazi))}</b>`
     + `</div>`;
   gridEl.innerHTML = html;
 }
@@ -3645,7 +3730,7 @@ function renderBaziDetailGrid(bazi) {
   const isPaidMode = paidFlag && Boolean(tradeNo || getPendingTradeNo());
 
   // 检查 localStorage 缓存（先查完整版，再查免费版）
-  const cacheKey     = `bazi_${year}_${month}_${day}_${hour}_${gender}`;
+  const cacheKey     = `bazi_${year}_${month}_${day}_${hour}_${gender}` + (yzIsEn() ? '_en' : '');
   const fullCacheKey = `bazi_full_${year}_${month}_${day}_${hour}_${gender}`;
   const cachedFull   = localStorage.getItem(fullCacheKey);
   const cached       = localStorage.getItem(cacheKey);
@@ -3694,6 +3779,8 @@ function renderBaziDetailGrid(bazi) {
       startPayment({ year, month, day, hour, gender, birthplace }, bazi, selectedOption, 'paypal');
     });
   }
+
+  applyEnPayPanel();
 
   // 检查 URL 中是否有回调参数（支付成功后跳回）
   if (tradeNo) {
@@ -4719,7 +4806,7 @@ function showFreeLimitBadge() {
   if (remaining <= 0) {
     badge.innerHTML = '<span style="color:#dc2626;font-weight:700;">今日免费次数已用完</span> · 解锁完整版不限次数';
   } else {
-    badge.innerHTML = `今日剩余免费次数：<strong>${remaining}</strong> · 升级完整版不限次数`;
+    badge.innerHTML = yzIsEn() ? `Free previews left today: <strong>${remaining}</strong> · Unlimited with the full report` : `今日剩余免费次数：<strong>${remaining}</strong> · 升级完整版不限次数`;
   }
   payPrompt.insertBefore(badge, payPrompt.firstChild);
 }
@@ -5279,6 +5366,20 @@ function buildLocalFreeAnalysis(birthData, bazi, daYunData, specialYears, _reaso
     : (controllerElement ?? leakElement ?? dayElement);
   const preferredElement = preferredElementIdx === undefined ? '平衡五行' : `${ELEMENT_LABELS[preferredElementIdx]}为先`;
   const avoidElement = avoidElementIdx === undefined ? '失衡信号' : `忌${ELEMENT_LABELS[avoidElementIdx]}过旺`;
+
+  if (yzIsEn()) {
+    const enStrength = BZEN.strength[strengthLabel] || strengthLabel;
+    const enPattern = bzenTenGod(String(patternName).replace(/[格主事]/g, '')) || 'your chart pattern';
+    const enPrefer = preferredElementIdx === undefined ? 'keeping your elements balanced' : ('leaning on ' + (BZEN.wx[ELEMENT_LABELS[preferredElementIdx]] || 'balance'));
+    const enAvoid = avoidElementIdx === undefined ? 'imbalance signals' : ('excess ' + (BZEN.wx[ELEMENT_LABELS[avoidElementIdx]] || 'imbalance'));
+    const enLines = [
+      'This is a free basic preview',
+      `1. Day Master strength. Your Day Pillar is ${dayStem}${dayBranch}. Overall your Day Master is ${enStrength}, and your chart leans toward the "${enPattern}" pattern - this shapes how you naturally think, work and relate to people.`,
+      `2. What this says about you. This pattern points to your core temperament: how you make decisions, what kind of environment brings out your best, and where you tend to overextend. The full report expands this into personality drivers, natural talents, and the type of work that genuinely fits you.`,
+      `3. Practical direction. Right now you benefit most from ${enPrefer} strategies, while watching out for ${enAvoid}, which drains energy and skews decisions. Action tip: pick one small, executable goal and run it for 4 weeks, then adjust based on feedback.`,
+    ];
+    return enLines.join('\n');
+  }
 
   const lines = [
     '本次为免费版基础预览',

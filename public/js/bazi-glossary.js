@@ -88,9 +88,97 @@
     神煞: '命中的吉凶星曜标记，辅助参看人生际遇。',
   };
 
+  // —— 英文释义（英文界面下细盘显示英文词，悬停也给英文解释）——
+  const TERM_EN = {
+    甲: 'Yang Wood - a tall tree: driven, upright, takes responsibility; can be stubborn.',
+    乙: 'Yin Wood - vines and flowers: flexible, adaptive, warm-hearted; very resilient.',
+    丙: 'Yang Fire - the sun: passionate, open, radiant; naturally inspiring.',
+    丁: 'Yin Fire - candlelight: warm, focused, refined; quietly brilliant.',
+    戊: 'Yang Earth - a mountain: steady, dependable, tolerant; a stabilizer.',
+    己: 'Yin Earth - farmland: practical, detail-minded, nurturing; may overthink.',
+    庚: 'Yang Metal - steel and blade: decisive, tough, loyal; can be blunt.',
+    辛: 'Yin Metal - jewelry: precise, perceptive, aesthetic; strong self-respect.',
+    壬: 'Yang Water - rivers and seas: smart, big-picture, inclusive; strategic.',
+    癸: 'Yin Water - rain and streams: subtle, imaginative, adaptive; sensitive.',
+    子: 'Rat - Yang Water. Quick-witted and resourceful; midnight energy.',
+    丑: 'Ox - Yin Earth. Hardworking and enduring; a storage of Metal & Water.',
+    寅: 'Tiger - Yang Wood. Bold and pioneering; the start of Wood & Fire.',
+    卯: 'Rabbit - Yin Wood. Gentle and meticulous; pure growth energy.',
+    辰: 'Dragon - Yang Earth. Versatile and changeable; the water storage.',
+    巳: 'Snake - Yin Fire. Sharp and composed; Fire feeding Metal.',
+    午: 'Horse - Yang Fire. Vibrant and expressive; Fire at its peak.',
+    未: 'Goat - Yin Earth. Kind and nostalgic; the wood storage.',
+    申: 'Monkey - Yang Metal. Agile and efficient; source of Metal & Water.',
+    酉: 'Rooster - Yin Metal. Precise and aesthetic; the purest Metal.',
+    戌: 'Dog - Yang Earth. Loyal and protective; the fire storage.',
+    亥: 'Pig - Yin Water. Open-minded and blessed; Water at its strongest.',
+    'Friend': 'Same element as you: self, peers, siblings - competition and teamwork.',
+    'Rob Wealth': 'Peer star (opposite polarity): partnerships and networks, but also draining and rivalry.',
+    'Eating God': 'What you produce (same polarity): talent, expression, enjoyment - gentle output.',
+    'Hurting Officer': 'What you produce (opposite polarity): creativity, edge, individuality - brilliant but headstrong.',
+    'Indirect Wealth': 'What you control (same polarity): flowing money, opportunities, charm; the father.',
+    'Direct Wealth': 'What you control (opposite polarity): steady income, savings, groundedness; the wife.',
+    'Seven Killings': 'What controls you (same polarity): pressure, boldness, authority, drive.',
+    'Direct Officer': 'What controls you (opposite polarity): duty, status, discipline, reputation; the husband.',
+    'Indirect Resource': 'What supports you (same polarity): unconventional wisdom, intuition, independence.',
+    'Direct Resource': 'What supports you (opposite polarity): learning, protection, the mother, security.',
+    'Day Master': 'The stem that represents YOU - the whole chart is read around it.',
+    'Birth': '12 Stages - newborn: fresh starts, budding vitality.',
+    'Bath': '12 Stages - infancy bath: unstable, easily swayed.',
+    'Youth': '12 Stages - coming of age: taking shape, maturing.',
+    'Rising': '12 Stages - entering office: strength building toward the peak.',
+    'Prime': '12 Stages - full bloom: the strongest state.',
+    'Decline': '12 Stages - past the peak: strength turning downward.',
+    'Weak': '12 Stages - ailing: low energy, needs care.',
+    'Dormant': '12 Stages - stillness: one of the weakest states.',
+    'Storage': '12 Stages - into the vault: gathering, conserving.',
+    'End': '12 Stages - the thread breaks: the critical turning point.',
+    'Embryo': '12 Stages - conception: a new cycle quietly begins.',
+    'Nurture': '12 Stages - being nourished: resting, recharging, preparing.',
+    'Nobleman': 'The most auspicious helper star: support from benefactors, danger turned to safety.',
+    'Taiji Nobleman': 'Wisdom star: affinity with study, metaphysics and philosophy.',
+    'Scholar Star': 'Academic star: great for study, exams and writing.',
+    'Heavenly Virtue': 'Grace star: kindness rewarded, troubles dissolved.',
+    'Monthly Virtue': 'Benevolence star: protection from elders and mentors.',
+    'Prosperity Star': 'Salary star: stable support earned by your own ability.',
+    'Blade': 'The fierce edge: great courage but impulsive - a double-edged sword.',
+    'Peach Blossom': 'Charm star: popularity, attractiveness, romance.',
+    'Travel Horse': 'Movement star: travel, relocation, opportunities away from home.',
+    'Canopy': 'Artistic solitude: talent, independence, affinity with spirituality.',
+    'General Star': 'Leadership star: authority, the ability to lead and carry weight.',
+    'Marriage Star': 'Marriage and celebration: romantic destiny.',
+    'Joy Star': 'Happiness star: optimism, good social luck.',
+    'Solitude': 'Loner star: independence, some emotional distance.',
+    'Loneliness': 'Withdrawal star: time alone; good for self-cultivation.',
+    'Robbery Star': 'External disruption: sudden changes and losses - stay alert.',
+    'Calamity Star': 'Hazard reminder: be careful with safety and conflict.',
+    'Loss Star': 'Hidden depletion: strategy and reserve, but also quiet drain.',
+  };
+  const ROW_EN = {
+    'Main Star': 'The Ten-God relation of each pillar stem to your Day Master - your core dynamics with the world.',
+    'Stem': 'The upper character of each pillar - visible forces and people in your life.',
+    'Branch': 'The lower character of each pillar - your foundation, inner world and environment.',
+    'Hidden Stems': 'Stems hidden inside each branch - latent forces beneath the surface.',
+    'Sub Stars': 'Ten-God relations of the hidden stems - subtle background influences.',
+    'Elements': 'The Five-Element attribute of each stem and branch.',
+    'Stem Stage': 'The 12-Stage state of each pillar stem in its own branch - how strong it is.',
+    'DM Stage': 'The 12-Stage state of YOUR Day Master in each branch.',
+    'Na Yin': 'The ancient 60-Jiazi melodic element - one poetic element name per pillar.',
+    'Void': 'The two "empty" branches of the decade cycle - a pillar hit by Void is weakened.',
+    'Symbolic Stars': 'Auspicious and challenging star markers - supplementary reading of life events.',
+    'Item': 'Hover any cell in this chart to see what it means.',
+  };
+
+  function isEnUi() { try { return (localStorage.getItem('site_lang_pref_v2') || 'zh-Hans') === 'en'; } catch (e) { return false; } }
+
   function lookup(raw) {
     if (!raw) return null;
-    let k = raw.trim().replace(/[（(][^）)]*[）)]/g, '').trim(); // 去掉"(日)"等来源后缀
+    let k = raw.trim().replace(/[（(][^）)]*[）)]/g, '').trim(); // 去掉"(日)/(D)"等来源后缀
+    if (isEnUi()) {
+      if (TERM_EN[k]) return { title: k, text: TERM_EN[k] };
+      if (ROW_EN[k]) return { title: k, text: ROW_EN[k] };
+      return null;
+    }
     return TERM[k] ? { title: k, text: TERM[k] } : (ROW[k] ? { title: k, text: ROW[k] } : null);
   }
 
