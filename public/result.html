@@ -464,39 +464,79 @@
   <script src="js/html2canvas.min.js"></script>
   <script>
     (function(){
+      var EN=(function(){try{return (localStorage.getItem('site_lang_pref_v2')||'zh-Hans')==='en';}catch(e){return false;}})();
+      var L=EN?{
+        tip:'Save this chart so you can revisit it anytime',
+        rec:'☁ Save to My Records', img:'📷 Save as image', pdf:'📄 Save as PDF',
+        notReady:'The reading is still generating, please save in a moment',
+        saving:'Saving to My Records…', savedOk:'✓ Saved to', myRec:'My Records',
+        saveFail:'Save failed, please retry', imgFail:'Image feature failed to load, please refresh',
+        imgGen:'Generating image, please wait…', imgSaved:'Image saved to your Downloads folder',
+        genFail:'Generation failed, please retry', pdfHint:'In the print dialog, choose "Save as PDF"',
+        title:'Bazi Chart', fname:'YunziChart_'
+      }:{
+        tip:'把这份命盘保存下来，方便随时查看',
+        rec:'☁ 保存到我的记录', img:'📷 保存为图片', pdf:'📄 保存为 PDF',
+        notReady:'解读还没生成，稍候再保存',
+        saving:'正在保存到「我的记录」…', savedOk:'✓ 已保存到', myRec:'我的记录',
+        saveFail:'保存失败，请重试', imgFail:'图片功能加载失败，请刷新重试',
+        imgGen:'正在生成图片，请稍候…', imgSaved:'图片已保存到下载文件夹',
+        genFail:'生成失败，请重试', pdfHint:'在弹出的打印窗口选择“另存为 PDF”即可',
+        title:'八字命盘', fname:'云子命盘_'
+      };
+      var setTxt=function(id,t){var e=document.getElementById(id);if(e)e.textContent=t;};
+      setTxt('save-tip',L.tip); setTxt('save-rec-btn',L.rec); setTxt('save-img-btn',L.img); setTxt('save-pdf-btn',L.pdf);
+
       var recBtn=document.getElementById('save-rec-btn');
       var rhint=document.getElementById('save-hint');
       function birthSummary(){ var b=document.getElementById('birth-info'); return b? (b.textContent||'').replace(/\s+/g,' ').trim().slice(0,60):''; }
-      function doSaveRec(){
-        var txt=(document.getElementById('analysis-text')||{}).textContent||'';
-        if(txt.trim().length<60){ rhint.style.display='block'; rhint.textContent='解读还没生成，稍候再保存'; return; }
-        rhint.style.display='block'; rhint.textContent='正在保存到「我的记录」…';
-        YZAuth.saveRecord({ type:'bazi', title: birthSummary()||'八字命盘', meta:{ url: location.search }, result_text: txt }).then(function(){
-          rhint.innerHTML='<span style="color:#0a8a3a;">✓ 已保存到</span> <a href="/my-records.html" style="color:#0066CC;">我的记录</a>';
-        }).catch(function(){ rhint.textContent='保存失败，请重试'; });
+      function readingText(){ return (document.getElementById('analysis-text')||{}).textContent||''; }
+      function saveKey(){ return 'yz_rec_saved_'+(location.search||'').replace(/[^a-z0-9]/gi,'').slice(0,60); }
+      function doSaveRec(silent){
+        var txt=readingText();
+        if(txt.trim().length<60){ if(!silent){rhint.style.display='block'; rhint.textContent=L.notReady;} return Promise.resolve(false); }
+        if(!silent){ rhint.style.display='block'; rhint.textContent=L.saving; }
+        return YZAuth.saveRecord({ type:'bazi', title: birthSummary()||L.title, meta:{ url: location.search }, result_text: txt }).then(function(){
+          try{ localStorage.setItem(saveKey(),'1'); }catch(e){}
+          if(!silent) rhint.innerHTML='<span style="color:#0a8a3a;">'+L.savedOk+'</span> <a href="/my-records.html" style="color:#0066CC;">'+L.myRec+'</a>';
+          return true;
+        }).catch(function(){ if(!silent) rhint.textContent=L.saveFail; return false; });
       }
       if(recBtn) recBtn.addEventListener('click', function(){
         if(!window.YZAuth){ return; }
-        if(YZAuth.isLoggedIn()) doSaveRec();
-        else YZAuth.openLogin(doSaveRec);
+        if(YZAuth.isLoggedIn()) doSaveRec(false);
+        else YZAuth.openLogin(function(){ doSaveRec(false); });
       });
+
+      // 登录用户自动保存本次解读（免费/付费均存一次，去重）
+      (function autoSave(){
+        if(!window.YZAuth||!YZAuth.isLoggedIn()) return;
+        try{ if(localStorage.getItem(saveKey())==='1') return; }catch(e){}
+        var tries=0;
+        var timer=setInterval(function(){
+          tries++;
+          if(readingText().trim().length>=60){ clearInterval(timer); doSaveRec(true); }
+          else if(tries>40){ clearInterval(timer); }
+        },1500);
+      })();
+
       var imgBtn=document.getElementById('save-img-btn');
       var pdfBtn=document.getElementById('save-pdf-btn');
       var hint=document.getElementById('save-hint');
       var target=document.querySelector('.page-inner');
-      function fname(ext){return '云子命盘_'+new Date().toISOString().slice(0,10)+'.'+ext;}
+      function fname(ext){return L.fname+new Date().toISOString().slice(0,10)+'.'+ext;}
       if(imgBtn) imgBtn.addEventListener('click', async function(){
-        if(!window.html2canvas){hint.style.display='block';hint.textContent='图片功能加载失败，请刷新重试';return;}
-        hint.style.display='block';hint.textContent='正在生成图片，请稍候…';imgBtn.disabled=true;
+        if(!window.html2canvas){hint.style.display='block';hint.textContent=L.imgFail;return;}
+        hint.style.display='block';hint.textContent=L.imgGen;imgBtn.disabled=true;
         try{
           var canvas=await html2canvas(target,{backgroundColor:'#ffffff',scale:2,useCORS:true,ignoreElements:function(el){return el.classList&&el.classList.contains('no-capture');}});
           var a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=fname('png');a.click();
-          hint.textContent='图片已保存到下载文件夹';
-        }catch(e){hint.textContent='生成失败，请重试';}
+          hint.textContent=L.imgSaved;
+        }catch(e){hint.textContent=L.genFail;}
         imgBtn.disabled=false;
       });
       if(pdfBtn) pdfBtn.addEventListener('click', function(){
-        if(hint){hint.style.display='block';hint.textContent='在弹出的打印窗口选择“另存为 PDF”即可';}
+        if(hint){hint.style.display='block';hint.textContent=L.pdfHint;}
         setTimeout(function(){window.print();},120);
       });
     })();
@@ -504,7 +544,7 @@
   <script src="js/bazi.js"></script>
   <script src="js/site-lang.js?v=20260703-navauth"></script>
   <script src="js/config.js"></script>
-  <script src="js/app.js?v=20260701-en2"></script>
+  <script src="js/app.js?v=20260703-fix"></script>
   <script src="js/bazi-glossary.js?v=20260701-en1"></script>
   <script>
     window.addEventListener('scroll', () => {

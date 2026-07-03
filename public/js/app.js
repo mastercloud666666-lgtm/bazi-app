@@ -3,6 +3,8 @@
 const SUPABASE_URL  = 'https://rcyssrsnalefzhzsvswm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
 const DISCLAIMER = '\n\n以上内容为传统文化推演，仅供参考，请理性看待，切勿迷信。';
+const DISCLAIMER_EN = '\n\nThe above is an interpretation based on traditional culture, for reference only. Please view it rationally and do not treat it as superstition.';
+function discl() { try { return (typeof yzIsEn === 'function' && yzIsEn()) ? DISCLAIMER_EN : DISCLAIMER; } catch (e) { return DISCLAIMER; } }
 
 // ===== 英文界面：命盘/预览翻译层 =====
 function yzIsEn() { try { return (localStorage.getItem('site_lang_pref_v2') || 'zh-Hans') === 'en'; } catch (e) { return false; } }
@@ -4536,8 +4538,8 @@ function buildReportShareHighlights(rawText) {
 
 function buildFullReportText(rawText) {
   const report = normalizeReportLines(rawText || '');
-  if (!report) return DISCLAIMER.trim();
-  return `${report}${DISCLAIMER}`.trim();
+  if (!report) return discl().trim();
+  return `${report}${discl()}`.trim();
 }
 
 function wrapTextLines(ctx, text, maxWidth) {
@@ -4736,7 +4738,7 @@ function showAnalysis(text, hidePay = false) {
   document.getElementById('analysis-loading').style.display = 'none';
   document.getElementById('analysis-content').style.display = 'block';
   togglePaidOneTimeNotice(Boolean(hidePay));
-  document.getElementById('analysis-text').textContent = normalizeReportLines(text) + DISCLAIMER;
+  document.getElementById('analysis-text').textContent = normalizeReportLines(text) + discl();
   const payPrompt = document.getElementById('pay-prompt');
   if (payPrompt) payPrompt.style.display = hidePay ? 'none' : 'block';
   const shareCard = document.getElementById(REPORT_SHARE_CARD_ID);
@@ -4795,18 +4797,24 @@ function incrementFreeUsage() {
 }
 
 function showFreeLimitBadge() {
-  const usage = incrementFreeUsage();
-  const remaining = Math.max(0, FREE_DAILY_LIMIT - usage.count);
   const payPrompt = document.getElementById('pay-prompt');
   if (!payPrompt || payPrompt.style.display === 'none') return;
+  // 幂等：一次排盘只计一次数、只显示一个徽标（避免重复调用产生两条）
+  if (document.getElementById('free-limit-badge')) return;
+
+  const usage = incrementFreeUsage();
+  const remaining = Math.max(0, FREE_DAILY_LIMIT - usage.count);
 
   const badge = document.createElement('div');
   badge.id = 'free-limit-badge';
   badge.style.cssText = 'text-align:center;margin-bottom:10px;font-size:13px;color:#64748b;';
+  const EN = yzIsEn();
   if (remaining <= 0) {
-    badge.innerHTML = '<span style="color:#dc2626;font-weight:700;">今日免费次数已用完</span> · 解锁完整版不限次数';
+    badge.innerHTML = EN
+      ? '<span style="color:#dc2626;font-weight:700;">You\'ve used all free previews today</span> · Unlock unlimited with the full report'
+      : '<span style="color:#dc2626;font-weight:700;">今日免费次数已用完</span> · 解锁完整版不限次数';
   } else {
-    badge.innerHTML = yzIsEn() ? `Free previews left today: <strong>${remaining}</strong> · Unlimited with the full report` : `今日剩余免费次数：<strong>${remaining}</strong> · 升级完整版不限次数`;
+    badge.innerHTML = EN ? `Free previews left today: <strong>${remaining}</strong> · Unlimited with the full report` : `今日剩余免费次数：<strong>${remaining}</strong> · 升级完整版不限次数`;
   }
   payPrompt.insertBefore(badge, payPrompt.firstChild);
 }
