@@ -4,6 +4,39 @@
   const SUPABASE_URL = 'https://rcyssrsnalefzhzsvswm.supabase.co';
   const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
   const KEY = 'yz_auth_v1';
+  const PKCE_KEY = 'yz_pkce_verifier';
+
+  // ===== PKCE 工具（Google OAuth 跳转登录用）=====
+  function b64url(bytes) {
+    let s = '';
+    for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+    return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function randomVerifier() {
+    const arr = new Uint8Array(64);
+    (window.crypto || window.msCrypto).getRandomValues(arr);
+    return b64url(arr);
+  }
+  async function challengeOf(verifier) {
+    const data = new TextEncoder().encode(verifier);
+    const digest = await crypto.subtle.digest('SHA-256', data);
+    return b64url(new Uint8Array(digest));
+  }
+  async function beginGoogleLogin() {
+    const back = location.origin + location.pathname + location.search;
+    try {
+      const verifier = randomVerifier();
+      const challenge = await challengeOf(verifier);
+      localStorage.setItem(PKCE_KEY, verifier);
+      location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google'
+        + '&redirect_to=' + encodeURIComponent(back)
+        + '&code_challenge=' + encodeURIComponent(challenge)
+        + '&code_challenge_method=s256';
+    } catch (e) {
+      // crypto 不可用时退回隐式流
+      location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(back);
+    }
+  }
 
   function getSession() {
     try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; }
@@ -191,10 +224,7 @@
       } catch (e) { msg(L.sendFail(e.message || L.retry)); }
       $('yz-send').disabled = false;
     };
-    $('yz-google').onclick = () => {
-      const back = location.origin + location.pathname + location.search;
-      location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(back);
-    };
+    $('yz-google').onclick = () => { beginGoogleLogin(); };
     $('yz-send').onclick = () => {
       email = ($('yz-email').value || '').trim();
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg(L.badEmail); return; }
@@ -213,27 +243,48 @@
     };
   }
 
-  // Google OAuth 跳回：URL hash 里带 access_token，解析并建立会话
-  (function handleOAuthHash() {
+  function finishSession(d, fallbackEmail) {
+    setSession({
+      access_token: d.access_token,
+      refresh_token: d.refresh_token || '',
+      expires_at: d.expires_at || (Math.floor(Date.now() / 1000) + Number(d.expires_in || 3600)),
+      email: (d.user && d.user.email) || fallbackEmail || '',
+      user_id: d.user && d.user.id,
+    });
+    localStorage.removeItem(PKCE_KEY);
+    // 清掉 URL 上的 code/hash 再刷新
+    history.replaceState(null, '', location.pathname);
+    location.reload();
+  }
+
+  // Google OAuth 跳回：优先处理 PKCE 的 ?code=，其次隐式流的 #access_token=
+  (function handleOAuthReturn() {
     try {
-      if (!location.hash || location.hash.indexOf('access_token=') === -1) return;
-      const h = new URLSearchParams(location.hash.slice(1));
-      const at = h.get('access_token');
-      const rt = h.get('refresh_token') || '';
-      const ein = Number(h.get('expires_in') || 3600);
-      if (!at) return;
-      fetch(SUPABASE_URL + '/auth/v1/user', { headers: { apikey: ANON, Authorization: 'Bearer ' + at } })
-        .then((r) => r.json())
-        .then((u) => {
-          setSession({
-            access_token: at, refresh_token: rt,
-            expires_at: Math.floor(Date.now() / 1000) + ein,
-            email: (u && u.email) || '', user_id: u && u.id,
-          });
-          history.replaceState(null, '', location.pathname + location.search);
-          location.reload();
+      const q = new URLSearchParams(location.search);
+      const code = q.get('code');
+      const verifier = localStorage.getItem(PKCE_KEY);
+      if (code && verifier) {
+        fetch(SUPABASE_URL + '/auth/v1/token?grant_type=pkce', {
+          method: 'POST',
+          headers: { apikey: ANON, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ auth_code: code, code_verifier: verifier }),
         })
-        .catch(() => {});
+          .then((r) => r.json())
+          .then((d) => { if (d && d.access_token) finishSession(d); })
+          .catch(() => {});
+        return;
+      }
+      if (location.hash && location.hash.indexOf('access_token=') !== -1) {
+        const h = new URLSearchParams(location.hash.slice(1));
+        const at = h.get('access_token');
+        if (!at) return;
+        fetch(SUPABASE_URL + '/auth/v1/user', { headers: { apikey: ANON, Authorization: 'Bearer ' + at } })
+          .then((r) => r.json())
+          .then((u) => finishSession({
+            access_token: at, refresh_token: h.get('refresh_token') || '',
+            expires_in: Number(h.get('expires_in') || 3600), user: u,
+          }));
+      }
     } catch (e) {}
   })();
 
