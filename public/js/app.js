@@ -3807,7 +3807,7 @@ function renderBaziDetailGrid(bazi) {
         if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(btn, anchor.nextSibling); else pp.appendChild(btn);
         btn.addEventListener('click', function () {
           btn.disabled = true; btn.textContent = EN ? 'Generating…' : '正在生成…';
-          startPayment({ year, month, day, hour, gender, birthplace }, bazi, selectedOption, 'member');
+          startPayment({ year, month, day, hour, gender, birthplace }, bazi, { id: 'vip', title: 'Member Unlock', fee: '0' }, 'member');
         });
       }).catch(function () {});
     } catch (e) {}
