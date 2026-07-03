@@ -3784,6 +3784,35 @@ function renderBaziDetailGrid(bazi) {
 
   applyEnPayPanel();
 
+  // 会员免付解锁：登录且会员有效时，用金色"会员免费解锁"按钮替换付费按钮
+  (function memberUnlockUi(retries) {
+    try {
+      if (!window.YZAuth || !YZAuth.isLoggedIn() || !YZAuth.getMembership) return;
+      YZAuth.getMembership().then(function (m) {
+        if (!m || !m.active) return;
+        const pp = document.getElementById('pay-prompt');
+        if (!pp || pp.style.display === 'none') {
+          if ((retries || 0) < 6) setTimeout(function () { memberUnlockUi((retries || 0) + 1); }, 1000);
+          return;
+        }
+        if (document.getElementById('member-unlock-btn')) return;
+        const EN = (typeof yzIsEn === 'function' && yzIsEn());
+        ['pay-btn', 'paypal-pay-btn', 'paid-btn'].forEach(function (id) { const b = document.getElementById(id); if (b) b.style.display = 'none'; });
+        const btn = document.createElement('button');
+        btn.id = 'member-unlock-btn';
+        btn.type = 'button';
+        btn.style.cssText = 'display:block;width:100%;margin-top:8px;background:#b8892b;color:#fff;border:none;border-radius:10px;padding:15px;font-size:17px;font-weight:800;cursor:pointer;';
+        btn.textContent = EN ? '✦ Unlock full report — Member (free)' : '✦ 会员免费解锁完整报告';
+        const anchor = document.getElementById('paypal-pay-btn') || document.getElementById('pay-btn');
+        if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(btn, anchor.nextSibling); else pp.appendChild(btn);
+        btn.addEventListener('click', function () {
+          btn.disabled = true; btn.textContent = EN ? 'Generating…' : '正在生成…';
+          startPayment({ year, month, day, hour, gender, birthplace }, bazi, selectedOption, 'member');
+        });
+      }).catch(function () {});
+    } catch (e) {}
+  })(0);
+
   // 检查 URL 中是否有回调参数（支付成功后跳回）
   if (tradeNo) {
     const analysisLocked = document.getElementById('analysis-locked');
@@ -4040,6 +4069,38 @@ async function startPayment(birthData, bazi, paymentOption, gateway = 'hupijiao'
     if (loadingSection) {
       loadingSection.innerHTML = '<p class="price-desc">\u7f51\u7edc\u6ce2\u52a8\uff0c\u6b63\u5728\u7ee7\u7eed\u751f\u6210\u652f\u4ed8\u94fe\u63a5\uff08\u540e\u7aef\u5c06\u81ea\u52a8\u8865\u5efa\u8ba2\u5355\uff09...</p>';
     }
+  }
+
+  // 会员免付解锁：订单行已写入，直接调用 analyze（带会员令牌）生成完整报告并渲染
+  if (gateway === 'member') {
+    const EN = (typeof yzIsEn === 'function' && yzIsEn());
+    try {
+      const sess = (window.YZAuth && YZAuth.getSession && YZAuth.getSession()) || {};
+      const memberToken = sess.access_token || '';
+      if (loadingSection) loadingSection.innerHTML = '<p class="price-desc">' + (EN ? 'Generating your full member report, please wait (about 1 minute)…' : '正在为你生成完整会员报告，请稍候（约 1 分钟）…') + '</p>';
+      const anRes = await fetch(`${SUPABASE_URL}/functions/v1/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SUPABASE_ANON}` },
+        body: JSON.stringify({
+          trade_no: tradeNo, service: 'bazi', free_only: false, stream: false,
+          payment_option_id: 'vip', member_token: memberToken,
+          year: birthData.year, month: birthData.month, day: birthData.day, hour: birthData.hour, gender: birthData.gender,
+          bazi_str: baziStr, dayun_text: dayunText, special_years_text: specialYearsText, start_age: daYunData.startAge,
+          lang: (localStorage.getItem('site_lang_pref_v2') || 'zh-Hans'),
+        }),
+      });
+      const anData = await anRes.json().catch(() => ({}));
+      if (anRes.ok && anData.ok && anData.analysis) {
+        showAnalysis(anData.analysis, true);
+        return;
+      }
+      if (loadingSection) loadingSection.innerHTML = '<p class="price-desc">' + (EN ? 'Generation failed. If your membership is active, please retry.' : '生成失败，若会员有效请重试。') + '</p>';
+    } catch (e) {
+      console.error('member unlock failed', e);
+      if (loadingSection) loadingSection.innerHTML = '<p class="price-desc">' + (EN ? 'Generation failed, please retry.' : '生成失败，请重试。') + '</p>';
+    }
+    resetPayButtons();
+    return;
   }
 
   // 海外 PayPal 支付：订单行已写入，直接创建 PayPal 订单并跳转

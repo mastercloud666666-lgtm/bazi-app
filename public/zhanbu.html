@@ -277,7 +277,9 @@
     const Zstate = { step: 0, busy: false };
 
     // ===== 占卜付费（国内 ¥69 虎皮椒 / 海外 $9.99 PayPal，先付费再摇卦） =====
-    function zbPaid(){ return localStorage.getItem('zhanbu_paid') === '1'; }
+    var zbIsMember = false;
+    (function(){ try{ if(window.YZAuth && YZAuth.isLoggedIn() && YZAuth.getMembership){ YZAuth.getMembership().then(function(m){ zbIsMember = !!(m && m.active); }).catch(function(){}); } }catch(e){} })();
+    function zbPaid(){ return localStorage.getItem('zhanbu_paid') === '1' || zbIsMember; }
     function zbCid(){ var c = localStorage.getItem('yz_cid'); if(!c){ c = Math.random().toString(36).slice(2,10); localStorage.setItem('yz_cid', c); } return c; }
     function zbStartPay(){
       if (document.getElementById('zb-pay-mask')) return;
