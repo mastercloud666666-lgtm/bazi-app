@@ -40,7 +40,7 @@
     <a class="brand" href="/index.html" id="t-brand">云子文化</a>
     <div class="nav-links">
       <a href="/index.html" id="t-nav-bazi">八字排盘</a>
-      <a href="/zhanbu.html" id="t-nav-zhanbu">占卜</a>
+      <a href="/member.html" id="t-nav-member">会员</a>
     </div>
   </div>
 </nav>
@@ -69,28 +69,28 @@
 <script>
   const EN = (function(){ try { return (localStorage.getItem('site_lang_pref_v2')||'zh-Hans')==='en'; } catch(e){ return false; } })();
   const T = EN ? {
-    title:'My Records', sub:'Log in to view your saved divination and Bazi readings.',
-    brand:'Yunzi Culture', navBazi:'Bazi Chart', navZhanbu:'Divination',
-    gateP:'Please log in to see the questions you asked and your saved reports.',
+    title:'My Records', sub:'Log in to view your saved personality analysis reports.',
+    brand:'Yunzi Culture', navBazi:'Bazi Chart', navMember:'Membership',
+    gateP:'Please log in to view your saved analysis reports.',
     gateBtn:'Log in', logout:'Log out', loading:'Loading…',
-    empty:'No records yet. After a divination or Bazi reading, it will be saved here automatically.',
+    empty:'No records yet. After you generate an analysis, it will be saved here automatically.',
     loadFail:'Failed to load. Please refresh or log in again.',
-    tag:{ zhanbu:'Divination', bazi:'Bazi', hepan:'Compatibility' }, rec:'Record', reading:'Reading'
+    tag:{ zhanbu:'Analysis', bazi:'Bazi', hepan:'Compatibility' }, rec:'Record', reading:'Analysis'
   } : {
-    title:'我的记录', sub:'登录后可查看你保存的占卜与命理解读',
-    brand:'云子文化', navBazi:'八字排盘', navZhanbu:'占卜',
-    gateP:'请登录，查看你之前问过的事与命盘报告',
+    title:'我的记录', sub:'登录后可查看你保存的性格分析报告',
+    brand:'云子文化', navBazi:'八字排盘', navMember:'会员',
+    gateP:'请登录，查看你保存的分析报告',
     gateBtn:'登录', logout:'退出登录', loading:'正在加载…',
-    empty:'还没有记录。去占卜或排盘后，记录会自动保存在这里。',
+    empty:'还没有记录。生成分析后，记录会自动保存在这里。',
     loadFail:'加载失败，请刷新或重新登录。',
-    tag:{ zhanbu:'占卜', bazi:'八字', hepan:'合盘' }, rec:'记录', reading:'解读'
+    tag:{ zhanbu:'分析', bazi:'八字', hepan:'合盘' }, rec:'记录', reading:'分析'
   };
   (function applyLang(){
     if (EN) document.documentElement.lang = 'en';
     document.title = T.title + (EN ? ' · Yunzi Culture' : ' · 云子文化');
     const set = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
     set('t-title', T.title); set('t-sub', T.sub); set('t-brand', T.brand);
-    set('t-nav-bazi', T.navBazi); set('t-nav-zhanbu', T.navZhanbu);
+    set('t-nav-bazi', T.navBazi); set('t-nav-member', T.navMember);
     set('t-gate-p', T.gateP); set('gate-login', T.gateBtn); set('logout-btn', T.logout);
   })();
 

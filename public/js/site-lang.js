@@ -666,7 +666,6 @@ const RESULT_TEXT = {
     setText('.navbar-nav a[href="hepan.html"]', pick(COMMON_TEXT.navHepan, lang));
     setText('.navbar-nav a[href="blog/"]', pick(COMMON_TEXT.navBlog, lang));
     setText('.navbar-nav a[href="qiming.html"]', pick(COMMON_TEXT.navQiming, lang));
-    setText('.navbar-nav a[href="zhanbu.html"]', pick(COMMON_TEXT.navZhanbu, lang));
     setText('.navbar-nav a[href="fengshui.html"]', pick(COMMON_TEXT.navFengshui, lang));
     setText('.navbar-nav a[href="my-records.html"]', pick(COMMON_TEXT.navMyRecords, lang));
     setText('.navbar-nav a[href="member.html"]', pick(COMMON_TEXT.navMember, lang));
