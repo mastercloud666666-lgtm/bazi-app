@@ -103,6 +103,11 @@
 
   <div class="msg" id="msg"></div>
   <p class="pay-note" id="t-note">微信/支付宝为一次性时长卡，到期手动续费；PayPal 为自动续费订阅，可随时在 PayPal 取消。</p>
+  <p class="pay-note" style="margin-top:6px;">
+    <a href="/terms-of-service.html" id="t-lnk-terms" style="color:#94a3b8;">服务条款</a> ·
+    <a href="/refund-policy.html" id="t-lnk-refund" style="color:#94a3b8;">退款与取消政策</a> ·
+    <a href="/privacy-policy.html" id="t-lnk-privacy" style="color:#94a3b8;">隐私政策</a>
+  </p>
 </div>
 
 <script src="js/human-verify.js"></script>
@@ -157,6 +162,7 @@
     setTxt('t-y-name',T.yName); setHTML('t-y-price',T.yPrice); setTxt('t-y-usd',T.yUsd); setTxt('t-y-save',T.ySave);
     setTxt('t-tag',T.tag); setTxt('buy-monthly',T.buyM); setTxt('buy-yearly',T.buyY);
     setTxt('t-gate-p',T.gateP); setTxt('gate-login',T.gateBtn); setTxt('t-note',T.note);
+    if(EN){ setTxt('t-lnk-terms','Terms of Service'); setTxt('t-lnk-refund','Refund & Cancellation'); setTxt('t-lnk-privacy','Privacy Policy'); }
   })();
 
   // 支付渠道：默认按语言（中文→CNY，英文→PayPal）
