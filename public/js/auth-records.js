@@ -237,8 +237,44 @@
     } catch (e) {}
   })();
 
+  // ============ 顶部导航登录入口 + "我的记录"按登录态显隐 ============
+  function navIsEn() { try { return (localStorage.getItem('site_lang_pref_v2') || 'zh-Hans') === 'en'; } catch (e) { return false; } }
+
+  function mountNavWidget() {
+    const right = document.querySelector('.navbar-right');
+    if (!right) return;
+    const myRecLink = document.querySelector('.navbar-nav a[href="my-records.html"], .navbar-nav a[href="/my-records.html"]');
+    const logged = isLoggedIn();
+    if (myRecLink) myRecLink.style.display = logged ? '' : 'none';
+
+    const en = navIsEn();
+    let box = document.getElementById('yz-nav-auth');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'yz-nav-auth';
+      box.style.cssText = 'display:flex;align-items:center;gap:8px;margin-left:8px;';
+      right.appendChild(box);
+    }
+    if (logged) {
+      const email = currentEmail() || '';
+      const short = email.length > 14 ? email.slice(0, 12) + '…' : email;
+      box.innerHTML = `<span style="font-size:12px;color:#0A2540;font-weight:600;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${email.replace(/"/g, '')}">${short}</span>`
+        + `<button id="yz-nav-logout" style="font-size:12px;color:#64748b;background:none;border:1px solid #e2e8f0;border-radius:8px;padding:4px 10px;cursor:pointer;white-space:nowrap;">${en ? 'Log out' : '退出'}</button>`;
+      const b = document.getElementById('yz-nav-logout');
+      if (b) b.onclick = () => { signOut(); mountNavWidget(); };
+    } else {
+      box.innerHTML = `<button id="yz-nav-login" style="font-size:12px;color:#fff;background:#0066CC;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600;white-space:nowrap;">${en ? 'Log in' : '登录'}</button>`;
+      const b2 = document.getElementById('yz-nav-login');
+      if (b2) b2.onclick = () => { openLogin(() => mountNavWidget()); };
+    }
+  }
+  try {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountNavWidget);
+    else mountNavWidget();
+  } catch (e) {}
+
   window.YZAuth = {
     isLoggedIn, currentEmail, getSession, signOut, openLogin,
-    sendCode, verifyCode, saveRecord, listRecords, refreshIfNeeded
+    sendCode, verifyCode, saveRecord, listRecords, refreshIfNeeded, mountNavWidget
   };
 })();

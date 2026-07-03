@@ -32,6 +32,7 @@
     navQiming: { 'zh-Hans': '起名服务', 'zh-Hant': '起名服務', en: 'Naming' },
     navZhanbu: { 'zh-Hans': '占卜咨询', 'zh-Hant': '占卜諮詢', en: 'Divination' },
     navFengshui: { 'zh-Hans': '风水调理', 'zh-Hant': '風水調理', en: 'Feng Shui' },
+    navMyRecords: { 'zh-Hans': '我的记录', 'zh-Hant': '我的紀錄', en: 'My Records' },
     footerBizHtml: {
       'zh-Hans': '本站提供基于中国传统干支文化的数字内容服务（在线报告与解读）。所有付费内容为虚拟数字商品，支付成功后即时在线交付。支持支付方式：微信支付 / 支付宝（人民币），PayPal 及主流信用卡（美元）。',
       'zh-Hant': '本站提供基於中國傳統干支文化的數位內容服務（線上報告與解讀）。所有付費內容為虛擬數位商品，支付成功後即時線上交付。支援支付方式：微信支付 / 支付寶（人民幣），PayPal 及主流信用卡（美元）。',
@@ -666,6 +667,7 @@ const RESULT_TEXT = {
     setText('.navbar-nav a[href="qiming.html"]', pick(COMMON_TEXT.navQiming, lang));
     setText('.navbar-nav a[href="zhanbu.html"]', pick(COMMON_TEXT.navZhanbu, lang));
     setText('.navbar-nav a[href="fengshui.html"]', pick(COMMON_TEXT.navFengshui, lang));
+    setText('.navbar-nav a[href="my-records.html"]', pick(COMMON_TEXT.navMyRecords, lang));
     setHTML('#footer-biz', pick(COMMON_TEXT.footerBizHtml, lang));
     setHTML('#footer-support', pick(COMMON_TEXT.footerSupportHtml, lang));
     setHTML('#footer-disclaimer', pick(COMMON_TEXT.footerDisclaimerHtml, lang));
