@@ -5,6 +5,7 @@ import {
   corsHeaders,
   extractClientIp,
   isAllowedRequestOrigin,
+  isLikelyAutomatedUa,
   json as securityJson,
   maskIp,
   recordAbuseLog,
@@ -18,9 +19,11 @@ const ALLOWED_EVENTS = new Set([
   'payment_page_opened',
   'payment_link_copied',
   'payment_verify_clicked',
+  'payment_followup_shown',
   'payment_paid',
   'payment_verified',
   'report_viewed',
+  'report_share_clicked',
   'pdf_download_clicked',
 ]);
 
@@ -85,6 +88,7 @@ function applyTrackingEvent(birth: Record<string, any>, event: string, meta: Rec
     payment_paid: 'payment_paid_at',
     payment_verified: 'payment_verified_at',
     report_viewed: 'report_viewed_at',
+    report_share_clicked: 'report_share_clicked_at',
     pdf_download_clicked: 'pdf_download_clicked_at',
   };
   const milestoneKey = milestoneMap[event];
@@ -147,13 +151,16 @@ Deno.serve(async (req) => {
       windowSeconds: rateWindowSeconds,
       maxRequests: rateMaxRequests,
     });
+    const clientIpMasked = maskIp(extractClientIp(req));
+    const userAgent = String(req.headers.get('user-agent') || '').slice(0, 240);
+    const shouldBlockBotUa = Deno.env.get('SECURITY_BLOCK_BOT_UA_SENSITIVE') !== '0';
     if (!rateResult.allowed) {
       await recordAbuseLog(supabase, {
         scope: 'track-order-event',
         identifier: rateIdentifier,
         event: 'rate_limited',
         meta: {
-          ip_masked: maskIp(extractClientIp(req)),
+          ip_masked: clientIpMasked,
           current_count: rateResult.currentCount,
           max_requests: rateMaxRequests,
           window_seconds: rateWindowSeconds,
@@ -166,6 +173,23 @@ Deno.serve(async (req) => {
         scope: 'track-order-event',
         currentCount: rateResult.currentCount,
       });
+    }
+
+    if (shouldBlockBotUa && isLikelyAutomatedUa(userAgent)) {
+      await recordAbuseLog(supabase, {
+        scope: 'track-order-event',
+        identifier: rateIdentifier,
+        event: 'blocked_bot_ua',
+        meta: {
+          ip_masked: clientIpMasked,
+          ua: userAgent.slice(0, 160),
+          event,
+        },
+      });
+      return json(req, {
+        error: 'blocked_bot_ua',
+        details: 'Automated client is not allowed for tracking endpoint',
+      }, 403, allowedOrigins);
     }
 
     const { data: order, error: orderError } = await supabase

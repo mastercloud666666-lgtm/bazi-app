@@ -125,6 +125,23 @@
     return true;
   }
 
+  // 读取自己的会员状态（RLS 只返回自己那行）
+  async function getMembership() {
+    const s = await refreshIfNeeded();
+    if (!s || !s.access_token) return { active: false };
+    try {
+      const res = await api('/rest/v1/memberships?select=plan,expires_at,auto_renew,status&limit=1', {
+        headers: { apikey: ANON, Authorization: 'Bearer ' + s.access_token }
+      });
+      if (!res.ok) return { active: false };
+      const rows = await res.json();
+      const row = rows && rows[0];
+      if (!row) return { active: false };
+      const active = row.expires_at && new Date(row.expires_at).getTime() > Date.now();
+      return { active: !!active, plan: row.plan, expires_at: row.expires_at, auto_renew: !!row.auto_renew, status: row.status };
+    } catch (e) { return { active: false }; }
+  }
+
   // 读取自己的记录
   async function listRecords() {
     const s = await refreshIfNeeded();
@@ -326,6 +343,6 @@
 
   window.YZAuth = {
     isLoggedIn, currentEmail, getSession, signOut, openLogin,
-    sendCode, verifyCode, saveRecord, listRecords, refreshIfNeeded, mountNavWidget
+    sendCode, verifyCode, saveRecord, listRecords, refreshIfNeeded, mountNavWidget, getMembership
   };
 })();

@@ -15,7 +15,7 @@ import {
 import { sendOrderNotify } from '../_shared/order-notify.ts';
 
 type PaymentOptionId = 'basic' | 'pro' | 'vip' | 'pdf' | 'consult' | 'copy_agent_100';
-type OrderService = 'bazi' | 'hepan' | 'pdf' | 'consult' | 'copy_agent' | 'zhanbu';
+type OrderService = 'bazi' | 'hepan' | 'pdf' | 'consult' | 'copy_agent' | 'zhanbu' | 'membership';
 
 const PAYMENT_OPTION_MAP: Record<PaymentOptionId, { title: string; total_fee: string }> = {
   basic: { title: 'Bazi Starter Report', total_fee: '19' },
@@ -32,6 +32,10 @@ const FIRST_VISIT_DISCOUNT_RATE = 0.8;
 const FIRST_VISIT_DISCOUNT_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 const HEPAN_PAYMENT_CONFIG = { title: 'Compatibility Analysis Report', total_fee: '199' } as const;
 const ZHANBU_PAYMENT_CONFIG = { title: '周易六十四卦占卜解卦', total_fee: '69' } as const;
+const MEMBERSHIP_PLAN_CONFIG = {
+  monthly: { title: '云子会员·月卡', total_fee: '49' },
+  yearly: { title: '云子会员·年卡', total_fee: '398' },
+} as const;
 
 const DEFAULT_PRIMARY_API_BASE = 'https://api.xunhupay.com';
 const DEFAULT_BACKUP_API_BASE = 'https://api.dpweixin.com';
@@ -313,6 +317,7 @@ function detectOrderService(birth: Record<string, unknown>): OrderService {
   const service = String(birth?.order_service || '').trim().toLowerCase();
   if (service === 'hepan') return 'hepan';
   if (service === 'zhanbu') return 'zhanbu';
+  if (service === 'membership') return 'membership';
   if (service === 'pdf') return 'pdf';
   if (service === 'consult') return 'consult';
   if (service === 'copy_agent') return 'copy_agent';
@@ -410,13 +415,15 @@ function resolveReturnOrigin(req: Request, fallbackOrigin: string): string {
   return fallbackOrigin;
 }
 
-function resolveReturnPath(value: unknown): '/payment-fallback.html' | '/result.html' | '/hepan.html' | '/index.html' | '/upgrade.html' {
+function resolveReturnPath(value: unknown): '/payment-fallback.html' | '/result.html' | '/hepan.html' | '/index.html' | '/upgrade.html' | '/member.html' | '/zhanbu.html' {
   const path = String(value || '').trim();
   if (path === '/payment-fallback.html') return '/payment-fallback.html';
   if (path === '/hepan.html') return '/hepan.html';
   if (path === '/index.html') return '/index.html';
   if (path === '/result.html') return '/result.html';
   if (path === '/upgrade.html') return '/upgrade.html';
+  if (path === '/member.html') return '/member.html';
+  if (path === '/zhanbu.html') return '/zhanbu.html';
   return '/payment-fallback.html';
 }
 
@@ -728,10 +735,13 @@ Deno.serve(async (req) => {
     const lockedPaymentOptionId = normalizePaymentOptionId(paymentOptionObj.id, '') as '' | PaymentOptionId;
     const paymentOptionId = lockedPaymentOptionId || requestedPaymentOptionId;
     const service = detectOrderService(birth);
+    const membershipPlan = String((birth as Record<string, unknown>)?.plan || '').trim().toLowerCase() === 'yearly' ? 'yearly' : 'monthly';
     const optionConfig = service === 'hepan'
       ? HEPAN_PAYMENT_CONFIG
       : service === 'zhanbu'
       ? ZHANBU_PAYMENT_CONFIG
+      : service === 'membership'
+      ? MEMBERSHIP_PLAN_CONFIG[membershipPlan]
       : PAYMENT_OPTION_MAP[paymentOptionId];
     const discountOptionId = service === 'hepan' ? 'hepan' : paymentOptionId;
     const rawInviteCode = normalizeInviteCode(
@@ -754,8 +764,8 @@ Deno.serve(async (req) => {
       birth,
       clientEnv: clientEnv as Record<string, unknown>,
     });
-    const finalAmount = service === 'zhanbu'
-      ? baseAmount  // 占卜固定价 ¥69，不参与任何优惠
+    const finalAmount = (service === 'zhanbu' || service === 'membership')
+      ? baseAmount  // 占卜/会员固定价，不参与任何优惠
       : (visitDiscountMeta.applied ? visitDiscountMeta.finalAmount : inviteDiscountMeta.finalAmount);
     const discountMeta = {
       ...inviteDiscountMeta,

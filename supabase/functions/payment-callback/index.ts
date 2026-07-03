@@ -2,6 +2,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { sendOrderNotify } from '../_shared/order-notify.ts';
 import { grantCopyAgentCredits, isCopyAgentOrder } from '../_shared/copy-agent.ts';
+import { grantMembership, isMembershipOrder } from '../_shared/membership.ts';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -220,7 +221,9 @@ Deno.serve(async (req) => {
   // 异步触发 AI 分析（不等待结果，但添加错误处理）
   let birth = trackedBirthWithGateway;
   const optionId = asString(birth?.payment_option?.id).toLowerCase();
-  const orderService = birth?.order_service === 'hepan'
+  const orderService = isMembershipOrder(birth, optionId)
+    ? 'membership'
+    : (birth?.order_service === 'hepan'
     ? 'hepan'
     : (birth?.order_service === 'zhanbu'
       ? 'zhanbu'
@@ -228,7 +231,24 @@ Deno.serve(async (req) => {
         ? 'pdf'
         : (birth?.order_service === 'consult' || optionId === 'consult'
           ? 'consult'
-          : (isCopyAgentOrder(birth, optionId) ? 'copy_agent' : 'bazi'))));
+          : (isCopyAgentOrder(birth, optionId) ? 'copy_agent' : 'bazi')))));
+
+  if (orderService === 'membership') {
+    try {
+      const grant = await grantMembership(supabase, birth, trade_order_id, { source: 'cny_pass', autoRenew: false });
+      birth = grant.birth;
+      await supabase.from('orders').update({ paid: true, birth_input: JSON.stringify(birth) }).eq('trade_no', trade_order_id);
+      await sendOrderNotify('membership_granted', {
+        trade_no: trade_order_id, service: 'membership', payment_option_id: grant.plan,
+        total_fee: asString(data.total_fee), status: grant.skipped ? 'SKIPPED_ALREADY_GRANTED' : 'GRANTED',
+        source: 'payment-callback', note: `${grant.email} ${grant.plan} until ${grant.expiresAt}`,
+      });
+      return new Response('success', { status: 200 });
+    } catch (err) {
+      console.error(`Membership grant failed for ${trade_order_id}:`, err);
+      return new Response('membership grant failed', { status: 500 });
+    }
+  }
 
   if (orderService === 'copy_agent') {
     try {

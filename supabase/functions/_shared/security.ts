@@ -44,7 +44,7 @@ export function corsHeaders(req: Request, allowedOrigins: string[]) {
   return {
     'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey, x-client-info, X-Requested-With',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin',
   };
@@ -84,6 +84,17 @@ export function maskIp(ip: string): string {
     return parts.length ? `${parts.slice(0, 3).join(':')}::` : ip;
   }
   return ip;
+}
+
+export function isLikelyAutomatedUa(uaRaw: string): boolean {
+  const ua = asString(uaRaw).toLowerCase();
+  if (!ua) return true;
+
+  const knownCrawler = /(bot|spider|crawler|googlebot|bingbot|baiduspider|bytespider|petalbot|yandexbot|duckduckbot|sogou|slurp|ahrefsbot|semrushbot|mj12bot|dotbot|facebookexternalhit|ia_archiver)/i;
+  const scriptClient = /(curl|wget|python-requests|aiohttp|httpclient|go-http-client|okhttp|java\/|libwww-perl|axios|postmanruntime|insomnia|node-fetch|undici|scrapy|playwright|puppeteer|selenium|headlesschrome|phantomjs)/i;
+
+  if (knownCrawler.test(ua) || scriptClient.test(ua)) return true;
+  return false;
 }
 
 async function sha256Hex(value: string): Promise<string> {

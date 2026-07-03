@@ -42,8 +42,8 @@ const KOC_CONSULT_RATES = {
   tier2: 0.22,
   tier3: 0.25,
 } as const;
-const CONSULT_PROMO_FEE = 499;
-const CONSULT_FORMAL_FEE = 699;
+const CONSULT_PROMO_FEE = 999;
+const CONSULT_FORMAL_FEE = 1999;
 const ALLOWED_KOC_SETTLEMENT_STATUS = new Set(['pending', 'approved', 'paid', 'disputed', 'invalid']);
 const ALLOWED_KOC_SETTLEMENT_ROLES = new Set(['direct', 'parent']);
 const KOC_PLACEHOLDER_IDS = new Set([
@@ -1894,6 +1894,11 @@ Deno.serve(async (req) => {
       const pageTitle = asString((body as JsonRecord).page_title).slice(0, 120);
       const lang = asString((body as JsonRecord).lang).slice(0, 40);
       const referrer = asString((body as JsonRecord).referrer || req.headers.get('referer')).slice(0, 260);
+      const entryUrl = asString((body as JsonRecord).entry_url).slice(0, 320);
+      const utmSource = asString((body as JsonRecord).utm_source).slice(0, 80);
+      const utmMedium = asString((body as JsonRecord).utm_medium).slice(0, 80);
+      const utmCampaign = asString((body as JsonRecord).utm_campaign).slice(0, 120);
+      const utmContent = asString((body as JsonRecord).utm_content).slice(0, 120);
       const visitorId = asString((body as JsonRecord).visitor_id).slice(0, 80);
       const ua = asString((body as JsonRecord).user_agent || req.headers.get('user-agent')).slice(0, 240);
       const clientIp = extractClientIp(req);
@@ -1954,6 +1959,11 @@ Deno.serve(async (req) => {
             page_title: pageTitle,
             lang,
             referrer,
+            entry_url: entryUrl,
+            utm_source: utmSource,
+            utm_medium: utmMedium,
+            utm_campaign: utmCampaign,
+            utm_content: utmContent,
             ua: ua.slice(0, 160),
             visitor_id: visitorId,
             tester_id: testerId,
@@ -2295,10 +2305,15 @@ Deno.serve(async (req) => {
         B: { total_orders: 0, paid: 0, delivered: 0 },
       };
       const failures: Array<Record<string, unknown>> = [];
+      let syntheticOrdersSkipped = 0;
 
       for (const row of rows) {
         const tradeNo = asString((row as JsonRecord).trade_no);
         if (!tradeNo) continue;
+        if (/^bazi-health-/i.test(tradeNo)) {
+          syntheticOrdersSkipped += 1;
+          continue;
+        }
 
         const createdAt = asString((row as JsonRecord).created_at);
         const createdMs = toMillis(createdAt);
@@ -2379,6 +2394,7 @@ Deno.serve(async (req) => {
         days,
         since: sinceIso,
         scanned_rows: rows.length,
+        synthetic_orders_skipped: syntheticOrdersSkipped,
         summary,
         conversion,
         by_service: byService,
@@ -2708,6 +2724,10 @@ Deno.serve(async (req) => {
       const pageMap: Record<string, { count: number; uniqueIp: Set<string>; title: string }> = {};
       const ipMap: Record<string, number> = {};
       const langMap: Record<string, number> = {};
+      const utmSourceMap: Record<string, number> = {};
+      const utmMediumMap: Record<string, number> = {};
+      const utmCampaignMap: Record<string, number> = {};
+      const utmSourceMediumMap: Record<string, number> = {};
       const testerIdSet = new Set<string>();
       let testerVisits = 0;
       let ownerVisits = 0;
@@ -2727,6 +2747,10 @@ Deno.serve(async (req) => {
         const province = asString(meta.province || 'unknown').slice(0, 80) || 'unknown';
         const city = asString(meta.city || 'unknown').slice(0, 80) || 'unknown';
         const referrer = asString(meta.referrer || '').slice(0, 260);
+        const utmSource = asString(meta.utm_source || '').slice(0, 80);
+        const utmMedium = asString(meta.utm_medium || '').slice(0, 80);
+        const utmCampaign = asString(meta.utm_campaign || '').slice(0, 120);
+        const sourceMedium = `${utmSource || '(none)'} / ${utmMedium || '(none)'}`;
         const ua = asString(meta.ua || '').slice(0, 200);
         const testerId = sanitizeTesterId(meta.tester_id || '');
         const isTester = testerId ? true : toBoolean(meta.is_tester);
@@ -2749,6 +2773,10 @@ Deno.serve(async (req) => {
         deviceMap[device] = Number(deviceMap[device] || 0) + 1;
         ipMap[ipMasked] = Number(ipMap[ipMasked] || 0) + 1;
         langMap[lang] = Number(langMap[lang] || 0) + 1;
+        if (utmSource) utmSourceMap[utmSource] = Number(utmSourceMap[utmSource] || 0) + 1;
+        if (utmMedium) utmMediumMap[utmMedium] = Number(utmMediumMap[utmMedium] || 0) + 1;
+        if (utmCampaign) utmCampaignMap[utmCampaign] = Number(utmCampaignMap[utmCampaign] || 0) + 1;
+        utmSourceMediumMap[sourceMedium] = Number(utmSourceMediumMap[sourceMedium] || 0) + 1;
         if (!pageMap[pagePath]) {
           pageMap[pagePath] = {
             count: 0,
@@ -2773,6 +2801,9 @@ Deno.serve(async (req) => {
             province,
             city,
             referrer,
+            utm_source: utmSource,
+            utm_medium: utmMedium,
+            utm_campaign: utmCampaign,
             ua,
             tester_id: testerId,
             is_tester: isTester,
@@ -2803,6 +2834,22 @@ Deno.serve(async (req) => {
         .map(([lang, count]) => ({ lang, count }))
         .sort((a, b) => b.count - a.count)
         .slice(0, 10);
+      const topUtmSources = Object.entries(utmSourceMap)
+        .map(([utm_source, count]) => ({ utm_source, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 20);
+      const topUtmMediums = Object.entries(utmMediumMap)
+        .map(([utm_medium, count]) => ({ utm_medium, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 20);
+      const topUtmCampaigns = Object.entries(utmCampaignMap)
+        .map(([utm_campaign, count]) => ({ utm_campaign, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 20);
+      const topSourceMedium = Object.entries(utmSourceMediumMap)
+        .map(([source_medium, count]) => ({ source_medium, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 30);
 
       return json(req, {
         ok: true,
@@ -2824,6 +2871,10 @@ Deno.serve(async (req) => {
         top_pages: topPages,
         top_ips: topIps,
         top_langs: topLangs,
+        top_utm_sources: topUtmSources,
+        top_utm_mediums: topUtmMediums,
+        top_utm_campaigns: topUtmCampaigns,
+        top_source_medium: topSourceMedium,
         recent,
       });
     }

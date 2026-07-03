@@ -2,6 +2,10 @@
 // 复用 orders 表（订单行由前端 ensureOrderSnapshot 预先写入）。
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders, resolveAllowedOrigins } from '../_shared/security.ts';
+import { grantMembership } from '../_shared/membership.ts';
+
+// 会员订阅美元定价（PayPal 自动续订）
+const MEMBERSHIP_USD: Record<string, string> = { monthly: '9.90', yearly: '69.00' };
 
 const PP_ENV = (Deno.env.get('PAYPAL_ENV') || 'live').toLowerCase();
 const PP_BASE = PP_ENV === 'sandbox' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
@@ -46,8 +50,9 @@ Deno.serve(async (req) => {
   const json = (obj: unknown, status = 200) =>
     new Response(JSON.stringify(obj), { status, headers: { ...CORS, 'Content-Type': 'application/json' } });
 
+  const rawBody = await req.text();
   let body: Record<string, any> = {};
-  try { body = await req.json(); } catch { body = {}; }
+  try { body = rawBody ? JSON.parse(rawBody) : {}; } catch { body = {}; }
   const action = asString(body.action);
 
   const supabase = createClient(
@@ -56,6 +61,56 @@ Deno.serve(async (req) => {
   );
 
   try {
+    // ===== PayPal 订阅 Webhook（续订自动延长会员）=====
+    if (!action && asString(body.event_type)) {
+      const webhookId = Deno.env.get('PAYPAL_WEBHOOK_ID');
+      if (!webhookId) return json({ error: 'webhook_not_configured' }, 500);
+      const token = await ppToken();
+      const verifyRes = await fetch(`${PP_BASE}/v1/notifications/verify-webhook-signature`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          auth_algo: req.headers.get('paypal-auth-algo'),
+          cert_url: req.headers.get('paypal-cert-url'),
+          transmission_id: req.headers.get('paypal-transmission-id'),
+          transmission_sig: req.headers.get('paypal-transmission-sig'),
+          transmission_time: req.headers.get('paypal-transmission-time'),
+          webhook_id: webhookId,
+          webhook_event: JSON.parse(rawBody),
+        }),
+      });
+      const verify = await verifyRes.json().catch(() => ({}));
+      if (verify.verification_status !== 'SUCCESS') return json({ error: 'invalid_signature' }, 400);
+
+      const evt = asString(body.event_type);
+      const resource = body.resource || {};
+      // 续订成功（每期扣费）
+      if (evt === 'PAYMENT.SALE.COMPLETED') {
+        const subId = asString(resource.billing_agreement_id);
+        if (!subId) return json({ ok: true, ignored: 'no_subscription' });
+        const { data: mem } = await supabase.from('memberships').select('*').eq('paypal_subscription_id', subId).maybeSingle();
+        if (!mem) return json({ ok: true, ignored: 'membership_not_found' });
+        const days = mem.plan === 'yearly' ? 365 : 30;
+        const now = new Date();
+        const base = mem.expires_at && new Date(mem.expires_at) > now ? new Date(mem.expires_at) : now;
+        base.setUTCDate(base.getUTCDate() + days);
+        await supabase.from('memberships').update({
+          expires_at: base.toISOString(), status: 'active', updated_at: new Date().toISOString(),
+        }).eq('user_id', mem.user_id);
+        return json({ ok: true, extended_to: base.toISOString() });
+      }
+      // 订阅取消/过期：标记状态（到期后自然失效，不立即断）
+      if (evt === 'BILLING.SUBSCRIPTION.CANCELLED' || evt === 'BILLING.SUBSCRIPTION.EXPIRED' || evt === 'BILLING.SUBSCRIPTION.SUSPENDED') {
+        const subId = asString(resource.id);
+        if (subId) {
+          await supabase.from('memberships').update({ auto_renew: false, status: 'cancelled', updated_at: new Date().toISOString() })
+            .eq('paypal_subscription_id', subId);
+        }
+        return json({ ok: true, marked: 'cancelled' });
+      }
+      return json({ ok: true, ignored: evt });
+    }
+
     if (action === 'create') {
       const tradeNo = asString(body.trade_no);
       const optionId = asString(body.option_id).toLowerCase();
@@ -164,6 +219,98 @@ Deno.serve(async (req) => {
       try { (globalThis as any).EdgeRuntime?.waitUntil?.(analyzeTask); } catch (_e) {}
 
       return json({ ok: true, paid: true, service: orderService });
+    }
+
+    // 一次性创建会员产品 + 月/年订阅计划，返回 plan_id（不敏感，可存 env）。跑一次即可。
+    if (action === 'setup_plans') {
+      const token = await ppToken();
+      const prodRes = await fetch(`${PP_BASE}/v1/catalogs/products`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Yunzi Membership', description: 'Yunzi Culture membership', type: 'SERVICE', category: 'SOFTWARE' }),
+      });
+      const prod = await prodRes.json().catch(() => ({}));
+      if (!prodRes.ok || !prod.id) return json({ error: 'product_failed', detail: prod }, 502);
+
+      const mkPlan = async (name: string, unit: 'MONTH' | 'YEAR', price: string) => {
+        const r = await fetch(`${PP_BASE}/v1/billing/plans`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            product_id: prod.id, name, status: 'ACTIVE',
+            billing_cycles: [{
+              frequency: { interval_unit: unit, interval_count: 1 },
+              tenure_type: 'REGULAR', sequence: 1, total_cycles: 0,
+              pricing_scheme: { fixed_price: { value: price, currency_code: 'USD' } },
+            }],
+            payment_preferences: { auto_bill_outstanding: true, setup_fee_failure_action: 'CONTINUE', payment_failure_threshold: 1 },
+          }),
+        });
+        return await r.json().catch(() => ({}));
+      };
+      const monthly = await mkPlan('Yunzi Membership Monthly', 'MONTH', MEMBERSHIP_USD.monthly);
+      const yearly = await mkPlan('Yunzi Membership Yearly', 'YEAR', MEMBERSHIP_USD.yearly);
+      return json({ product_id: prod.id, monthly_plan_id: monthly.id, yearly_plan_id: yearly.id, monthly, yearly });
+    }
+
+    // 创建 PayPal 订阅（自动续订），返回 approve_url
+    if (action === 'create_subscription') {
+      const tradeNo = asString(body.trade_no);
+      const plan = asString(body.plan).toLowerCase() === 'yearly' ? 'yearly' : 'monthly';
+      const origin = asString(body.origin) || (allowedOrigins[0] || 'https://www.tengyunzi.com');
+      if (!tradeNo) return json({ error: 'trade_no required' }, 400);
+      const planId = Deno.env.get(plan === 'yearly' ? 'PAYPAL_PLAN_YEARLY' : 'PAYPAL_PLAN_MONTHLY');
+      if (!planId) return json({ error: 'plan_not_configured', message: 'PayPal 订阅计划未配置' }, 500);
+
+      const token = await ppToken();
+      const returnUrl = `${origin}/member.html?trade_no=${encodeURIComponent(tradeNo)}&pp_sub=1`;
+      const cancelUrl = `${origin}/member.html?trade_no=${encodeURIComponent(tradeNo)}&pp_sub=cancel`;
+      const res = await fetch(`${PP_BASE}/v1/billing/subscriptions`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan_id: planId,
+          custom_id: tradeNo,
+          application_context: {
+            brand_name: 'Yunzi Culture', user_action: 'SUBSCRIBE_NOW',
+            shipping_preference: 'NO_SHIPPING', return_url: returnUrl, cancel_url: cancelUrl,
+          },
+        }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok || !d.id) return json({ error: 'subscription_create_failed', detail: d }, 502);
+      const approve = (d.links || []).find((l: any) => l.rel === 'approve');
+      return json({ subscription_id: d.id, approve_url: approve?.href, plan });
+    }
+
+    // 订阅审批回跳后核验并发放会员（首期）
+    if (action === 'verify_subscription') {
+      const subId = asString(body.subscription_id);
+      const tradeNo = asString(body.trade_no);
+      if (!subId) return json({ error: 'subscription_id required' }, 400);
+      const token = await ppToken();
+      const res = await fetch(`${PP_BASE}/v1/billing/subscriptions/${subId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const sub = await res.json().catch(() => ({}));
+      if (!res.ok) return json({ error: 'subscription_fetch_failed', detail: sub }, 502);
+      if (sub.status !== 'ACTIVE' && sub.status !== 'APPROVED') {
+        return json({ ok: false, status: sub.status }, 200);
+      }
+      const lookupTradeNo = asString(sub.custom_id) || tradeNo;
+      if (!lookupTradeNo) return json({ error: 'trade_no_missing' }, 400);
+      const { data: order } = await supabase.from('orders').select('birth_input').eq('trade_no', lookupTradeNo).single();
+      if (!order) return json({ error: 'order_not_found' }, 404);
+      const birth = parseBirth(order.birth_input);
+      try {
+        const grant = await grantMembership(supabase, birth, lookupTradeNo, {
+          source: 'paypal_sub', autoRenew: true, paypalSubscriptionId: subId,
+        });
+        await supabase.from('orders').update({ paid: true, birth_input: JSON.stringify(grant.birth) }).eq('trade_no', lookupTradeNo);
+        return json({ ok: true, plan: grant.plan, expires_at: grant.expiresAt });
+      } catch (e) {
+        return json({ error: 'grant_failed', detail: String(e instanceof Error ? e.message : e) }, 500);
+      }
     }
 
     return json({ error: 'unknown_action' }, 400);
