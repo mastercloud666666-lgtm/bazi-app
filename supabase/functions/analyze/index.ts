@@ -134,30 +134,30 @@ function getVipRangeMaxTokens(sectionStart: number, sectionEnd: number): number 
 }
 
 const BAZI_SECTION_BLUEPRINT_24 = `
-Master section blueprint for paid BAZI report:
-第1段：用神喜忌
-第2段：五行扶抑精解
+Master section blueprint for paid BAZI personality report（这是一份基于传统五行文化的性格分析报告，聚焦帮助对方了解自己；不做命运预测、吉凶判断、具体年份运势或改运，全程以性格特质与自我认知为核心）:
+第1段：五行核心力量（最主导你性格的五行力量）
+第2段：五行平衡结构（性格中的张力与平衡点）
 第3段：性格底层驱动力
-第4段：天赋与优势能力画像
-第5段：事业财运
-第6段：赚钱方式拆解
-第7段：适合行业与黄金期
-第8段：创业 / 副业适配度
-第9段：感情婚姻
-第10段：婚恋相处说明书
-第11段：二婚 / 出轨 / 感情隐患深剖
+第4段：天赋与优势画像
+第5段：适合的工作风格（性格适配的工作方式与发展路径，不预测具体时间）
+第6段：价值创造方式（你更擅长用哪种方式创造价值）
+第7段：适合的领域方向（最能发挥你优势的领域类型）
+第8段：独立与协作倾向
+第9段：情感相处倾向
+第10段：关系相处说明书
+第11段：情感中的自我模式（你在亲密关系里容易重复的模式）
 第12段：原生家庭影响
-第13段：子女缘分
-第14段：人际关系与贵人模式
-第15段：神煞分析
-第16段：地支刑冲合会
-第17段：空亡分析
-第18段：财库分析
-第19段：大运详解
-第20段：特殊流年 + 后五年逐年建议
-第21段：风险预警模块
-第22段：人生关键转折点
-第23段：优化建议与调整方向
+第13段：家庭角色倾向
+第14段：人际互动风格
+第15段：特质符号解读（从传统符号视角补充性格特点）
+第16段：内在张力结构（地支关系反映的性格协调与冲突面）
+第17段：性格中的空缺感（从空亡视角看内心课题）
+第18段：资源与安全感倾向（你对资源与安全感的态度，不预测财富多寡）
+第19段：成长阶段的性格侧重（不同人生阶段被放大的性格面，描述性格倾向而非预测事件）
+第20段：成长节奏参考（不同阶段的自我侧重与成长课题，不做逐年运势预测）
+第21段：需要留意的性格盲点（容易消耗你的行为模式与思维惯性）
+第22段：性格成长的关键课题
+第23段：自我提升建议（从工作方式、生活习惯、人际选择给出实用建议，不涉及改运）
 第24段：人生核心课题总结
 `;
 
@@ -328,7 +328,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { trade_no, service = 'bazi', free_only, payment_option_id, stream, section_start, section_end } = body;
+    const { trade_no, service = 'bazi', free_only, payment_option_id, stream, section_start, section_end, member_token } = body;
 
     const rateScope = `analyze:${String(service || 'bazi')}:${free_only ? 'free' : 'paid'}`;
     const rateWindowSeconds = readEnvNumber('RATE_LIMIT_ANALYZE_WINDOW_SECONDS', DEFAULT_RATE_LIMIT_WINDOW_SECONDS, 10, 3600);
@@ -464,7 +464,22 @@ Deno.serve(async (req) => {
       }
     }
 
-    const requiresPaidOrder = (service === 'bazi' && !free_only) || service === 'hepan';
+    // 会员校验：活跃会员可免付生成完整报告/合盘
+    let isActiveMember = false;
+    if (!free_only && (service === 'bazi' || service === 'hepan') && member_token) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser(String(member_token));
+        if (user) {
+          const { data: mem } = await supabase
+            .from('memberships').select('expires_at').eq('user_id', user.id).maybeSingle();
+          isActiveMember = !!(mem?.expires_at && new Date(mem.expires_at).getTime() > Date.now());
+        }
+      } catch (_e) { isActiveMember = false; }
+    }
+    // 会员默认给完整版（vip）
+    if (isActiveMember && !resolvedPaymentOptionId) resolvedPaymentOptionId = 'vip';
+
+    const requiresPaidOrder = ((service === 'bazi' && !free_only) || service === 'hepan') && !isActiveMember;
     if (requiresPaidOrder) {
       if (!trade_no) {
         return new Response(JSON.stringify({ error: 'trade_no is required for paid analyze' }), {
@@ -764,16 +779,17 @@ Start age: ${start_age}
 Dayun: ${dayun_text}
 Special years: ${special_years_text}
 
-你是一位经验丰富的研究员。FREE 基础版只输出第1段和第2段，共两段。
+你是一位经验丰富的研究员，用传统五行文化帮人了解自己的性格。这是性格分析，不做命运预测、运势吉凶或改运。FREE 基础版只输出第1段和第2段，共两段。
 
-第1段：日主强弱与性格轮廓（日主强弱结论、性格底色、适合的大方向）。
-第2段：未来一年的关键趋势提醒（综合大运和流年，给出1-2条具体趋势参考，不展开细节，留悬念）。
+第1段：日主强弱与性格轮廓（日主强弱结论、性格底色、你是一个怎样的人）。
+第2段：天赋优势与适合的方向（综合五行结构，给出1-2条关于你的优势与适合方式的具体特点，不展开细节，留悬念）。
 
 Requirements:
 - 每段控制在150-250字，总字数严格控制在350-550汉字。
-- 第2段结尾必须自然引导："想完整看清未来十年的具体节奏、财运窗口和关键转折点，可以看看完整版的24维深度分析。"
+- 第2段结尾必须自然引导："想完整看清自己的性格特质、天赋优势与适合方向，可以看看完整版的24维深度性格分析。"
 - 只输出中文纯文本，不用Markdown、不写诗、不引用古文。
 - 不用称呼对方为"你"，直接用口语陈述结论。
+- 全程只谈性格与自我认知，不谈未来运势、财运时机或吉凶。
 - 不得输出第3段及以后的内容。`;
       } else {
       const nextFiveYears = Array.from({length: 5}, (_, i) => currentYear + i).join('、') + '年';
@@ -849,7 +865,12 @@ ${BAZI_SECTION_BLUEPRINT_24}
       }
     }
 
-    const SYSTEM_MSG = `你是一位经验丰富的中国传统干支文化研究员。只输出纯文字，不用任何Markdown格式，不写诗，不引用古文，不说套话，直接用口语和"你"称呼对方说结论。
+    const SYSTEM_MSG = `你是一位经验丰富的中国传统干支文化研究员，专注于用传统五行文化帮助人们「更了解自己的性格」。只输出纯文字，不用任何Markdown格式，不写诗，不引用古文，不说套话，直接用口语和"你"称呼对方说结论。
+
+【核心定位——必须严格遵守】
+这是一份「性格分析 / 自我认知」报告，不是命运预测。全程聚焦于性格特质、思维方式、天赋优势、行为模式、相处方式与自我成长。
+绝对禁止以下内容：预测未来会发生什么、判断某年某岁的运势吉凶、断定财富多少或何时发财、预测婚姻何时到来或成败、预测健康疾病、以及任何"改运/补运/化解"建议。
+所有落点都要回到「这说明你是一个怎样的人、你有什么特质、你适合怎样的方式、你可以如何更好地发挥或调整」。
 
 【十神对应速查——必须严格遵守，不得搞错】
 财星=日主所克：甲乙木日主→财星是土；丙丁火日主→财星是金；戊己土日主→财星是水；庚辛金日主→财星是木；壬癸水日主→财星是火。
@@ -858,13 +879,12 @@ ${BAZI_SECTION_BLUEPRINT_24}
 食伤=日主所生：甲乙木→食伤是火；丙丁火→食伤是土；戊己土→食伤是金；庚辛金→食伤是水；壬癸水→食伤是木。
 阳日主遇阳同类=比肩，遇阴同类=劫财；遇阳财=偏财，遇阴财=正财；遇阳官杀=七杀，遇阴官杀=正官。阴日主规则相反。
 
-【表达要求——必须给出确切结论，严禁模糊措辞】
-以下类型的表达绝对禁止：
-"婚姻可能来得不会太早/太晚"→必须说"感情在X岁左右才有实质进展"或"走到XX大运之前婚姻难以稳定，原因是财星/官星被X合住/被X冲"；
-"财运可能不错"→必须说"XX大运财星透出，那段时间收入明显上升"；
-"健康需要注意"→必须说"木弱→肝胆易出问题，火弱→心脏需留意"（说具体脏腑和原因）；
-"感情路上可能有波折"→必须说"XX岁前感情容易反复，因为日支被X冲/正财被X合绊"；
-凡做判断，必须给出具体年龄段、干支名称、五行原因，不得用"可能""也许""不会太X""有一定概率"等虚词搪塞。`;
+【表达要求——必须给出确切、具体的性格结论，严禁模糊套话】
+要把五行/十神/结构，翻译成具体的性格与行为特点，并说清原因。示例：
+"你可能比较敏感"→必须说"你食伤旺，表达欲和感受力都强，容易注意到别人忽略的细节，也容易因为想太多而内耗"；
+"你适合做生意"→必须说"你偏财透干且身强，擅长在灵活多变的环境里抓机会、整合资源，比按部就班的岗位更能发挥"；
+"你人缘不错"→必须说"你正官配印，做事有分寸、让人放心，容易在需要信任的关系里被依赖"；
+凡下判断，必须回扣到具体干支、十神或五行结构，并落到"所以你是个怎样的人 / 适合怎样的方式"，不得用"可能""也许""有一定概率"等虚词搪塞，也不得转成运势预测。`;
 
     // 按界面语言输出：en→英文，zh-Hant→繁体，其余保持简体
     const _outLang = (body as Record<string, unknown>).lang;
