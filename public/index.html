@@ -1486,11 +1486,26 @@
         white-space: nowrap;
       }
 
-      .navbar-brand { gap: 8px; }
-      .navbar-brand-logo { width: 34px; height: 34px; }
-      .navbar-brand-name { font-size: 17px; letter-spacing: 1px; white-space: nowrap; }
-      .navbar-brand-en { font-size: 9px; letter-spacing: 2px; }
-      .navbar-right { gap: 6px; align-items: center; }
+      .navbar-brand { gap: 6px; flex-shrink: 0; }
+      .navbar-brand-logo { width: 30px; height: 30px; }
+      .navbar-brand-name { font-size: 15px; letter-spacing: 0; white-space: nowrap; }
+      .navbar-brand-en { display: none; }
+      .navbar-right { gap: 5px; align-items: center; flex-wrap: nowrap; min-width: 0; }
+      .mobile-blog-link, .mobile-hepan-link { font-size: 11px; padding: 4px 6px; border-radius: 8px; }
+      .navbar-right .navbar-lang-select { height: 28px; font-size: 11px; padding: 0 4px; max-width: 78px; border-radius: 6px; }
+
+      /* 手机端表单紧凑化 */
+      .hero-form-card { padding: 18px 14px; border-radius: 14px; }
+      .form-title { font-size: 19px; }
+      .form-subtitle { font-size: 13px; }
+      .form-label { font-size: 12px; letter-spacing: .5px; margin-bottom: 6px; }
+      .form-input, .form-select { padding: 11px 12px; font-size: 16px; border-radius: 10px; }
+      .form-group { margin-bottom: 13px; }
+      .form-toggle { margin-bottom: 14px; }
+      .form-toggle-label { padding: 9px 0; font-size: 14px; }
+      .form-submit { padding: 13px; font-size: 16px; }
+      .hero-banner { padding: 18px 44px 20px; }
+      .hero-banner .hero-subtitle { font-size: 13px; margin-top: 8px; }
 
       .hero-inner {
         padding: 40px 16px;

@@ -134,6 +134,7 @@
       title: 'Email Login', sub: 'Log in to save and revisit your readings and reports.',
       email: 'Enter your email', send: 'Get code',
       code: 'Enter the code from your email', login: 'Log in', back: '← Use another email',
+      google: 'Continue with Google', or: '— or —',
       badEmail: 'Please enter a valid email', sending: 'Sending code…',
       sent: function (m) { return 'Code sent to ' + m + ' (check spam too)'; },
       sendFail: function (m) { return 'Failed to send: ' + m; }, retry: 'please try again',
@@ -142,6 +143,7 @@
       title: '邮箱登录', sub: '登录后可保存并随时查看你的占卜与命理记录',
       email: '输入你的邮箱', send: '获取验证码',
       code: '输入邮箱收到的验证码', login: '登录', back: '← 换个邮箱',
+      google: '使用 Google 账号登录', or: '— 或用邮箱验证码 —',
       badEmail: '请输入正确的邮箱', sending: '正在发送验证码…',
       sent: function (m) { return '验证码已发送到 ' + m + '，请查收（含垃圾箱）'; },
       sendFail: function (m) { return '发送失败：' + m; }, retry: '请稍后重试',
@@ -155,6 +157,11 @@
         <h3>${L.title}</h3>
         <p class="sub">${L.sub}</p>
         <div id="yz-step1">
+          <button class="yz-btn" id="yz-google" style="background:#fff;color:#1f2937;border:1.5px solid #d1d5db;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;">
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.3 6.1 29.4 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.7-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.3 6.1 29.4 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C36.9 39.2 44 34 44 24c0-1.3-.1-2.7-.4-3.9z"/></svg>
+            ${L.google}
+          </button>
+          <div style="font-size:12px;color:#94a3b8;margin:2px 0 10px;">${L.or}</div>
           <input class="yz-inp" id="yz-email" type="email" placeholder="${L.email}" autocomplete="email">
           <button class="yz-btn" id="yz-send">${L.send}</button>
         </div>
@@ -184,6 +191,10 @@
       } catch (e) { msg(L.sendFail(e.message || L.retry)); }
       $('yz-send').disabled = false;
     };
+    $('yz-google').onclick = () => {
+      const back = location.origin + location.pathname + location.search;
+      location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(back);
+    };
     $('yz-send').onclick = () => {
       email = ($('yz-email').value || '').trim();
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg(L.badEmail); return; }
@@ -201,6 +212,30 @@
       } catch (e) { msg(e.message || L.codeErr); $('yz-verify').disabled = false; }
     };
   }
+
+  // Google OAuth 跳回：URL hash 里带 access_token，解析并建立会话
+  (function handleOAuthHash() {
+    try {
+      if (!location.hash || location.hash.indexOf('access_token=') === -1) return;
+      const h = new URLSearchParams(location.hash.slice(1));
+      const at = h.get('access_token');
+      const rt = h.get('refresh_token') || '';
+      const ein = Number(h.get('expires_in') || 3600);
+      if (!at) return;
+      fetch(SUPABASE_URL + '/auth/v1/user', { headers: { apikey: ANON, Authorization: 'Bearer ' + at } })
+        .then((r) => r.json())
+        .then((u) => {
+          setSession({
+            access_token: at, refresh_token: rt,
+            expires_at: Math.floor(Date.now() / 1000) + ein,
+            email: (u && u.email) || '', user_id: u && u.id,
+          });
+          history.replaceState(null, '', location.pathname + location.search);
+          location.reload();
+        })
+        .catch(() => {});
+    } catch (e) {}
+  })();
 
   window.YZAuth = {
     isLoggedIn, currentEmail, getSession, signOut, openLogin,
