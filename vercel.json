@@ -79,6 +79,21 @@
       "source": "/:path(bazi-caiyun|bazi-hunyin|bazi-quant|bazi-shiye|buzhidao-shichen|dayun-fenxi|fengshui|hepan|jiaju-fengshui|liunian-yunshi|qiming|shenme-shihou-you-shouru|shihe-chuangye-ma|shihe-shenme-gongzuo|zhanbu).html",
       "destination": "/tengyunzi-report.html#reading-form",
       "permanent": true
+    },
+    {
+      "source": "/:path(result|payment-success|payment-fallback).html",
+      "destination": "/tengyunzi-report.html",
+      "permanent": false
+    },
+    {
+      "source": "/order-recovery.html",
+      "destination": "/tengyunzi-account.html",
+      "permanent": false
+    },
+    {
+      "source": "/:path(support-orders|support-manual-order|copy-agent).html",
+      "destination": "/tengyunzi-admin.html",
+      "permanent": true
     }
   ],
   "headers": [
@@ -95,7 +110,7 @@
       ]
     },
     {
-      "source": "/:path(result|payment-fallback|payment-success|order-recovery|support-orders|support-manual-order|support-newsletter|copy-agent).html",
+      "source": "/support-newsletter.html",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
         { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
@@ -110,13 +125,6 @@
     },
     {
       "source": "/:path(tengyunzi-admin|tengyunzi-account|tengyunzi-order-success).html",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
-        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
-      ]
-    },
-    {
-      "source": "/order-recovery.html",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
         { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }

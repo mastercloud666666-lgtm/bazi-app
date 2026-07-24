@@ -560,12 +560,9 @@ Deno.serve(async (req) => {
       if (!amount) return json({ error: 'invalid_payment_option' }, 400);
 
       const token = await ppToken();
-      const tengyunziAi = isTengyunziAiBirth(birth);
-      const retPage = service === 'zhanbu'
-        ? 'zhanbu.html'
-        : (service === 'tengyunzi_manual'
-          ? 'tengyunzi-order-success.html'
-          : (tengyunziAi ? 'tengyunzi-report.html' : 'result.html'));
+      const retPage = service === 'tengyunzi_manual'
+        ? 'tengyunzi-order-success.html'
+        : 'tengyunzi-report.html';
       const returnUrl = `${origin}/${retPage}?trade_no=${encodeURIComponent(tradeNo)}&pp=1`;
       const cancelUrl = `${origin}/${retPage}?trade_no=${encodeURIComponent(tradeNo)}&pp=cancel`;
       const res = await fetch(`${PP_BASE}/v2/checkout/orders`, {
@@ -576,10 +573,10 @@ Deno.serve(async (req) => {
           purchase_units: [{
             amount: { currency_code: 'USD', value: amount },
             custom_id: tradeNo,
-            description: `${service === 'tengyunzi_manual' || tengyunziAi ? 'Tengyunzi' : 'Yunzi'} report ${priceKey}`,
+            description: `Tengyunzi report ${priceKey}`,
           }],
           application_context: {
-            brand_name: service === 'tengyunzi_manual' || tengyunziAi ? 'Tengyunzi' : 'Yunzi Culture',
+            brand_name: 'Tengyunzi',
             user_action: 'PAY_NOW',
             shipping_preference: 'NO_SHIPPING',
             return_url: returnUrl,
@@ -770,7 +767,7 @@ Deno.serve(async (req) => {
       const requestedReturnPath = asString(body.return_path).replace(/^\/+/, '');
       const returnPage = requestedReturnPath === 'tengyunzi-newsletter.html' && isDailyAlmanacBirth(subscriptionBirth)
         ? requestedReturnPath
-        : (isDailyAlmanacBirth(subscriptionBirth) ? 'tengyunzi-newsletter.html' : 'member.html');
+        : (isDailyAlmanacBirth(subscriptionBirth) ? 'tengyunzi-newsletter.html' : 'tengyunzi-account.html');
 
       const token = await ppToken();
       const returnUrl = `${origin}/${returnPage}?trade_no=${encodeURIComponent(tradeNo)}&pp_sub=1`;

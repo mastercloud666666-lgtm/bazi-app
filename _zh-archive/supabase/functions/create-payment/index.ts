@@ -415,16 +415,21 @@ function resolveReturnOrigin(req: Request, fallbackOrigin: string): string {
   return fallbackOrigin;
 }
 
-function resolveReturnPath(value: unknown): '/payment-fallback.html' | '/result.html' | '/hepan.html' | '/index.html' | '/upgrade.html' | '/member.html' | '/zhanbu.html' {
+// English-only site: the Chinese result/fallback/member pages have been retired.
+// Legacy paths are accepted and mapped forward so in-flight orders created before
+// the migration still land somewhere valid instead of 404-ing.
+type ReturnPath = '/tengyunzi-report.html' | '/tengyunzi-order-success.html' | '/tengyunzi-account.html' | '/index.html';
+
+function resolveReturnPath(value: unknown): ReturnPath {
   const path = String(value || '').trim();
-  if (path === '/payment-fallback.html') return '/payment-fallback.html';
-  if (path === '/hepan.html') return '/hepan.html';
+  if (path === '/tengyunzi-report.html') return '/tengyunzi-report.html';
+  if (path === '/tengyunzi-order-success.html') return '/tengyunzi-order-success.html';
+  if (path === '/tengyunzi-account.html') return '/tengyunzi-account.html';
   if (path === '/index.html') return '/index.html';
-  if (path === '/result.html') return '/result.html';
-  if (path === '/upgrade.html') return '/upgrade.html';
-  if (path === '/member.html') return '/member.html';
-  if (path === '/zhanbu.html') return '/zhanbu.html';
-  return '/payment-fallback.html';
+  // legacy Chinese paths -> English equivalents
+  if (path === '/result.html' || path === '/hepan.html' || path === '/zhanbu.html') return '/tengyunzi-report.html';
+  if (path === '/member.html' || path === '/upgrade.html') return '/tengyunzi-account.html';
+  return '/tengyunzi-order-success.html';
 }
 
 // Pure JS MD5 implementation (Web Crypto API does not support MD5)

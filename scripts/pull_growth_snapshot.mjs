@@ -2,8 +2,10 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-const DEFAULT_BASE_URL = 'https://tengyunzi.com';
-const DEFAULT_APP_JS_PATH = 'public/js/app.js';
+const DEFAULT_BASE_URL = 'https://www.tengyunzi.com';
+// Supabase credentials are read from env first; this file is only the fallback.
+// It used to be the (now retired) Chinese public/js/app.js.
+const DEFAULT_CONFIG_JS_PATH = 'public/js/site-visit-tracker.js';
 const DEFAULT_OUTPUT_PATH = 'data/growth_snapshot.json';
 const DEFAULT_TIMEOUT_MS = Number(process.env.GROWTH_PULL_TIMEOUT_MS || 30000);
 const BOT_UA_RE = /(bot|spider|crawler|headless|python-requests|curl|wget|httpclient|scrapy)/i;
@@ -38,9 +40,9 @@ function ratioPct(num, den) {
   return Number(((Number(num || 0) / Number(den || 0)) * 100).toFixed(2));
 }
 
-function parseSupabaseConfigFromAppJs(appJsText) {
-  const urlMatch = appJsText.match(/const\s+SUPABASE_URL\s*=\s*'([^']+)'/);
-  const anonMatch = appJsText.match(/const\s+SUPABASE_ANON\s*=\s*'([^']+)'/);
+function parseSupabaseConfigFromJs(jsText) {
+  const urlMatch = jsText.match(/const\s+SUPABASE_URL\s*=\s*'([^']+)'/);
+  const anonMatch = jsText.match(/const\s+SUPABASE_ANON\s*=\s*'([^']+)'/);
   return {
     supabaseUrl: urlMatch?.[1] || '',
     supabaseAnon: anonMatch?.[1] || '',
@@ -482,7 +484,7 @@ async function run() {
   await loadEnvFiles(['.env.local', '.env']);
 
   const baseUrl = normalizeBaseUrl(process.env.BASE_URL);
-  const appJsPath = process.env.APP_JS_PATH || DEFAULT_APP_JS_PATH;
+  const configJsPath = process.env.CONFIG_JS_PATH || process.env.APP_JS_PATH || DEFAULT_CONFIG_JS_PATH;
   const outputPath = process.env.GROWTH_OUTPUT_PATH || DEFAULT_OUTPUT_PATH;
   const adminToken = String(process.env.ADMIN_DASHBOARD_TOKEN || '').trim();
   const serviceRoleKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
@@ -490,14 +492,14 @@ async function run() {
   let supabaseUrl = String(process.env.SUPABASE_URL || '').trim();
   let supabaseAnon = String(process.env.SUPABASE_ANON || '').trim();
   if (!supabaseUrl || !supabaseAnon) {
-    const appJsText = await fs.readFile(appJsPath, 'utf8');
-    const parsed = parseSupabaseConfigFromAppJs(appJsText);
+    const configJsText = await fs.readFile(configJsPath, 'utf8');
+    const parsed = parseSupabaseConfigFromJs(configJsText);
     supabaseUrl = supabaseUrl || parsed.supabaseUrl;
     supabaseAnon = supabaseAnon || parsed.supabaseAnon;
   }
 
   if (!supabaseUrl) {
-    throw new Error('Missing SUPABASE_URL (env or app.js)');
+    throw new Error(`Missing SUPABASE_URL (env or ${configJsPath})`);
   }
   if (!supabaseAnon) {
     throw new Error('Missing SUPABASE_ANON (env or app.js)');

@@ -48,11 +48,13 @@
     return sanitizeTesterId(safeGetStorage(TESTER_ID_KEY, 'local'));
   }
 
+  // English-only site. Kept tolerant of a stray lang attribute, but 'en' is the default
+  // so a missing/malformed lang never mislabels a visit as Chinese.
   function guessLang() {
     const lang = String(document.documentElement.getAttribute('lang') || '').toLowerCase();
     if (lang.includes('zh-hant') || lang.includes('zh-tw') || lang.includes('zh-hk')) return 'zh-Hant';
-    if (lang.startsWith('en')) return 'en';
-    return 'zh-Hans';
+    if (lang.startsWith('zh')) return 'zh-Hans';
+    return 'en';
   }
 
   function buildPayload() {

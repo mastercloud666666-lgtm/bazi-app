@@ -3,63 +3,27 @@
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
   const STORAGE_KEY = 'tengyunzi_newsletter_email_v1';
 
+  // English-only site. The zh-Hans / zh-Hant variants were removed along with the
+  // language switcher (site-lang.js); currentLang() had already been pinned to 'en'.
   const COPY = {
-    en: {
-      eyebrow: 'Free Daily Almanac',
-      title: 'Start each day with the Chinese calendar',
-      body: 'A free daily email with the lunar date, daily pillars, solar term, supportive activities, cautions, clash, and traditional directions.',
-      bullet1: 'General calendar, no birth date needed',
-      bullet2: 'Delivered free each morning',
-      bullet3: 'Stop from any email',
-      placeholder: 'Enter your email',
-      button: 'Get Daily Almanac',
-      consent: 'I agree to receive the free Tengyunzi Daily Almanac and can stop it anytime.',
-      success: 'Your free Daily Almanac is set for the next morning delivery.',
-      duplicate: 'Your Daily Almanac subscription is already active.',
-      invalid: 'Please enter a valid email address.',
-      error: 'Signup failed. Please try again in a moment.',
-      saved: 'Saved',
-    },
-    'zh-Hans': {
-      eyebrow: '滕云子来信',
-      title: '用东方哲学理解自己，设计更适合的人生',
-      body: '每周一封信，用八字、五行、易经与时机观，讲清楚性格模式、人生节律和现代人的自我成长。',
-      bullet1: '看清你的天赋与能量结构',
-      bullet2: '先理解时机，再决定行动',
-      bullet3: '把人生设计得更顺自己的本性',
-      placeholder: '输入你的邮箱',
-      button: '订阅来信',
-      consent: '我同意接收滕云子邮件，并可随时退订。',
-      success: '已订阅。下一封来信会发送到你的邮箱。',
-      duplicate: '你已经在订阅名单中。',
-      invalid: '请输入有效邮箱。',
-      error: '订阅失败，请稍后再试。',
-      saved: '已保存',
-    },
-    'zh-Hant': {
-      eyebrow: '滕雲子來信',
-      title: '用東方哲學理解自己，設計更適合的人生',
-      body: '每週一封信，用八字、五行、易經與時機觀，講清楚性格模式、人生節律和現代人的自我成長。',
-      bullet1: '看清你的天賦與能量結構',
-      bullet2: '先理解時機，再決定行動',
-      bullet3: '把人生設計得更順自己的本性',
-      placeholder: '輸入你的郵箱',
-      button: '訂閱來信',
-      consent: '我同意接收滕雲子郵件，並可隨時退訂。',
-      success: '已訂閱。下一封來信會發送到你的郵箱。',
-      duplicate: '你已經在訂閱名單中。',
-      invalid: '請輸入有效郵箱。',
-      error: '訂閱失敗，請稍後再試。',
-      saved: '已保存',
-    },
+    eyebrow: 'Free Daily Almanac',
+    title: 'Start each day with the Chinese calendar',
+    body: 'A free daily email with the lunar date, daily pillars, solar term, supportive activities, cautions, clash, and traditional directions.',
+    bullet1: 'General calendar, no birth date needed',
+    bullet2: 'Delivered free each morning',
+    bullet3: 'Stop from any email',
+    placeholder: 'Enter your email',
+    button: 'Get Daily Almanac',
+    consent: 'I agree to receive the free Tengyunzi Daily Almanac and can stop it anytime.',
+    success: 'Your free Daily Almanac is set for the next morning delivery.',
+    duplicate: 'Your Daily Almanac subscription is already active.',
+    invalid: 'Please enter a valid email address.',
+    error: 'Signup failed. Please try again in a moment.',
+    saved: 'Saved',
   };
 
-  function currentLang() {
-    return 'en';
-  }
-
   function text() {
-    return COPY[currentLang()];
+    return COPY;
   }
 
   function escapeHtml(value) {
@@ -259,7 +223,7 @@
   function basePayload(source) {
     return {
       source: source || 'website',
-      language: currentLang(),
+      language: 'en',
       page_path: window.location.pathname || '/',
       landing_url: String(window.location.href || '').slice(0, 500),
       referrer: String(document.referrer || '').slice(0, 500),
@@ -471,12 +435,6 @@
     renderAll();
     handleUnsubscribeLink();
   }
-
-  document.addEventListener('change', function (event) {
-    if (event.target && event.target.id === 'site-lang-select') {
-      setTimeout(renderAll, 0);
-    }
-  });
 
   window.YZNewsletter = { renderAll, subscribe, unsubscribe, isValidEmail: emailIsValid };
 })();

@@ -1915,10 +1915,10 @@ async function createPdfSignedUrl(
 
 function buildResumeLinks(siteOrigin: string, tradeNo: string, service: 'pdf' | 'hepan' | 'bazi', birth: JsonRecord) {
   const encodedTradeNo = encodeURIComponent(tradeNo);
-  const defaultResultUrl = `${siteOrigin}/result.html?trade_no=${encodedTradeNo}&paid=true`;
-  const hepanResultUrl = `${siteOrigin}/hepan.html?trade_no=${encodedTradeNo}`;
+  // English-only site: result.html / hepan.html are retired, everything resumes on the
+  // English report page. `service` is kept in the signature for legacy call sites.
+  const resultUrl = `${siteOrigin}/tengyunzi-report.html?trade_no=${encodedTradeNo}&paid=true`;
   const pdfResumeUrl = `${siteOrigin}/index.html?pdf_paid=1&trade_no=${encodedTradeNo}`;
-  const resultUrl = service === 'hepan' ? hepanResultUrl : defaultResultUrl;
   const resumeUrl = service === 'pdf' ? pdfResumeUrl : resultUrl;
 
   return {
