@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tengyunzi AI BaZi Report 8B3128B6 - V3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&family=Noto+Serif:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>:root {
+  --navy: #0b2943;
+  --navy-2: #123f63;
+  --blue: #2478b5;
+  --blue-soft: #eaf4fb;
+  --sky: #d9ecf8;
+  --paper: #fbfdff;
+  --white: #ffffff;
+  --ink: #17364f;
+  --muted: #5d7183;
+  --line: #cddde8;
+  --wood: #398064;
+  --fire: #c65d4b;
+  --earth: #aa823f;
+  --metal: #73839a;
+  --water: #2478b5;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+html, body { margin: 0; background: #dfe8ee; color: var(--ink); font-family: "Noto Sans", sans-serif; }
+body { padding: 20px 0; }
+.report-book { width: 210mm; margin: 0 auto; }
+.pdf-page {
+  position: relative;
+  width: 210mm;
+  height: 297mm;
+  overflow: hidden;
+  break-after: page;
+  page-break-after: always;
+  background: var(--paper);
+  padding: 18mm 18mm 16mm;
+  box-shadow: 0 2px 8px rgba(11, 41, 67, .16);
+}
+.pdf-page + .pdf-page { margin-top: 18px; }
+.pdf-page footer { position: absolute; left: 18mm; right: 18mm; bottom: 8mm; display: flex; justify-content: space-between; align-items: center; color: #688093; font-size: 7.5pt; font-weight: 700; }
+.page-topline { display: flex; justify-content: space-between; padding-bottom: 4mm; border-bottom: 1px solid var(--line); color: var(--blue); font-size: 7.5pt; font-weight: 800; }
+h1, h2, h3, p { margin-top: 0; }
+h1, h2, h3 { color: var(--navy); font-family: "Noto Serif", serif; text-wrap: balance; }
+p { color: var(--ink); font-size: 10pt; line-height: 1.64; text-wrap: pretty; }
+
+.cover { background: var(--navy); color: white; padding: 19mm 18mm 15mm; }
+.cover::before { content: ""; position: absolute; inset: 0 0 auto auto; width: 86mm; height: 86mm; background: var(--blue); clip-path: polygon(32% 0,100% 0,100% 100%,0 100%); opacity: .18; }
+.cover::after { content: ""; position: absolute; left: 18mm; right: 18mm; top: 34mm; border-top: 1px solid rgba(255,255,255,.25); }
+.cover-mark { width: 13mm; height: 13mm; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.65); font-family: "Noto Serif", serif; font-weight: 900; }
+.cover-title { position: absolute; left: 18mm; top: 58mm; width: 118mm; }
+.cover-title > span, .overview-head span, .energy-page header > span, .closing span { color: #8fd1f4; font-size: 8pt; font-weight: 800; }
+.cover-title h1 { margin: 5mm 0 7mm; color: white; font-size: 34pt; line-height: 1.08; letter-spacing: 0; }
+.cover-title p { width: 102mm; color: #d7e6ef; font-size: 12pt; line-height: 1.6; }
+.cover-orbit { position: absolute; right: 17mm; top: 96mm; width: 58mm; height: 58mm; display: grid; place-items: center; border: 1px solid rgba(143,209,244,.46); border-radius: 50%; }
+.cover-orbit::before, .cover-orbit::after, .cover-orbit i { content: ""; position: absolute; border: 1px solid rgba(143,209,244,.25); border-radius: 50%; }
+.cover-orbit::before { inset: 7mm; }.cover-orbit::after { inset: 14mm; }.cover-orbit i:nth-child(1) { inset: 22mm; background: rgba(143,209,244,.12); }
+.cover-orbit i:nth-child(2) { left: 50%; top: -2mm; bottom: -2mm; border-radius: 0; border-width: 0 0 0 1px; }
+.cover-orbit i:nth-child(3) { top: 50%; left: -2mm; right: -2mm; border-radius: 0; border-width: 1px 0 0; }
+.cover-orbit strong { z-index: 1; color: white; font-family: "Noto Serif", serif; font-size: 18pt; }
+.cover-meta { position: absolute; left: 18mm; right: 18mm; bottom: 30mm; display: grid; grid-template-columns: 1fr 1.25fr .8fr; gap: 8mm; padding-top: 6mm; border-top: 1px solid rgba(255,255,255,.25); }
+.cover-meta div { display: grid; gap: 2mm; }.cover-meta dt { color: #8fd1f4; font-size: 7.5pt; font-weight: 800; }.cover-meta dd { margin: 0; color: white; font-size: 9pt; line-height: 1.45; }
+.cover footer { color: rgba(255,255,255,.65); }
+
+.overview-head { display: grid; grid-template-columns: 1.12fr .88fr; gap: 18mm; align-items: end; margin: 13mm 0 10mm; }
+.overview-head h2 { margin: 3mm 0 0; font-size: 27pt; line-height: 1.16; }
+.overview-head p { margin-bottom: 1mm; color: var(--muted); font-size: 10.5pt; }
+.overview-grid { display: grid; gap: 9mm; }
+.pillars-panel { padding: 8mm; background: var(--white); border-top: 3px solid var(--blue); }
+.pillars-panel h3 { font-size: 13pt; }
+.pillar-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 3mm; }
+.pillar-card { display: grid; grid-template-rows: auto 1fr 1fr auto; min-height: 58mm; border: 1px solid var(--line); text-align: center; background: #f7fbfe; }
+.pillar-card > span { padding: 3mm; background: var(--blue-soft); color: var(--muted); font-size: 7pt; font-weight: 800; }
+.pillar-card strong { display: grid; place-items: center; color: var(--navy); font-family: "Noto Serif", serif; font-size: 23pt; }
+.pillar-card strong + strong { border-top: 1px solid var(--line); }
+.pillar-card small { padding: 2.5mm; border-top: 1px solid var(--line); color: var(--muted); font-size: 7.5pt; }
+.unknown-note { margin: 5mm 0 0; padding: 4mm 5mm; background: var(--blue-soft); color: #365a74; font-size: 8.5pt; }
+.signal-panel { display: grid; grid-template-columns: repeat(3,1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.signal-panel div { min-height: 45mm; display: flex; flex-direction: column; justify-content: center; padding: 7mm; border-right: 1px solid var(--line); }.signal-panel div:last-child { border-right: 0; }
+.signal-panel span { color: var(--blue); font-size: 7pt; font-weight: 800; }.signal-panel strong { margin: 3mm 0 1mm; color: var(--navy); font-family: "Noto Serif", serif; font-size: 21pt; }.signal-panel small { color: var(--muted); font-size: 8pt; }
+.signal-panel.four-up { grid-template-columns: repeat(4, 1fr); }
+.signal-panel.four-up div { min-height: 39mm; padding: 5mm; }
+.signal-panel.four-up strong { font-size: 17pt; }
+
+.energy-page header { max-width: 142mm; margin: 12mm 0 8mm; }
+.energy-page h2 { margin: 3mm 0; font-size: 26pt; }.energy-page header p { color: var(--muted); }
+.energy-layout { display: grid; grid-template-columns: .95fr 1.05fr; gap: 6mm; height: 91mm; }
+.chart { width: 100%; min-height: 68mm; background: var(--white); }
+.energy-legend { margin-top: 8mm; display: grid; grid-template-columns: repeat(2,1fr); gap: 3mm 8mm; }
+.energy-legend div { display: grid; grid-template-columns: 4mm 1fr; column-gap: 3mm; padding: 3.2mm 0; border-bottom: 1px solid var(--line); }
+.energy-legend i { width: 3mm; height: 3mm; margin-top: 1mm; border-radius: 50%; }.energy-legend strong { font-size: 8.5pt; }.energy-legend span { grid-column: 2; color: var(--muted); font-size: 7.5pt; }
+.energy-legend .wood{background:var(--wood)}.energy-legend .fire{background:var(--fire)}.energy-legend .earth{background:var(--earth)}.energy-legend .metal{background:var(--metal)}.energy-legend .water{background:var(--water)}
+
+.wx-wood { color: var(--wood) !important; }
+.wx-fire { color: var(--fire) !important; }
+.wx-earth { color: var(--earth) !important; }
+.wx-metal { color: var(--metal) !important; }
+.wx-water { color: var(--water) !important; }
+
+.ten-gods-page header { display: grid; grid-template-columns: 1fr .82fr; gap: 13mm; align-items: end; margin: 12mm 0 9mm; }
+.ten-gods-page header > span { grid-column: 1 / -1; color: var(--blue); font-size: 8pt; font-weight: 800; }
+.ten-gods-page header h2 { margin: -1mm 0 0; font-size: 25pt; line-height: 1.16; }
+.ten-gods-page header p { margin: 0; color: var(--muted); font-size: 9pt; }
+.ten-god-table { border-top: 2px solid var(--blue); }
+.ten-god-row { min-height: 13.5mm; display: grid; grid-template-columns: 39mm 1fr 11mm 54mm; gap: 4mm; align-items: center; border-bottom: 1px solid var(--line); }
+.ten-god-name { display: grid; grid-template-columns: 12mm 1fr; align-items: baseline; }.ten-god-name strong { color: var(--navy); font-family: "Noto Serif", serif; font-size: 12pt; }.ten-god-name span { color: var(--ink); font-size: 8pt; font-weight: 700; }
+.ten-god-meter { height: 4mm; overflow: hidden; background: #e8f0f5; }.ten-god-meter i { display: block; height: 100%; background: currentColor; }
+.ten-god-row > b { color: var(--navy); font-size: 8pt; text-align: right; }.ten-god-row > small { display: grid; gap: 1mm; color: var(--muted); font-size: 7.3pt; line-height: 1.35; }
+.ten-god-row > small em { color: var(--blue); font-size: 6.2pt; font-style: normal; font-weight: 800; }
+.ten-god-note { display: grid; grid-template-columns: 34mm 1fr; gap: 7mm; margin-top: 6mm; padding: 5mm 6mm; background: var(--blue-soft); }.ten-god-note strong { color: var(--blue); font-size: 8pt; }.ten-god-note p { margin: 0; font-size: 8.3pt; }
+
+.shen-sha-page header { display: grid; grid-template-columns: 1fr .82fr; gap: 13mm; align-items: end; margin: 12mm 0 9mm; }
+.shen-sha-page header > span { grid-column: 1 / -1; color: var(--blue); font-size: 8pt; font-weight: 800; }
+.shen-sha-page header h2 { margin: -1mm 0 0; font-size: 25pt; line-height: 1.16; }
+.shen-sha-page header p { margin: 0; color: var(--muted); font-size: 8.6pt; }
+.shen-sha-table { width: 100%; border-collapse: collapse; border-top: 2px solid var(--blue); table-layout: fixed; }
+.shen-sha-table th { padding: 3mm 2.5mm; background: var(--blue-soft); color: var(--blue); font-size: 6.5pt; text-align: left; text-transform: uppercase; }
+.shen-sha-table th:nth-child(1) { width: 38mm; }.shen-sha-table th:nth-child(2) { width: 27mm; }.shen-sha-table th:nth-child(3) { width: 27mm; }
+.shen-sha-table td { padding: 3mm 2.5mm; border-bottom: 1px solid var(--line); color: var(--ink); font-size: 7.2pt; line-height: 1.38; vertical-align: top; }
+.shen-sha-table td:first-child strong { display: block; color: var(--navy); font-family: "Noto Serif", serif; font-size: 10.5pt; }.shen-sha-table td:first-child span, .shen-sha-table td:nth-child(2) span { display: block; margin-top: .8mm; color: var(--muted); font-size: 6.5pt; }
+.shen-sha-table td:nth-child(2) b { color: var(--blue); font-size: 6.5pt; }.shen-sha-table td:nth-child(2) span { color: var(--navy); font-family: "Noto Serif", serif; font-size: 11pt; font-weight: 800; }
+.shen-sha-note { display: grid; grid-template-columns: 38mm 1fr; gap: 7mm; margin-top: 7mm; padding: 5mm 6mm; background: var(--navy); }.shen-sha-note strong { color: #8fd1f4; font-size: 7.5pt; }.shen-sha-note p { margin: 0; color: #d7e6ef; font-size: 7.6pt; line-height: 1.5; }
+
+.contents header { margin: 12mm 0 8mm; }.contents h2 { margin-bottom: 3mm; font-size: 27pt; }.contents header p { color: var(--muted); }
+.contents ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2,1fr); column-gap: 10mm; }
+.contents li { min-height: 14mm; display: grid; grid-template-columns: 8mm 1fr; column-gap: 3mm; align-content: center; border-bottom: 1px solid var(--line); }
+.contents li > span { color: var(--blue); font-family: "Noto Serif", serif; font-size: 9pt; font-weight: 800; }.contents li a { display: grid; gap: .5mm; color: inherit; text-decoration: none; }.contents li strong { color: var(--navy); font-size: 8.5pt; }.contents li small { color: var(--muted); font-size: 6.6pt; font-weight: 700; }
+
+.section-layout { display: grid; grid-template-columns: 21mm 1fr; gap: 8mm; margin-top: 11mm; }
+.section-index { min-height: 178mm; border-right: 1px solid var(--line); }.section-index span { display: block; color: var(--blue); font-family: "Noto Serif", serif; font-size: 27pt; font-weight: 800; }.section-index small { display: block; width: 19mm; margin-top: 3mm; color: var(--muted); font-size: 7pt; font-weight: 800; line-height: 1.4; }
+.section-content h2 { max-width: 132mm; margin: 0 0 5mm; font-size: 22pt; line-height: 1.16; }
+.core-insight { margin-bottom: 4mm; padding: 4.5mm 5mm; background: var(--navy); }
+.core-insight span { display: block; margin-bottom: 1.5mm; color: #8fd1f4; font-size: 6.2pt; font-weight: 800; }
+.core-insight p { margin: 0; color: white; font-family: "Noto Serif", serif; font-size: 10.2pt; font-weight: 700; line-height: 1.48; }
+.chart-basis { display: grid; grid-template-columns: 25mm 1fr; gap: 4mm; margin-bottom: 4mm; padding-bottom: 3mm; border-bottom: 1px solid var(--line); }
+.chart-basis strong { color: var(--blue); font-size: 7pt; }.chart-basis span { color: var(--muted); font-size: 7.4pt; line-height: 1.45; }
+.section-copy { columns: 2; column-gap: 7mm; column-rule: 1px solid var(--line); }
+.section-copy p { margin-bottom: 3mm; color: #25435a; font-size: 8.15pt; line-height: 1.52; break-inside: avoid; }
+.section-page.dense .section-copy p { font-size: 7.75pt; line-height: 1.46; }
+.section-page.extra-dense .section-copy p { font-size: 7.3pt; line-height: 1.4; }
+.practice-panel { display: grid; grid-template-columns: 1.08fr .92fr; gap: 5mm; margin-top: 4mm; padding-top: 4mm; border-top: 2px solid var(--blue); }
+.practice-panel > div { display: grid; align-content: start; gap: 1.5mm; }
+.practice-panel strong { color: var(--navy); font-size: 7.3pt; }
+.practice-panel span { position: relative; padding-left: 4mm; color: var(--ink); font-size: 7pt; line-height: 1.35; }
+.practice-panel span::before { content: ""; position: absolute; left: 0; top: 1.7mm; width: 2mm; border-top: 2px solid var(--blue); }
+.practice-panel p { margin: 0; color: var(--muted); font-size: 7.2pt; font-style: italic; line-height: 1.45; }
+.section-page .chart-wide { height: 54mm; min-height: 54mm; margin: -1mm 0 6mm; }
+.section-page .timeline-chart { height: 56mm; min-height: 56mm; margin: -1mm 0 6mm; }
+.section-page blockquote { margin: 2mm 0 8mm; padding: 6mm; background: var(--navy); color: white; font-family: "Noto Serif", serif; font-size: 16pt; line-height: 1.45; }
+.rhythm-strip { display: grid; grid-template-columns: repeat(3,1fr); margin: 0 0 7mm; border-top: 2px solid var(--blue); border-bottom: 1px solid var(--line); }
+.rhythm-strip div { padding: 4mm 3mm; border-right: 1px solid var(--line); }.rhythm-strip div:last-child{border-right:0}.rhythm-strip span { color: var(--blue); font-size: 6.5pt; font-weight: 800; }.rhythm-strip strong { display: block; margin: 2mm 0 1mm; color: var(--navy); font-size: 9pt; }.rhythm-strip small { color: var(--muted); font-size: 6.8pt; line-height: 1.35; }
+
+.timing-atlas header { display: grid; grid-template-columns: 1.16fr .84fr; gap: 12mm; align-items: end; margin: 10mm 0 8mm; }
+.timing-atlas header > span { grid-column: 1 / -1; color: var(--blue); font-size: 8pt; font-weight: 800; }.timing-atlas header h2 { margin: -1mm 0 0; font-size: 23pt; line-height: 1.15; }.timing-atlas header p { margin: 0; color: var(--muted); font-size: 8.8pt; }
+.timing-atlas h3 { margin: 0 0 4mm; font-family: "Noto Sans", sans-serif; font-size: 9pt; }
+.cycle-section { padding-top: 5mm; border-top: 2px solid var(--blue); }
+.cycle-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; }
+.cycle { position: relative; min-height: 39mm; display: grid; align-content: start; gap: 2mm; padding: 4mm; background: #f1f6f9; border-top: 2px solid #aebfca; }
+.cycle.is-current { background: var(--navy); border-top-color: #7dcbf1; }.cycle-state { color: var(--blue); font-size: 6.2pt; font-weight: 800; }.cycle.is-current .cycle-state { color: #8fd1f4; }
+.colored-ganzhi { display: inline-flex; gap: 1.5mm; font-family: "Noto Serif", serif; font-size: 18pt; font-weight: 900; line-height: 1; }.colored-ganzhi i { font-style: normal; }.cycle.is-current .colored-ganzhi i { filter: brightness(1.35) saturate(.8); }
+.cycle > strong { color: var(--navy); font-size: 7.3pt; }.cycle.is-current > strong { color: white; }.cycle > small { color: var(--muted); font-size: 6.5pt; line-height: 1.35; }.cycle.is-current > small { color: #c9dbe6; }
+.annual-section { display: grid; grid-template-columns: 40mm 1fr; gap: 7mm; margin-top: 9mm; padding-top: 6mm; border-top: 1px solid var(--line); }.annual-section > div:first-child p { color: var(--muted); font-size: 7.5pt; }
+.annual-grid { display: grid; grid-template-columns: repeat(5,1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.annual-year { min-height: 46mm; display: grid; align-content: start; gap: 1.4mm; padding: 3mm 2.5mm; border-right: 1px solid var(--line); }.annual-year:last-child { border-right: 0; }.annual-year.is-now { background: var(--blue-soft); }.annual-year > span { color: var(--blue); font-size: 5.5pt; font-weight: 800; min-height: 3mm; }.annual-year .colored-ganzhi.small { margin: 1mm 0; font-size: 15pt; }.annual-year small { color: var(--muted); font-size: 5.4pt; line-height: 1.25; }.annual-year em { color: var(--ink); font-size: 5.2pt; font-style: normal; line-height: 1.28; }
+.strategy { justify-self: start; padding: .7mm 1.4mm; color: white; background: var(--blue); font-size: 5pt; font-weight: 900; }
+.strategy-steady { background: var(--metal); }.strategy-defend { background: var(--fire); }
+.strategy-key { display: flex; flex-wrap: wrap; gap: 1.2mm; margin-top: 3mm; }.strategy-key span { padding: .7mm 1.3mm; background: var(--blue-soft); color: var(--blue); font-size: 5.2pt; font-weight: 800; }
+
+.method-layout { display: grid; grid-template-columns: .9fr 1.1fr; gap: 12mm; margin-top: 15mm; }.method-layout h2 { font-size: 25pt; }.method-layout > div p { font-size: 9.5pt; }.method-layout dl { margin: 0; }.method-layout dl div { display: grid; grid-template-columns: 10mm 1fr; gap: 3mm; padding: 4mm 0; border-bottom: 1px solid var(--line); }.method-layout dt { color: var(--blue); font-family: "Noto Serif", serif; font-weight: 800; }.method-layout dd { margin: 0; display: grid; gap: 1mm; }.method-layout dd strong { color: var(--navy); font-size: 8.5pt; }.method-layout dd span { color: var(--muted); font-size: 7.5pt; line-height: 1.42; }
+.disclaimer { margin-top: 22mm; padding: 7mm; background: var(--blue-soft); }.disclaimer strong { color: var(--blue); font-size: 8pt; }.disclaimer p { margin: 2mm 0 0; font-size: 9pt; }
+.closing { display: flex; flex-direction: column; justify-content: center; background: var(--navy); color: white; }.closing-mark { position: absolute; top: 18mm; left: 18mm; width: 13mm; height: 13mm; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.55); font-family: "Noto Serif", serif; font-weight: 900; }.closing h2 { margin: 5mm 0; color: white; font-size: 36pt; line-height: 1.12; }.closing p { color: #d7e6ef; font-size: 12pt; }.closing footer { color: rgba(255,255,255,.68); }
+
+@media print {
+  html, body { background: white; }
+  body { padding: 0; }
+  .report-book { margin: 0; }
+  .pdf-page { box-shadow: none; }
+  .pdf-page + .pdf-page { margin-top: 0; }
+}
+
+@page { size: A4; margin: 0; }
+</style>
+</head>
+<body>
+  <main class="report-book">
+    <section class="pdf-page cover" data-page>
+      <div class="cover-mark">TZ</div>
+      <div class="cover-title">
+        <span>24-PART AI BAZI REPORT</span>
+        <h1>Your Pattern<br>of Potential</h1>
+        <p>A 24-part interpretation of character, relationships, work, timing, and personal growth.</p>
+      </div>
+      <div class="cover-orbit" aria-hidden="true"><i></i><i></i><i></i><strong>命</strong></div>
+      <dl class="cover-meta">
+        <div><dt>Birth profile</dt><dd>August 16, 1994</dd></div>
+        <div><dt>Chart</dt><dd>甲戌 / 壬申 / 甲戌 / 壬申</dd></div>
+        <div><dt>Report ID</dt><dd>8B3128B6 · V3<br>July 18, 2026</dd></div>
+      </dl>
+      <footer><span>TENGYUNZI</span><span>CONFIDENTIAL AI-GENERATED REPORT</span></footer>
+    </section>
+
+    <section class="pdf-page overview" data-page>
+      <div class="page-topline"><span>EXECUTIVE VIEW</span><span>AI BAZI REPORT / V3</span></div>
+      <header class="overview-head"><div><span>THE CHART AT A GLANCE</span><h2>Wood at the center.<br>Four forces in dialogue.</h2></div><p>Your visible chart distributes energy across Wood, Earth, Metal, Water. Fire is not visibly emphasized, making conscious replenishment and timing especially important.</p></header>
+      <div class="overview-grid">
+        <div class="pillars-panel">
+          <h3>Four Pillars</h3>
+          <div class="pillar-row">
+            <div class="pillar-card">
+    <span>YEAR</span>
+    <strong class="wx-wood">甲</strong>
+    <strong class="wx-earth">戌</strong>
+    <small>甲戌</small>
+  </div>
+            <div class="pillar-card">
+    <span>MONTH</span>
+    <strong class="wx-water">壬</strong>
+    <strong class="wx-metal">申</strong>
+    <small>壬申</small>
+  </div>
+            <div class="pillar-card">
+    <span>DAY</span>
+    <strong class="wx-wood">甲</strong>
+    <strong class="wx-earth">戌</strong>
+    <small>Day Master</small>
+  </div>
+            <div class="pillar-card">
+    <span>HOUR</span>
+    <strong class="wx-water">壬</strong>
+    <strong class="wx-metal">申</strong>
+    <small>Birth hour</small>
+  </div>
+          </div>
+          <p class="unknown-note">The recorded birth time is 16:00. All four pillars are included in this reading.</p>
+        </div>
+        <div class="signal-panel four-up">
+          <div><span>DAY MASTER</span><strong class="wx-wood">甲</strong><small>Yang Wood</small></div>
+          <div><span>LEADING FUNCTION</span><strong>偏印</strong><small>Indirect Resource · 38%</small></div>
+          <div><span>CURRENT CYCLE</span><strong>己巳</strong><small>2017-2026</small></div>
+          <div><span>CORE POSTURE</span><strong>INTEGRATE</strong><small>Coordinate before expansion</small></div>
+        </div>
+      </div>
+      <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+    </section>
+
+    <section class="pdf-page energy-page" data-page>
+      <div class="page-topline"><span>ELEMENTAL PROFILE</span><span>AI BAZI REPORT / V3</span></div>
+      <header><span>FIVE ELEMENT ENERGY</span><h2>A broad 4-element profile</h2><p>The chart counts visible stems and branches only. Zero does not mean an element is absent from life; it means that function is not visibly emphasized in the natal pillars used here.</p></header>
+      <div class="energy-layout">
+        <div class="chart radar-chart" id="element-radar"></div>
+        <div class="chart bars-chart" id="element-bars"></div>
+      </div>
+      <div class="energy-legend"><div><i class="wood"></i><strong>Wood / Companion</strong><span>Identity, peers, continuity</span></div><div><i class="fire"></i><strong>Fire / Output</strong><span>Expression, craft, production</span></div><div><i class="earth"></i><strong>Earth / Wealth</strong><span>Resources, exchange, stewardship</span></div><div><i class="metal"></i><strong>Metal / Officer</strong><span>Direction, standards, authority</span></div><div><i class="water"></i><strong>Water / Resource</strong><span>Learning, support, replenishment</span></div></div>
+      <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+    </section>
+
+    <section class="pdf-page ten-gods-page" data-page>
+    <div class="page-topline"><span>TEN-GOD PROFILE</span><span>STRUCTURAL EMPHASIS</span></div>
+    <header><span>RELATIONAL ENERGIES</span><h2>How the chart's forces<br>relate to the Day Master</h2><p>This profile combines visible stems with weighted hidden stems. It describes structural emphasis, not a fixed percentage of personality.</p></header>
+    <div class="ten-god-table"><div class="ten-god-row">
+    <div class="ten-god-name"><strong>偏印</strong><span>Indirect Resource</span></div>
+    <div class="ten-god-meter"><i class="wx-water" style="width:38%"></i></div>
+    <b>38%</b>
+    <small><span>Pattern recognition and intuition</span><em>Visible 2.0 · Hidden 0.7</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>偏财</strong><span>Indirect Wealth</span></div>
+    <div class="ten-god-meter"><i class="wx-earth" style="width:19%"></i></div>
+    <b>19%</b>
+    <small><span>Opportunity and flexible exchange</span><em>Visible 0.0 · Hidden 1.3</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>七杀</strong><span>Seven Killings</span></div>
+    <div class="ten-god-meter"><i class="wx-metal" style="width:19%"></i></div>
+    <b>19%</b>
+    <small><span>Pressure, courage, decisive action</span><em>Visible 0.0 · Hidden 1.4</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>比肩</strong><span>Peer</span></div>
+    <div class="ten-god-meter"><i class="wx-wood" style="width:14%"></i></div>
+    <b>14%</b>
+    <small><span>Identity and self-direction</span><em>Visible 1.0 · Hidden 0.0</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>正官</strong><span>Direct Officer</span></div>
+    <div class="ten-god-meter"><i class="wx-metal" style="width:8%"></i></div>
+    <b>8%</b>
+    <small><span>Standards, duty, legitimate authority</span><em>Visible 0.0 · Hidden 0.6</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>伤官</strong><span>Hurting Officer</span></div>
+    <div class="ten-god-meter"><i class="wx-fire" style="width:2%"></i></div>
+    <b>2%</b>
+    <small><span>Originality and challenge</span><em>Visible 0.0 · Hidden 0.2</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>劫财</strong><span>Rob Wealth</span></div>
+    <div class="ten-god-meter"></div>
+    <b>0%</b>
+    <small><span>Competition, alliances, and shared resources</span><em>Visible 0.0 · Hidden 0.0</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>食神</strong><span>Eating God</span></div>
+    <div class="ten-god-meter"></div>
+    <b>0%</b>
+    <small><span>Gentle expression and craft</span><em>Visible 0.0 · Hidden 0.0</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>正财</strong><span>Direct Wealth</span></div>
+    <div class="ten-god-meter"></div>
+    <b>0%</b>
+    <small><span>Steady resources and stewardship</span><em>Visible 0.0 · Hidden 0.0</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>正印</strong><span>Direct Resource</span></div>
+    <div class="ten-god-meter"></div>
+    <b>0%</b>
+    <small><span>Learning, support, restoration</span><em>Visible 0.0 · Hidden 0.0</em></small>
+  </div></div>
+    <div class="ten-god-note"><strong>Reading the scale</strong><p>Percentages use largest-remainder rounding and total exactly 100%. Visible counts come from non-Day stems; hidden scores use weighted branch roots. This is a structural index, not a personality test.</p></div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </section>
+
+    <section class="pdf-page shen-sha-page" data-page>
+    <div class="page-topline"><span>SYMBOLIC-STAR PROFILE</span><span>SECONDARY READING LENS</span></div>
+    <header><span>神煞 / SHEN SHA</span><h2>Markers that add nuance,<br>not fixed outcomes</h2><p>Each marker is calculated from the natal stems and branches. It is interpreted as supporting context and never overrides the Day Master, Five Elements, or Ten-God structure.</p></header>
+    <table class="shen-sha-table"><thead><tr><th>Marker</th><th>Location</th><th>Derived from</th><th>Practical interpretation</th></tr></thead><tbody><tr>
+    <td><strong>华盖</strong><span>Canopy Star</span></td>
+    <td><b>2 PLACEMENTS</b><span>YEAR 戌 · DAY 戌</span></td>
+    <td>Day Pillar + Year Pillar</td>
+    <td>Supports specialist depth, solitude, aesthetics, and the ability to work beyond conventional opinion. Repetition increases emphasis across life contexts.</td>
+  </tr><tr>
+    <td><strong>驿马</strong><span>Travel Horse</span></td>
+    <td><b>2 PLACEMENTS</b><span>MONTH 申 · HOUR 申</span></td>
+    <td>Day Pillar + Year Pillar</td>
+    <td>Adds momentum through movement, changing environments, travel, or roles that resist stagnation. Repetition increases emphasis across life contexts.</td>
+  </tr></tbody></table>
+    <div class="shen-sha-note"><strong>How to read this page</strong><p>A marker describes a recurring symbolic tendency. Repetition can strengthen emphasis, but no single Shen Sha guarantees an event, relationship, or outcome.</p></div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </section>
+
+    <section class="pdf-page contents" data-page>
+      <div class="page-topline"><span>READING MAP</span><span>24-PART INTERPRETATION</span></div>
+      <header><h2>What this report explores</h2><p>Six lenses, moving from the structure of the chart to practical choices and long-term growth.</p></header>
+      <ol><li><span>01</span><a href="#section-1"><strong>Core Elemental Force</strong><small>FOUNDATION</small></a></li><li><span>02</span><a href="#section-2"><strong>Five-Element Balance</strong><small>FOUNDATION</small></a></li><li><span>03</span><a href="#section-3"><strong>Ten-God Structure and Underlying Motivations</strong><small>FOUNDATION</small></a></li><li><span>04</span><a href="#section-4"><strong>Natural Strengths and Talents</strong><small>FOUNDATION</small></a></li><li><span>05</span><a href="#section-5"><strong>Best-Fit Working Style</strong><small>WORK & VALUE</small></a></li><li><span>06</span><a href="#section-6"><strong>How You Create Value</strong><small>WORK & VALUE</small></a></li><li><span>07</span><a href="#section-7"><strong>Fields Where You Can Contribute Best</strong><small>WORK & VALUE</small></a></li><li><span>08</span><a href="#section-8"><strong>Independence and Collaboration</strong><small>WORK & VALUE</small></a></li><li><span>09</span><a href="#section-9"><strong>Emotional Relating Style</strong><small>RELATIONSHIPS</small></a></li><li><span>10</span><a href="#section-10"><strong>Relationship User Manual</strong><small>RELATIONSHIPS</small></a></li><li><span>11</span><a href="#section-11"><strong>Repeating Patterns in Intimacy</strong><small>RELATIONSHIPS</small></a></li><li><span>12</span><a href="#section-12"><strong>Early Family Imprint</strong><small>FAMILY & SOCIAL</small></a></li><li><span>13</span><a href="#section-13"><strong>Your Role in Family Systems</strong><small>FAMILY & SOCIAL</small></a></li><li><span>14</span><a href="#section-14"><strong>Social Interaction Style</strong><small>FAMILY & SOCIAL</small></a></li><li><span>15</span><a href="#section-15"><strong>Symbolic Stars (Shen Sha) and Their Meaning</strong><small>INNER STRUCTURE</small></a></li><li><span>16</span><a href="#section-16"><strong>Inner Tensions and Integration</strong><small>INNER STRUCTURE</small></a></li><li><span>17</span><a href="#section-17"><strong>The Sense of Something Missing</strong><small>INNER STRUCTURE</small></a></li><li><span>18</span><a href="#section-18"><strong>Resources and Security</strong><small>INNER STRUCTURE</small></a></li><li><span>19</span><a href="#section-19"><strong>Character Emphasis Across Life Stages</strong><small>TIMING & GROWTH</small></a></li><li><span>20</span><a href="#section-20"><strong>Growth Rhythm</strong><small>TIMING & GROWTH</small></a></li><li><span>21</span><a href="#section-21"><strong>Blind Spots That Drain You</strong><small>TIMING & GROWTH</small></a></li><li><span>22</span><a href="#section-22"><strong>Central Growth Lessons</strong><small>TIMING & GROWTH</small></a></li><li><span>23</span><a href="#section-23"><strong>Practical Self-Development Guidance</strong><small>TIMING & GROWTH</small></a></li><li><span>24</span><a href="#section-24"><strong>Core Life Theme</strong><small>TIMING & GROWTH</small></a></li></ol>
+      <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+    </section>
+
+    <article class="pdf-page section-page" id="section-1" data-page>
+    <div class="page-topline"><span>FOUNDATION</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>01</span><small>Core Pattern</small></aside>
+      <div class="section-content">
+        <h2>Core Elemental Force</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your Day Master is 甲 (Yang Wood), the tall tree that grows straight and reaches upward.  In your chart, 甲 appears twice—once in the Year Pillar and once in the Day Pillar—giving you a double dose of this assertive, pioneering energy.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master; leading Ten-God functions: Indirect Resource 38% and Indirect Wealth 19%.</span></div>
+        <div class="section-copy"><p> You are naturally driven to initiate, lead, and expand, much like a tree pushing through soil toward sunlight.  However, your chart also contains two 壬 (Yang Water) stems in the Month and Hour Pillars, which act as Indirect Resource.  Water nourishes Wood, so you are intellectually supported and emotionally sustained by a deep inner well of reflection, intuition, and learning.</p><p> This makes you not just a doer but a thinker who processes the world through ideas and inner certainty.  The 戌 (Earth) branches in Year and Day add a stabilizing, earthy weight, grounding your ambition with practicality.  Your core force is a blend of forward momentum and contemplative depth—you act with conviction but rarely without first consulting your internal compass.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Name one decision where your natural pace is an advantage.</span><span>Separate your own direction from inherited expectations.</span></div><div><strong>Reflection prompt</strong><p>Where does your natural direction feel strongest when no one is watching?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-2" data-page>
+    <div class="page-topline"><span>FOUNDATION</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>02</span><small>Core Pattern</small></aside>
+      <div class="section-content">
+        <h2>Five-Element Balance</h2>
+        <div class="chart chart-wide" id="section-elements"></div>
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your visible stems and branches show a balanced distribution: Wood (2), Earth (2), Metal (2), Water (2), and Fire (0).  This near-equal spread creates a dynamic tension rather than a dominant element.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Wood + Earth + Metal + Water lead the visible count; Fire remain quiet.</span></div>
+        <div class="section-copy"><p> Wood is your self, and it is well-supported by Water, but Metal (Officer) in the 申 branches of Month and Hour exerts control over Wood, representing structure, authority, and discipline that can feel constraining.  Earth (Wealth) in the 戌 branches also drains Wood by being the element you control, meaning you invest energy into managing resources, stability, and material concerns.  The absence of Fire is significant: Fire is your Output—expression, creativity, visibility.</p><p> Without a visible Fire stem, you may struggle to externalize your ideas or emotions freely.  Your inner world is rich, but translating it into outward action or recognition requires conscious effort.  The balance here is not static; it is a system of checks and balances where Water fuels Wood, Metal restrains it, Earth absorbs it, and Fire is the missing link that would complete the cycle.</p><p> You are most effective when you find ways to introduce Fire—through creative projects, social engagement, or emotional expression—to release the pressure built by Metal and Earth.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Create one weekly outlet for the least visible element.</span><span>Use balance as a coordination task, not a demand for symmetry.</span></div><div><strong>Reflection prompt</strong><p>Which element is easiest to access, and which needs deliberate practice?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page dense" id="section-3" data-page>
+    <div class="page-topline"><span>FOUNDATION</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>03</span><small>Core Pattern</small></aside>
+      <div class="section-content">
+        <h2>Ten-God Structure and Underlying Motivations</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your weighted Ten-God profile reveals a clear hierarchy: Indirect Resource (偏印) leads at 3. 05, followed by Indirect Wealth (偏财) at 1.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Weighted Ten-God leaders: Indirect Resource 38%, Indirect Wealth 19%, Seven Killings 19%. Visible and hidden sources are separated on page 4.</span></div>
+        <div class="section-copy"><p>44, Seven Killings (七杀) at 1. 41, Friend (比肩) at 1. 00, Direct Officer (正官) at 0.</p><p>60, and Hurting Officer (伤官) at 0. 20.  The dominant Indirect Resource, supported by the visible 壬 stems in Month and Hour, indicates that your primary motivation is intellectual autonomy and unconventional thinking.</p><p> You are not driven by social approval or rigid rules; instead, you seek to understand systems from the inside, often arriving at original insights that others miss.  This is reinforced by the strong Indirect Wealth and Seven Killings, which together suggest a risk-tolerant, entrepreneurial streak.  You are willing to take calculated chances (Indirect Wealth) and face challenges head-on (Seven Killings), but you do so with a detached, analytical mindset rather than raw aggression.</p><p> The Friend (比肩) at 1. 00, from the visible 甲 stem in Year, adds a layer of peer competition and self-reliance—you trust your own judgment and may compare yourself to others in your field.  The lower Direct Officer and Hurting Officer scores mean that formal authority and overt rebellion are less central to your nature; you are more of a quiet strategist than a rule-breaker or rule-follower.</p><p> In daily decisions, this translates into a preference for working independently or in small, trusted teams, where you can apply your resourcefulness without bureaucratic interference.  You are motivated by mastery and meaning, not by status or routine.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Notice which Ten-God function leads under pressure.</span><span>Build a counterweight before the dominant function becomes automatic.</span></div><div><strong>Reflection prompt</strong><p>Which role do you overuse when uncertainty rises?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-4" data-page>
+    <div class="page-topline"><span>FOUNDATION</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>04</span><small>Core Pattern</small></aside>
+      <div class="section-content">
+        <h2>Natural Strengths and Talents</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your strongest natural talent is strategic intuition.  The combination of Indirect Resource and Seven Killings gives you the ability to see patterns in chaos and respond with precision under pressure.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master; leading Ten-God functions: Indirect Resource 38% and Indirect Wealth 19%.</span></div>
+        <div class="section-copy"><p> You are excellent at troubleshooting—when a situation seems stuck, you can step back, analyze the underlying structure, and propose a non-obvious solution.  This makes you valuable in crisis management, research, or any role that requires deep focus and original thinking.  Your Indirect Wealth also gives you a practical eye for value; you can spot opportunities that others overlook, whether in business, investments, or resource allocation.</p><p> You are not a flashy performer, but you are a reliable problem-solver who delivers results quietly.  Additionally, the double 甲 Wood gives you physical stamina and a resilient constitution—you can sustain effort over long periods without burning out quickly, provided you have periods of solitude to recharge.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Choose work that rewards the chart’s repeatable strengths.</span><span>Document evidence of strengths instead of relying on self-image.</span></div><div><strong>Reflection prompt</strong><p>What do people consistently trust you to handle?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-5" data-page>
+    <div class="page-topline"><span>WORK & VALUE</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>05</span><small>Contribution</small></aside>
+      <div class="section-content">
+        <h2>Best-Fit Working Style</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>You work best in environments that grant you autonomy and intellectual freedom.  Rigid hierarchies, micromanagement, or repetitive tasks drain your energy because they clash with your Indirect Resource need to explore ideas on your own terms.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master; leading Ten-God functions: Indirect Resource 38% and Indirect Wealth 19%.</span></div>
+        <div class="section-copy"><p> You thrive when you can set your own pace, dive deep into a subject, and emerge with a well-considered product.  A role that combines analysis with action—such as a strategist, consultant, researcher, or entrepreneur—suits you well.  You are not a natural team player in the conventional sense; you prefer to work alone or with a small group of equals where you can debate ideas without ego.</p><p> Your Seven Killings gives you a competitive edge, so you perform well under deadlines or in high-stakes situations, but you need trust from superiors to operate without constant oversight.  The 申 (Metal) branches in your chart suggest that structure is important to you, but it must be self-imposed, not externally enforced.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Design a workday with protected deep-focus time.</span><span>State the conditions you need before accepting a role.</span></div><div><strong>Reflection prompt</strong><p>What conditions make your best work possible?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-6" data-page>
+    <div class="page-topline"><span>WORK & VALUE</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>06</span><small>Contribution</small></aside>
+      <div class="section-content">
+        <h2>How You Create Value</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>You create value by turning complexity into clarity.  When others are overwhelmed by information or uncertainty, you can distill the core issue and propose a path forward.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master; leading Ten-God functions: Indirect Resource 38% and Indirect Wealth 19%.</span></div>
+        <div class="section-copy"><p> This is rooted in your Indirect Resource’s ability to synthesize disparate data and your Seven Killings’ willingness to make tough decisions.  You also create value through resourcefulness: you can work with limited tools, find alternative routes, and make the most of what is available.  In a team, you are the person who quietly solves the problem that everyone else was avoiding.</p><p> Your Indirect Wealth ensures that your solutions are not just clever but also practical and financially sound.  Over time, you build a reputation as someone who can be counted on to deliver under difficult conditions, which makes you a trusted advisor or a go-to expert in your field.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Translate one complex skill into a visible, useful deliverable.</span><span>Measure value by outcomes you can repeat.</span></div><div><strong>Reflection prompt</strong><p>What complex problem can you make simpler for someone else?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-7" data-page>
+    <div class="page-topline"><span>WORK & VALUE</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>07</span><small>Contribution</small></aside>
+      <div class="section-content">
+        <h2>Fields Where You Can Contribute Best</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your chart points toward fields that require deep analysis, risk management, and independent judgment.  These include finance and investment (especially private equity, venture capital, or forensic accounting), technology and engineering (particularly systems architecture or cybersecurity), research and academia (especially in niche or interdisciplinary areas), law (especially litigation or intellectual property), and entrepreneurship (especially in specialized markets).</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master; leading Ten-God functions: Indirect Resource 38% and Indirect Wealth 19%.</span></div>
+        <div class="section-copy"><p> The 申 (Metal) branches also suggest a natural affinity for logistics, transportation, or any field involving movement and coordination, such as supply chain management or international trade.  The 戌 (Earth) branches add a grounding in real estate, construction, or agriculture.  You are less suited to highly public-facing roles like sales or entertainment, as your Fire element is weak, making self-promotion feel unnatural.</p><p> Instead, you excel where your work speaks for itself.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Test one recommended field through a small project.</span><span>Use fit as a hypothesis, not a permanent label.</span></div><div><strong>Reflection prompt</strong><p>Which field can you test without making a permanent commitment?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-8" data-page>
+    <div class="page-topline"><span>WORK & VALUE</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>08</span><small>Contribution</small></aside>
+      <div class="section-content">
+        <h2>Independence and Collaboration</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>You are fundamentally independent.  The double 甲 Wood and double 壬 Water create a self-sustaining cycle: you generate your own ideas and fuel your own motivation.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master; leading Ten-God functions: Indirect Resource 38% and Indirect Wealth 19%.</span></div>
+        <div class="section-copy"><p> You do not need constant input or approval from others, and you can become irritable when forced to collaborate on trivial matters.  However, you are not antisocial.  Your Indirect Resource and Seven Killings can make you a sharp, insightful collaborator when the stakes are high and the task is meaningful.</p><p> You prefer partnerships based on mutual respect and competence rather than emotional bonding.  In group settings, you tend to observe first, then contribute a decisive observation or plan.  You are not a natural leader in the charismatic sense, but you can lead through expertise and quiet authority.</p><p> The key is to choose your collaborations carefully—working with people who share your depth and independence will energize you, while superficial or overly hierarchical teams will frustrate you.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Define where autonomy ends and collaboration begins.</span><span>Make expectations explicit before friction appears.</span></div><div><strong>Reflection prompt</strong><p>What must be explicit for collaboration to feel fair?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page dense" id="section-9" data-page>
+    <div class="page-topline"><span>RELATIONSHIPS</span><span>AI BAZI REPORT / CONTEXTUAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>09</span><small>Connection</small></aside>
+      <div class="section-content">
+        <h2>Emotional Relating Style</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your emotional relating style is shaped by the Day Master 甲 (Yang Wood) standing as a lone tree between two 壬 (Yang Water) stems above and two 申 (Yang Metal) branches below.  The 壬 Water is your Indirect Resource, which means you absorb emotional cues indirectly—you sense what others feel without needing them to say it, and you often process your own emotions through reflection rather than immediate expression.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master, read through Day/Month/Year pillar relationships. Contextual confidence.</span></div>
+        <div class="section-copy"><p> The 申 Metal branches are Seven Killings, a controlling energy that makes you cautious in intimacy; you test the reliability of a partner before you fully open up.  The 戌 (Earth) branches in the Year and Day Pillars are Indirect Wealth, which ties your emotional security to tangible stability—you feel safe when a relationship has practical structure, shared responsibilities, or a clear future plan.  You are not naturally demonstrative.</p><p> You show care through actions: solving a problem, remembering a detail, or creating a calm environment.  You dislike emotional drama and will withdraw if a partner pressures you for quick vulnerability.  Your ideal partner is someone who respects your pace, does not mistake your reserve for coldness, and offers steady presence rather than grand gestures.</p><p> The dual 壬 Resource gives you a nurturing side, but you express it quietly—you listen more than you advise, and you remember what matters to the other person.  The challenge is that you can become emotionally self-sufficient to the point of isolation; you may not realize you are starving the relationship of warmth until the other person feels distant.  You need a partner who initiates emotional check-ins without making you feel cornered.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Name feelings before converting them into solutions.</span><span>Use calm, direct language when closeness feels demanding.</span></div><div><strong>Reflection prompt</strong><p>What do you feel before you withdraw or become overly practical?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-10" data-page>
+    <div class="page-topline"><span>RELATIONSHIPS</span><span>AI BAZI REPORT / CONTEXTUAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>10</span><small>Connection</small></aside>
+      <div class="section-content">
+        <h2>Relationship User Manual</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>To be in a relationship with you, a partner needs to understand that your 甲 Wood Day Master grows best with consistent support, not constant attention.  The 壬 Resource above you means you recharge alone or through quiet shared activities—reading in the same room, walking without talking, working on separate projects side by side.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master, read through Day/Month/Year pillar relationships. Contextual confidence.</span></div>
+        <div class="section-copy"><p> You do not need hourly communication; you need to know the other person is reliable.  The 申 Seven Killings in the Month and Hour Branches make you sensitive to criticism and control.  If a partner raises their voice, gives ultimatums, or tries to manage your schedule, you will shut down or push back hard.</p><p> You respond to direct, calm requests.  The 戌 Earth Wealth in the Year and Day Pillars means you value a partner who is competent and grounded—someone who handles their own life and does not expect you to fix everything.  You are loyal once committed, but you need personal space to maintain your sense of self.</p><p> Practical tips: give you advance notice before social plans, do not take your silence personally, and show appreciation through specific acknowledgment of what you do, not generic praise.  You are not a mind-reader, so a partner should state needs clearly.  You will reciprocate with steady effort, financial responsibility, and a deep, if understated, devotion.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Share this page as a conversation starter, not a rulebook.</span><span>Ask what your partner experiences differently.</span></div><div><strong>Reflection prompt</strong><p>What does reliable care look like in observable behavior?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-11" data-page>
+    <div class="page-topline"><span>RELATIONSHIPS</span><span>AI BAZI REPORT / CONTEXTUAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>11</span><small>Connection</small></aside>
+      <div class="section-content">
+        <h2>Repeating Patterns in Intimacy</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>The repeating pattern in your intimate relationships is a push-pull between closeness and distance, driven by the tension between the 壬 Indirect Resource and the 申 Seven Killings.  The 壬 Water wants to merge emotionally, to understand the other person completely, to be the one who knows them best.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master, read through Day/Month/Year pillar relationships. Contextual confidence.</span></div>
+        <div class="section-copy"><p> The 申 Metal wants to protect itself, to maintain boundaries, to avoid being controlled or hurt.  This creates a cycle: you draw close when you feel safe, then pull back when you feel the relationship demands too much of your inner space.  The 戌 Earth Wealth in the Day Pillar adds a second pattern: you tend to choose partners who are practical, stable, or financially responsible, but you may later feel that the relationship lacks emotional depth or spontaneity.</p><p> You can become the caretaker—solving problems, managing logistics—while your own emotional needs go unspoken.  Over time, resentment builds because you gave practical support but did not ask for emotional reciprocity.  A third pattern is the tendency to attract partners who are either too controlling (申 Seven Killings energy) or too passive (壬 Resource energy).</p><p> With a controlling partner, you fight for autonomy.  With a passive partner, you take over and then feel exhausted.  The growth edge is to recognize these patterns early and to state your need for both closeness and independence before the cycle solidifies.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Identify the earliest signal of your repeating cycle.</span><span>Interrupt the pattern with one specific request.</span></div><div><strong>Reflection prompt</strong><p>At what point could you interrupt the familiar pattern?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-12" data-page>
+    <div class="page-topline"><span>FAMILY & SOCIAL</span><span>AI BAZI REPORT / REFLECTION-LED</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>12</span><small>Belonging</small></aside>
+      <div class="section-content">
+        <h2>Early Family Imprint</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your early family environment was likely shaped by the 甲戌 Year Pillar and the 壬申 Month Pillar.  The 甲 (Wood) in the Year Stem represents your outward family identity—perhaps a family that valued independence, leadership, or visible achievement.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master, read through Day/Month/Year pillar relationships. Contextual confidence.</span></div>
+        <div class="section-copy"><p> The 戌 (Earth) in the Year Branch suggests a home with practical concerns: financial stability, daily routines, or a parent who was the primary provider.  The 壬申 Month Pillar points to the emotional atmosphere of your upbringing.  壬 Water is Indirect Resource, which often indicates a mother or maternal figure who was nurturing but emotionally distant, or who provided care through intellectual or spiritual guidance rather than physical affection.</p><p> 申 Metal is Seven Killings, which can indicate a father or paternal figure who was strict, demanding, or absent in a way that created pressure to perform.  You may have learned early to be self-reliant because emotional support was inconsistent.  The dual 戌 Earth in Year and Day suggests that family expectations around money, career, or social standing were present from childhood and continue to influence your sense of worth.</p><p> You were likely the child who was expected to be responsible, to not cause trouble, and to handle things on your own.  This imprint made you competent but also taught you to suppress your own needs to maintain family harmony.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Compare this hypothesis with actual family history.</span><span>Keep what fits and discard what does not.</span></div><div><strong>Reflection prompt</strong><p>Which parts match lived history, and which clearly do not?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-13" data-page>
+    <div class="page-topline"><span>FAMILY & SOCIAL</span><span>AI BAZI REPORT / REFLECTION-LED</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>13</span><small>Belonging</small></aside>
+      <div class="section-content">
+        <h2>Your Role in Family Systems</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>In your current family system, you naturally take the role of the stabilizer and the problem-solver.  The 甲 Wood Day Master combined with the 戌 Earth Wealth makes you someone who handles practical matters—finances, logistics, caregiving arrangements—without being asked.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master, read through Day/Month/Year pillar relationships. Contextual confidence.</span></div>
+        <div class="section-copy"><p> The 壬 Resource gives you the ability to see what others need before they voice it, so you often become the emotional anchor, the one who listens without judgment.  However, the 申 Seven Killings in the Month and Hour Branches means you also set firm boundaries.  You will not tolerate being taken for granted, and you will withdraw if family members become too demanding or disrespectful.</p><p> You are not the family member who initiates conflict, but you will not back down if pushed.  Your role can shift over time.  In your twenties and early thirties, under the 己巳 (Earth-Fire) Luck Pillar, you may have been the one who carried more responsibility than was fair.</p><p> As you move into the 戊辰 (Earth-Earth) Luck Pillar starting at age 33, you are likely to renegotiate those roles, expecting more reciprocity.  You are not the family member who needs to be the center of attention; you prefer to work behind the scenes.  But you do need acknowledgment.</p><p> If your contributions are ignored, you will quietly reduce your involvement.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>List responsibilities that are truly yours.</span><span>Renegotiate one invisible family role.</span></div><div><strong>Reflection prompt</strong><p>What role would you stop carrying if reciprocity were expected?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-14" data-page>
+    <div class="page-topline"><span>FAMILY & SOCIAL</span><span>AI BAZI REPORT / CONTEXTUAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>14</span><small>Belonging</small></aside>
+      <div class="section-content">
+        <h2>Social Interaction Style</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Socially, you come across as composed, observant, and slightly reserved.  The 甲 Wood Day Master gives you a natural dignity—you do not chase attention, but you command respect when you speak.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master, read through Day/Month/Year pillar relationships. Contextual confidence.</span></div>
+        <div class="section-copy"><p> The 壬 Resource makes you a good listener; you pick up on subtext, body language, and what is left unsaid.  You are not the person who fills silence with small talk.  You prefer conversations that have substance—ideas, plans, shared interests, or honest exchange.</p><p> The 申 Seven Killings in the Month and Hour Branches makes you selective about your social circle.  You do not trust easily, and you are quick to detect insincerity or manipulation.  You have a small number of close friends rather than a wide network.</p><p> In group settings, you may hang back at first, observing the dynamics.  Once you feel the environment is safe, you engage with dry humor and direct opinions.  You are not interested in social games or status displays.</p><p> The 戌 Earth Wealth adds a practical dimension: you are drawn to people who are competent, reliable, and have their own direction.  You respect someone who can hold their own.  You are not a natural networker, but you build deep, lasting connections with the people you let in.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Choose depth over forced sociability.</span><span>Practice one low-stakes act of visible warmth.</span></div><div><strong>Reflection prompt</strong><p>Where can you be more visible without becoming performative?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page dense" id="section-15" data-page>
+    <div class="page-topline"><span>INNER STRUCTURE</span><span>AI BAZI REPORT / CONTEXTUAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>15</span><small>Integration</small></aside>
+      <div class="section-content">
+        <h2>Symbolic Stars (Shen Sha) and Their Meaning</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your chart carries two canonical symbolic stars: 华盖 (Canopy Star) and 驿马 (Travel Horse).  The 华盖 appears in the Year Branch 戌 and the Day Branch 戌.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Canonical Shen Sha only, grouped by marker and shown with every natal placement on page 5.</span></div>
+        <div class="section-copy"><p> The derivation is based on the combination of the Day Pillar and Year Pillar.  The 华盖 is associated with solitude, introspection, and a tendency toward spiritual or philosophical interests.  In practical terms, this means you have a natural inclination to spend time alone, to reflect deeply, and to feel most yourself when you are not performing for others.</p><p> You may have a strong interest in art, religion, psychology, or any field that explores meaning beyond the surface.  The 华盖 can also make you feel like an outsider in social settings, even when you are well-liked.  You do not easily share your inner world, and you may feel that others do not fully understand you.</p><p> The 驿马 appears in the Month Branch 申 and the Hour Branch 申, derived from the Day Pillar and Year Pillar.  The 驿马 is the Travel Horse, associated with movement, change, and restlessness.  In your chart, this means you are likely to experience significant geographical or career mobility.</p><p> You may have lived in multiple places, changed jobs frequently, or felt a recurring urge to move on once a situation becomes routine.  The 驿马 does not guarantee travel, but it indicates that you thrive when you have variety and new challenges.  Combined with the 华盖, you are someone who moves through the world with a sense of inner detachment—you can change environments without emotional attachment, and you can be alone anywhere.</p><p> These two stars together suggest a life path that involves both external movement and internal deepening.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Treat repeated markers as themes to observe.</span><span>Never use a symbolic star as proof of an event.</span></div><div><strong>Reflection prompt</strong><p>How do these symbolic themes show up without becoming fixed labels?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page dense" id="section-16" data-page>
+    <div class="page-topline"><span>INNER STRUCTURE</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>16</span><small>Integration</small></aside>
+      <div class="section-content">
+        <h2>Inner Tensions and Integration</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>The central inner tension in your chart is between the 壬 Indirect Resource and the 申 Seven Killings.  The 壬 Water wants to flow, to understand, to merge with the environment.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master; leading Ten-God functions: Indirect Resource 38% and Indirect Wealth 19%.</span></div>
+        <div class="section-copy"><p> The 申 Metal wants to cut, to control, to protect.  This creates a constant internal negotiation: you want to be open and receptive, but you also want to be strong and invulnerable.  You may find yourself oscillating between periods of deep empathy and periods of cold detachment.</p><p> A second tension is between the 戌 Earth Wealth and the 甲 Wood Day Master.  戌 Earth is the element you control, but it is also heavy and grounding.  You are drawn to material stability, career success, and practical achievement, but you also fear that these things will trap you or drain your creative energy.</p><p> You want to build something solid, but you also want to remain free.  A third tension is between the dual 壬 Resource and the dual 申 Seven Killings.  You have a lot of Water and a lot of Metal—both are yin in nature, but they interact as Resource and Output in the Five-Element cycle (Metal produces Water).</p><p> This means your inner world is rich but also heavy.  You can become stuck in overthinking, analyzing your own emotions instead of feeling them, and using intellectual understanding as a substitute for action.  Integration comes from recognizing that these tensions are not flaws but complementary forces.</p><p> The 申 Metal gives you the discipline to act; the 壬 Water gives you the depth to understand why you act.  The 戌 Earth gives you the structure to build; the 甲 Wood gives you the vision to build something meaningful.  Your growth is not about eliminating one side but about learning when to let each lead.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Name both sides of a tension before choosing.</span><span>Build routines that let opposing needs take turns.</span></div><div><strong>Reflection prompt</strong><p>What changes when both sides of the tension are allowed to speak?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-17" data-page>
+    <div class="page-topline"><span>INNER STRUCTURE</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>17</span><small>Integration</small></aside>
+      <div class="section-content">
+        <h2>The Sense of Something Missing</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your chart carries a strong presence of Water (Resource) and Metal (Officer/Seven Killings), with Wood (Companion) as your Day Master, but Fire (Output) is entirely absent from the visible stems and branches.  This absence creates a recurring sense that something vital is missing: the ability to express yourself freely, to take creative risks, or to let your inner world be seen without a filter.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Wood + Earth + Metal + Water lead the visible count; Fire remain quiet.</span></div>
+        <div class="section-copy"><p> Fire represents warmth, spontaneity, and visible achievement—the part of you that wants to shine, play, and be recognized for your unique contributions.  Without it, you may feel that your efforts are always serious, controlled, or hidden behind a curtain of duty and intellectual analysis.  You might sense that others can express joy or passion more easily, while you remain in a state of quiet competence that goes unnoticed.</p><p> This gap is not a flaw but a developmental invitation: the missing Fire asks you to cultivate outlets for self-expression, whether through art, conversation, or simply allowing yourself to be playful without needing a practical reason.  The 壬申 (Water-Metal) pillars in your month and hour reinforce a tendency to retreat into thought or structure when you feel exposed, so the sense of something missing often surfaces when you compare your inner richness to your outer visibility.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Turn the “missing” feeling into a development plan.</span><span>Track practice, not perfection.</span></div><div><strong>Reflection prompt</strong><p>What practice would make the absent quality more available?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page dense" id="section-18" data-page>
+    <div class="page-topline"><span>INNER STRUCTURE</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>18</span><small>Integration</small></aside>
+      <div class="section-content">
+        <h2>Resources and Security</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your chart is heavily resourced by Water, specifically the 偏印 (Indirect Resource) from the two 壬 (Water) stems in the month and hour.  This gives you a deep well of intellectual curiosity, intuitive understanding, and the ability to learn through observation rather than direct instruction.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master; leading Ten-God functions: Indirect Resource 38% and Indirect Wealth 19%.</span></div>
+        <div class="section-copy"><p> You feel secure when you have time to study, reflect, and develop a private expertise that others may not immediately see.  However, the Earth branches (戌) in the year and day represent 偏财 (Indirect Wealth), which ties your sense of security to tangible outcomes—money, property, or stable structures.  There is a tension between your resource-rich inner world and your need for material grounding.</p><p> You may feel secure only when you have both: a mental framework that makes sense of the world and a practical foundation that supports your independence.  The 申 (Metal) branches in the month and hour bring 七杀 (Seven Killings), which adds a layer of pressure to perform and achieve, so security for you is not passive—it requires active management of responsibilities.  You are likely cautious with resources, preferring to save or invest rather than spend impulsively, because the Earth in your chart is controlled by Wood (your Day Master), meaning you feel a sense of ownership over what you build.</p><p> The lack of Fire means you may undervalue emotional or relational resources, focusing instead on what can be measured or controlled.  Over time, learning to trust that your inner resources are enough—without needing constant external validation—will deepen your sense of security.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Define security in financial, relational, and inner terms.</span><span>Strengthen the category that receives the least attention.</span></div><div><strong>Reflection prompt</strong><p>Which form of security are you trying to make one category provide?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page timing-atlas" data-page>
+    <div class="page-topline"><span>19 / TIMING & GROWTH</span><span>LUCK PILLARS + ANNUAL WEATHER</span></div>
+    <header><span>THE TIMING ATLAS</span><h2>Long cycles set the terrain.<br>Each year changes the weather.</h2><p>Luck Pillars describe decade-long developmental conditions. Annual pillars add shorter emphasis inside that terrain.</p></header>
+    <section class="cycle-section"><h3>Eight Luck Pillars</h3><div class="cycle-grid"><div class="cycle ">
+      <span class="cycle-state">AGE 3-12</span>
+      <span class="colored-ganzhi "><i class="wx-metal">辛</i><i class="wx-earth">未</i></span>
+      <strong>1997-2006</strong>
+      <small>正官 / 正财</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 13-22</span>
+      <span class="colored-ganzhi "><i class="wx-metal">庚</i><i class="wx-fire">午</i></span>
+      <strong>2007-2016</strong>
+      <small>七杀 / 伤官</small>
+    </div><div class="cycle is-current">
+      <span class="cycle-state">CURRENT</span>
+      <span class="colored-ganzhi "><i class="wx-earth">己</i><i class="wx-fire">巳</i></span>
+      <strong>2017-2026</strong>
+      <small>正财 / 食神</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 33-42</span>
+      <span class="colored-ganzhi "><i class="wx-earth">戊</i><i class="wx-earth">辰</i></span>
+      <strong>2027-2036</strong>
+      <small>偏财 / 偏财</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 43-52</span>
+      <span class="colored-ganzhi "><i class="wx-fire">丁</i><i class="wx-wood">卯</i></span>
+      <strong>2037-2046</strong>
+      <small>伤官 / 劫财</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 53-62</span>
+      <span class="colored-ganzhi "><i class="wx-fire">丙</i><i class="wx-wood">寅</i></span>
+      <strong>2047-2056</strong>
+      <small>食神 / 比肩</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 63-72</span>
+      <span class="colored-ganzhi "><i class="wx-wood">乙</i><i class="wx-earth">丑</i></span>
+      <strong>2057-2066</strong>
+      <small>劫财 / 正财</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 73-82</span>
+      <span class="colored-ganzhi "><i class="wx-wood">甲</i><i class="wx-water">子</i></span>
+      <strong>2067-2076</strong>
+      <small>比肩 / 正印</small>
+    </div></div></section>
+    <section class="annual-section"><div><h3>Five-year annual view</h3><p>Strategy is a planning posture derived from annual Ten-God emphasis and major contacts with the natal branches.</p><div class="strategy-key"><span>ADVANCE</span><span>STEADY</span><span>DEFEND</span></div></div><div class="annual-grid"><div class="annual-year is-now">
+      <span>2026</span><b class="strategy strategy-steady">STEADY</b>
+      <span class="colored-ganzhi small"><i class="wx-fire">丙</i><i class="wx-fire">午</i></span>
+      <small>食神 / 伤官</small>
+      <em>No major natal contact</em>
+    </div><div class="annual-year ">
+      <span>2027 / NEW CYCLE</span><b class="strategy strategy-defend">DEFEND</b>
+      <span class="colored-ganzhi small"><i class="wx-fire">丁</i><i class="wx-earth">未</i></span>
+      <small>伤官 / 正财</small>
+      <em>Break · Stem combine</em>
+    </div><div class="annual-year ">
+      <span>2028</span><b class="strategy strategy-defend">DEFEND</b>
+      <span class="colored-ganzhi small"><i class="wx-earth">戊</i><i class="wx-metal">申</i></span>
+      <small>偏财 / 七杀</small>
+      <em>Combine · Clash · Harm · Break</em>
+    </div><div class="annual-year ">
+      <span>2029</span><b class="strategy strategy-defend">DEFEND</b>
+      <span class="colored-ganzhi small"><i class="wx-earth">己</i><i class="wx-metal">酉</i></span>
+      <small>正财 / 正官</small>
+      <em>Harm · Stem combine</em>
+    </div><div class="annual-year ">
+      <span>2030</span><b class="strategy strategy-defend">DEFEND</b>
+      <span class="colored-ganzhi small"><i class="wx-metal">庚</i><i class="wx-earth">戌</i></span>
+      <small>七杀 / 偏财</small>
+      <em>Combine · Clash · Harm · Break</em>
+    </div></div></section>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page dense" id="section-19" data-page>
+    <div class="page-topline"><span>TIMING & GROWTH</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>19</span><small>Direction</small></aside>
+      <div class="section-content">
+        <h2>Character Emphasis Across Life Stages</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your Luck Pillars show a clear progression from Fire-Earth to Wood-Water, which shifts your character emphasis decade by decade.  From age 3 to 12 under 辛未 (Metal-Earth), you likely developed a strong sense of duty and structure, with an early awareness of rules and expectations.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Current Luck Pillar: 己巳 (2017-2026); annual contacts are summarized in the Timing Atlas.</span></div>
+        <div class="section-copy"><p> The 庚午 (Metal-Fire) pillar from age 13 to 22 introduced Fire for the first time, bringing a period of social visibility, creative experimentation, or romantic exploration—though the Metal element also kept you disciplined.  From age 23 to 32 under 己巳 (Earth-Fire), the Fire intensified, and you may have felt more confident expressing yourself, taking risks, or pursuing personal projects.  Now, as you approach age 33 in 2027, you will enter the 戊辰 (Earth-Earth) pillar, which amplifies the Wealth element significantly.</p><p> This decade will emphasize material stability, career consolidation, and the practical management of resources.  Your character will likely become more grounded, focused on building tangible results, and less inclined toward abstract exploration.  The 丁卯 (Fire-Wood) pillar from age 43 will bring a resurgence of creative energy and a softer, more relational approach, while the 丙寅 (Fire-Wood) from age 53 will further strengthen your ability to lead with warmth and visibility.</p><p> The later pillars, 乙丑 (Wood-Earth) and 甲子 (Wood-Water), suggest a return to introspection and legacy-building in older age.  Each stage asks you to balance the Water-Metal seriousness of your natal chart with the Fire-Earth opportunities that life phases provide.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Review the current decade as terrain, not destiny.</span><span>Plan the next transition six months early.</span></div><div><strong>Reflection prompt</strong><p>What is the current decade asking you to build or release?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-20" data-page>
+    <div class="page-topline"><span>TIMING & GROWTH</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>20</span><small>Direction</small></aside>
+      <div class="section-content">
+        <h2>Growth Rhythm</h2>
+        <div class="rhythm-strip">
+      <div><span>NOW</span><strong>Structure</strong><small>Build order and authority</small></div>
+      <div><span>NEXT</span><strong>Consolidate</strong><small>Make growth sustainable</small></div>
+      <div><span>LATER</span><strong>Express</strong><small>Lead with warmth and clarity</small></div>
+    </div>
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your growth rhythm is cyclical, driven by the interplay between Water (introspection) and Fire (expression).  You tend to go through long periods of quiet accumulation—learning, observing, and refining your inner understanding—followed by shorter bursts of visible action or creative output.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Current Luck Pillar: 己巳 (2017-2026); annual contacts are summarized in the Timing Atlas.</span></div>
+        <div class="section-copy"><p> This rhythm is natural for someone with two 壬 (Water) stems and no Fire in the natal chart: you need the Water phase to feel prepared, but you also need external triggers (like a Luck Pillar with Fire or a Fire year) to push you into expression.  The 2026 丙午 (Fire-Fire) year is a strong Fire year that will accelerate your growth by forcing you to step into the spotlight, even if you feel unready.  The 2027 丁未 (Fire-Earth) year continues this theme but adds a grounding influence, helping you integrate what you express into practical form.</p><p> The 2028 戊申 (Earth-Metal) year will slow the rhythm again, pulling you back toward analysis and responsibility.  Your growth is not linear; it moves in waves of expansion and contraction.  The key is to trust the quiet phases as preparation, not stagnation, and to use the active phases to release what you have stored.</p><p> The structural marker 2030 庚戌 (Metal-Earth) will be a year of intense pressure and potential breakthrough, where your growth rhythm accelerates through challenge.  Over a lifetime, your rhythm becomes more balanced as you learn to initiate expression without waiting for perfect readiness.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Match launch periods with recovery periods.</span><span>Stop calling preparation stagnation.</span></div><div><strong>Reflection prompt</strong><p>Are you in accumulation, expression, consolidation, or recovery?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page dense" id="section-21" data-page>
+    <div class="page-topline"><span>TIMING & GROWTH</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>21</span><small>Direction</small></aside>
+      <div class="section-content">
+        <h2>Blind Spots That Drain You</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your chart’s heavy Water-Metal combination creates several blind spots that can drain your energy over time.  First, you tend to overthink and underact.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master; leading Ten-God functions: Indirect Resource 38% and Indirect Wealth 19%.</span></div>
+        <div class="section-copy"><p> The 偏印 (Indirect Resource) gives you a rich inner dialogue, but without Fire to catalyze action, you can get stuck in analysis paralysis, endlessly refining ideas without launching them.  This drains you because the mental effort is high, but the visible reward is low.  Second, you may underestimate the importance of emotional warmth and spontaneity in relationships.</p><p> The absence of Fire and the presence of 七杀 (Seven Killings) can make you appear distant, critical, or overly serious, even when you care deeply.  Others may perceive you as unapproachable, and you may not realize that your reserved demeanor is pushing people away.  Third, your 偏财 (Indirect Wealth) in the Earth branches can make you overly focused on material outcomes, leading you to sacrifice rest, play, or connection for productivity.</p><p> You might drain yourself by chasing goals that feel necessary but not fulfilling.  Fourth, the 申 (Metal) branches in the month and hour bring a tendency to internalize pressure and blame yourself when things go wrong, rather than seeking support or delegating.  This self-reliance can become isolation.</p><p> Finally, you may have a blind spot around your own need for recognition.  Because Fire is missing, you might tell yourself that you don’t need applause, but the absence can create a quiet resentment when your efforts go unnoticed.  Recognizing these patterns is the first step to conserving your energy and redirecting it toward what truly sustains you.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Choose one drain to reduce for thirty days.</span><span>Use external feedback to test blind spots.</span></div><div><strong>Reflection prompt</strong><p>Which drain produces the least meaningful return?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-22" data-page>
+    <div class="page-topline"><span>TIMING & GROWTH</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>22</span><small>Direction</small></aside>
+      <div class="section-content">
+        <h2>Central Growth Lessons</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>The central growth lesson in your chart is learning to express yourself without waiting for permission or perfect conditions.  Your two 壬 (Water) stems give you immense depth, but depth without expression becomes isolation.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master; leading Ten-God functions: Indirect Resource 38% and Indirect Wealth 19%.</span></div>
+        <div class="section-copy"><p> The missing Fire is not a deficiency—it is a call to develop your voice, your creativity, and your ability to be seen.  A second lesson is balancing responsibility with lightness.  The 七杀 (Seven Killings) in your month and hour push you to take on burdens, but you must learn to distinguish between duties that are truly yours and those you assume out of habit or fear.</p><p> A third lesson is trusting that your inner resources are enough.  The 偏印 (Indirect Resource) can make you feel that you need more knowledge, more preparation, more understanding before you act, but growth comes from acting with what you have.  A fourth lesson is embracing imperfection in relationships.</p><p> The 偏财 (Indirect Wealth) and 七杀 (Seven Killings) can make you perfectionistic about outcomes, but intimacy requires messiness, spontaneity, and the willingness to be seen without a polished exterior.  Finally, you must learn to receive.  Your chart is strong in giving—through work, duty, and intellectual contribution—but the absence of Fire can make receiving feel uncomfortable or undeserved.</p><p> Allowing yourself to accept support, praise, and care is a form of growth that will soften the harder edges of your personality.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Convert one lesson into a weekly behavior.</span><span>Review progress by evidence, not mood.</span></div><div><strong>Reflection prompt</strong><p>What lesson becomes real only when it changes your calendar?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page dense" id="section-23" data-page>
+    <div class="page-topline"><span>TIMING & GROWTH</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>23</span><small>Direction</small></aside>
+      <div class="section-content">
+        <h2>Practical Self-Development Guidance</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>To work with your chart’s strengths and blind spots, focus on practical habits that bring Fire into your daily life.  Schedule regular creative outlets that have no performance pressure—journaling, drawing, dancing, or any activity where the process matters more than the result.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master; leading Ten-God functions: Indirect Resource 38% and Indirect Wealth 19%.</span></div>
+        <div class="section-copy"><p> This will help you express the missing Fire without needing an audience.  Second, set a limit on analysis.  When you catch yourself researching or planning for too long, impose a deadline and force yourself to take one small action, even if it feels incomplete.</p><p> Action generates its own clarity.  Third, practice asking for help.  The 七杀 (Seven Killings) makes you prone to self-reliance, but you can build a habit of delegating one task per week or sharing a problem with a trusted friend.</p><p> Fourth, create a visible record of your achievements.  Because Fire is missing, you may forget what you have accomplished; keeping a simple log or portfolio can remind you that your efforts have tangible value.  Fifth, in relationships, make a conscious effort to express appreciation and warmth verbally.</p><p> The 偏印 (Indirect Resource) can make you assume others know how you feel, but they often don’t.  A short, sincere compliment or a moment of shared laughter can transform a connection.  Sixth, use the Fire years (like 2026 丙午 and 2027 丁未) as opportunities to step into new roles, speak publicly, or start a project you have been postponing.</p><p> These years are your natural growth accelerators.  Finally, practice receiving without guilt.  When someone offers help or praise, simply say “thank you” without explaining why you don’t deserve it.</p><p> Over time, this will balance your giving-receiving dynamic and reduce the sense of depletion.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Start with the smallest action that changes the pattern.</span><span>Schedule the practice before motivation arrives.</span></div><div><strong>Reflection prompt</strong><p>What can you do this week that is small enough to repeat?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page dense" id="section-24" data-page>
+    <div class="page-topline"><span>TIMING & GROWTH</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>24</span><small>Direction</small></aside>
+      <div class="section-content">
+        <h2>Core Life Theme</h2>
+        <blockquote>Become fertile ground, not hardened stone.</blockquote>
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your core life theme is the integration of depth and visibility.  You were born with a rich inner world—intellectual, intuitive, and capable of profound understanding—but your journey is about learning to bring that depth into the light.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master; leading Ten-God functions: Indirect Resource 38% and Indirect Wealth 19%.</span></div>
+        <div class="section-copy"><p> The 甲戌 (Wood-Earth) Day Master sits between two 壬申 (Water-Metal) pillars, creating a structure that is both stable and pressurized.  You are here to build something lasting, but also to let yourself be seen in the process.  The 华盖 (Canopy Star) in your year and day pillars points to a life of spiritual or philosophical inquiry, while the 驿马 (Travel Horse) in your month and hour suggests that movement—physical, intellectual, or emotional—is necessary for your growth.</p><p> Your theme is not about becoming someone else, but about allowing the person you already are to emerge fully.  The missing Fire is not a lack; it is the space where your unique expression will grow.  Your life will be a series of cycles where you retreat to gather strength and then emerge to share what you have learned.</p><p> The structural markers 2000 庚辰 and 2060 庚辰, both Metal-Earth years, bookend periods of intense challenge and transformation, reminding you that pressure is a catalyst for your most significant growth.  Ultimately, your core theme is to trust that your quiet competence is enough, and that the world needs your particular blend of seriousness and hidden warmth.  You are not here to be loud, but to be real—and to let that reality be seen.</p></div>
+        <div class="practice-panel"><div><strong>Put it into practice</strong><span>Write a one-sentence life theme in your own words.</span><span>Revisit it at each major transition.</span></div><div><strong>Reflection prompt</strong><p>What do you want the chart to help you choose more consciously?</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+
+    <section class="pdf-page methodology" data-page>
+      <div class="page-topline"><span>METHOD & LIMITS</span><span>AI BAZI REPORT / V3</span></div>
+      <div class="method-layout">
+        <div><h2>Calculation basis<br>and reading limits</h2><p>This report was generated by Tengyunzi's AI interpretation system from calculated chart data. It is not represented as a report written personally by Tengyunzi.</p><p>BaZi is used here as a structured language for self-observation. Treat each interpretation as a hypothesis to test against lived experience, not as an instruction or fixed prediction. The recorded birth time of 16:00 is included, so the Hour Pillar is part of the structural analysis.</p></div>
+        <dl>
+          <div><dt>01</dt><dd><strong>Birth input</strong><span>Gregorian civil date · Asia/Taipei · birthplace not supplied</span></dd></div>
+          <div><dt>02</dt><dd><strong>Chart source</strong><span>Four Pillars and Luck Pillars supplied by the Tengyunzi calculation engine; solar-time correction is not applied without birthplace data.</span></dd></div>
+          <div><dt>03</dt><dd><strong>Ten-God weighting</strong><span>Visible non-Day stems weight 1.0. Hidden branch stems use 60/30/10 weighting, adjusted by pillar position.</span></dd></div>
+          <div><dt>04</dt><dd><strong>Shen Sha scope</strong><span>Supported canonical markers only. They remain secondary to Day Master, Five Elements, and Ten-God structure.</span></dd></div>
+        </dl>
+      </div>
+      <div class="disclaimer"><strong>Important</strong><p>This report is for educational and reflective purposes. It is not medical, legal, financial, or mental-health advice, and it does not guarantee future events.</p></div>
+      <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+    </section>
+
+    <section class="pdf-page closing" data-page>
+      <div class="closing-mark">TZ</div>
+      <div><span>YOUR NEXT CHAPTER</span><h2>Use the pattern.<br>Keep the choice.</h2><p>The chart offers a map of tendencies. The direction remains yours.</p></div>
+      <footer><span>hello@tengyunzi.com</span><span>tengyunzi.com</span></footer>
+    </section>
+  </main>
+  <script>
+    window.__REPORT_DATA__ = {"elements":{"fire":0,"wood":2,"earth":2,"metal":2,"water":2},"luck":[{"gz":"辛未","age":3,"year":1997},{"gz":"庚午","age":13,"year":2007},{"gz":"己巳","age":23,"year":2017},{"gz":"戊辰","age":33,"year":2027},{"gz":"丁卯","age":43,"year":2037},{"gz":"丙寅","age":53,"year":2047},{"gz":"乙丑","age":63,"year":2057},{"gz":"甲子","age":73,"year":2067}]};
+    document.querySelectorAll('[data-page]').forEach((page, index) => {
+      page.querySelector('[data-page-number]')?.replaceChildren(String(index + 1).padStart(2, '0'));
+    });
+    const palette = { wood:'#398064', fire:'#c65d4b', earth:'#aa823f', metal:'#73839a', water:'#2478b5', ink:'#0b2943', grid:'#dce8f1' };
+    const labels = ['Wood','Fire','Earth','Metal','Water'];
+    const values = labels.map((key) => Number(window.__REPORT_DATA__.elements[key.toLowerCase()] || 0));
+    function mountChart(id, option) {
+      const node = document.getElementById(id);
+      if (!node || !window.echarts) return;
+      const chart = echarts.init(node, null, { renderer:'svg' });
+      chart.setOption(option);
+    }
+    mountChart('element-radar', {
+      animation:false,
+      radar:{ indicator:labels.map((name)=>({name,max:4})), radius:'63%', splitNumber:4, axisName:{color:palette.ink,fontFamily:'Noto Sans',fontWeight:700,fontSize:12}, splitLine:{lineStyle:{color:palette.grid}}, splitArea:{areaStyle:{color:['#fbfdff','#f4f8fb']}}, axisLine:{lineStyle:{color:palette.grid}} },
+      series:[{type:'radar',symbol:'circle',symbolSize:7,data:[{value:values,areaStyle:{color:'rgba(36,120,181,.18)'},lineStyle:{color:palette.water,width:3},itemStyle:{color:palette.water}}]}]
+    });
+    mountChart('element-bars', {
+      animation:false, grid:{left:72,right:28,top:22,bottom:32}, xAxis:{type:'value',min:0,max:4,interval:1,axisLabel:{color:'#5d7183'},splitLine:{lineStyle:{color:palette.grid}},axisLine:{show:false},axisTick:{show:false}}, yAxis:{type:'category',data:labels,axisLabel:{color:palette.ink,fontWeight:700},axisLine:{show:false},axisTick:{show:false}}, series:[{type:'bar',data:values.map((value,index)=>({value,itemStyle:{color:[palette.wood,palette.fire,palette.earth,palette.metal,palette.water][index]}})),barWidth:18,label:{show:true,position:'right',color:palette.ink,fontWeight:800}}]
+    });
+    mountChart('section-elements', {
+      animation:false, grid:{left:80,right:28,top:18,bottom:24}, xAxis:{type:'value',max:4,splitLine:{lineStyle:{color:palette.grid}},axisLabel:{show:false},axisLine:{show:false},axisTick:{show:false}}, yAxis:{type:'category',data:labels,axisLabel:{color:palette.ink,fontWeight:700},axisLine:{show:false},axisTick:{show:false}}, series:[{type:'bar',data:values,barWidth:13,itemStyle:{color:palette.water,borderRadius:[0,3,3,0]},label:{show:true,position:'right',color:palette.ink,fontWeight:800}}]
+    });
+  </script>
+</body>
+</html>

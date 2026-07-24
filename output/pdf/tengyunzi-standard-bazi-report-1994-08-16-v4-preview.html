@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tengyunzi Standard BaZi Report C6430066 - V4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&family=Noto+Serif:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>:root {
+  --navy: #0b2943;
+  --navy-2: #123f63;
+  --blue: #2478b5;
+  --blue-soft: #eaf4fb;
+  --sky: #d9ecf8;
+  --paper: #fbfdff;
+  --white: #ffffff;
+  --ink: #17364f;
+  --muted: #5d7183;
+  --line: #cddde8;
+  --wood: #398064;
+  --fire: #c65d4b;
+  --earth: #aa823f;
+  --metal: #73839a;
+  --water: #2478b5;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+html, body { margin: 0; background: #dfe8ee; color: var(--ink); font-family: "Noto Sans", sans-serif; }
+body { padding: 20px 0; }
+.report-book { width: 210mm; margin: 0 auto; }
+.pdf-page {
+  position: relative;
+  width: 210mm;
+  height: 297mm;
+  overflow: hidden;
+  break-after: page;
+  page-break-after: always;
+  background: var(--paper);
+  padding: 18mm 18mm 16mm;
+  box-shadow: 0 2px 8px rgba(11, 41, 67, .16);
+}
+.pdf-page + .pdf-page { margin-top: 18px; }
+.pdf-page footer { position: absolute; left: 18mm; right: 18mm; bottom: 8mm; display: flex; justify-content: space-between; align-items: center; color: #688093; font-size: 7.5pt; font-weight: 700; }
+.page-topline { display: flex; justify-content: space-between; padding-bottom: 4mm; border-bottom: 1px solid var(--line); color: var(--blue); font-size: 7.5pt; font-weight: 800; }
+h1, h2, h3, p { margin-top: 0; }
+h1, h2, h3 { color: var(--navy); font-family: "Noto Serif", serif; text-wrap: balance; }
+p { color: var(--ink); font-size: 10pt; line-height: 1.64; text-wrap: pretty; }
+
+.cover { background: var(--navy); color: white; padding: 19mm 18mm 15mm; }
+.cover::before { content: ""; position: absolute; inset: 0 0 auto auto; width: 86mm; height: 86mm; background: var(--blue); clip-path: polygon(32% 0,100% 0,100% 100%,0 100%); opacity: .18; }
+.cover::after { content: ""; position: absolute; left: 18mm; right: 18mm; top: 34mm; border-top: 1px solid rgba(255,255,255,.25); }
+.cover-mark { width: 13mm; height: 13mm; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.65); font-family: "Noto Serif", serif; font-weight: 900; }
+.cover-title { position: absolute; left: 18mm; top: 58mm; width: 118mm; }
+.cover-title > span, .overview-head span, .energy-page header > span, .closing span { color: #8fd1f4; font-size: 8pt; font-weight: 800; }
+.cover-title h1 { margin: 5mm 0 7mm; color: white; font-size: 34pt; line-height: 1.08; letter-spacing: 0; }
+.cover-title p { width: 102mm; color: #d7e6ef; font-size: 12pt; line-height: 1.6; }
+.cover-orbit { position: absolute; right: 17mm; top: 96mm; width: 58mm; height: 58mm; display: grid; place-items: center; border: 1px solid rgba(143,209,244,.46); border-radius: 50%; }
+.cover-orbit::before, .cover-orbit::after, .cover-orbit i { content: ""; position: absolute; border: 1px solid rgba(143,209,244,.25); border-radius: 50%; }
+.cover-orbit::before { inset: 7mm; }.cover-orbit::after { inset: 14mm; }.cover-orbit i:nth-child(1) { inset: 22mm; background: rgba(143,209,244,.12); }
+.cover-orbit i:nth-child(2) { left: 50%; top: -2mm; bottom: -2mm; border-radius: 0; border-width: 0 0 0 1px; }
+.cover-orbit i:nth-child(3) { top: 50%; left: -2mm; right: -2mm; border-radius: 0; border-width: 1px 0 0; }
+.cover-orbit strong { z-index: 1; color: white; font-family: "Noto Serif", serif; font-size: 18pt; }
+.cover-meta { position: absolute; left: 18mm; right: 18mm; bottom: 30mm; display: grid; grid-template-columns: 1fr 1.25fr .8fr; gap: 8mm; padding-top: 6mm; border-top: 1px solid rgba(255,255,255,.25); }
+.cover-meta div { display: grid; gap: 2mm; }.cover-meta dt { color: #8fd1f4; font-size: 7.5pt; font-weight: 800; }.cover-meta dd { margin: 0; color: white; font-size: 9pt; line-height: 1.45; }
+.cover footer { color: rgba(255,255,255,.65); }
+
+.overview-head { display: grid; grid-template-columns: 1.12fr .88fr; gap: 18mm; align-items: end; margin: 13mm 0 10mm; }
+.overview-head h2 { margin: 3mm 0 0; font-size: 27pt; line-height: 1.16; }
+.overview-head p { margin-bottom: 1mm; color: var(--muted); font-size: 10.5pt; }
+.overview-grid { display: grid; gap: 9mm; }
+.pillars-panel { padding: 8mm; background: var(--white); border-top: 3px solid var(--blue); }
+.pillars-panel h3 { font-size: 13pt; }
+.pillar-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 3mm; }
+.pillar-card { display: grid; grid-template-rows: auto 1fr 1fr auto; min-height: 58mm; border: 1px solid var(--line); text-align: center; background: #f7fbfe; }
+.pillar-card > span { padding: 3mm; background: var(--blue-soft); color: var(--muted); font-size: 7pt; font-weight: 800; }
+.pillar-card strong { display: grid; place-items: center; color: var(--navy); font-family: "Noto Serif", serif; font-size: 23pt; }
+.pillar-card strong + strong { border-top: 1px solid var(--line); }
+.pillar-card small { padding: 2.5mm; border-top: 1px solid var(--line); color: var(--muted); font-size: 7.5pt; }
+.unknown-note { margin: 5mm 0 0; padding: 4mm 5mm; background: var(--blue-soft); color: #365a74; font-size: 8.5pt; }
+.signal-panel { display: grid; grid-template-columns: repeat(3,1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.signal-panel div { min-height: 45mm; display: flex; flex-direction: column; justify-content: center; padding: 7mm; border-right: 1px solid var(--line); }.signal-panel div:last-child { border-right: 0; }
+.signal-panel span { color: var(--blue); font-size: 7pt; font-weight: 800; }.signal-panel strong { margin: 3mm 0 1mm; color: var(--navy); font-family: "Noto Serif", serif; font-size: 21pt; }.signal-panel small { color: var(--muted); font-size: 8pt; }
+.signal-panel.four-up { grid-template-columns: repeat(4, 1fr); }
+.signal-panel.four-up div { min-height: 39mm; padding: 5mm; }
+.signal-panel.four-up strong { font-size: 17pt; }
+
+.energy-page header { max-width: 142mm; margin: 12mm 0 8mm; }
+.energy-page h2 { margin: 3mm 0; font-size: 26pt; }.energy-page header p { color: var(--muted); }
+.energy-layout { display: grid; grid-template-columns: .95fr 1.05fr; gap: 6mm; height: 91mm; }
+.chart { width: 100%; min-height: 68mm; background: var(--white); }
+.energy-legend { margin-top: 8mm; display: grid; grid-template-columns: repeat(2,1fr); gap: 3mm 8mm; }
+.energy-legend div { display: grid; grid-template-columns: 4mm 1fr; column-gap: 3mm; padding: 3.2mm 0; border-bottom: 1px solid var(--line); }
+.energy-legend i { width: 3mm; height: 3mm; margin-top: 1mm; border-radius: 50%; }.energy-legend strong { font-size: 8.5pt; }.energy-legend span { grid-column: 2; color: var(--muted); font-size: 7.5pt; }
+.energy-legend .wood{background:var(--wood)}.energy-legend .fire{background:var(--fire)}.energy-legend .earth{background:var(--earth)}.energy-legend .metal{background:var(--metal)}.energy-legend .water{background:var(--water)}
+
+.wx-wood { color: var(--wood) !important; }
+.wx-fire { color: var(--fire) !important; }
+.wx-earth { color: var(--earth) !important; }
+.wx-metal { color: var(--metal) !important; }
+.wx-water { color: var(--water) !important; }
+
+.ten-gods-page header { display: grid; grid-template-columns: 1fr .82fr; gap: 13mm; align-items: end; margin: 12mm 0 9mm; }
+.ten-gods-page header > span { grid-column: 1 / -1; color: var(--blue); font-size: 8pt; font-weight: 800; }
+.ten-gods-page header h2 { margin: -1mm 0 0; font-size: 25pt; line-height: 1.16; }
+.ten-gods-page header p { margin: 0; color: var(--muted); font-size: 9pt; }
+.ten-god-table { border-top: 2px solid var(--blue); }
+.ten-god-row { min-height: 13.5mm; display: grid; grid-template-columns: 39mm 1fr 11mm 54mm; gap: 4mm; align-items: center; border-bottom: 1px solid var(--line); }
+.ten-god-name { display: grid; grid-template-columns: 12mm 1fr; align-items: baseline; }.ten-god-name strong { color: var(--navy); font-family: "Noto Serif", serif; font-size: 12pt; }.ten-god-name span { color: var(--ink); font-size: 8pt; font-weight: 700; }
+.ten-god-meter { height: 4mm; overflow: hidden; background: #e8f0f5; }.ten-god-meter i { display: block; height: 100%; background: currentColor; }
+.ten-god-row > b { color: var(--navy); font-size: 8pt; text-align: right; }.ten-god-row > small { display: grid; gap: 1mm; color: var(--muted); font-size: 7.3pt; line-height: 1.35; }
+.ten-god-row > small em { color: var(--blue); font-size: 6.2pt; font-style: normal; font-weight: 800; }
+.ten-god-note { display: grid; grid-template-columns: 34mm 1fr; gap: 7mm; margin-top: 6mm; padding: 5mm 6mm; background: var(--blue-soft); }.ten-god-note strong { color: var(--blue); font-size: 8pt; }.ten-god-note p { margin: 0; font-size: 8.3pt; }
+
+.shen-sha-page header { display: grid; grid-template-columns: 1fr .82fr; gap: 13mm; align-items: end; margin: 12mm 0 9mm; }
+.shen-sha-page header > span { grid-column: 1 / -1; color: var(--blue); font-size: 8pt; font-weight: 800; }
+.shen-sha-page header h2 { margin: -1mm 0 0; font-size: 25pt; line-height: 1.16; }
+.shen-sha-page header p { margin: 0; color: var(--muted); font-size: 8.6pt; }
+.shen-sha-table { width: 100%; border-collapse: collapse; border-top: 2px solid var(--blue); table-layout: fixed; }
+.shen-sha-table th { padding: 3mm 2.5mm; background: var(--blue-soft); color: var(--blue); font-size: 6.5pt; text-align: left; text-transform: uppercase; }
+.shen-sha-table th:nth-child(1) { width: 38mm; }.shen-sha-table th:nth-child(2) { width: 27mm; }.shen-sha-table th:nth-child(3) { width: 27mm; }
+.shen-sha-table td { padding: 3mm 2.5mm; border-bottom: 1px solid var(--line); color: var(--ink); font-size: 7.2pt; line-height: 1.38; vertical-align: top; }
+.shen-sha-table td:first-child strong { display: block; color: var(--navy); font-family: "Noto Serif", serif; font-size: 10.5pt; }.shen-sha-table td:first-child span, .shen-sha-table td:nth-child(2) span { display: block; margin-top: .8mm; color: var(--muted); font-size: 6.5pt; }
+.shen-sha-table td:nth-child(2) b { color: var(--blue); font-size: 6.5pt; }.shen-sha-table td:nth-child(2) span { color: var(--navy); font-family: "Noto Serif", serif; font-size: 11pt; font-weight: 800; }
+.shen-sha-note { display: grid; grid-template-columns: 38mm 1fr; gap: 7mm; margin-top: 7mm; padding: 5mm 6mm; background: var(--navy); }.shen-sha-note strong { color: #8fd1f4; font-size: 7.5pt; }.shen-sha-note p { margin: 0; color: #d7e6ef; font-size: 7.6pt; line-height: 1.5; }
+
+.contents header { margin: 12mm 0 8mm; }.contents h2 { margin-bottom: 3mm; font-size: 27pt; }.contents header p { color: var(--muted); }
+.contents ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2,1fr); column-gap: 10mm; }
+.contents li { min-height: 14mm; display: grid; grid-template-columns: 8mm 1fr; column-gap: 3mm; align-content: center; border-bottom: 1px solid var(--line); }
+.contents li > span { color: var(--blue); font-family: "Noto Serif", serif; font-size: 9pt; font-weight: 800; }.contents li a { display: grid; gap: .5mm; color: inherit; text-decoration: none; }.contents li strong { color: var(--navy); font-size: 8.5pt; }.contents li small { color: var(--muted); font-size: 6.6pt; font-weight: 700; }
+
+.section-layout { display: grid; grid-template-columns: 21mm 1fr; gap: 8mm; margin-top: 11mm; }
+.section-index { min-height: 178mm; border-right: 1px solid var(--line); }.section-index span { display: block; color: var(--blue); font-family: "Noto Serif", serif; font-size: 27pt; font-weight: 800; }.section-index small { display: block; width: 19mm; margin-top: 3mm; color: var(--muted); font-size: 7pt; font-weight: 800; line-height: 1.4; }
+.section-content h2 { max-width: 132mm; margin: 0 0 5mm; font-size: 22pt; line-height: 1.16; }
+.core-insight { margin-bottom: 4mm; padding: 4.5mm 5mm; background: var(--navy); }
+.core-insight span { display: block; margin-bottom: 1.5mm; color: #8fd1f4; font-size: 6.2pt; font-weight: 800; }
+.core-insight p { margin: 0; color: white; font-family: "Noto Serif", serif; font-size: 10.2pt; font-weight: 700; line-height: 1.48; }
+.chart-basis { display: grid; grid-template-columns: 25mm 1fr; gap: 4mm; margin-bottom: 4mm; padding-bottom: 3mm; border-bottom: 1px solid var(--line); }
+.chart-basis strong { color: var(--blue); font-size: 7pt; }.chart-basis span { color: var(--muted); font-size: 7.4pt; line-height: 1.45; }
+.section-copy { columns: 2; column-gap: 7mm; column-rule: 1px solid var(--line); }
+.section-copy p { margin-bottom: 3mm; color: #25435a; font-size: 8.15pt; line-height: 1.52; break-inside: avoid; }
+.section-page.dense .section-copy p { font-size: 7.75pt; line-height: 1.46; }
+.section-page.extra-dense .section-copy p { font-size: 7.3pt; line-height: 1.4; }
+.practice-panel { display: grid; grid-template-columns: 1.08fr .92fr; gap: 5mm; margin-top: 4mm; padding-top: 4mm; border-top: 2px solid var(--blue); }
+.practice-panel > div { display: grid; align-content: start; gap: 1.5mm; }
+.practice-panel strong { color: var(--navy); font-size: 7.3pt; }
+.practice-panel span { position: relative; padding-left: 4mm; color: var(--ink); font-size: 7pt; line-height: 1.35; }
+.practice-panel span::before { content: ""; position: absolute; left: 0; top: 1.7mm; width: 2mm; border-top: 2px solid var(--blue); }
+.practice-panel p { margin: 0; color: var(--muted); font-size: 7.2pt; font-style: italic; line-height: 1.45; }
+.section-page .chart-wide { height: 54mm; min-height: 54mm; margin: -1mm 0 6mm; }
+.section-page .timeline-chart { height: 56mm; min-height: 56mm; margin: -1mm 0 6mm; }
+.section-page blockquote { margin: 2mm 0 8mm; padding: 6mm; background: var(--navy); color: white; font-family: "Noto Serif", serif; font-size: 16pt; line-height: 1.45; }
+.rhythm-strip { display: grid; grid-template-columns: repeat(3,1fr); margin: 0 0 7mm; border-top: 2px solid var(--blue); border-bottom: 1px solid var(--line); }
+.rhythm-strip div { padding: 4mm 3mm; border-right: 1px solid var(--line); }.rhythm-strip div:last-child{border-right:0}.rhythm-strip span { color: var(--blue); font-size: 6.5pt; font-weight: 800; }.rhythm-strip strong { display: block; margin: 2mm 0 1mm; color: var(--navy); font-size: 9pt; }.rhythm-strip small { color: var(--muted); font-size: 6.8pt; line-height: 1.35; }
+
+.timing-atlas header { display: grid; grid-template-columns: 1.16fr .84fr; gap: 12mm; align-items: end; margin: 10mm 0 8mm; }
+.timing-atlas header > span { grid-column: 1 / -1; color: var(--blue); font-size: 8pt; font-weight: 800; }.timing-atlas header h2 { margin: -1mm 0 0; font-size: 23pt; line-height: 1.15; }.timing-atlas header p { margin: 0; color: var(--muted); font-size: 8.8pt; }
+.timing-atlas h3 { margin: 0 0 4mm; font-family: "Noto Sans", sans-serif; font-size: 9pt; }
+.cycle-section { padding-top: 5mm; border-top: 2px solid var(--blue); }
+.cycle-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; }
+.cycle { position: relative; min-height: 39mm; display: grid; align-content: start; gap: 2mm; padding: 4mm; background: #f1f6f9; border-top: 2px solid #aebfca; }
+.cycle.is-current { background: var(--navy); border-top-color: #7dcbf1; }.cycle-state { color: var(--blue); font-size: 6.2pt; font-weight: 800; }.cycle.is-current .cycle-state { color: #8fd1f4; }
+.colored-ganzhi { display: inline-flex; gap: 1.5mm; font-family: "Noto Serif", serif; font-size: 18pt; font-weight: 900; line-height: 1; }.colored-ganzhi i { font-style: normal; }.cycle.is-current .colored-ganzhi i { filter: brightness(1.35) saturate(.8); }
+.cycle > strong { color: var(--navy); font-size: 7.3pt; }.cycle.is-current > strong { color: white; }.cycle > small { color: var(--muted); font-size: 6.5pt; line-height: 1.35; }.cycle.is-current > small { color: #c9dbe6; }
+.annual-section { display: grid; grid-template-columns: 40mm 1fr; gap: 7mm; margin-top: 9mm; padding-top: 6mm; border-top: 1px solid var(--line); }.annual-section > div:first-child p { color: var(--muted); font-size: 7.5pt; }
+.annual-grid { display: grid; grid-template-columns: repeat(5,1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.annual-year { min-height: 46mm; display: grid; align-content: start; gap: 1.4mm; padding: 3mm 2.5mm; border-right: 1px solid var(--line); }.annual-year:last-child { border-right: 0; }.annual-year.is-now { background: var(--blue-soft); }.annual-year > span { color: var(--blue); font-size: 5.5pt; font-weight: 800; min-height: 3mm; }.annual-year .colored-ganzhi.small { margin: 1mm 0; font-size: 15pt; }.annual-year small { color: var(--muted); font-size: 5.4pt; line-height: 1.25; }.annual-year em { color: var(--ink); font-size: 5.2pt; font-style: normal; line-height: 1.28; }
+.strategy { justify-self: start; padding: .7mm 1.4mm; color: white; background: var(--blue); font-size: 5pt; font-weight: 900; }
+.strategy-steady { background: var(--metal); }.strategy-defend { background: var(--fire); }
+.strategy-key { display: flex; flex-wrap: wrap; gap: 1.2mm; margin-top: 3mm; }.strategy-key span { padding: .7mm 1.3mm; background: var(--blue-soft); color: var(--blue); font-size: 5.2pt; font-weight: 800; }
+
+.method-layout { display: grid; grid-template-columns: .9fr 1.1fr; gap: 12mm; margin-top: 15mm; }.method-layout h2 { font-size: 25pt; }.method-layout > div p { font-size: 9.5pt; }.method-layout dl { margin: 0; }.method-layout dl div { display: grid; grid-template-columns: 10mm 1fr; gap: 3mm; padding: 4mm 0; border-bottom: 1px solid var(--line); }.method-layout dt { color: var(--blue); font-family: "Noto Serif", serif; font-weight: 800; }.method-layout dd { margin: 0; display: grid; gap: 1mm; }.method-layout dd strong { color: var(--navy); font-size: 8.5pt; }.method-layout dd span { color: var(--muted); font-size: 7.5pt; line-height: 1.42; }
+.disclaimer { margin-top: 22mm; padding: 7mm; background: var(--blue-soft); }.disclaimer strong { color: var(--blue); font-size: 8pt; }.disclaimer p { margin: 2mm 0 0; font-size: 9pt; }
+.closing { display: flex; flex-direction: column; justify-content: center; background: var(--navy); color: white; }.closing-mark { position: absolute; top: 18mm; left: 18mm; width: 13mm; height: 13mm; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.55); font-family: "Noto Serif", serif; font-weight: 900; }.closing h2 { margin: 5mm 0; color: white; font-size: 36pt; line-height: 1.12; }.closing p { color: #d7e6ef; font-size: 12pt; }.closing footer { color: rgba(255,255,255,.68); }
+
+@media print {
+  html, body { background: white; }
+  body { padding: 0; }
+  .report-book { margin: 0; }
+  .pdf-page { box-shadow: none; }
+  .pdf-page + .pdf-page { margin-top: 0; }
+}
+
+@page { size: A4; margin: 0; }
+</style>
+</head>
+<body>
+  <main class="report-book">
+    <section class="pdf-page cover" data-page>
+      <div class="cover-mark">TZ</div>
+      <div class="cover-title">
+        <span>STANDARD AI BAZI REPORT</span>
+        <h1>Your Four Pillars<br>Interpretation</h1>
+        <p>A traditional BaZi reading of chart structure, Ten Gods, useful elements, life topics, Luck Pillars, and annual timing.</p>
+      </div>
+      <div class="cover-orbit" aria-hidden="true"><i></i><i></i><i></i><strong>命</strong></div>
+      <dl class="cover-meta">
+        <div><dt>Birth profile</dt><dd>August 16, 1994</dd></div>
+        <div><dt>Chart</dt><dd>甲戌 / 壬申 / 甲戌 / 壬申</dd></div>
+        <div><dt>Report ID</dt><dd>C6430066 · V3<br>July 22, 2026</dd></div>
+      </dl>
+      <footer><span>TENGYUNZI</span><span>CONFIDENTIAL AI-GENERATED REPORT</span></footer>
+    </section>
+
+    <section class="pdf-page overview" data-page>
+      <div class="page-topline"><span>EXECUTIVE VIEW</span><span>AI BAZI REPORT / V4</span></div>
+      <header class="overview-head"><div><span>THE CHART AT A GLANCE</span><h2>Wood at the center.<br>Four forces in dialogue.</h2></div><p>The visible stems and branches emphasize Wood, Earth, Metal, Water. Fire appears only in hidden stems. Every element is present either visibly or in hidden stems.</p></header>
+      <div class="overview-grid">
+        <div class="pillars-panel">
+          <h3>Four Pillars</h3>
+          <div class="pillar-row">
+            <div class="pillar-card">
+    <span>YEAR</span>
+    <strong class="wx-wood">甲</strong>
+    <strong class="wx-earth">戌</strong>
+    <small>甲戌</small>
+  </div>
+            <div class="pillar-card">
+    <span>MONTH</span>
+    <strong class="wx-water">壬</strong>
+    <strong class="wx-metal">申</strong>
+    <small>壬申</small>
+  </div>
+            <div class="pillar-card">
+    <span>DAY</span>
+    <strong class="wx-wood">甲</strong>
+    <strong class="wx-earth">戌</strong>
+    <small>Day Master</small>
+  </div>
+            <div class="pillar-card">
+    <span>HOUR</span>
+    <strong class="wx-water">壬</strong>
+    <strong class="wx-metal">申</strong>
+    <small>Birth hour</small>
+  </div>
+          </div>
+          <p class="unknown-note">The recorded birth time is 16:00. All four pillars are included in this reading.</p>
+        </div>
+        <div class="signal-panel four-up">
+          <div><span>DAY MASTER</span><strong class="wx-wood">甲</strong><small>Yang Wood</small></div>
+          <div><span>LEADING FUNCTION</span><strong>偏印</strong><small>Indirect Resource · 41%</small></div>
+          <div><span>CURRENT CYCLE</span><strong>己巳</strong><small>2017-2026</small></div>
+          <div><span>CORE POSTURE</span><strong>INTEGRATE</strong><small>Coordinate before expansion</small></div>
+        </div>
+      </div>
+      <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+    </section>
+
+    <section class="pdf-page energy-page" data-page>
+      <div class="page-topline"><span>ELEMENTAL PROFILE</span><span>AI BAZI REPORT / V4</span></div>
+      <header><span>FIVE ELEMENT ENERGY</span><h2>A broad 4-element profile</h2><p>The chart counts visible stems and branches only. Zero does not mean an element is absent from life; it means that function is not visibly emphasized in the natal pillars used here.</p></header>
+      <div class="energy-layout">
+        <div class="chart radar-chart" id="element-radar"></div>
+        <div class="chart bars-chart" id="element-bars"></div>
+      </div>
+      <div class="energy-legend"><div><i class="wood"></i><strong>Wood / Companion</strong><span>Identity, peers, continuity</span></div><div><i class="fire"></i><strong>Fire / Output</strong><span>Expression, craft, production</span></div><div><i class="earth"></i><strong>Earth / Wealth</strong><span>Resources, exchange, stewardship</span></div><div><i class="metal"></i><strong>Metal / Officer</strong><span>Direction, standards, authority</span></div><div><i class="water"></i><strong>Water / Resource</strong><span>Learning, support, replenishment</span></div></div>
+      <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+    </section>
+
+    <section class="pdf-page ten-gods-page" data-page>
+    <div class="page-topline"><span>TEN-GOD PROFILE</span><span>STRUCTURAL EMPHASIS</span></div>
+    <header><span>RELATIONAL ENERGIES</span><h2>How the chart's forces<br>relate to the Day Master</h2><p>This profile combines visible stems with weighted hidden stems. It describes structural emphasis, not a fixed percentage of personality.</p></header>
+    <div class="ten-god-table"><div class="ten-god-row">
+    <div class="ten-god-name"><strong>偏印</strong><span>Indirect Resource</span></div>
+    <div class="ten-god-meter"><i class="wx-water" style="width:41%"></i></div>
+    <b>41%</b>
+    <small><span>Pattern recognition and intuition</span><em>Visible 2.3 · Hidden 0.7</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>七杀</strong><span>Seven Killings</span></div>
+    <div class="ten-god-meter"><i class="wx-metal" style="width:19%"></i></div>
+    <b>19%</b>
+    <small><span>Pressure, courage, and decisive action</span><em>Visible 0.0 · Hidden 1.4</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>偏财</strong><span>Indirect Wealth</span></div>
+    <div class="ten-god-meter"><i class="wx-earth" style="width:18%"></i></div>
+    <b>18%</b>
+    <small><span>Opportunity and flexible exchange</span><em>Visible 0.0 · Hidden 1.3</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>比肩</strong><span>Friend</span></div>
+    <div class="ten-god-meter"><i class="wx-wood" style="width:12%"></i></div>
+    <b>12%</b>
+    <small><span>Identity and self-direction</span><em>Visible 0.8 · Hidden 0.0</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>正官</strong><span>Direct Officer</span></div>
+    <div class="ten-god-meter"><i class="wx-metal" style="width:8%"></i></div>
+    <b>8%</b>
+    <small><span>Standards, duty, and legitimate authority</span><em>Visible 0.0 · Hidden 0.6</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>伤官</strong><span>Hurting Officer</span></div>
+    <div class="ten-god-meter"><i class="wx-fire" style="width:2%"></i></div>
+    <b>2%</b>
+    <small><span>Originality and challenge</span><em>Visible 0.0 · Hidden 0.2</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>劫财</strong><span>Rob Wealth</span></div>
+    <div class="ten-god-meter"></div>
+    <b>0%</b>
+    <small><span>Competition, alliances, and shared resources</span><em>Visible 0.0 · Hidden 0.0</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>食神</strong><span>Eating God</span></div>
+    <div class="ten-god-meter"></div>
+    <b>0%</b>
+    <small><span>Gentle expression and craft</span><em>Visible 0.0 · Hidden 0.0</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>正财</strong><span>Direct Wealth</span></div>
+    <div class="ten-god-meter"></div>
+    <b>0%</b>
+    <small><span>Steady resources and stewardship</span><em>Visible 0.0 · Hidden 0.0</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>正印</strong><span>Direct Resource</span></div>
+    <div class="ten-god-meter"></div>
+    <b>0%</b>
+    <small><span>Learning, support, and restoration</span><em>Visible 0.0 · Hidden 0.0</em></small>
+  </div></div>
+    <div class="ten-god-note"><strong>Reading the scale</strong><p>Percentages use largest-remainder rounding and total exactly 100%. Visible counts come from non-Day stems; hidden scores use weighted branch roots. This is a structural index, not a personality test.</p></div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </section>
+
+    <section class="pdf-page shen-sha-page" data-page>
+    <div class="page-topline"><span>SYMBOLIC-STAR PROFILE</span><span>SECONDARY READING LENS</span></div>
+    <header><span>神煞 / SHEN SHA</span><h2>Markers that add nuance,<br>not fixed outcomes</h2><p>Each marker is calculated from the natal stems and branches. It is interpreted as supporting context and never overrides the Day Master, Five Elements, or Ten-God structure.</p></header>
+    <table class="shen-sha-table"><thead><tr><th>Marker</th><th>Location</th><th>Derived from</th><th>Practical interpretation</th></tr></thead><tbody><tr>
+    <td><strong>华盖</strong><span>Canopy Star</span></td>
+    <td><b>2 PLACEMENTS</b><span>YEAR 戌 · DAY 戌</span></td>
+    <td>Day Pillar + Year Pillar</td>
+    <td>Supports specialist depth, solitude, aesthetics, and the ability to work beyond conventional opinion. Repetition increases emphasis across life contexts.</td>
+  </tr><tr>
+    <td><strong>驿马</strong><span>Travel Horse</span></td>
+    <td><b>2 PLACEMENTS</b><span>MONTH 申 · HOUR 申</span></td>
+    <td>Day Pillar + Year Pillar</td>
+    <td>Adds momentum through movement, changing environments, travel, or roles that resist stagnation. Repetition increases emphasis across life contexts.</td>
+  </tr></tbody></table>
+    <div class="shen-sha-note"><strong>How to read this page</strong><p>A marker describes a recurring symbolic tendency. Repetition can strengthen emphasis, but no single Shen Sha guarantees an event, relationship, or outcome.</p></div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </section>
+
+    <section class="pdf-page contents" data-page>
+      <div class="page-topline"><span>READING MAP</span><span>STANDARD BAZI INTERPRETATION</span></div>
+      <header><h2>What this report covers</h2><p>15 evidence-led chapters, moving from the natal chart to life topics, Luck Pillars, and annual timing.</p></header>
+      <ol><li><span>01</span><a href="#section-1"><strong>Four Pillars and Day Master</strong><small>CHART FOUNDATION</small></a></li><li><span>02</span><a href="#section-2"><strong>Seasonal Qi and Day Master Strength</strong><small>CHART FOUNDATION</small></a></li><li><span>03</span><a href="#section-3"><strong>Five Elements and Hidden Stems</strong><small>CHART FOUNDATION</small></a></li><li><span>04</span><a href="#section-4"><strong>Ten Gods in the Natal Chart</strong><small>CHART FOUNDATION</small></a></li><li><span>05</span><a href="#section-5"><strong>Chart Structure, Useful Elements, and Unfavorable Elements</strong><small>CHART STRUCTURE</small></a></li><li><span>06</span><a href="#section-6"><strong>Stems, Branches, and Natal Interactions</strong><small>CHART STRUCTURE</small></a></li><li><span>07</span><a href="#section-7"><strong>Shen Sha: Secondary Symbolic Stars</strong><small>CHART STRUCTURE</small></a></li><li><span>08</span><a href="#section-8"><strong>Career and Suitable Work Environments</strong><small>LIFE TOPICS</small></a></li><li><span>09</span><a href="#section-9"><strong>Wealth Pattern and Resource Management</strong><small>LIFE TOPICS</small></a></li><li><span>10</span><a href="#section-10"><strong>Relationships, Partner Star, and Spouse Palace</strong><small>LIFE TOPICS</small></a></li><li><span>11</span><a href="#section-11"><strong>Health Tendencies Through the Five Elements</strong><small>LIFE TOPICS</small></a></li><li><span>12</span><a href="#section-12"><strong>Luck Pillar Direction and Starting Age</strong><small>TIMING</small></a></li><li><span>13</span><a href="#section-13"><strong>Ten-Year Luck Pillars</strong><small>TIMING</small></a></li><li><span>14</span><a href="#section-14"><strong>Annual Outlook for the Next Five Years</strong><small>TIMING</small></a></li><li><span>15</span><a href="#section-15"><strong>Timing Priorities and Practical Summary</strong><small>TIMING</small></a></li></ol>
+      <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+    </section>
+
+    <article class="pdf-page section-page" id="section-1" data-page>
+    <div class="page-topline"><span>CHART FOUNDATION</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>01</span><small>Structure</small></aside>
+      <div class="section-content">
+        <h2>Four Pillars and Day Master</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your Four Pillars are 甲戌 (Wood-Earth), 壬申 (Water-Metal), 甲戌 (Wood-Earth), and 壬申 (Water-Metal).  The Day Master, which represents you, is the 甲 (Wood) stem in the Day Pillar.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Day Master: 甲, a Wood Heavenly Stem. Day Pillar and Day Master are kept distinct.</span></div>
+        <div class="section-copy"><p> 甲 is Yang Wood, the tall tree or strong pillar that grows upward and seeks expansion.  In your chart, the Year Pillar also contains a 甲 stem, making two visible Yang Wood stems.  The Month and Hour Pillars each carry 壬 (Yang Water), which is your Indirect Resource, meaning Water nourishes Wood.</p><p> The Earthly Branches are 戌 (Earth) in Year and Day, and 申 (Metal) in Month and Hour.  The Year Pillar represents your early environment and family roots, the Month Pillar your career and social sphere, the Day Pillar your self and spouse, and the Hour Pillar your later years and inner drive.  Your Day Master is Yang Wood, and the chart shows a strong Water presence that supports it, but also Metal that controls it and Earth that drains it.</p><p> This creates a complex balance where you are nourished but also pressured.</p></div>
+        <div class="practice-panel"><div><strong>Reading standard</strong><span>Traditional BaZi terms are retained and explained in English.</span><span>Calculated facts are kept separate from interpretation.</span></div><div><strong>Scope</strong><p>No single symbol or Shen Sha marker is treated as proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-2" data-page>
+    <div class="page-topline"><span>CHART FOUNDATION</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>02</span><small>Structure</small></aside>
+      <div class="section-content">
+        <h2>Seasonal Qi and Day Master Strength</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your Month Pillar is 申 (Metal), which corresponds to the eighth month of the lunar calendar, late summer transitioning into autumn.  In BaZi, the season of the Month Branch determines the seasonal Qi.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Month Branch: 申; strength is read through season, roots, support, drains, and controls.</span></div>
+        <div class="section-copy"><p> Autumn is the season of Metal, which controls Wood.  The Day Master 甲 (Wood) is born in autumn, when Metal is strong and Wood is declining.  This means your Day Master is not naturally strong by season; it faces a controlling element.</p><p> However, your chart has two 壬 (Water) stems in the Month and Hour Pillars, which are your Indirect Resource.  Water produces Wood, so these Water stems act as a lifeline, nourishing the Day Master and offsetting the Metal control.  Additionally, the 戌 (Earth) branches in Year and Day contain hidden Fire and Metal, but no direct Wood root.</p><p> The Day Master lacks a strong root in the branches—there is no 寅 (Wood) or 卯 (Wood) branch to anchor it.  This makes your Day Master moderately strong due to Water support, but not robust.  It is like a tree growing near a stream in autumn: it survives and can grow, but it is not in its prime season and relies on external nourishment.</p><p> The overall strength is balanced but leans toward needing the Water support to remain viable.  Without the Water, the Metal and Earth would overwhelm the Wood.</p></div>
+        <div class="practice-panel"><div><strong>Reading standard</strong><span>Traditional BaZi terms are retained and explained in English.</span><span>Calculated facts are kept separate from interpretation.</span></div><div><strong>Scope</strong><p>No single symbol or Shen Sha marker is treated as proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-3" data-page>
+    <div class="page-topline"><span>CHART FOUNDATION</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>03</span><small>Structure</small></aside>
+      <div class="section-content">
+        <h2>Five Elements and Hidden Stems</h2>
+        <div class="chart chart-wide" id="section-elements"></div>
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>The visible Five Elements in your chart are Wood (2 stems), Water (2 stems), Earth (2 branches), and Metal (2 branches).  Fire is not visible in any stem or branch.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Visible leaders: Wood + Earth + Metal + Water. Hidden-only elements: Fire.</span></div>
+        <div class="section-copy"><p> The combined element counts show Wood=2, Fire=0, Earth=2, Metal=2, Water=2.  However, hidden stems within the branches add nuance.  The 戌 (Earth) branches in Year and Day contain hidden 戊 (Earth), 辛 (Metal), and 丁 (Fire).</p><p> The 申 (Metal) branches in Month and Hour contain hidden 庚 (Metal), 壬 (Water), and 戊 (Earth).  So Fire is present only in hidden form within the 戌 branches, not visible.  This means Fire is not absent but is weak and buried.</p><p> The canonical weighted Ten-God profile shows that your chart is dominated by 偏印 (Indirect Resource) at 41%, which comes from the visible 壬 stems and hidden Water.  Next is 七杀 (Seven Killings) at 19%, from hidden Metal in the 申 and 戌 branches.  偏财 (Indirect Wealth) is 18%, from hidden Earth.</p><p> 比肩 (Friend) is 12%, from the visible 甲 stems.  正官 (Direct Officer) is 8%, from hidden Metal.  伤官 (Hurting Officer) is only 2%, from hidden Fire.</p><p> This profile reveals that your chart is heavily Resource-oriented, with significant Officer and Wealth elements in the background.  The hidden Fire is minimal, so creative expression (Output) is not a strong visible force.  The balance is tilted toward introspection, support, and structure rather than outward display.</p></div>
+        <div class="practice-panel"><div><strong>Reading standard</strong><span>Traditional BaZi terms are retained and explained in English.</span><span>Calculated facts are kept separate from interpretation.</span></div><div><strong>Scope</strong><p>No single symbol or Shen Sha marker is treated as proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-4" data-page>
+    <div class="page-topline"><span>CHART FOUNDATION</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>04</span><small>Structure</small></aside>
+      <div class="section-content">
+        <h2>Ten Gods in the Natal Chart</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>The Ten Gods translate the Five Elements into interpersonal and life-area dynamics.  Your Day Master is 甲 (Yang Wood).</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Canonical weighted Ten-God leaders: Indirect Resource 41%, Seven Killings 19%, Indirect Wealth 18%. Visible and hidden sources are listed separately.</span></div>
+        <div class="section-copy"><p> The visible Ten Gods are: Year stem 甲 is 比肩 (Friend), meaning a peer or sibling-like energy that competes or cooperates.  Month stem 壬 is 偏印 (Indirect Resource), representing unconventional wisdom, intuition, and support from non-traditional sources.  Hour stem 壬 is also 偏印, doubling this influence.</p><p> The hidden stems add more: In the 戌 branches, hidden 戊 (Earth) is 偏财 (Indirect Wealth), indicating opportunistic or fluctuating financial potential; hidden 辛 (Metal) is 正官 (Direct Officer), representing structure, authority, and career order; hidden 丁 (Fire) is 伤官 (Hurting Officer), a creative and rebellious energy.  In the 申 branches, hidden 庚 (Metal) is 七杀 (Seven Killings), a controlling and challenging force; hidden 壬 (Water) is again 偏印; hidden 戊 (Earth) is again 偏财.  So your chart has a strong 偏印 presence from both visible and hidden Water, a significant 七杀 from hidden Metal, and a notable 偏财 from hidden Earth.</p><p> The 正官 is present but weaker.  The 伤官 is minimal.  This means you are naturally introspective, intuitive, and drawn to learning or spiritual pursuits (偏印), but you also face internal pressure and discipline from authority or life challenges (七杀 and 正官).</p><p> Wealth is present but not dominant, and creative expression is subdued.</p></div>
+        <div class="practice-panel"><div><strong>Reading standard</strong><span>Traditional BaZi terms are retained and explained in English.</span><span>Calculated facts are kept separate from interpretation.</span></div><div><strong>Scope</strong><p>No single symbol or Shen Sha marker is treated as proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page dense" id="section-5" data-page>
+    <div class="page-topline"><span>CHART STRUCTURE</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>05</span><small>Evidence</small></aside>
+      <div class="section-content">
+        <h2>Chart Structure, Useful Elements, and Unfavorable Elements</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your chart structure is a repeated pattern: 甲戌 and 壬申 appear twice each.  This repetition creates a strong, focused energy but also potential rigidity.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Useful and unfavorable elements must follow the stated strength and balancing logic; they are not inferred from a simple missing-element count.</span></div>
+        <div class="section-copy"><p> The Day Master 甲 is supported by two 壬 (Water) stems, which act as its primary resource.  However, the 申 (Metal) branches in Month and Hour produce the Water, so Metal is the source of your support.  Metal also controls Wood directly through 七杀, creating a dual role: Metal both nourishes (through Water) and pressures (through control).</p><p> The 戌 (Earth) branches drain Wood by consuming its energy (Earth is Wealth, which Wood controls, but controlling Earth costs Wood energy).  The chart lacks visible Fire, which would normally help Wood grow and express itself.  Without Fire, the Wood can become damp and stagnant, relying too much on Water.</p><p> The useful element for you is Fire, because it warms the Wood, dries excess Water, and activates hidden creative potential.  Water is already abundant, so adding more Water could overwhelm the Wood.  Metal is mixed: it is necessary as a source of Water, but too much Metal creates excessive control.</p><p> Earth is unfavorable in excess because it drains Wood and blocks Water flow.  So the ideal balance is to strengthen Fire moderately, keep Water stable, and manage Metal and Earth carefully.  In practice, this means you benefit from environments that allow creative expression, warmth, and visibility, rather than purely analytical or restrictive settings.</p><p> You need to guard against overthinking (excess Water) and external pressure (excess Metal).</p></div>
+        <div class="practice-panel"><div><strong>Reading standard</strong><span>Traditional BaZi terms are retained and explained in English.</span><span>Calculated facts are kept separate from interpretation.</span></div><div><strong>Scope</strong><p>No single symbol or Shen Sha marker is treated as proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page extra-dense" id="section-6" data-page>
+    <div class="page-topline"><span>CHART STRUCTURE</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>06</span><small>Evidence</small></aside>
+      <div class="section-content">
+        <h2>Stems, Branches, and Natal Interactions</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your natal chart contains two repeated pillar pairs: the Year Pillar 甲戌 (Wood-Earth) and Day Pillar 甲戌 are identical, and the Month Pillar 壬申 (Water-Metal) and Hour Pillar 壬申 are identical.  This repetition is a structural marker called a &quot;repeated pillar&quot; or &quot;伏吟&quot; (fu yin), meaning the same Ganzhi pair appears twice.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Only exact supported stem and branch relations are reported; repeats are not treated as two-member combinations.</span></div>
+        <div class="section-copy"><p> The Year-Day repetition of 甲戌 creates a strong resonance between your early life environment and your core self, often indicating that family patterns or inherited responsibilities replay in your adult life.  The Month-Hour repetition of 壬申 amplifies the influence of Indirect Resource (偏印) and Seven Killings (七杀, hidden in 申), making your inner world and late-life expression heavily colored by analytical depth and pressure from authority or competition.  There are no visible Heavenly Stem combinations (合) in your chart.</p><p> The stems 甲 (Wood) and 壬 (Water) do not combine with each other, and no other stems are present to form a union.  This means your chart lacks the softening or merging effect that combinations bring—your energies remain distinct and often in direct tension rather than blending smoothly.  The absence of stem combinations can make decision-making feel more binary or confrontational, as opposing forces (such as Resource vs.</p><p> Wealth, or Output vs.  Officer) do not easily reconcile.  No Earthly Branch combinations (合) are present either.</p><p> The branches 戌 (Earth) and 申 (Metal) do not form a triad or six-combination with each other.  However, 戌 and 申 are part of a potential &quot;Metal triad&quot; (申子辰) or &quot;Fire triad&quot; (寅午戌), but neither is completed in your natal chart.  This incompleteness means that any group dynamic or external support system may feel partial or require effort to activate.</p><p> There is a direct Earthly Branch clash (冲) between the two 戌 branches and the two 申 branches.  戌 (Earth) and 申 (Metal) are in a relationship of harm (害) rather than a full clash, but the repeated presence of both creates a structural tension.  Specifically, 戌 contains a hidden stem of 辛 (Metal, Direct Officer), and 申 contains 庚 (Metal, Seven Killings) and 壬 (Water, Resource).</p><p> The repeated interaction between Earth and Metal in your chart indicates a persistent dynamic where your foundation (Earth, Wealth) and your discipline or pressure (Metal, Officer/Killings) are in a push-pull relationship.  This can manifest as a career or financial environment where stability and authority are constantly renegotiated.  No Earthly Branch punishments (刑) are present in your chart.</p><p> The branches 戌 and 申 do not form any of the standard punishment combinations (e. g. , 寅巳申, 丑未戌, 子卯).</p><p> This absence reduces the likelihood of internal legal entanglements or repetitive self-sabotaging conflicts, though the repeated pillars already create enough internal friction.  The repeated pillars also create a &quot;self-punishment&quot; (自刑) effect in some interpretations, but this is not a standard canonical punishment.  Instead, the repetition itself is the key interaction: it doubles the energy of each pillar, making the chart more intense and less flexible.</p><p> For example, the two 申 branches mean that the Seven Killings (hidden in 申) and Indirect Resource (visible 壬) are both amplified, giving you a sharp, investigative mind but also a tendency to overthink or feel cornered by external demands.  In practical terms, the repeated pillars mean that your life themes—family background, personal identity, intellectual depth, and career pressure—are not easily separated.  You may find that issues from your early home environment (Year Pillar) resurface in your intimate relationships (Day Pillar), and that your professional life (Month Pillar) mirrors your later-life pursuits (Hour Pillar).</p><p> The lack of combinations means you rarely get a &quot;free pass&quot; from these dynamics; you must actively manage them.</p></div>
+        <div class="practice-panel"><div><strong>Reading standard</strong><span>Traditional BaZi terms are retained and explained in English.</span><span>Calculated facts are kept separate from interpretation.</span></div><div><strong>Scope</strong><p>No single symbol or Shen Sha marker is treated as proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page extra-dense" id="section-7" data-page>
+    <div class="page-topline"><span>CHART STRUCTURE</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>07</span><small>Evidence</small></aside>
+      <div class="section-content">
+        <h2>Shen Sha: Secondary Symbolic Stars</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your chart carries two canonical Shen Sha (symbolic stars) based on the Day Pillar and Year Pillar: 华盖 (Canopy Star) and 驿马 (Travel Horse).  These are secondary indicators that add nuance to the primary structural analysis but do not override the Ten Gods or elemental balance.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Canonical Shen Sha only, grouped by marker and shown with every natal placement on the Shen Sha table.</span></div>
+        <div class="section-copy"><p> The 华盖 (Canopy Star) appears in both the Year Pillar 戌 and the Day Pillar 戌.  It is derived from the Day Pillar and Year Pillar combination (戌 is the Canopy Star for a 甲 Day Master when the Year or Day branch is 戌).  The Canopy Star is traditionally associated with solitude, spirituality, intellectual depth, and a tendency toward introspection or artistic sensitivity.</p><p> With two 戌 branches carrying this star, you have a strong inclination toward solitary study, philosophical inquiry, or creative work that requires deep focus.  In practical terms, you may feel most energized when you have time alone to think, research, or create, and you may be drawn to fields like writing, research, design, or spiritual practice.  The downside is a potential for social isolation or a sense of being &quot;different&quot; from peers, especially in group settings where small talk dominates.</p><p> The 驿马 (Travel Horse) appears in both the Month Pillar 申 and the Hour Pillar 申.  It is derived from the Day Pillar and Year Pillar (申 is the Travel Horse for a 甲 Day Master when the Year or Day branch is 申).  The Travel Horse indicates movement, travel, change of location, and restlessness.</p><p> With two 申 branches carrying this star, your life is likely to involve frequent geographic or professional mobility—moving cities, changing jobs, traveling for work, or shifting between different roles.  This is not necessarily negative; it can mean you thrive in dynamic environments where you are constantly learning and adapting.  However, the combination of Travel Horse with the repeated 申 branches also suggests that stability may feel elusive, and you may need to consciously create routines to avoid burnout from constant change.</p><p> The Canopy Star and Travel Horse together create an interesting tension: you need solitude and depth (Canopy), but your circumstances push you toward movement and change (Travel Horse).  This can manifest as a career where you travel for research or creative projects, or a lifestyle where you move frequently but maintain a private inner world.  The key is to recognize that both tendencies are valid and to structure your life so that you have periods of focused solitude followed by periods of active engagement, rather than trying to force one at the expense of the other.</p><p> No other canonical Shen Sha are present in your chart based on the supplied data.  The markers are limited to these two, which is consistent with a chart that emphasizes intellectual depth and mobility over social recognition or authority symbols.</p></div>
+        <div class="practice-panel"><div><strong>Reading standard</strong><span>Traditional BaZi terms are retained and explained in English.</span><span>Calculated facts are kept separate from interpretation.</span></div><div><strong>Scope</strong><p>No single symbol or Shen Sha marker is treated as proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page extra-dense" id="section-8" data-page>
+    <div class="page-topline"><span>LIFE TOPICS</span><span>AI BAZI REPORT / INTERPRETIVE</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>08</span><small>Application</small></aside>
+      <div class="section-content">
+        <h2>Career and Suitable Work Environments</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your career tendencies are shaped by the dominance of Indirect Resource (偏印) at 41% of the weighted Ten-God profile, followed by Seven Killings (七杀) at 19% and Indirect Wealth (偏财) at 18%.  This combination points to a career that requires specialized knowledge, analytical thinking, and the ability to handle pressure or competition.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master, interpreted through Ten Gods, the Day Branch, and relevant natal interactions.</span></div>
+        <div class="section-copy"><p> You are not suited for routine, repetitive work or roles that demand strict adherence to hierarchy without intellectual challenge.  The Indirect Resource (visible in Month and Hour stems 壬) gives you a natural aptitude for research, strategy, and behind-the-scenes problem-solving.  You learn best by studying patterns, reading deeply, and working independently rather than through group instruction.</p><p> This star is associated with fields like data analysis, engineering, medicine, law, academia, or any discipline that rewards precision and depth.  However, Indirect Resource can also make you prone to overthinking or second-guessing, so you need a work environment that values thoroughness but also has clear deadlines to prevent analysis paralysis.  The Seven Killings (hidden in both 申 branches) adds a competitive edge.</p><p> You are likely to thrive in environments where there is a clear challenge to overcome—such as a startup, a high-stakes project, or a role with direct accountability.  Seven Killings gives you courage and decisiveness under pressure, but it can also create friction with authority figures if you feel constrained.  You may prefer roles where you have autonomy and are judged by results rather than by process.</p><p> The Indirect Wealth (hidden in 戌 branches) indicates that your earning potential is tied to non-traditional or entrepreneurial paths.  You are not likely to accumulate wealth through a fixed salary alone; instead, you may earn through commissions, bonuses, intellectual property, investments, or side ventures.  The combination of Indirect Resource and Indirect Wealth suggests that your value lies in your expertise and your ability to identify opportunities that others overlook.</p><p> The lack of visible Output (Fire) or Direct Officer (正官) in the stems means that you are not naturally drawn to public-facing roles, sales, or strict hierarchical management.  You may find corporate politics draining and prefer flat organizations or solo consulting.  The repeated 申 branches (Travel Horse) reinforce a career that involves movement—whether that means traveling for work, changing industries, or working remotely.</p><p> A practical career direction could be: technical consulting, research and development, data science, intellectual property law, specialized medicine, or any field where you can build deep expertise and then apply it flexibly.  Avoid roles that require constant social performance or rigid adherence to a chain of command without intellectual freedom.</p></div>
+        <div class="practice-panel"><div><strong>Reading standard</strong><span>Traditional BaZi terms are retained and explained in English.</span><span>Calculated facts are kept separate from interpretation.</span></div><div><strong>Scope</strong><p>No single symbol or Shen Sha marker is treated as proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page extra-dense" id="section-9" data-page>
+    <div class="page-topline"><span>LIFE TOPICS</span><span>AI BAZI REPORT / INTERPRETIVE</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>09</span><small>Application</small></aside>
+      <div class="section-content">
+        <h2>Wealth Pattern and Resource Management</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your wealth pattern is dominated by Indirect Wealth (偏财), which constitutes 18% of the weighted Ten-God profile and is hidden in both 戌 branches.  There is no visible Direct Wealth (正财) in the stems.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master, interpreted through Ten Gods, the Day Branch, and relevant natal interactions.</span></div>
+        <div class="section-copy"><p> This means your approach to money is opportunistic, flexible, and tied to risk-taking or non-linear income streams rather than a steady paycheck.  You are more likely to earn through projects, investments, intellectual property, or entrepreneurial ventures than through a fixed salary.  The Indirect Wealth is supported by the Indirect Resource (偏印) at 41%, which creates a &quot;Resource produces Wealth&quot; dynamic: your knowledge, research, and strategic thinking generate financial opportunities.</p><p> For example, you might monetize a specialized skill, write a book, develop a patent, or consult on complex problems.  The challenge is that Indirect Wealth is hidden in the Earth branches (戌), meaning the opportunities are not always obvious—you need to actively dig for them or wait for the right timing to surface them.  The Seven Killings (hidden in 申) also interacts with Wealth: Seven Killings controls Wealth (Metal controls Wood, but here the dynamic is more complex).</p><p> In your chart, the Seven Killings (Metal) and Indirect Wealth (Earth) are in a generating relationship (Earth produces Metal), which means that pressure or competition can actually stimulate your earning potential.  For instance, a challenging project or a competitive bid may force you to sharpen your skills and command a higher fee.  However, the repeated 申 branches also mean that expenses or financial obligations (Wealth draining) can feel persistent, especially if you take on too many commitments at once.</p><p> The lack of visible Output (Fire) means you may not naturally promote yourself or sell your services aggressively.  You are more likely to earn through referrals, reputation, or by being sought out for your expertise.  This is fine, but it requires patience and a long-term view.</p><p> The Travel Horse (驿马) in both 申 branches suggests that your income may come from multiple locations or sources—remote work, travel-based projects, or a portfolio of income streams.  A practical financial strategy: build a core expertise that commands a premium, then diversify into related areas (e. g.</p><p>, consulting, teaching, writing).  Keep an emergency fund because Indirect Wealth can be irregular.  Avoid get-rich-quick schemes; your wealth pattern rewards depth and patience, not speed.</p><p> The transition to the 戊辰 (Earth-Earth) Luck Pillar at age 33 (2027) will bring a Wealth stem (戊) into play, which may stabilize your income but also increase financial responsibilities.</p></div>
+        <div class="practice-panel"><div><strong>Reading standard</strong><span>Traditional BaZi terms are retained and explained in English.</span><span>Calculated facts are kept separate from interpretation.</span></div><div><strong>Scope</strong><p>No single symbol or Shen Sha marker is treated as proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page extra-dense" id="section-10" data-page>
+    <div class="page-topline"><span>LIFE TOPICS</span><span>AI BAZI REPORT / INTERPRETIVE</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>10</span><small>Application</small></aside>
+      <div class="section-content">
+        <h2>Relationships, Partner Star, and Spouse Palace</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>In BaZi for a female, the partner star is the Officer element (Metal), which represents the husband or long-term partner.  Your chart has no visible Officer stem (庚 or 辛) in the four pillars, but the hidden stems in the branches contain both Direct Officer (辛, hidden in 戌) and Seven Killings (庚, hidden in 申).</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master, interpreted through Ten Gods, the Day Branch, and relevant natal interactions.</span></div>
+        <div class="section-copy"><p> The Seven Killings (庚) appears twice (in both 申 branches), while Direct Officer (辛) appears twice (in both 戌 branches).  This creates a complex relationship pattern where you are drawn to partners who are strong, competitive, or unconventional (Seven Killings), but also value stability and traditional commitment (Direct Officer).  The Day Branch (Spouse Palace) is 戌 (Earth, containing 辛 Direct Officer and 丁 Hurting Officer).</p><p> The Spouse Palace is the same as the Year Branch, which is a repeated-pillar pattern.  This often indicates that your relationship dynamics mirror your family background—you may choose a partner who resembles a parent figure, or you may find that early family patterns repeat in your marriage.  The 戌 branch is Earth, which is Wealth for your Wood Day Master, meaning that your partner may be practical, grounded, or involved in finance, real estate, or resource management.</p><p> The presence of Hurting Officer (丁, hidden in 戌) in the Spouse Palace is significant.  Hurting Officer is the Output element (Fire) that controls the Officer (Metal).  This creates a dynamic where you may unintentionally challenge or critique your partner, especially if you feel intellectually superior or constrained.</p><p> In traditional BaZi, Hurting Officer in the Spouse Palace can indicate a relationship where the woman is outspoken, independent, and may struggle with traditional gender roles.  This is not inherently negative, but it means you need a partner who respects your autonomy and is not threatened by your directness.  The repeated 申 branches (Month and Hour) carry Seven Killings (庚), which can indicate multiple romantic opportunities or a tendency to attract partners who are intense, ambitious, or from different cultural backgrounds.</p><p> The Travel Horse (驿马) in these branches suggests that relationships may involve distance, travel, or changes in location.  You may meet a partner through work, study, or travel rather than through social circles.  The lack of a visible Officer stem means that marriage or long-term commitment may not be a top priority in your early life, or that you may marry later than average.</p><p> The Luck Pillar 己巳 (Earth-Fire) from age 23 to 32 (2017-2027) contained a Fire stem (巳) that could activate the Hurting Officer, potentially creating relationship tension or a focus on career over partnership.  The upcoming 戊辰 (Earth-Earth) Luck Pillar from age 33 (2027) brings a Wealth stem that can support the Officer (Earth produces Metal), which may improve relationship stability or bring a partner who is financially established.  A practical note: because your partner star is hidden and mixed (both Direct Officer and Seven Killings), you may experience relationships that feel like a series of contrasts—intense attraction followed by distance, or a partner who is both supportive and demanding.</p><p> The key is to communicate clearly about boundaries and expectations, and to avoid rushing into commitment without understanding the underlying dynamics.  The repeated pillars suggest that relationship patterns may repeat until you consciously break the cycle.</p></div>
+        <div class="practice-panel"><div><strong>Reading standard</strong><span>Traditional BaZi terms are retained and explained in English.</span><span>Calculated facts are kept separate from interpretation.</span></div><div><strong>Scope</strong><p>No single symbol or Shen Sha marker is treated as proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page extra-dense" id="section-11" data-page>
+    <div class="page-topline"><span>LIFE TOPICS</span><span>AI BAZI REPORT / INTERPRETIVE</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>11</span><small>Application</small></aside>
+      <div class="section-content">
+        <h2>Health Tendencies Through the Five Elements</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your chart shows a structural imbalance where Wood (your Day Master) is supported by two visible Water stems (壬, Indirect Resource) but has no visible Fire to release its energy, and Earth (Wealth) and Metal (Officer/Seven Killings) are present in equal measure.  This creates a pattern where the Wood element is nourished but constrained, with no direct outlet for its growth.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master, interpreted through Ten Gods, the Day Branch, and relevant natal interactions.</span></div>
+        <div class="section-copy"><p> In traditional Five-Element health theory, Wood governs the liver, gallbladder, tendons, and eyes, while Water governs the kidneys, bladder, and reproductive system.  The absence of visible Fire means the Wood-Water dynamic may lack a balancing heat, potentially leading to stagnation or coldness in these systems.  The two 申 (Metal) branches in the Month and Hour Pillars exert a controlling influence on Wood, which can manifest as tension in the muscles or joints, particularly in the neck, shoulders, or lower back, as Metal represents cutting or restrictive force.</p><p> The Earth branches (戌) in the Year and Day Pillars represent the spleen and digestive system, and since Earth is Wealth (controlled by Wood), you may experience digestive sensitivity when under stress, as the Wood-Earth control relationship can strain the stomach if the Wood is too forceful or the Earth is too weak.  The hidden stems in the 戌 and 申 branches (not fully detailed here but implied by the canonical profile) include Fire and Earth elements, which provide some internal warmth and stability, but the lack of visible Fire means you should monitor for signs of poor circulation, cold extremities, or sluggish metabolism, especially during colder seasons or in Water-dominant Luck Pillars.  The repeated 壬申 pillars (Month and Hour) amplify the Water-Metal combination, which can over-nourish Wood but also create a damp or heavy quality, potentially affecting the kidneys or bladder if Water becomes excessive.</p><p> Practically, this suggests you benefit from regular physical movement that promotes circulation and releases tension, such as stretching, yoga, or moderate cardio, rather than high-impact or overly competitive exercise that could aggravate the Metal-Wood conflict.  Avoid prolonged sitting or repetitive strain, as the Metal branches may predispose you to stiffness.  Dietarily, include warming foods that support Fire (e.</p><p>g. , cooked grains, ginger, or lightly spiced dishes) to counterbalance the cool Water influence, and avoid excessive raw or cold foods that could dampen digestive fire.  These are tendencies, not diagnoses, and individual health depends on lifestyle, environment, and medical care.</p><p> The structural emphasis on 庚辰 in 2000 and 2060 (noted in your data) suggests that Metal-Earth years may bring heightened physical stress, so during such periods, prioritize rest and gentle care for the liver and digestive system.</p></div>
+        <div class="practice-panel"><div><strong>Reading standard</strong><span>Traditional BaZi terms are retained and explained in English.</span><span>Calculated facts are kept separate from interpretation.</span></div><div><strong>Scope</strong><p>No single symbol or Shen Sha marker is treated as proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page dense" id="section-12" data-page>
+    <div class="page-topline"><span>TIMING</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>12</span><small>Da Yun & Liu Nian</small></aside>
+      <div class="section-content">
+        <h2>Luck Pillar Direction and Starting Age</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your Luck Pillars (Da Yun) move in a forward direction, meaning they progress from the Month Pillar (壬申) through the standard sequence of Earthly Branches.  This is determined by your gender (female) and the Yin-Yang polarity of the Year Stem (甲, Yang Wood).</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Luck direction: Reverse. Basis: Female birth in a Yang-stem year.</span></div>
+        <div class="section-copy"><p> For a Yang-stem female, the Luck Pillars advance forward from the Month Pillar, following the natural order of the branches: 申 (Monkey) to 酉 (Rooster) to 戌 (Dog), and so on.  Your starting age is 3, calculated from the distance between your birth month (申, the 9th branch) and the next seasonal change point (the beginning of autumn, Li Qiu, which occurs around August 7-8).  Since you were born on August 16, you are past the Li Qiu node, so the count begins from the next change point (the beginning of winter, Li Dong, around November 7-8).</p><p> The number of days from your birth to that node determines the starting age, with each day counting as one year.  In your case, this calculation yields a starting age of 3, meaning your first Luck Pillar (辛未) began at age 3 in 1997.  The forward direction means your Luck Pillars will continue through 辛未 (ages 3-12), 庚午 (13-22), 己巳 (23-32), 戊辰 (33-42), 丁卯 (43-52), 丙寅 (53-62), 乙丑 (63-72), and 甲子 (73-82).</p><p> This progression is standard and does not require recalculation.  The structural markers for 2000 庚辰 and 2060 庚辰 are notable because they fall within Luck Pillars (辛未 and 乙丑, respectively) and represent years where the Earth-Metal combination (庚辰) interacts with your natal chart&#039;s repeated 甲戌 and 壬申 pillars, potentially creating periods of intensified structural tension or opportunity, depending on the specific interactions.</p></div>
+        <div class="practice-panel"><div><strong>Reading standard</strong><span>Traditional BaZi terms are retained and explained in English.</span><span>Calculated facts are kept separate from interpretation.</span></div><div><strong>Scope</strong><p>No single symbol or Shen Sha marker is treated as proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page timing-atlas" data-page>
+    <div class="page-topline"><span>TIMING / DA YUN & LIU NIAN</span><span>CALCULATED CYCLES</span></div>
+    <header><span>THE TIMING ATLAS</span><h2>Ten-year Luck Pillars<br>and annual contacts</h2><p>Direction: <strong>Reverse</strong>. Basis: Female birth in a Yang-stem year. Starting age: 3. Each annual contact below names its source in the natal chart or active Luck Pillar.</p></header>
+    <section class="cycle-section"><h3>Luck Pillars (Da Yun)</h3><div class="cycle-grid"><div class="cycle ">
+      <span class="cycle-state">AGE 3-12</span>
+      <span class="colored-ganzhi "><i class="wx-metal">辛</i><i class="wx-earth">未</i></span>
+      <strong>1997-2006</strong>
+      <small>正官 / 正财</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 13-22</span>
+      <span class="colored-ganzhi "><i class="wx-metal">庚</i><i class="wx-fire">午</i></span>
+      <strong>2007-2016</strong>
+      <small>七杀 / 伤官</small>
+    </div><div class="cycle is-current">
+      <span class="cycle-state">CURRENT</span>
+      <span class="colored-ganzhi "><i class="wx-earth">己</i><i class="wx-fire">巳</i></span>
+      <strong>2017-2026</strong>
+      <small>正财 / 食神</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 33-42</span>
+      <span class="colored-ganzhi "><i class="wx-earth">戊</i><i class="wx-earth">辰</i></span>
+      <strong>2027-2036</strong>
+      <small>偏财 / 偏财</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 43-52</span>
+      <span class="colored-ganzhi "><i class="wx-fire">丁</i><i class="wx-wood">卯</i></span>
+      <strong>2037-2046</strong>
+      <small>伤官 / 劫财</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 53-62</span>
+      <span class="colored-ganzhi "><i class="wx-fire">丙</i><i class="wx-wood">寅</i></span>
+      <strong>2047-2056</strong>
+      <small>食神 / 比肩</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 63-72</span>
+      <span class="colored-ganzhi "><i class="wx-wood">乙</i><i class="wx-earth">丑</i></span>
+      <strong>2057-2066</strong>
+      <small>劫财 / 正财</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 73-82</span>
+      <span class="colored-ganzhi "><i class="wx-wood">甲</i><i class="wx-water">子</i></span>
+      <strong>2067-2076</strong>
+      <small>比肩 / 正印</small>
+    </div></div></section>
+    <section class="annual-section"><div><h3>Five-year annual view (Liu Nian)</h3><p>The planning posture is derived from the annual Ten God and supported stem-branch contacts. It is not a guarantee of events.</p><div class="strategy-key"><span>ADVANCE</span><span>STEADY</span><span>DEFEND</span></div></div><div class="annual-grid"><div class="annual-year is-now">
+      <span>2026</span><b class="strategy strategy-advance">ADVANCE</b>
+      <span class="colored-ganzhi small"><i class="wx-fire">丙</i><i class="wx-fire">午</i></span>
+      <small>食神 / 伤官</small>
+      <em>Stem clash (丙-壬; natal month) · Stem clash (丙-壬; natal hour) · Half Harmony (午-午戌; natal)</em>
+    </div><div class="annual-year ">
+      <span>2027 / NEW CYCLE</span><b class="strategy strategy-defend">DEFEND</b>
+      <span class="colored-ganzhi small"><i class="wx-fire">丁</i><i class="wx-earth">未</i></span>
+      <small>伤官 / 正财</small>
+      <em>Six break (未-戌; natal year) · Three-branch punishment contact (未-戌; natal year) · Stem combine (丁-壬; natal month) · Six break (未-戌; natal day)</em>
+    </div><div class="annual-year ">
+      <span>2028</span><b class="strategy strategy-advance">ADVANCE</b>
+      <span class="colored-ganzhi small"><i class="wx-earth">戊</i><i class="wx-metal">申</i></span>
+      <small>偏财 / 七杀</small>
+      <em>Branch repeat (申-申; natal month) · Branch repeat (申-申; natal hour)</em>
+    </div><div class="annual-year ">
+      <span>2029</span><b class="strategy strategy-defend">DEFEND</b>
+      <span class="colored-ganzhi small"><i class="wx-earth">己</i><i class="wx-metal">酉</i></span>
+      <small>正财 / 正官</small>
+      <em>Stem combine (己-甲; natal year) · Six harm (酉-戌; natal year) · Stem combine (己-甲; natal day) · Six harm (酉-戌; natal day)</em>
+    </div><div class="annual-year ">
+      <span>2030</span><b class="strategy strategy-steady">STEADY</b>
+      <span class="colored-ganzhi small"><i class="wx-metal">庚</i><i class="wx-earth">戌</i></span>
+      <small>七杀 / 偏财</small>
+      <em>Stem clash (庚-甲; natal year) · Branch repeat (戌-戌; natal year) · Stem clash (庚-甲; natal day) · Branch repeat (戌-戌; natal day)</em>
+    </div></div></section>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page extra-dense" id="section-13" data-page>
+    <div class="page-topline"><span>TIMING</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>13</span><small>Da Yun & Liu Nian</small></aside>
+      <div class="section-content">
+        <h2>Ten-Year Luck Pillars</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your current Luck Pillar is 己巳 (Earth-Fire), which began at age 23 in 2017 and will continue until age 32 in 2027.  This pillar introduces visible Fire (巳, Snake) for the first time in your chart, as your natal chart has no visible Fire stems or branches.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Current Luck Pillar: 己巳 (2017-2026); annual contacts are shown with their natal or Luck-Pillar source.</span></div>
+        <div class="section-copy"><p> The 己 (Earth) stem is Direct Wealth, meaning this period activates your ability to generate and manage material resources, but the Fire branch (巳) is Output (Eating God or Hurting Officer, depending on the hidden stems), which provides an outlet for your Wood Day Master.  The 巳 branch also contains hidden Metal (Geng, Seven Killings) and Earth (Wu, Direct Wealth), so this pillar creates a dynamic where Fire produces Earth (Wealth), but the hidden Metal can still exert control over Wood.  Practically, this is a period where you are likely to see tangible results from your efforts, especially in career or financial matters, but the Fire-Metal tension may require you to balance creative expression with discipline.</p><p> The next Luck Pillar is 戊辰 (Earth-Earth), starting at age 33 in 2027 and lasting until age 42 in 2037.  This pillar is pure Earth (Wealth), with 戊 (Yang Earth) as Direct Wealth and 辰 (Dragon) as Earth containing hidden Water (Gui, Indirect Resource) and Wood (Yi, Rob Wealth).  This is a Wealth-heavy period that can bring financial opportunities, but the Earth may overwhelm your Wood Day Master if you lack sufficient Water or Fire support.</p><p> The 辰 branch also forms a self-punishment (辰自刑), which can indicate internal pressure or repetitive challenges that require careful management.  The 戊辰 pillar interacts with your natal 甲戌 pillars (Year and Day) through a Chen-Xu clash (辰戌冲), which is a direct conflict between Earth branches that can destabilize foundations, including home, career, or relationships.  This clash may manifest as sudden changes or disruptions, but it also clears stagnation and can lead to renewal if you remain adaptable.</p><p> The 丁卯 (Fire-Wood) pillar from ages 43-52 (2037-2047) introduces Fire (丁, Hurting Officer) and Wood (卯, Friend), which strengthens your Day Master and provides a strong Output channel.  This is a more expressive and creative period, but the Hurting Officer can challenge authority or create friction in structured environments, so you will need to channel this energy into productive outlets rather than rebellion.  The 丙寅 (Fire-Wood) pillar from ages 53-62 (2047-2057) continues the Fire-Wood theme with 丙 (Eating God) and 寅 (Wood containing Fire and Earth), offering a balanced period of growth and stability.</p><p> The 乙丑 (Wood-Earth) pillar from ages 63-72 (2057-2067) includes the structural marker 2060 庚辰, which may bring a significant test or opportunity related to career or public standing, as the 庚 (Seven Killings) and 辰 (Earth) interact with your natal chart.  The 甲子 (Wood-Water) pillar from ages 73-82 (2067-2077) returns to a Resource-heavy phase, supporting your Day Master but potentially leading to introspection or withdrawal.</p></div>
+        <div class="practice-panel"><div><strong>Reading standard</strong><span>Traditional BaZi terms are retained and explained in English.</span><span>Calculated facts are kept separate from interpretation.</span></div><div><strong>Scope</strong><p>No single symbol or Shen Sha marker is treated as proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page extra-dense" id="section-14" data-page>
+    <div class="page-topline"><span>TIMING</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>14</span><small>Da Yun & Liu Nian</small></aside>
+      <div class="section-content">
+        <h2>Annual Outlook for the Next Five Years</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>2026 is a 丙午 (Fire-Fire) year, with 丙 (Yang Fire) as Eating God and 午 (Horse) as Fire containing hidden Earth (Ji, Direct Wealth).  This year falls within your current 己巳 Luck Pillar, creating a double Fire influence (巳 and 午) that strongly activates Output and Wealth.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Current Luck Pillar: 己巳 (2017-2026); annual contacts are shown with their natal or Luck-Pillar source.</span></div>
+        <div class="section-copy"><p> The Eating God is favorable for creative projects, skill development, and social expression, as it releases your Wood Day Master&#039;s energy in a constructive way.  The 午 branch also forms a half-combination with your natal 戌 branches (Year and Day) into a Fire-Earth union (午戌半合火局), which can amplify your ability to generate wealth through effort and talent.  However, the Fire may be excessive, potentially leading to burnout or overcommitment, so you should pace yourself and avoid taking on too many projects at once.</p><p> The 午 branch also clashes with your Month and Hour 申 branches (午申冲), which can create sudden disruptions in career or daily routines, particularly related to travel, communication, or authority figures.  This clash may bring unexpected changes, but it can also clear obstacles if you remain flexible.  Financially, this is a year of opportunity, but the Fire-Metal tension suggests you should avoid high-risk investments or impulsive spending.</p><p> In relationships, the Fire energy can make you more outgoing and expressive, but the clash may cause temporary friction with partners or colleagues.  2027 is a 丁未 (Fire-Earth) year, with 丁 (Yin Fire) as Hurting Officer and 未 (Goat) as Earth containing hidden Fire (Ding) and Wood (Yi).  This year marks the transition into your next Luck Pillar (戊辰, starting at age 33), so it is a period of change and preparation.</p><p> The Hurting Officer can make you more critical, analytical, or rebellious, especially toward authority or established systems.  This can be productive if channeled into research, writing, or technical work, but it may also create tension in hierarchical environments.  The 未 branch forms a harm relationship (未害) with your natal 申 branches (Month and Hour), which can indicate interpersonal friction, misunderstandings, or minor health issues related to the digestive or respiratory systems.</p><p> The 未 also combines with your 午 (from 2026) and 戌 (natal) into a Fire-Earth trine, but this is a transitional year, so the effects may be less stable.  Financially, the Earth element supports Wealth, but the Hurting Officer may lead to unconventional or risky decisions, so you should seek advice before making major commitments.  This is a good year to complete unfinished projects and prepare for the structural shift of the 戊辰 Luck Pillar.</p><p> 2028 is a 戊申 (Earth-Metal) year, with 戊 (Yang Earth) as Direct Wealth and 申 (Monkey) as Metal containing hidden Water (Ren) and Earth (Wu).  This year falls within your 戊辰 Luck Pillar, and the 申 branch repeats your Month and Hour Pillars (壬申), creating a strong Metal presence.  The 戊申 combination brings a focus on wealth and career, but the Metal (Officer/Seven Killings) can pressure your Wood Day Master, potentially leading to increased responsibility, competition, or authority challenges.</p><p> The 申 branch also forms a self-punishment (申自刑) when combined with your natal 申 branches, which can indicate internal stress, repetitive tasks, or legal or bureaucratic entanglements.  This is a year where you may feel constrained by external demands, but the Wealth star suggests that disciplined effort can yield financial results.  The 戊辰 Luck Pillar and 戊申 year create a double Earth influence, which may overwhelm your Wood if you do not have sufficient Water or Fire support.</p><p> Practically, focus on steady work rather than expansion, and avoid overextending yourself in relationships or finances.  The 申 branch also activates the Travel Horse (Yi Ma) Shen Sha, suggesting movement, travel, or changes in location, but this may be more about career mobility than personal adventure.  2029 is a 己酉 (Earth-Metal) year, with 己 (Yin Earth) as Direct Wealth and 酉 (Rooster) as pure Metal (You, containing Xin Metal).</p><p> This year continues the Earth-Metal theme, with the 酉 branch forming a combination with your natal 戌 branches (Year and Day) into a Metal-Earth union (酉戌害, but also a partial Metal combination).  The 酉 is a strong Metal branch that can intensify the Officer/Seven Killings influence, potentially bringing authority figures, deadlines, or structural pressures into your life.  The 己 Earth provides Wealth, but the Metal may dominate, so financial gains may come with strings attached, such as increased workload or responsibility.</p><p> The 酉 branch also clashes with your 卯 (not present in your natal chart but implied in future Luck Pillars), but in this year, the clash is not direct.  Instead, the 酉 forms a harm with 戌, which can create friction in home or family matters, as the 戌 is your Day and Year branches.  This is a year to maintain clear boundaries in professional and personal relationships, and to avoid confrontations with authority.</p><p> The Metal influence can make you more disciplined and organized, but it may also lead to rigidity or perfectionism, so allow room for flexibility.  2030 is a 庚戌 (Metal-Earth) year, with 庚 (Yang Metal) as Seven Killings and 戌 (Earth) as Wealth containing hidden Metal (Xin) and Fire (Ding).  This year is structurally notable because 庚戌 repeats your Year and Day branches (甲戌), creating a double 戌 presence that can amplify the Earth and Metal energies.</p><p> The 庚 Seven Killings is a direct controlling force on your Wood Day Master, which can manifest as challenges, competition, or pressure from superiors or external circumstances.  However, the 戌 branch also contains hidden Fire (Ding), which can transform the Seven Killings into a productive force if you channel it through skill or creativity.  This is a year where you may face significant tests, but overcoming them can lead to recognition or advancement.</p><p> The 庚戌 year also interacts with your 戊辰 Luck Pillar through a Chen-Xu clash (辰戌冲), which can bring sudden changes in career, home, or relationships.  This clash is a structural marker (similar to 2000 and 2060), indicating a period of upheaval that can clear old patterns and create new opportunities.  Financially, the Seven Killings suggests that wealth may come through high-stakes or competitive environments, but you should avoid impulsive decisions or risky ventures.</p><p> In relationships, the Seven Killings can create tension or power struggles, so communicate clearly and avoid unnecessary conflicts.  This year requires resilience and strategic thinking, but it also offers the potential for significant growth if you stay grounded.</p></div>
+        <div class="practice-panel"><div><strong>Reading standard</strong><span>Traditional BaZi terms are retained and explained in English.</span><span>Calculated facts are kept separate from interpretation.</span></div><div><strong>Scope</strong><p>No single symbol or Shen Sha marker is treated as proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page extra-dense" id="section-15" data-page>
+    <div class="page-topline"><span>TIMING</span><span>AI BAZI REPORT / STRUCTURAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>15</span><small>Da Yun & Liu Nian</small></aside>
+      <div class="section-content">
+        <h2>Timing Priorities and Practical Summary</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Your chart&#039;s core dynamic is a Wood Day Master (甲) supported by two Water stems (壬, Indirect Resource) but constrained by two Metal branches (申, Officer/Seven Killings) and two Earth branches (戌, Wealth).  The absence of visible Fire means your energy can become stagnant or overly controlled, making Output (Fire) the most needed element for release and balance.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Current Luck Pillar: 己巳 (2017-2026); annual contacts are shown with their natal or Luck-Pillar source.</span></div>
+        <div class="section-copy"><p> Your current Luck Pillar (己巳, 2017-2027) provides this Fire, making it a period of creative and financial activation, but the upcoming 戊辰 (2027-2037) pillar shifts to pure Earth, which can overwhelm Wood if not managed carefully.  The next five years (2026-2030) show a transition from Fire-rich 2026 to Earth-Metal-heavy 2028-2030, with 2030 being a particularly intense year due to the 庚戌 Seven Killings and Chen-Xu clash.  Your timing priorities are: advance during Fire years (2026-2027) by pursuing creative projects, skill development, and social connections, as these release your Wood energy productively.</p><p> Stay steady during Earth-Metal years (2028-2029) by focusing on disciplined work, financial planning, and maintaining boundaries, as these periods require endurance rather than expansion.  Protect resources during 2030, when the Seven Killings and clash may bring sudden changes or challenges; avoid major risks, and instead consolidate your position and prepare for the next Luck Pillar shift.  The Shen Sha markers in your chart—华盖 (Canopy Star) in the Year and Day Pillars (戌) and 驿马 (Travel Horse) in the Month and Hour Pillars (申)—add secondary nuance.</p><p> The Canopy Star suggests a tendency toward introspection, spirituality, or solitary pursuits, which can be a strength during stressful periods but may also lead to isolation if overemphasized.  The Travel Horse indicates a restless or mobile quality, particularly in career or daily routines, and this may intensify during Metal years (2028, 2029, 2030) when the 申 branch is activated.  These markers do not override the structural logic of the chart but provide additional context for your natural inclinations.</p><p> In summary, your chart rewards patience and strategic timing: use Fire periods to express and expand, Earth periods to build and stabilize, and Metal periods to refine and endure.  The structural markers for 2000 and 2060 庚辰 suggest that similar Earth-Metal years (like 2030) may bring pivotal tests, but your chart&#039;s repeated 壬申 and 甲戌 pillars indicate a resilient pattern that can adapt to pressure if you maintain balance through the missing Fire element.</p></div>
+        <div class="practice-panel"><div><strong>Reading standard</strong><span>Traditional BaZi terms are retained and explained in English.</span><span>Calculated facts are kept separate from interpretation.</span></div><div><strong>Scope</strong><p>No single symbol or Shen Sha marker is treated as proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+
+    <section class="pdf-page methodology" data-page>
+      <div class="page-topline"><span>METHOD & LIMITS</span><span>AI BAZI REPORT / V4</span></div>
+      <div class="method-layout">
+        <div><h2>Calculation basis<br>and reading limits</h2><p>This report was generated by Tengyunzi's AI interpretation system from calculated chart data. It is not represented as a report written personally by Tengyunzi.</p><p>The report follows standard BaZi order: season and Day Master strength first, then Five Elements, Ten Gods, chart structure, life topics, and timing. Interpretation remains conditional rather than a guarantee of events. The recorded birth time of 16:00 is included, so the Hour Pillar is part of the structural analysis.</p></div>
+        <dl>
+          <div><dt>01</dt><dd><strong>Birth input</strong><span>Gregorian civil date · Asia/Taipei · birthplace not supplied</span></dd></div>
+          <div><dt>02</dt><dd><strong>Chart source</strong><span>Four Pillars and Luck Pillars supplied by the Tengyunzi calculation engine; solar-time correction is not applied without birthplace data.</span></dd></div>
+          <div><dt>03</dt><dd><strong>Ten-God weighting</strong><span>Visible non-Day stems weight 1.0. Hidden branch stems use 60/30/10 weighting, adjusted by pillar position.</span></dd></div>
+          <div><dt>04</dt><dd><strong>Shen Sha scope</strong><span>Supported canonical markers only. They remain secondary to Day Master, Five Elements, and Ten-God structure.</span></dd></div>
+        </dl>
+      </div>
+      <div class="disclaimer"><strong>Important</strong><p>This report is for educational and reflective purposes. It is not medical, legal, financial, or mental-health advice, and it does not guarantee future events.</p></div>
+      <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+    </section>
+
+    <section class="pdf-page closing" data-page>
+      <div class="closing-mark">TZ</div>
+      <div><span>REPORT COMPLETE</span><h2>Chart evidence.<br>Traditional interpretation.</h2><p>Keep this report with your birth data and revisit the timing sections when the active Luck Pillar or calendar year changes.</p></div>
+      <footer><span>hello@tengyunzi.com</span><span>tengyunzi.com</span></footer>
+    </section>
+  </main>
+  <script>
+    window.__REPORT_DATA__ = {"elements":{"wood":2,"fire":0,"earth":2,"metal":2,"water":2},"luck":[{"gz":"辛未","age":3,"year":1997},{"gz":"庚午","age":13,"year":2007},{"gz":"己巳","age":23,"year":2017},{"gz":"戊辰","age":33,"year":2027},{"gz":"丁卯","age":43,"year":2037},{"gz":"丙寅","age":53,"year":2047},{"gz":"乙丑","age":63,"year":2057},{"gz":"甲子","age":73,"year":2067}]};
+    document.querySelectorAll('[data-page]').forEach((page, index) => {
+      page.querySelector('[data-page-number]')?.replaceChildren(String(index + 1).padStart(2, '0'));
+    });
+    const palette = { wood:'#398064', fire:'#c65d4b', earth:'#aa823f', metal:'#73839a', water:'#2478b5', ink:'#0b2943', grid:'#dce8f1' };
+    const labels = ['Wood','Fire','Earth','Metal','Water'];
+    const values = labels.map((key) => Number(window.__REPORT_DATA__.elements[key.toLowerCase()] || 0));
+    function mountChart(id, option) {
+      const node = document.getElementById(id);
+      if (!node || !window.echarts) return;
+      const chart = echarts.init(node, null, { renderer:'svg' });
+      chart.setOption(option);
+    }
+    mountChart('element-radar', {
+      animation:false,
+      radar:{ indicator:labels.map((name)=>({name,max:4})), radius:'63%', splitNumber:4, axisName:{color:palette.ink,fontFamily:'Noto Sans',fontWeight:700,fontSize:12}, splitLine:{lineStyle:{color:palette.grid}}, splitArea:{areaStyle:{color:['#fbfdff','#f4f8fb']}}, axisLine:{lineStyle:{color:palette.grid}} },
+      series:[{type:'radar',symbol:'circle',symbolSize:7,data:[{value:values,areaStyle:{color:'rgba(36,120,181,.18)'},lineStyle:{color:palette.water,width:3},itemStyle:{color:palette.water}}]}]
+    });
+    mountChart('element-bars', {
+      animation:false, grid:{left:72,right:28,top:22,bottom:32}, xAxis:{type:'value',min:0,max:4,interval:1,axisLabel:{color:'#5d7183'},splitLine:{lineStyle:{color:palette.grid}},axisLine:{show:false},axisTick:{show:false}}, yAxis:{type:'category',data:labels,axisLabel:{color:palette.ink,fontWeight:700},axisLine:{show:false},axisTick:{show:false}}, series:[{type:'bar',data:values.map((value,index)=>({value,itemStyle:{color:[palette.wood,palette.fire,palette.earth,palette.metal,palette.water][index]}})),barWidth:18,label:{show:true,position:'right',color:palette.ink,fontWeight:800}}]
+    });
+    mountChart('section-elements', {
+      animation:false, grid:{left:80,right:28,top:18,bottom:24}, xAxis:{type:'value',max:4,splitLine:{lineStyle:{color:palette.grid}},axisLabel:{show:false},axisLine:{show:false},axisTick:{show:false}}, yAxis:{type:'category',data:labels,axisLabel:{color:palette.ink,fontWeight:700},axisLine:{show:false},axisTick:{show:false}}, series:[{type:'bar',data:values,barWidth:13,itemStyle:{color:palette.water,borderRadius:[0,3,3,0]},label:{show:true,position:'right',color:palette.ink,fontWeight:800}}]
+    });
+  </script>
+</body>
+</html>

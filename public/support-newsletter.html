@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Tengyunzi Newsletter Console</title>
+  <style>
+    :root {
+      --ink: #0a2540;
+      --muted: #536579;
+      --line: #d7e3f0;
+      --soft: #f3f8fd;
+      --paper: #ffffff;
+      --blue: #0066cc;
+      --blue-dark: #004c99;
+      --blue-soft: #eaf4ff;
+      --good: #0f766e;
+      --warn: #b45309;
+      --bad: #b91c1c;
+      --shadow: 0 18px 44px rgba(10, 37, 64, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, #f7fbff 0%, #eef6ff 44%, #f8fbff 100%);
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 34px 0 56px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-end;
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(31px, 5vw, 54px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .sub {
+      margin: 10px 0 0;
+      max-width: 680px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .token-panel,
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: var(--shadow);
+    }
+
+    .token-panel {
+      width: min(430px, 100%);
+      padding: 14px;
+    }
+
+    .token-row,
+    .filters {
+      display: grid;
+      gap: 10px;
+    }
+
+    .token-row {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    label {
+      color: #33516f;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid #c7d7e7;
+      border-radius: 8px;
+      padding: 0 12px;
+      color: var(--ink);
+      background: #fff;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.13);
+    }
+
+    .btn {
+      min-height: 42px;
+      border-radius: 8px;
+      padding: 0 14px;
+      background: var(--blue);
+      color: #fff;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .btn:hover { background: var(--blue-dark); }
+    .btn:disabled { opacity: 0.55; cursor: default; }
+
+    .btn.secondary {
+      border: 1px solid #bdd2e8;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .btn.secondary:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .status-line {
+      min-height: 20px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .status-line.error { color: var(--bad); }
+    .status-line.ok { color: var(--good); }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .metric {
+      min-height: 118px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      background: #fff;
+      box-shadow: 0 12px 30px rgba(10, 37, 64, 0.07);
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 16px;
+      color: var(--blue-dark);
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding: 16px 18px;
+      background: #f8fbff;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    .panel-head select {
+      width: auto;
+      min-width: 180px;
+    }
+
+    .panel-body {
+      padding: 18px;
+    }
+
+    .breakdown {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px 18px;
+    }
+
+    .break-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .break-label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #173a5d;
+      font-size: 14px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .bar {
+      grid-column: 1 / -1;
+      height: 8px;
+      border-radius: 999px;
+      background: #edf5fe;
+      overflow: hidden;
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      width: var(--w, 0%);
+      border-radius: inherit;
+      background: linear-gradient(90deg, #0066cc, #5fa8f3);
+    }
+
+    .count {
+      color: var(--blue-dark);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .filters {
+      grid-template-columns: 1.1fr 0.8fr 0.8fr 0.8fr 0.7fr auto auto;
+      align-items: end;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 920px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #e3edf7;
+      padding: 12px 10px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+
+    th {
+      color: #46627d;
+      background: #f8fbff;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    td strong {
+      display: block;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      border: 1px solid #c7d7e7;
+      border-radius: 999px;
+      padding: 3px 9px;
+      background: #fff;
+      color: #21486c;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .pill.subscribed {
+      border-color: #b7e6df;
+      color: var(--good);
+      background: #effaf8;
+    }
+
+    .pill.unsubscribed {
+      border-color: #f3c9c9;
+      color: var(--bad);
+      background: #fff5f5;
+    }
+
+    .pill.bounced,
+    .pill.complained {
+      border-color: #f1d4a7;
+      color: var(--warn);
+      background: #fff8eb;
+    }
+
+    .row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .mini {
+      min-height: 30px;
+      border-radius: 8px;
+      padding: 0 9px;
+      border: 1px solid #bdd2e8;
+      background: #fff;
+      color: #12385c;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .mini:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .empty {
+      padding: 28px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    td.empty {
+      text-align: left;
+    }
+
+    .breakdown .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .topbar {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
+      .shell {
+        width: min(100% - 24px, 1180px);
+        padding-top: 22px;
+      }
+
+      .metrics,
+      .filters,
+      .token-row {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .panel-head select {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="topbar" aria-labelledby="pageTitle">
+      <div>
+        <p class="eyebrow">Tengyunzi Operations</p>
+        <h1 id="pageTitle">Newsletter Console</h1>
+        <p class="sub">Manage subscribers captured from the website, segment by traffic source, export leads, and update subscription status.</p>
+      </div>
+      <div class="token-panel">
+        <div class="token-row">
+          <div class="field">
+            <label for="adminToken">Admin token</label>
+            <input id="adminToken" type="password" autocomplete="off" placeholder="ADMIN_DASHBOARD_TOKEN">
+          </div>
+          <button id="saveToken" class="btn" type="button">Save</button>
+        </div>
+        <div id="statusLine" class="status-line">Save token, then load the dashboard.</div>
+      </div>
+    </section>
+
+    <section class="metrics" aria-label="Newsletter metrics">
+      <div class="metric"><span>Total subscribers</span><strong id="metricTotal">0</strong></div>
+      <div class="metric"><span>Active</span><strong id="metricActive">0</strong></div>
+      <div class="metric"><span>Recent window</span><strong id="metricRecent">0</strong></div>
+      <div class="metric"><span>Unsubscribed</span><strong id="metricUnsub">0</strong></div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Source Breakdown</h2>
+          <select id="overviewDays" aria-label="Overview window">
+            <option value="7">7 days</option>
+            <option value="30" selected>30 days</option>
+            <option value="90">90 days</option>
+            <option value="365">365 days</option>
+          </select>
+        </div>
+        <div class="panel-body">
+          <div id="sourceBreakdown" class="breakdown"><div class="empty">No data loaded.</div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Subscriber List</h2>
+          <button id="exportCsv" class="btn secondary" type="button">Export CSV</button>
+        </div>
+        <div class="panel-body">
+          <div class="filters">
+            <div class="field">
+              <label for="searchInput">Search email</label>
+              <input id="searchInput" type="search" placeholder="name@example.com">
+            </div>
+            <div class="field">
+              <label for="statusFilter">Status</label>
+              <select id="statusFilter">
+                <option value="all">All</option>
+                <option value="subscribed">Subscribed</option>
+                <option value="unsubscribed">Unsubscribed</option>
+                <option value="bounced">Bounced</option>
+                <option value="complained">Complained</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="sourceFilter">Source</label>
+              <input id="sourceFilter" placeholder="website">
+            </div>
+            <div class="field">
+              <label for="languageFilter">Language</label>
+              <select id="languageFilter">
+                <option value="all">All</option>
+                <option value="en">English</option>
+                <option value="zh-Hans">Simplified</option>
+                <option value="zh-Hant">Traditional</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="listDays">Window</label>
+              <select id="listDays">
+                <option value="0">All time</option>
+                <option value="30" selected>30 days</option>
+                <option value="90">90 days</option>
+                <option value="365">365 days</option>
+              </select>
+            </div>
+            <button id="refreshList" class="btn" type="button">Refresh</button>
+            <button id="clearFilters" class="btn secondary" type="button">Clear</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Source</th>
+                <th>Page</th>
+                <th>UTM</th>
+                <th>Subscribed</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="subscriberRows">
+              <tr><td class="empty" colspan="7">No data loaded.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const SUPABASE_URL = 'https://rcyssrsnalefzhzsvswm.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
+    const API_URL = `${SUPABASE_URL}/functions/v1/admin-newsletter`;
+    const TOKEN_KEY = 'tengyunzi_newsletter_admin_token';
+
+    const els = {
+      adminToken: document.getElementById('adminToken'),
+      saveToken: document.getElementById('saveToken'),
+      statusLine: document.getElementById('statusLine'),
+      overviewDays: document.getElementById('overviewDays'),
+      metricTotal: document.getElementById('metricTotal'),
+      metricActive: document.getElementById('metricActive'),
+      metricRecent: document.getElementById('metricRecent'),
+      metricUnsub: document.getElementById('metricUnsub'),
+      sourceBreakdown: document.getElementById('sourceBreakdown'),
+      searchInput: document.getElementById('searchInput'),
+      statusFilter: document.getElementById('statusFilter'),
+      sourceFilter: document.getElementById('sourceFilter'),
+      languageFilter: document.getElementById('languageFilter'),
+      listDays: document.getElementById('listDays'),
+      refreshList: document.getElementById('refreshList'),
+      clearFilters: document.getElementById('clearFilters'),
+      exportCsv: document.getElementById('exportCsv'),
+      subscriberRows: document.getElementById('subscriberRows'),
+    };
+
+    let currentRows = [];
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/[&<>"']/g, (ch) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      })[ch]);
+    }
+
+    function setStatus(message, type) {
+      els.statusLine.textContent = message || '';
+      els.statusLine.classList.toggle('error', type === 'error');
+      els.statusLine.classList.toggle('ok', type === 'ok');
+    }
+
+    function getToken() {
+      return String(sessionStorage.getItem(TOKEN_KEY) || '').trim();
+    }
+
+    function saveToken() {
+      const token = String(els.adminToken.value || '').trim();
+      if (!token) {
+        setStatus('Enter ADMIN_DASHBOARD_TOKEN first.', 'error');
+        return false;
+      }
+      sessionStorage.setItem(TOKEN_KEY, token);
+      setStatus('Token saved for this browser session.', 'ok');
+      return true;
+    }
+
+    async function api(action, payload) {
+      const token = getToken() || String(els.adminToken.value || '').trim();
+      if (!token) throw new Error('Missing admin token.');
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_ANON}`,
+          'x-admin-token': token,
+        },
+        body: JSON.stringify({ action, ...(payload || {}) }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) {
+        throw new Error(data.details || data.error || `HTTP ${res.status}`);
+      }
+      return data;
+    }
+
+    function formatDate(value) {
+      if (!value) return '';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
+      return date.toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    }
+
+    function renderBreakdown(rows) {
+      const list = Array.isArray(rows) ? rows : [];
+      const max = Math.max(1, ...list.map((row) => Number(row.count || 0)));
+      if (!list.length) {
+        els.sourceBreakdown.innerHTML = '<div class="empty">No recent subscribers in this window.</div>';
+        return;
+      }
+      els.sourceBreakdown.innerHTML = list.map((row) => {
+        const count = Number(row.count || 0);
+        const width = Math.max(4, Math.round((count / max) * 100));
+        return `
+          <div class="break-row">
+            <div class="break-label" title="${escapeHtml(row.label)}">${escapeHtml(row.label)}</div>
+            <div class="count">${count}</div>
+            <div class="bar"><i style="--w:${width}%"></i></div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function loadOverview() {
+      setStatus('Loading overview...', '');
+      const data = await api('overview', { days: Number(els.overviewDays.value || 30) });
+      const summary = data.summary || {};
+      els.metricTotal.textContent = Number(summary.total || 0).toLocaleString();
+      els.metricActive.textContent = Number(summary.active || 0).toLocaleString();
+      els.metricRecent.textContent = Number(summary.recent || 0).toLocaleString();
+      els.metricUnsub.textContent = Number(summary.unsubscribed_recent || 0).toLocaleString();
+      renderBreakdown(data.sources || []);
+      setStatus('Overview loaded.', 'ok');
+    }
+
+    function filterPayload(limit) {
+      return {
+        limit: limit || 80,
+        days: Number(els.listDays.value || 0),
+        search: els.searchInput.value,
+        status: els.statusFilter.value,
+        source: els.sourceFilter.value,
+        language: els.languageFilter.value,
+      };
+    }
+
+    function renderRows(rows) {
+      currentRows = Array.isArray(rows) ? rows : [];
+      if (!currentRows.length) {
+        els.subscriberRows.innerHTML = '<tr><td class="empty" colspan="7">No subscribers match these filters.</td></tr>';
+        return;
+      }
+
+      els.subscriberRows.innerHTML = currentRows.map((row) => {
+        const utm = [row.utm_source, row.utm_medium, row.utm_campaign].filter(Boolean).join(' / ');
+        const page = row.page_path || row.landing_url || '';
+        return `
+          <tr data-id="${escapeHtml(row.id)}" data-email="${escapeHtml(row.email)}">
+            <td>
+              <strong>${escapeHtml(row.email)}</strong>
+              <div class="muted">${escapeHtml(row.name || '')}</div>
+            </td>
+            <td><span class="pill ${escapeHtml(row.status)}">${escapeHtml(row.status)}</span></td>
+            <td>
+              <span class="pill">${escapeHtml(row.source || 'website')}</span>
+              <div class="muted">${escapeHtml(row.language || '')}</div>
+            </td>
+            <td><div class="muted">${escapeHtml(page)}</div></td>
+            <td><div class="muted">${escapeHtml(utm || '-')}</div></td>
+            <td><div class="muted">${escapeHtml(formatDate(row.subscribed_at))}</div></td>
+            <td>
+              <div class="row-actions">
+                <button class="mini" data-action="subscribed" type="button">Subscribe</button>
+                <button class="mini" data-action="unsubscribed" type="button">Unsubscribe</button>
+                <button class="mini" data-action="bounced" type="button">Bounce</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function loadList() {
+      setStatus('Loading subscribers...', '');
+      const data = await api('list', filterPayload(100));
+      renderRows(data.rows || []);
+      setStatus(`${Number(data.count || 0).toLocaleString()} matching subscribers.`, 'ok');
+    }
+
+    function csvEscape(value) {
+      const text = String(value == null ? '' : value);
+      return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    }
+
+    function downloadCsv(rows) {
+      const columns = [
+        'email',
+        'name',
+        'status',
+        'source',
+        'language',
+        'page_path',
+        'utm_source',
+        'utm_medium',
+        'utm_campaign',
+        'subscribed_at',
+        'unsubscribed_at',
+      ];
+      const csv = [
+        columns.join(','),
+        ...rows.map((row) => columns.map((col) => csvEscape(row[col])).join(',')),
+      ].join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tengyunzi-newsletter-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function exportCsv() {
+      setStatus('Preparing CSV export...', '');
+      const data = await api('export', filterPayload(5000));
+      downloadCsv(data.rows || []);
+      setStatus(`CSV exported with ${Number((data.rows || []).length).toLocaleString()} rows.`, 'ok');
+    }
+
+    async function updateStatus(rowEl, status) {
+      const id = rowEl.getAttribute('data-id');
+      const email = rowEl.getAttribute('data-email');
+      setStatus(`Updating ${email}...`, '');
+      await api('update_status', { id, email, status });
+      await Promise.all([loadOverview(), loadList()]);
+      setStatus(`${email} marked ${status}.`, 'ok');
+    }
+
+    els.saveToken.addEventListener('click', async () => {
+      if (!saveToken()) return;
+      try {
+        await Promise.all([loadOverview(), loadList()]);
+      } catch (err) {
+        setStatus(err.message || String(err), 'error');
+      }
+    });
+
+    els.overviewDays.addEventListener('change', () => {
+      loadOverview().catch((err) => setStatus(err.message || String(err), 'error'));
+    });
+
+    els.refreshList.addEventListener('click', () => {
+      loadList().catch((err) => setStatus(err.message || String(err), 'error'));
+    });
+
+    els.clearFilters.addEventListener('click', () => {
+      els.searchInput.value = '';
+      els.statusFilter.value = 'all';
+      els.sourceFilter.value = '';
+      els.languageFilter.value = 'all';
+      els.listDays.value = '30';
+      loadList().catch((err) => setStatus(err.message || String(err), 'error'));
+    });
+
+    els.exportCsv.addEventListener('click', () => {
+      exportCsv().catch((err) => setStatus(err.message || String(err), 'error'));
+    });
+
+    els.subscriberRows.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-action]');
+      if (!button) return;
+      const row = button.closest('tr');
+      if (!row) return;
+      updateStatus(row, button.getAttribute('data-action')).catch((err) => {
+        setStatus(err.message || String(err), 'error');
+      });
+    });
+
+    const cachedToken = getToken();
+    if (cachedToken) {
+      els.adminToken.value = cachedToken;
+      Promise.all([loadOverview(), loadList()]).catch((err) => {
+        setStatus(err.message || String(err), 'error');
+      });
+    }
+  </script>
+</body>
+</html>

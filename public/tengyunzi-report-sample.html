@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="canonical" href="https://www.tengyunzi.com/tengyunzi-report-sample.html">
+  <title>Complete BaZi Report Sample | Tengyunzi</title>
+  <meta name="description" content="Read a complete privacy-safe Tengyunzi BaZi report sample covering chart structure, Ten Gods, useful elements, career, relationships, Luck Pillars, and timing.">
+  <link rel="stylesheet" href="./tengyunzi-fonts.css?v=20260722seo1">
+
+  <link rel="stylesheet" href="./tengyunzi-sales.css?v=20260717resources">
+  <style>
+    .sample-hero {
+      padding: clamp(64px, 8vw, 104px) 0;
+      border-bottom: 1px solid var(--line);
+      background: #eef6fb;
+    }
+
+    .sample-hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(360px, 0.76fr);
+      gap: clamp(42px, 7vw, 84px);
+      align-items: center;
+    }
+
+    .sample-hero h1 {
+      max-width: 10em;
+      font-size: clamp(3.25rem, 6vw, 5.65rem);
+    }
+
+    .sample-intro {
+      max-width: 58ch;
+      margin: 22px 0 0;
+      color: var(--text);
+      font-size: 1.08rem;
+      line-height: 1.72;
+    }
+
+    .sample-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .sample-chart {
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .sample-chart-head {
+      padding: 22px 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .sample-chart-head strong {
+      display: block;
+      color: var(--ink);
+      font-size: 1rem;
+    }
+
+    .sample-chart-head span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.5;
+    }
+
+    .pillar-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .pillar {
+      min-width: 0;
+      text-align: center;
+      border-right: 1px solid var(--line);
+    }
+
+    .pillar:last-child {
+      border-right: 0;
+    }
+
+    .pillar-label,
+    .pillar-note {
+      display: block;
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .pillar-label {
+      padding: 10px 4px;
+      background: var(--surface-soft);
+      text-transform: uppercase;
+    }
+
+    .pillar-symbol {
+      display: grid;
+      place-items: center;
+      min-height: 56px;
+      color: var(--ink);
+      font-family: "Noto Serif", serif;
+      font-size: 1.9rem;
+      font-weight: 900;
+    }
+
+    .pillar-symbol.branch {
+      background: #f7fafc;
+    }
+
+    .pillar-note {
+      min-height: 46px;
+      display: grid;
+      place-items: center;
+      padding: 8px 5px;
+      border-top: 1px solid var(--line);
+    }
+
+    .sample-note {
+      padding: 20px 24px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    .sample-overview {
+      padding: clamp(58px, 7vw, 84px) 0;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .sample-overview-inner {
+      max-width: 820px;
+    }
+
+    .sample-overview h2 {
+      margin-top: 14px;
+      font-size: clamp(2.4rem, 4vw, 3.65rem);
+    }
+
+    .sample-overview p {
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 1.04rem;
+      line-height: 1.75;
+    }
+
+    .chapter-band {
+      padding: clamp(54px, 7vw, 82px) 0;
+      border-bottom: 1px solid var(--line);
+      background: #f8fbfd;
+    }
+
+    .chapter-band:nth-child(even) {
+      background: #fff;
+    }
+
+    .chapter-layout {
+      display: grid;
+      grid-template-columns: 180px minmax(0, 1fr);
+      gap: clamp(34px, 7vw, 82px);
+      align-items: start;
+    }
+
+    .chapter-meta {
+      position: sticky;
+      top: 90px;
+    }
+
+    .chapter-number {
+      display: block;
+      color: var(--blue);
+      font-size: 0.78rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .chapter-meta h2 {
+      margin-top: 12px;
+      font-size: clamp(1.55rem, 2.4vw, 2.2rem);
+      line-height: 1.12;
+    }
+
+    .chapter-list {
+      border-top: 1px solid var(--line-strong);
+    }
+
+    .sample-section {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr);
+      gap: 18px;
+      padding: 28px 0 30px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .sample-section > strong {
+      color: var(--blue);
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    .sample-section h3 {
+      font-family: var(--body-font);
+      font-size: clamp(1.18rem, 2vw, 1.48rem);
+      font-weight: 900;
+      line-height: 1.25;
+    }
+
+    .sample-section p {
+      max-width: 68ch;
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.72;
+    }
+
+    .sample-cta {
+      padding: clamp(62px, 8vw, 96px) 0;
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .sample-cta-inner {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 36px;
+      align-items: end;
+    }
+
+    .sample-cta h2 {
+      max-width: 13em;
+      color: #fff;
+      font-size: clamp(2.45rem, 4.5vw, 4rem);
+    }
+
+    .sample-cta p {
+      max-width: 58ch;
+      margin: 18px 0 0;
+      color: rgba(255, 255, 255, 0.74);
+      line-height: 1.7;
+    }
+
+    @media (max-width: 820px) {
+      .sample-hero-grid,
+      .sample-cta-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .sample-chart {
+        max-width: 560px;
+      }
+
+      .chapter-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .chapter-meta {
+        position: static;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .sample-hero h1 {
+        font-size: clamp(2.7rem, 13vw, 3.45rem);
+      }
+
+      .pillar-symbol {
+        min-height: 48px;
+        font-size: 1.55rem;
+      }
+
+      .pillar-note {
+        font-size: 0.58rem;
+      }
+
+      .sample-section {
+        grid-template-columns: 36px minmax(0, 1fr);
+        gap: 12px;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="./tengyunzi-shell.css?v=20260715nav">
+</head>
+<body>
+  <header class="nav">
+    <div class="shell nav-inner">
+      <a class="brand" href="./index.html#top">Tengyunzi</a>
+      <nav class="nav-links" aria-label="Page navigation"><a href="./tengyunzi-calculator.html#top">Calculator</a><a class="is-active" aria-current="page" href="./tengyunzi-readings.html#top">Readings</a><a href="./tengyunzi-what-is-bazi.html#top">What is BaZi</a><a href="./tengyunzi-12-month-calendar.html#top">12-Month Forecast</a><a href="./tengyunzi-blog.html#top">Blog</a><a href="./tengyunzi-free-resources.html#top">Free Resources</a><a href="./tengyunzi-newsletter.html#top">Letters</a><a href="./tengyunzi-about.html#top">About</a><a href="./tengyunzi-contact.html#top">Contact</a><a class="nav-cta" href="./tengyunzi-report.html#reading-form">Start Reading</a></nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="sample-hero">
+      <div class="shell sample-hero-grid">
+        <div>
+          <span class="kicker">Anonymized Report Preview</span>
+          <h1>A Standard English BaZi Reading</h1>
+          <p class="sample-intro">See how a Tengyunzi report moves from the Day Master and seasonal strength to Ten Gods, useful elements, natal interactions, life topics, and timing. This synthetic profile protects client privacy while showing the report format.</p>
+          <div class="sample-actions">
+            <a class="button" href="./tengyunzi-whats-inside.html#chapters">View Current Report Structure</a>
+            <a class="button secondary" href="./tengyunzi-whats-inside.html#chapters">See All Report Sections</a>
+          </div>
+        </div>
+
+        <div class="sample-chart" aria-label="Sample Four Pillars chart">
+          <div class="sample-chart-head"><strong>Sample Profile</strong><span>June 15, 1990 · Singapore · Male · Birth hour unknown</span></div>
+          <div class="pillar-grid">
+            <div class="pillar"><span class="pillar-label">Year</span><span class="pillar-symbol">庚</span><span class="pillar-symbol branch">午</span><span class="pillar-note">Metal / Horse</span></div>
+            <div class="pillar"><span class="pillar-label">Month</span><span class="pillar-symbol">壬</span><span class="pillar-symbol branch">午</span><span class="pillar-note">Water / Horse</span></div>
+            <div class="pillar"><span class="pillar-label">Day</span><span class="pillar-symbol">戊</span><span class="pillar-symbol branch">子</span><span class="pillar-note">Earth / Rat</span></div>
+            <div class="pillar"><span class="pillar-label">Hour</span><span class="pillar-symbol">—</span><span class="pillar-symbol branch">—</span><span class="pillar-note">Unknown</span></div>
+          </div>
+          <div class="sample-note">This demonstration avoids conclusions that depend on the Hour Pillar.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sample-overview">
+      <div class="shell sample-overview-inner">
+        <span class="kicker">How to Read This Sample</span>
+        <h2>A chart becomes useful through translation</h2>
+        <p>The report follows the standard BaZi reading order: pillars and seasonal strength first, then Five Elements, hidden stems, Ten Gods, chart structure, life topics, Luck Pillars, and annual timing. These short excerpts show the organization of the delivered report.</p>
+      </div>
+    </section>
+
+    <div class="sample-chapters">
+      <section class="chapter-band"><div class="shell chapter-layout"><header class="chapter-meta"><span class="chapter-number">Chapters 01-04</span><h2>Chart Foundation</h2></header><div class="chapter-list">
+        <article class="sample-section"><strong>01</strong><div><h3>Four Pillars and Day Master</h3><p>The report identifies the Day Master as the Day Stem, keeps it separate from the two-character Day Pillar, and explains Yin-Yang polarity and pillar roles in plain English.</p></div></article>
+        <article class="sample-section"><strong>02</strong><div><h3>Seasonal Qi and Day Master Strength</h3><p>The Month Branch and season are read first, followed by roots, support, drains, and controls. The conclusion includes its evidence and limits.</p></div></article>
+        <article class="sample-section"><strong>03-04</strong><div><h3>Five Elements, Hidden Stems, and Ten Gods</h3><p>Visible and hidden elements are separated before the Ten Gods are mapped by pillar and hidden root. A hidden-only element is never called completely absent.</p></div></article>
+      </div></div></section>
+      <section class="chapter-band"><div class="shell chapter-layout"><header class="chapter-meta"><span class="chapter-number">Chapters 05-07</span><h2>Chart Structure</h2></header><div class="chapter-list">
+        <article class="sample-section"><strong>05</strong><div><h3>Structure and Useful Elements</h3><p>Useful and unfavorable elements follow the stated strength and balancing logic, not a simplistic missing-element rule.</p></div></article>
+        <article class="sample-section"><strong>06</strong><div><h3>Natal Interactions</h3><p>Only exact combinations, clashes, harms, breaks, punishments, meetings, and repeats supported by the natal pillars are listed.</p></div></article>
+        <article class="sample-section"><strong>07</strong><div><h3>Shen Sha</h3><p>Supported symbolic stars appear in a table with their locations and derivation sources. They remain secondary to the main chart structure.</p></div></article>
+      </div></div></section>
+      <section class="chapter-band"><div class="shell chapter-layout"><header class="chapter-meta"><span class="chapter-number">Chapters 08-11</span><h2>Life Topics</h2></header><div class="chapter-list">
+        <article class="sample-section"><strong>08-09</strong><div><h3>Career and Wealth</h3><p>Career and wealth are read through the relevant Ten Gods, their support, and chart interactions rather than a generic list of jobs or promises of income.</p></div></article>
+        <article class="sample-section"><strong>10</strong><div><h3>Relationships and Spouse Palace</h3><p>The partner star, Day Branch, gender convention, and relevant interactions form the evidence base without promising marriage dates or fixed events.</p></div></article>
+        <article class="sample-section"><strong>11</strong><div><h3>Health Tendencies</h3><p>Traditional Five-Element tendencies are presented with a non-diagnostic limitation and practical lifestyle context.</p></div></article>
+      </div></div></section>
+      <section class="chapter-band"><div class="shell chapter-layout"><header class="chapter-meta"><span class="chapter-number">Chapters 12-15</span><h2>Luck and Timing</h2></header><div class="chapter-list">
+        <article class="sample-section"><strong>12</strong><div><h3>Direction and Starting Age</h3><p>The report states forward or reverse Da Yun, the gender and year-stem polarity rule used, and the calculator-supplied starting age. Direction is used only to sequence the Luck Pillars, not as a personality label.</p></div></article>
+        <article class="sample-section"><strong>13</strong><div><h3>Ten-Year Luck Pillars</h3><p>Each Da Yun pillar is compared with the natal chart, with the active cycle clearly marked.</p></div></article>
+        <article class="sample-section"><strong>14-15</strong><div><h3>Annual Outlook and Priorities</h3><p>The next five annual pillars show Ten Gods and exact natal or Luck-Pillar contacts before the report summarizes advance, steady, or protect-resources priorities.</p></div></article>
+      </div></div></section>
+    </div>
+
+    <div class="sample-chapters" hidden aria-hidden="true">
+      <section class="chapter-band">
+        <div class="shell chapter-layout">
+          <header class="chapter-meta"><span class="chapter-number">Chapter 01</span><h2>Foundation</h2></header>
+          <div class="chapter-list">
+            <article class="sample-section"><strong>01</strong><div><h3>Core Elemental Force</h3><p>The sample Day Master is Yang Earth, born in a strong Fire season. This creates a steady, organizing presence that prefers to make ideas usable. At its best, the pattern becomes dependable leadership; under strain, usefulness can become over-responsibility.</p></div></article>
+            <article class="sample-section"><strong>02</strong><div><h3>Five-Element Balance</h3><p>Fire and Earth are prominent, while Water provides a meaningful counterweight. The practical task is not to make every element equal, but to create movement: Water cools, Wood directs, and Metal gives expression a clean method.</p></div></article>
+            <article class="sample-section"><strong>03</strong><div><h3>Underlying Motivations</h3><p>The chart is motivated by usefulness, continuity, and tangible proof. Security grows when effort becomes a repeatable system, although the wish to remain composed can hide how much pressure is already being carried.</p></div></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter-band">
+        <div class="shell chapter-layout">
+          <header class="chapter-meta"><span class="chapter-number">Chapter 02</span><h2>Strengths and Work</h2></header>
+          <div class="chapter-list">
+            <article class="sample-section"><strong>04</strong><div><h3>Natural Strengths and Talents</h3><p>The strongest talents are synthesis, practical judgment, and the ability to hold several responsibilities without losing the larger purpose. Quiet competence becomes more visible when paired with a clear communication method.</p></div></article>
+            <article class="sample-section"><strong>05</strong><div><h3>Best-Fit Working Style</h3><p>The chart works best with ownership, a stable objective, and enough time to understand the real constraints. A strong rhythm alternates consolidation with exploration instead of treating every new input as an emergency.</p></div></article>
+            <article class="sample-section"><strong>06</strong><div><h3>How You Create Value</h3><p>Value is created by turning ambiguity into a sequence people can follow. Operations, advisory work, education, product structure, and long-term client relationships can all use this ability to make knowledge durable.</p></div></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter-band">
+        <div class="shell chapter-layout">
+          <header class="chapter-meta"><span class="chapter-number">Chapter 03</span><h2>Contribution</h2></header>
+          <div class="chapter-list">
+            <article class="sample-section"><strong>07</strong><div><h3>Where You Contribute Best</h3><p>The person contributes best where trust matters and an outcome depends on sustained attention. They are effective at the point where vision must become standards, schedules, or decisions.</p></div></article>
+            <article class="sample-section"><strong>08</strong><div><h3>Independence and Collaboration</h3><p>Independence provides room to determine what is structurally sound. Collaboration works when roles are explicit and colleagues bring real expertise; the growth edge is to invite input before the plan feels completely finished.</p></div></article>
+            <article class="sample-section"><strong>09</strong><div><h3>Emotional Relating Style</h3><p>Care is expressed through reliability, practical help, and remembering what keeps another person steady. Close relationships improve when support is offered as a choice rather than silently assumed as a duty.</p></div></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter-band">
+        <div class="shell chapter-layout">
+          <header class="chapter-meta"><span class="chapter-number">Chapter 04</span><h2>Relationships</h2></header>
+          <div class="chapter-list">
+            <article class="sample-section"><strong>10</strong><div><h3>Relationship User Manual</h3><p>This person responds well to directness, consistency, and calm follow-through. In conflict, begin with shared practical reality and then name the emotional meaning so problem-solving does not replace connection.</p></div></article>
+            <article class="sample-section"><strong>11</strong><div><h3>Repeating Patterns in Intimacy</h3><p>A repeating pattern is becoming the stabilizer and then privately resenting how much stability is required. Reciprocal responsibility breaks the pattern by making needs and ownership visible.</p></div></article>
+            <article class="sample-section"><strong>12</strong><div><h3>Early Family Imprint</h3><p>The formative environment may have rewarded performance, practicality, or composure. This creates resilience, but can also make rest feel as though it must be justified instead of treated as part of responsibility.</p></div></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter-band">
+        <div class="shell chapter-layout">
+          <header class="chapter-meta"><span class="chapter-number">Chapter 05</span><h2>Origins and Patterns</h2></header>
+          <div class="chapter-list">
+            <article class="sample-section"><strong>13</strong><div><h3>Your Role in Family Systems</h3><p>The likely family role is organizer, translator, or quiet problem holder. A healthier version keeps warmth while returning ownership, making help specific, requested, and time-bounded.</p></div></article>
+            <article class="sample-section"><strong>14</strong><div><h3>Social Interaction Style</h3><p>Socially, the chart is observant before it is expansive. It prefers a few meaningful points of connection and becomes more expressive once the purpose of a group is clear.</p></div></article>
+            <article class="sample-section"><strong>15</strong><div><h3>Symbolic Pattern Reading</h3><p>Two Horse branches intensify Fire, emphasizing momentum and visibility. The Rat branch introduces Water, creating a productive tension between acceleration and reflection rather than a choice of only one side.</p></div></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter-band">
+        <div class="shell chapter-layout">
+          <header class="chapter-meta"><span class="chapter-number">Chapter 06</span><h2>Needs and Security</h2></header>
+          <div class="chapter-list">
+            <article class="sample-section"><strong>16</strong><div><h3>Inner Tensions and Integration</h3><p>The central tension lies between holding steady and remaining responsive. Integration comes through scheduled revision: build a stable plan, then create deliberate moments where assumptions may change.</p></div></article>
+            <article class="sample-section"><strong>17</strong><div><h3>The Sense of Something Missing</h3><p>What feels missing may be permission to begin before the whole path is secure, ask for help, or change an identity built around dependability. Small, reversible experiments bring fresh evidence without demanding impulsiveness.</p></div></article>
+            <article class="sample-section"><strong>18</strong><div><h3>Resources and Security</h3><p>Security grows through reserves, clear agreements, and diversified support. A resilient structure distributes knowledge, creates backup, and leaves enough room for conditions to change.</p></div></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter-band">
+        <div class="shell chapter-layout">
+          <header class="chapter-meta"><span class="chapter-number">Chapter 07</span><h2>Life Stages and Growth</h2></header>
+          <div class="chapter-list">
+            <article class="sample-section"><strong>19</strong><div><h3>Character Across Life Stages</h3><p>Earlier stages emphasize proving reliability; middle stages ask the person to move from carrying systems to designing them. Later stages favor teaching, stewardship, and selective influence.</p></div></article>
+            <article class="sample-section"><strong>20</strong><div><h3>Growth Rhythm</h3><p>Growth happens through accumulation followed by decisive reorganization. A defined decision date balances artificial urgency with the opposite risk of endless preparation.</p></div></article>
+            <article class="sample-section"><strong>21</strong><div><h3>Blind Spots That Drain You</h3><p>The largest drains are invisible obligations, perfection disguised as prudence, and helping before the actual request is understood. Releasing an outdated obligation may restore more energy than another productivity method.</p></div></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter-band">
+        <div class="shell chapter-layout">
+          <header class="chapter-meta"><span class="chapter-number">Chapter 08</span><h2>Direction and Action</h2></header>
+          <div class="chapter-list">
+            <article class="sample-section"><strong>22</strong><div><h3>Central Growth Lessons</h3><p>Stability must include adaptation, responsibility works best when chosen and bounded, and clear expression prevents quiet effort from becoming invisible. Together these lessons move endurance toward authorship.</p></div></article>
+            <article class="sample-section"><strong>23</strong><div><h3>Practical Self-Development</h3><p>Use a monthly obligation audit, a written decision rule for recurring choices, and one protected block for exploration. In relationships, practice naming the need before offering the solution.</p></div></article>
+            <article class="sample-section"><strong>24</strong><div><h3>Core Life Theme</h3><p>The core theme is building forms that can hold real life without becoming too rigid for life to change: steady enough to be trusted, open enough to revise, and clear enough for others to participate.</p></div></article>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="sample-cta">
+      <div class="shell sample-cta-inner">
+        <div><h2>Ready to read your own chart?</h2><p>Choose the immediate standard AI BaZi report at the price shown to you, or a personal English reading written by Tengyunzi and delivered within 72 hours.</p></div>
+        <div class="sample-actions"><a class="button" href="./tengyunzi-report.html#reading-form">Start My Reading</a><a class="button secondary" href="./tengyunzi-readings.html#top">Compare Readings</a></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="shell">This sample is educational and reflective, not medical, legal, or financial advice.</div></footer>
+  <script src="./js/tengyunzi-shell.js"></script>
+</body>
+</html>

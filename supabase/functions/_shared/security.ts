@@ -1,5 +1,11 @@
 ﻿export const DEFAULT_ALLOWED_ORIGINS = ['https://tengyunzi.com', 'https://www.tengyunzi.com'];
 
+export const LOCAL_DEVELOPMENT_ORIGINS = ['http://127.0.0.1:8765', 'http://localhost:8765'];
+
+const TRUSTED_VERCEL_PREVIEW_ORIGINS = [
+  /^https:\/\/bazi-[a-z0-9]{5,40}-mastercloud666666-lgtms-projects\.vercel\.app$/i,
+];
+
 export type JsonRecord = Record<string, unknown>;
 
 export function asString(value: unknown): string {
@@ -11,7 +17,7 @@ export function resolveAllowedOrigins(envKey = 'SECURITY_ALLOWED_ORIGINS', fallb
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
-  return fromEnv.length ? fromEnv : fallback;
+  return [...new Set([...(fromEnv.length ? fromEnv : fallback), ...LOCAL_DEVELOPMENT_ORIGINS])];
 }
 
 function originFromReferer(referer: string): string {
@@ -29,22 +35,27 @@ export function getRequestOrigin(req: Request): string {
   return refererOrigin;
 }
 
+export function isAllowedOrigin(origin: string, allowedOrigins: string[]): boolean {
+  return allowedOrigins.includes(origin)
+    || TRUSTED_VERCEL_PREVIEW_ORIGINS.some((pattern) => pattern.test(origin));
+}
+
 export function isAllowedRequestOrigin(req: Request, allowedOrigins: string[]): boolean {
   const requestOrigin = getRequestOrigin(req);
   if (!requestOrigin) return true;
-  return allowedOrigins.includes(requestOrigin);
+  return isAllowedOrigin(requestOrigin, allowedOrigins);
 }
 
 export function corsHeaders(req: Request, allowedOrigins: string[]) {
   const requestOrigin = getRequestOrigin(req);
   const fallbackOrigin = allowedOrigins[0] || '*';
-  const allowOrigin = requestOrigin && allowedOrigins.includes(requestOrigin)
+  const allowOrigin = requestOrigin && isAllowedOrigin(requestOrigin, allowedOrigins)
     ? requestOrigin
     : fallbackOrigin;
   return {
     'Access-Control-Allow-Origin': allowOrigin,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey, x-client-info, X-Requested-With',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey, x-client-info, X-Requested-With, x-admin-token, x-admin-bootstrap',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin',
   };

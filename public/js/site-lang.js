@@ -35,9 +35,9 @@
       en: 'Yunzi Culture provides digital content services based on traditional Chinese Ganzhi culture (online reports and readings). All paid items are virtual digital goods, delivered online instantly after payment. Payment methods: PayPal and major credit/debit cards (USD); WeChat Pay / Alipay (CNY).',
     },
     footerSupportHtml: {
-      'zh-Hans': '客服邮箱：<a href="mailto:tgspc2008@163.com">tgspc2008@163.com</a>（1 个工作日内回复）。购买前如有疑问，欢迎先来信咨询；退款事宜请见退款政策。',
-      'zh-Hant': '客服信箱：<a href="mailto:tgspc2008@163.com">tgspc2008@163.com</a>（1 個工作日內回覆）。購買前如有疑問，歡迎先來信諮詢；退款事宜請見退款政策。',
-      en: 'Customer support: <a href="mailto:tgspc2008@163.com">tgspc2008@163.com</a> (we reply within 1 business day). Questions before purchase are welcome. For refunds, please see our Refund Policy.',
+      'zh-Hans': '客服邮箱：<a href="mailto:hello@tengyunzi.com">hello@tengyunzi.com</a>（1 个工作日内回复）。购买前如有疑问，欢迎先来信咨询；退款事宜请见退款政策。',
+      'zh-Hant': '客服信箱：<a href="mailto:hello@tengyunzi.com">hello@tengyunzi.com</a>（1 個工作日內回覆）。購買前如有疑問，歡迎先來信諮詢；退款事宜請見退款政策。',
+      en: 'Customer support: <a href="mailto:hello@tengyunzi.com">hello@tengyunzi.com</a> (we reply within 1 business day). Questions before purchase are welcome. For refunds, please see our Refund Policy.',
     },
     footerDisclaimerHtml: {
       'zh-Hans': '<strong>免责声明：</strong>本站内容基于中国传统干支文化，所有分析结果仅供文化参考与娱乐，不构成预测、决策建议或命运判断，请理性看待、切勿迷信。付费服务为知识型数字内容，非占卜改运服务。',

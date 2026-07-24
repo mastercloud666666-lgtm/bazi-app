@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="canonical" href="https://www.tengyunzi.com/tengyunzi-contact.html">
+  <title>Contact Tengyunzi | BaZi Readings and Support</title>
+  <meta name="description" content="Contact Tengyunzi about BaZi readings, annual forecasts, newsletter delivery, collaborations, refunds, or help with an existing PayPal order.">
+  <link rel="stylesheet" href="./tengyunzi-fonts.css?v=20260722seo1">
+
+  <link rel="stylesheet" href="./tengyunzi-sales.css?v=20260713i">
+  <style>
+    .contact-stage {
+      min-height: calc(100vh - 151px);
+      display: grid;
+      align-content: start;
+      border-bottom: 1px solid var(--line);
+      background: #f7fbfd;
+      padding: clamp(76px, 8vw, 104px) 0 92px;
+      text-align: center;
+    }
+
+    .contact-head {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .contact-head .kicker::before {
+      display: none;
+    }
+
+    .contact-head h1 {
+      margin-top: 14px;
+      font-family: var(--body-font);
+      font-size: clamp(3rem, 4vw, 3.45rem);
+      font-weight: 900;
+      line-height: 1.05;
+    }
+
+    .contact-head p {
+      margin: 18px auto 0;
+      color: var(--muted);
+      font-size: 1.08rem;
+      line-height: 1.65;
+    }
+
+    .contact-panel {
+      width: min(540px, 100%);
+      margin: 52px auto 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--bg-soft);
+      padding: clamp(28px, 3vw, 32px);
+      text-align: left;
+    }
+
+    .contact-form {
+      display: grid;
+      gap: 14px;
+    }
+
+    .contact-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .contact-field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .contact-field span {
+      color: var(--text);
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .contact-honeypot {
+      position: absolute;
+      left: -10000px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+
+    .contact-panel input,
+    .contact-panel textarea {
+      font: inherit;
+      font-size: 1rem;
+      line-height: 1.45;
+    }
+
+    .contact-panel textarea {
+      min-height: 104px;
+      resize: vertical;
+      line-height: 1.62;
+    }
+
+    .contact-panel .submit-button {
+      width: 100%;
+      margin-top: 2px;
+    }
+
+    .contact-panel .form-note:empty {
+      display: none;
+    }
+
+    @media (max-width: 560px) {
+      .contact-stage {
+        padding: 58px 0 70px;
+      }
+
+      .contact-head h1 {
+        font-family: var(--display-font);
+        font-size: clamp(2.6rem, 12vw, 3.25rem);
+      }
+
+      .contact-panel {
+        margin-top: 38px;
+      }
+
+      .contact-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="./tengyunzi-shell.css?v=20260715nav">
+</head>
+<body>
+  <header class="nav">
+    <div class="shell nav-inner">
+      <a class="brand" href="./index.html#top">Tengyunzi</a>
+      <nav class="nav-links" aria-label="Page navigation"><a href="./tengyunzi-calculator.html#top">Calculator</a><a href="./tengyunzi-readings.html#top">Readings</a><a href="./tengyunzi-what-is-bazi.html#top">What is BaZi</a><a href="./tengyunzi-12-month-calendar.html#top">12-Month Forecast</a><a href="./tengyunzi-blog.html#top">Blog</a><a href="./tengyunzi-free-resources.html#top">Free Resources</a><a href="./tengyunzi-newsletter.html#top">Letters</a><a href="./tengyunzi-about.html#top">About</a><a class="is-active" aria-current="page" href="./tengyunzi-contact.html#top">Contact</a><a class="nav-cta" href="./tengyunzi-report.html#reading-form">Start Reading</a></nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="contact-stage">
+      <div class="shell">
+        <div class="contact-head">
+          <span class="kicker">Get in Touch</span>
+          <h1>Ready to start?</h1>
+          <p>Tell us your story, ask about a reading, or get help with an existing order.</p>
+        </div>
+
+        <div class="contact-panel" id="message">
+          <form class="contact-form" data-contact-page-form>
+            <div class="contact-row">
+              <label class="contact-field"><span>First Name</span><input name="name" placeholder="Your name" aria-label="First Name" required></label>
+              <label class="contact-field"><span>Email</span><input type="email" name="email" placeholder="you@example.com" aria-label="Email" required></label>
+            </div>
+            <input type="hidden" name="topic" value="General enquiry">
+            <label class="contact-field"><span>Message</span><textarea name="message" placeholder="Tell us what you would like help understanding..." aria-label="Message" required></textarea></label>
+            <input class="contact-honeypot" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <button class="submit-button" type="submit">Send Message</button>
+            <p class="form-note" aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell">Tengyunzi replies are educational and reflective. They do not replace professional advice.</div>
+  </footer>
+
+  <script>
+    const SUPABASE_URL = "https://rcyssrsnalefzhzsvswm.supabase.co";
+    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU";
+    const contactForm = document.querySelector("[data-contact-page-form]");
+    const contactNote = contactForm.querySelector(".form-note");
+
+    function isValidEmail(value) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(value || "").trim());
+    }
+
+    function getUrlParam(name) {
+      try {
+        return new URLSearchParams(window.location.search || "").get(name) || "";
+      } catch (error) {
+        return "";
+      }
+    }
+
+    function setContactStatus(message, isError) {
+      contactNote.textContent = message || "";
+      contactNote.style.color = isError ? "#b42318" : "var(--blue-dark)";
+    }
+
+    contactForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const submitButton = contactForm.querySelector("button[type='submit']");
+      const formData = new FormData(contactForm);
+      const name = String(formData.get("name") || "").trim();
+      const email = String(formData.get("email") || "").trim();
+      const topic = String(formData.get("topic") || "").trim();
+      const message = String(formData.get("message") || "").trim();
+      const website = String(formData.get("website") || "").trim();
+
+      if (!name) {
+        setContactStatus("Please enter your name.", true);
+        return;
+      }
+      if (!isValidEmail(email)) {
+        setContactStatus("Please enter a valid email address.", true);
+        return;
+      }
+      if (message.length < 10) {
+        setContactStatus("Please write at least one clear sentence.", true);
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.textContent = "Sending...";
+      setContactStatus("", false);
+
+      try {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/contact-submit`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${SUPABASE_ANON}`,
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            topic,
+            message,
+            website,
+            source: "contact-page",
+            language: "en",
+            page_path: window.location.pathname || "/",
+            landing_url: String(window.location.href || "").slice(0, 500),
+            referrer: String(document.referrer || "").slice(0, 500),
+            utm_source: getUrlParam("utm_source"),
+            utm_medium: getUrlParam("utm_medium"),
+            utm_campaign: getUrlParam("utm_campaign"),
+            metadata: {
+              page: "tengyunzi-contact",
+              intent: topic,
+            },
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+        contactForm.reset();
+        setContactStatus("Message sent. We will reply by email if a response is needed.", false);
+      } catch (error) {
+        setContactStatus("Message failed to send. Please try again in a moment.", true);
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = "Send Message";
+      }
+    });
+  </script>
+  <script src="./js/tengyunzi-shell.js"></script>
+</body>
+</html>
+
+
+

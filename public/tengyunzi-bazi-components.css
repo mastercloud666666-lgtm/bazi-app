@@ -1,0 +1,120 @@
+.luck-pillars {
+  min-width: 0;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.luck-pillars-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 18px;
+}
+
+.luck-pillars-head h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.12rem;
+  line-height: 1.25;
+}
+
+.luck-pillars-head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.luck-pillars-note {
+  max-width: 70ch;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.luck-pillars-track {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(92px, 1fr));
+  gap: 8px;
+  min-width: 800px;
+  margin-top: 14px;
+}
+
+.luck-pillars-scroll {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  padding: 0 0 8px;
+}
+
+.luck-pillar {
+  min-height: 138px;
+  display: grid;
+  grid-template-rows: 18px 1fr auto auto;
+  place-items: center;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.luck-pillar.is-current {
+  border-color: var(--blue);
+  background: rgba(36, 116, 165, 0.07);
+  box-shadow: inset 0 3px 0 var(--blue);
+}
+
+.luck-pillar-status {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.luck-pillar.is-current .luck-pillar-status {
+  color: var(--blue-dark);
+}
+
+.luck-pillar-symbols {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  font-family: var(--display-font);
+  font-size: 1.72rem;
+  line-height: 1;
+}
+
+.luck-pillar > span {
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.luck-pillar time {
+  color: var(--muted);
+  font-size: 0.69rem;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .luck-pillars-track {
+    min-width: 720px;
+    grid-template-columns: repeat(8, 82px);
+  }
+
+  .luck-pillar {
+    min-height: 130px;
+    padding-inline: 6px;
+  }
+
+  .luck-pillar-symbols {
+    font-size: 1.55rem;
+  }
+}

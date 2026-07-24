@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>八字量化回测结果 2015-2025</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Microsoft YaHei', '微软雅黑', sans-serif; background: #f5f6fa; color: #333; padding: 24px; }
+  h1 { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #666; margin-bottom: 20px; }
+  .summary-bar {
+    display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .stat-card {
+    background: #fff; border-radius: 10px; padding: 14px 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07); min-width: 130px;
+  }
+  .stat-card .label { font-size: 12px; color: #888; margin-bottom: 4px; }
+  .stat-card .value { font-size: 22px; font-weight: 700; color: #1a1a2e; }
+  .stat-card.green .value { color: #16a34a; }
+  .stat-card.red .value { color: #dc2626; }
+  .stat-card.blue .value { color: #2563eb; }
+
+  .table-wrap { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: #1a1a2e; color: #fff; }
+  thead th { padding: 11px 12px; text-align: center; font-weight: 600; white-space: nowrap; }
+  thead th:first-child { text-align: left; padding-left: 16px; }
+  tbody tr:nth-child(even) { background: #f9fafb; }
+  tbody tr:hover { background: #eff6ff; }
+  tbody td { padding: 9px 12px; text-align: center; border-bottom: 1px solid #eee; white-space: nowrap; }
+  tbody td:first-child { text-align: left; padding-left: 16px; font-weight: 600; }
+  tbody td:nth-child(2) { color: #555; }
+
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 99px;
+    font-size: 11px; font-weight: 600;
+  }
+  .badge-zhonghe  { background: #dbeafe; color: #1d4ed8; }
+  .badge-shenguo  { background: #fee2e2; color: #b91c1c; }
+  .badge-shenruo  { background: #fef3c7; color: #92400e; }
+  .badge-cong     { background: #f3e8ff; color: #7c3aed; }
+
+  .pos { color: #16a34a; font-weight: 600; }
+  .neg { color: #dc2626; }
+  .win-yes { font-size: 15px; }
+  .win-no  { font-size: 15px; color: #ccc; }
+
+  .xi-tag {
+    display: inline-block; margin: 1px 2px; padding: 1px 6px;
+    border-radius: 4px; font-size: 11px; background: #f1f5f9; color: #475569;
+  }
+  .xi-tag.mu  { background: #dcfce7; color: #15803d; }
+  .xi-tag.huo { background: #fee2e2; color: #b91c1c; }
+  .xi-tag.tu  { background: #fef9c3; color: #854d0e; }
+  .xi-tag.jin { background: #f1f5f9; color: #475569; }
+  .xi-tag.shui{ background: #dbeafe; color: #1d4ed8; }
+
+  tfoot td { background: #1a1a2e; color: #fff; padding: 10px 12px; font-weight: 600; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<h1>八字量化回测结果</h1>
+<p class="subtitle">回测区间：2015-01-01 ~ 2025-12-31 &nbsp;|&nbsp; 初始资金：10万元 &nbsp;|&nbsp; 标的：沪深300ETF（510300）&nbsp;|&nbsp; 月调仓，万3手续费</p>
+
+<div class="summary-bar">
+  <div class="stat-card green">
+    <div class="label">跑赢基准</div>
+    <div class="value">35 / 47</div>
+  </div>
+  <div class="stat-card blue">
+    <div class="label">胜率</div>
+    <div class="value">74%</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">基准年化</div>
+    <div class="value">2.2%</div>
+  </div>
+  <div class="stat-card green">
+    <div class="label">最高超额</div>
+    <div class="value">+2.0%</div>
+  </div>
+  <div class="stat-card red">
+    <div class="label">最低超额</div>
+    <div class="value">−2.0%</div>
+  </div>
+</div>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>#</th>
+    <th>命主</th>
+    <th>性别</th>
+    <th>日主</th>
+    <th>格局</th>
+    <th>喜用</th>
+    <th>策略年化</th>
+    <th>基准年化</th>
+    <th>超额</th>
+    <th>最大回撤</th>
+    <th>夏普</th>
+    <th>跑赢</th>
+  </tr>
+</thead>
+<tbody>
+
+<script>
+const data = [
+  ["啊",         "男","戊","中和",  ["金","水"],       2.3, 2.2, +0.0, -25.6, 0.25],
+  ["Cq女",       "女","辛","身弱",  ["土","金"],       3.2, 2.2, +1.0, -25.6, 0.32],
+  ["程钰",       "女","丙","身弱",  ["木","火"],       2.3, 2.2, +0.1, -21.6, 0.30],
+  ["程远",       "男","甲","身弱",  ["水","木"],       0.2, 2.2, -2.0, -11.7, 0.08],
+  ["程宇宸",     "女","辛","中和",  ["木","火","土"],  4.0, 2.2, +1.8, -28.9, 0.37],
+  ["传奇妹夫",   "男","己","身弱",  ["火","土"],       1.9, 2.2, -0.3, -11.5, 0.38],
+  ["CPR",        "女","甲","身弱",  ["水","木"],       0.6, 2.2, -1.6, -15.4, 0.15],
+  ["Cq男",       "男","壬","身强",  ["火","土"],       2.8, 2.2, +0.5, -22.6, 0.32],
+  ["代",         "男","壬","中和",  ["火","土","金"],  4.1, 2.2, +1.9, -28.7, 0.37],
+  ["戴常",       "男","癸","身弱",  ["金","水"],       1.1, 2.2, -1.2, -21.8, 0.18],
+  ["戴元媛",     "女","己","身弱",  ["火","土"],       2.8, 2.2, +0.6, -17.0, 0.37],
+  ["大珂国学",   "女","丙","中和",  ["金","水","木"],  4.2, 2.2, +2.0, -28.9, 0.37],
+  ["大侄子对象", "女","庚","中和",  ["木","火","土"],  3.9, 2.2, +1.7, -28.6, 0.37],
+  ["大侄子毅",   "男","庚","中和",  ["木","火","土"],  4.1, 2.2, +1.9, -28.9, 0.37],
+  ["东东",       "男","戊","中和",  ["水","木","火"],  4.2, 2.2, +2.0, -27.7, 0.38],
+  ["Fl",         "男","戊","中和",  ["水","木","火"],  4.2, 2.2, +2.0, -26.9, 0.38],
+  ["郭艾伦",     "男","己","从财格",["水","木"],       0.5, 2.2, -1.7, -19.5, 0.11],
+  ["黄日华",     "女","甲","从儿格",["火","土"],       2.9, 2.2, +0.7, -25.5, 0.32],
+  ["胡姐",       "女","癸","身弱",  ["金","水"],       2.0, 2.2, -0.2, -24.7, 0.27],
+  ["九龙道长",   "男","丁","中和",  ["金","水","木"],  4.2, 2.2, +2.0, -28.9, 0.37],
+  ["Kylie",      "女","癸","从官格",["土","火"],       3.1, 2.2, +0.9, -22.6, 0.39],
+  ["李苏涛",     "男","壬","身弱",  ["金","水"],       1.3, 2.2, -0.9, -24.7, 0.19],
+  ["柳忠祥",     "男","癸","身强",  ["火","土"],       1.5, 2.2, -0.7, -15.8, 0.29],
+  ["Lxt",        "女","壬","中和",  ["火","土","金"],  4.1, 2.2, +1.9, -28.7, 0.37],
+  ["马为",       "女","己","身弱",  ["火","土"],       2.8, 2.2, +0.6, -17.0, 0.38],
+  ["么么撒",     "女","乙","身强",  ["土","金"],       2.9, 2.2, +0.7, -21.0, 0.35],
+  ["宋丽娜",     "女","丙","中和",  ["金","水","木"],  4.1, 2.2, +1.9, -28.9, 0.37],
+  ["孙洁",       "女","丙","身弱",  ["木","火"],       2.8, 2.2, +0.6, -21.6, 0.35],
+  ["孙平恒大",   "女","癸","中和",  ["火","土","金"],  3.4, 2.2, +1.2, -25.4, 0.34],
+  ["孙倩倩",     "女","辛","身弱",  ["土","金"],       2.3, 2.2, +0.1, -19.7, 0.30],
+  ["谭鑫龙",     "男","丙","身强",  ["金","水"],       2.8, 2.2, +0.6, -25.6, 0.31],
+  ["特朗普",     "男","己","身强",  ["水","木"],       0.9, 2.2, -1.3, -16.2, 0.18],
+  ["Tsq",        "男","壬","中和",  ["火","土","金"],  4.1, 2.2, +1.9, -28.7, 0.37],
+  ["小沈阳",     "男","乙","从儿格",["火","土"],       3.8, 2.2, +1.6, -22.6, 0.40],
+  ["圆圆爸爸",   "男","丁","中和",  ["金","水","木"],  4.2, 2.2, +2.0, -28.9, 0.37],
+  ["圆圆妈妈",   "女","丙","身弱",  ["木","火"],       1.6, 2.2, -0.6, -19.9, 0.28],
+  ["圆圆姐",     "女","癸","从官格",["土","火"],       3.3, 2.2, +1.1, -25.5, 0.36],
+  ["圆圆姨夫",   "男","壬","中和",  ["火","土","金"],  3.4, 2.2, +1.2, -25.4, 0.34],
+  ["张富跃",     "男","庚","身弱",  ["土","金"],       3.1, 2.2, +0.9, -19.7, 0.38],
+  ["张丽",       "女","庚","身弱",  ["土","金"],       1.8, 2.2, -0.4, -17.9, 0.26],
+  ["张松",       "女","庚","中和",  ["木","火","土"],  4.1, 2.2, +1.9, -28.9, 0.37],
+  ["张文",       "男","壬","身弱",  ["金","水"],       0.6, 2.2, -1.6, -18.9, 0.14],
+  ["张跃芳",     "女","丁","中和",  ["金","水","木"],  4.1, 2.2, +1.9, -28.9, 0.37],
+  ["郑会杰",     "男","戊","中和",  ["水","木","火"],  4.2, 2.2, +2.0, -26.9, 0.38],
+  ["钟声",       "女","庚","中和",  ["木","火","土"],  4.0, 2.2, +1.8, -28.9, 0.37],
+  ["周勃舒",     "男","辛","身弱",  ["土","金"],       2.7, 2.2, +0.5, -13.9, 0.37],
+  ["周顾",       "男","丙","从儿格",["土","金"],       3.7, 2.2, +1.5, -22.2, 0.37],
+];
+
+const wxClass = { "木":"mu","火":"huo","土":"tu","金":"jin","水":"shui" };
+const geJuClass = v => {
+  if(v.includes("中和")) return "badge-zhonghe";
+  if(v.includes("身强")) return "badge-shenguo";
+  if(v.includes("从")) return "badge-cong";
+  return "badge-shenruo";
+};
+
+const sorted = [...data].sort((a,b) => b[6]-a[6]);
+let html = "";
+sorted.forEach((row,i)=>{
+  const [name,gender,dayTg,geJu,xi,ar,bmr,alpha,mdd,sharpe] = row;
+  const win = alpha > 0;
+  const xiHtml = xi.map(x=>`<span class="xi-tag ${wxClass[x]||''}">${x}</span>`).join("");
+  html += `<tr>
+    <td>${i+1}</td>
+    <td>${name}</td>
+    <td>${gender}</td>
+    <td>${dayTg}</td>
+    <td><span class="badge ${geJuClass(geJu)}">${geJu}</span></td>
+    <td>${xiHtml}</td>
+    <td class="${ar>=2.2?'pos':'neg'}">${ar.toFixed(1)}%</td>
+    <td>2.2%</td>
+    <td class="${alpha>=0?'pos':'neg'}">${alpha>=0?'+':''}${alpha.toFixed(1)}%</td>
+    <td>${mdd.toFixed(1)}%</td>
+    <td>${sharpe.toFixed(2)}</td>
+    <td>${win?'<span class="win-yes">✅</span>':'<span class="win-no">—</span>'}</td>
+  </tr>`;
+});
+document.write(html);
+</script>
+
+</tbody>
+<tfoot>
+  <tr>
+    <td colspan="6" style="text-align:left;padding-left:16px;">汇总 · 47人 · 2015-2025 · 沪深300ETF择时回测</td>
+    <td colspan="3" style="text-align:center;">跑赢基准: 35 / 47 人（74%）</td>
+    <td colspan="3" style="text-align:center;">基准年化 2.2%</td>
+  </tr>
+</tfoot>
+</table>
+</div>
+
+<p style="margin-top:16px;font-size:12px;color:#999;">
+  注：仓位梯度 — 评分≥70分=满仓100%，55-69=75%，45-54=底仓50%，35-44=25%，&lt;35=空仓。大盘过滤：沪深300需在120日均线之上。
+</p>
+
+</body>
+</html>

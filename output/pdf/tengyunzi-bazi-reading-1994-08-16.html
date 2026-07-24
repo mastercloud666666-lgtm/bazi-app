@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tengyunzi Personal BaZi Reading - Template V1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&family=Noto+Serif:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>:root {
+  --navy: #0b2943;
+  --navy-2: #123f63;
+  --blue: #2478b5;
+  --blue-soft: #eaf4fb;
+  --sky: #d9ecf8;
+  --paper: #fbfdff;
+  --white: #ffffff;
+  --ink: #17364f;
+  --muted: #5d7183;
+  --line: #cddde8;
+  --wood: #398064;
+  --fire: #c65d4b;
+  --earth: #aa823f;
+  --metal: #73839a;
+  --water: #2478b5;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+html, body { margin: 0; background: #dfe8ee; color: var(--ink); font-family: "Noto Sans", sans-serif; }
+body { padding: 20px 0; }
+.report-book { width: 210mm; margin: 0 auto; }
+.pdf-page {
+  position: relative;
+  width: 210mm;
+  height: 297mm;
+  overflow: hidden;
+  break-after: page;
+  page-break-after: always;
+  background: var(--paper);
+  padding: 18mm 18mm 16mm;
+  box-shadow: 0 2px 8px rgba(11, 41, 67, .16);
+}
+.pdf-page + .pdf-page { margin-top: 18px; }
+.pdf-page footer { position: absolute; left: 18mm; right: 18mm; bottom: 8mm; display: flex; justify-content: space-between; align-items: center; color: #688093; font-size: 7.5pt; font-weight: 700; }
+.page-topline { display: flex; justify-content: space-between; padding-bottom: 4mm; border-bottom: 1px solid var(--line); color: var(--blue); font-size: 7.5pt; font-weight: 800; }
+h1, h2, h3, p { margin-top: 0; }
+h1, h2, h3 { color: var(--navy); font-family: "Noto Serif", serif; text-wrap: balance; }
+p { color: var(--ink); font-size: 10pt; line-height: 1.64; text-wrap: pretty; }
+
+.cover { background: var(--navy); color: white; padding: 19mm 18mm 15mm; }
+.cover::before { content: ""; position: absolute; inset: 0 0 auto auto; width: 86mm; height: 86mm; background: var(--blue); clip-path: polygon(32% 0,100% 0,100% 100%,0 100%); opacity: .18; }
+.cover::after { content: ""; position: absolute; left: 18mm; right: 18mm; top: 34mm; border-top: 1px solid rgba(255,255,255,.25); }
+.cover-mark { width: 13mm; height: 13mm; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.65); font-family: "Noto Serif", serif; font-weight: 900; }
+.cover-title { position: absolute; left: 18mm; top: 58mm; width: 118mm; }
+.cover-title > span, .overview-head span, .energy-page header > span, .closing span { color: #8fd1f4; font-size: 8pt; font-weight: 800; }
+.cover-title h1 { margin: 5mm 0 7mm; color: white; font-size: 34pt; line-height: 1.08; letter-spacing: 0; }
+.cover-title p { width: 102mm; color: #d7e6ef; font-size: 12pt; line-height: 1.6; }
+.cover-orbit { position: absolute; right: 17mm; top: 96mm; width: 58mm; height: 58mm; display: grid; place-items: center; border: 1px solid rgba(143,209,244,.46); border-radius: 50%; }
+.cover-orbit::before, .cover-orbit::after, .cover-orbit i { content: ""; position: absolute; border: 1px solid rgba(143,209,244,.25); border-radius: 50%; }
+.cover-orbit::before { inset: 7mm; }.cover-orbit::after { inset: 14mm; }.cover-orbit i:nth-child(1) { inset: 22mm; background: rgba(143,209,244,.12); }
+.cover-orbit i:nth-child(2) { left: 50%; top: -2mm; bottom: -2mm; border-radius: 0; border-width: 0 0 0 1px; }
+.cover-orbit i:nth-child(3) { top: 50%; left: -2mm; right: -2mm; border-radius: 0; border-width: 1px 0 0; }
+.cover-orbit strong { z-index: 1; color: white; font-family: "Noto Serif", serif; font-size: 18pt; }
+.cover-meta { position: absolute; left: 18mm; right: 18mm; bottom: 30mm; display: grid; grid-template-columns: 1fr 1.25fr .8fr; gap: 8mm; padding-top: 6mm; border-top: 1px solid rgba(255,255,255,.25); }
+.cover-meta div { display: grid; gap: 2mm; }.cover-meta dt { color: #8fd1f4; font-size: 7.5pt; font-weight: 800; }.cover-meta dd { margin: 0; color: white; font-size: 9pt; line-height: 1.45; }
+.cover footer { color: rgba(255,255,255,.65); }
+
+.overview-head { display: grid; grid-template-columns: 1.12fr .88fr; gap: 18mm; align-items: end; margin: 13mm 0 10mm; }
+.overview-head h2 { margin: 3mm 0 0; font-size: 27pt; line-height: 1.16; }
+.overview-head p { margin-bottom: 1mm; color: var(--muted); font-size: 10.5pt; }
+.overview-grid { display: grid; gap: 9mm; }
+.pillars-panel { padding: 8mm; background: var(--white); border-top: 3px solid var(--blue); }
+.pillars-panel h3 { font-size: 13pt; }
+.pillar-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 3mm; }
+.pillar-card { display: grid; grid-template-rows: auto 1fr 1fr auto; min-height: 58mm; border: 1px solid var(--line); text-align: center; background: #f7fbfe; }
+.pillar-card > span { padding: 3mm; background: var(--blue-soft); color: var(--muted); font-size: 7pt; font-weight: 800; }
+.pillar-card strong { display: grid; place-items: center; color: var(--navy); font-family: "Noto Serif", serif; font-size: 23pt; }
+.pillar-card strong + strong { border-top: 1px solid var(--line); }
+.pillar-card small { padding: 2.5mm; border-top: 1px solid var(--line); color: var(--muted); font-size: 7.5pt; }
+.unknown-note { margin: 5mm 0 0; padding: 4mm 5mm; background: var(--blue-soft); color: #365a74; font-size: 8.5pt; }
+.signal-panel { display: grid; grid-template-columns: repeat(3,1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.signal-panel div { min-height: 45mm; display: flex; flex-direction: column; justify-content: center; padding: 7mm; border-right: 1px solid var(--line); }.signal-panel div:last-child { border-right: 0; }
+.signal-panel span { color: var(--blue); font-size: 7pt; font-weight: 800; }.signal-panel strong { margin: 3mm 0 1mm; color: var(--navy); font-family: "Noto Serif", serif; font-size: 21pt; }.signal-panel small { color: var(--muted); font-size: 8pt; }
+
+.energy-page header { max-width: 142mm; margin: 12mm 0 8mm; }
+.energy-page h2 { margin: 3mm 0; font-size: 26pt; }.energy-page header p { color: var(--muted); }
+.energy-layout { display: grid; grid-template-columns: .95fr 1.05fr; gap: 6mm; height: 91mm; }
+.chart { width: 100%; min-height: 68mm; background: var(--white); }
+.energy-legend { margin-top: 8mm; display: grid; grid-template-columns: repeat(2,1fr); gap: 3mm 8mm; }
+.energy-legend div { display: grid; grid-template-columns: 4mm 1fr; column-gap: 3mm; padding: 3.2mm 0; border-bottom: 1px solid var(--line); }
+.energy-legend i { width: 3mm; height: 3mm; margin-top: 1mm; border-radius: 50%; }.energy-legend strong { font-size: 8.5pt; }.energy-legend span { grid-column: 2; color: var(--muted); font-size: 7.5pt; }
+.energy-legend .wood{background:var(--wood)}.energy-legend .fire{background:var(--fire)}.energy-legend .earth{background:var(--earth)}.energy-legend .metal{background:var(--metal)}.energy-legend .water{background:var(--water)}
+
+.wx-wood { color: var(--wood) !important; }
+.wx-fire { color: var(--fire) !important; }
+.wx-earth { color: var(--earth) !important; }
+.wx-metal { color: var(--metal) !important; }
+.wx-water { color: var(--water) !important; }
+
+.ten-gods-page header { display: grid; grid-template-columns: 1fr .82fr; gap: 13mm; align-items: end; margin: 12mm 0 9mm; }
+.ten-gods-page header > span { grid-column: 1 / -1; color: var(--blue); font-size: 8pt; font-weight: 800; }
+.ten-gods-page header h2 { margin: -1mm 0 0; font-size: 25pt; line-height: 1.16; }
+.ten-gods-page header p { margin: 0; color: var(--muted); font-size: 9pt; }
+.ten-god-table { border-top: 2px solid var(--blue); }
+.ten-god-row { min-height: 15mm; display: grid; grid-template-columns: 39mm 1fr 11mm 54mm; gap: 4mm; align-items: center; border-bottom: 1px solid var(--line); }
+.ten-god-name { display: grid; grid-template-columns: 12mm 1fr; align-items: baseline; }.ten-god-name strong { color: var(--navy); font-family: "Noto Serif", serif; font-size: 12pt; }.ten-god-name span { color: var(--ink); font-size: 8pt; font-weight: 700; }
+.ten-god-meter { height: 4mm; overflow: hidden; background: #e8f0f5; }.ten-god-meter i { display: block; height: 100%; background: currentColor; }
+.ten-god-row > b { color: var(--navy); font-size: 8pt; text-align: right; }.ten-god-row > small { color: var(--muted); font-size: 7.3pt; line-height: 1.35; }
+.ten-god-note { display: grid; grid-template-columns: 34mm 1fr; gap: 7mm; margin-top: 8mm; padding: 6mm; background: var(--blue-soft); }.ten-god-note strong { color: var(--blue); font-size: 8pt; }.ten-god-note p { margin: 0; font-size: 8.5pt; }
+
+.contents header { margin: 12mm 0 8mm; }.contents h2 { margin-bottom: 3mm; font-size: 27pt; }.contents header p { color: var(--muted); }
+.contents ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2,1fr); column-gap: 10mm; }
+.contents li { min-height: 14mm; display: grid; grid-template-columns: 8mm 1fr; grid-template-rows: auto auto; column-gap: 3mm; align-content: center; border-bottom: 1px solid var(--line); }
+.contents li > span { grid-row: 1 / 3; color: var(--blue); font-family: "Noto Serif", serif; font-size: 9pt; font-weight: 800; }.contents li strong { color: var(--navy); font-size: 8.5pt; }.contents li small { color: var(--muted); font-size: 6.6pt; font-weight: 700; }
+
+.section-layout { display: grid; grid-template-columns: 24mm 1fr; gap: 10mm; margin-top: 15mm; }
+.section-index { min-height: 178mm; border-right: 1px solid var(--line); }.section-index span { display: block; color: var(--blue); font-family: "Noto Serif", serif; font-size: 27pt; font-weight: 800; }.section-index small { display: block; width: 19mm; margin-top: 3mm; color: var(--muted); font-size: 7pt; font-weight: 800; line-height: 1.4; }
+.section-content h2 { max-width: 125mm; margin: 0 0 8mm; font-size: 24pt; line-height: 1.18; }
+.section-copy p { font-size: 10.2pt; line-height: 1.72; }
+.section-page.dense .section-copy p { font-size: 9.35pt; line-height: 1.58; }
+.section-page.extra-dense .section-copy p { font-size: 8.65pt; line-height: 1.48; }
+.section-page .chart-wide { height: 54mm; min-height: 54mm; margin: -1mm 0 6mm; }
+.section-page .timeline-chart { height: 56mm; min-height: 56mm; margin: -1mm 0 6mm; }
+.section-page blockquote { margin: 2mm 0 8mm; padding: 6mm; background: var(--navy); color: white; font-family: "Noto Serif", serif; font-size: 16pt; line-height: 1.45; }
+.rhythm-strip { display: grid; grid-template-columns: repeat(3,1fr); margin: 0 0 7mm; border-top: 2px solid var(--blue); border-bottom: 1px solid var(--line); }
+.rhythm-strip div { padding: 4mm 3mm; border-right: 1px solid var(--line); }.rhythm-strip div:last-child{border-right:0}.rhythm-strip span { color: var(--blue); font-size: 6.5pt; font-weight: 800; }.rhythm-strip strong { display: block; margin: 2mm 0 1mm; color: var(--navy); font-size: 9pt; }.rhythm-strip small { color: var(--muted); font-size: 6.8pt; line-height: 1.35; }
+
+.timing-atlas header { display: grid; grid-template-columns: 1.16fr .84fr; gap: 12mm; align-items: end; margin: 10mm 0 8mm; }
+.timing-atlas header > span { grid-column: 1 / -1; color: var(--blue); font-size: 8pt; font-weight: 800; }.timing-atlas header h2 { margin: -1mm 0 0; font-size: 23pt; line-height: 1.15; }.timing-atlas header p { margin: 0; color: var(--muted); font-size: 8.8pt; }
+.timing-atlas h3 { margin: 0 0 4mm; font-family: "Noto Sans", sans-serif; font-size: 9pt; }
+.cycle-section { padding-top: 5mm; border-top: 2px solid var(--blue); }
+.cycle-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; }
+.cycle { position: relative; min-height: 39mm; display: grid; align-content: start; gap: 2mm; padding: 4mm; background: #f1f6f9; border-top: 2px solid #aebfca; }
+.cycle.is-current { background: var(--navy); border-top-color: #7dcbf1; }.cycle-state { color: var(--blue); font-size: 6.2pt; font-weight: 800; }.cycle.is-current .cycle-state { color: #8fd1f4; }
+.colored-ganzhi { display: inline-flex; gap: 1.5mm; font-family: "Noto Serif", serif; font-size: 18pt; font-weight: 900; line-height: 1; }.colored-ganzhi i { font-style: normal; }.cycle.is-current .colored-ganzhi i { filter: brightness(1.35) saturate(.8); }
+.cycle > strong { color: var(--navy); font-size: 7.3pt; }.cycle.is-current > strong { color: white; }.cycle > small { color: var(--muted); font-size: 6.5pt; line-height: 1.35; }.cycle.is-current > small { color: #c9dbe6; }
+.annual-section { display: grid; grid-template-columns: 40mm 1fr; gap: 7mm; margin-top: 9mm; padding-top: 6mm; border-top: 1px solid var(--line); }.annual-section > div:first-child p { color: var(--muted); font-size: 7.5pt; }
+.annual-grid { display: grid; grid-template-columns: repeat(5,1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.annual-year { min-height: 38mm; display: grid; align-content: center; gap: 2mm; padding: 3mm; border-right: 1px solid var(--line); }.annual-year:last-child { border-right: 0; }.annual-year.is-now { background: var(--blue-soft); }.annual-year > span { color: var(--blue); font-size: 5.7pt; font-weight: 800; min-height: 4mm; }.annual-year .colored-ganzhi.small { font-size: 15pt; }.annual-year small { color: var(--muted); font-size: 5.8pt; line-height: 1.3; }
+
+.method-layout { display: grid; grid-template-columns: 1.1fr .9fr; gap: 14mm; margin-top: 20mm; }.method-layout h2 { font-size: 28pt; }.method-layout > div p { font-size: 10.5pt; }.method-layout dl { margin: 3mm 0 0; }.method-layout dl div { display: grid; grid-template-columns: 12mm 1fr; gap: 4mm; padding: 5mm 0; border-bottom: 1px solid var(--line); }.method-layout dt { color: var(--blue); font-family: "Noto Serif", serif; font-weight: 800; }.method-layout dd { margin: 0; display: grid; gap: 1mm; }.method-layout dd strong { color: var(--navy); }.method-layout dd span { color: var(--muted); font-size: 8.5pt; line-height: 1.5; }
+.disclaimer { margin-top: 22mm; padding: 7mm; background: var(--blue-soft); }.disclaimer strong { color: var(--blue); font-size: 8pt; }.disclaimer p { margin: 2mm 0 0; font-size: 9pt; }
+.closing { display: flex; flex-direction: column; justify-content: center; background: var(--navy); color: white; }.closing-mark { position: absolute; top: 18mm; left: 18mm; width: 13mm; height: 13mm; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.55); font-family: "Noto Serif", serif; font-weight: 900; }.closing h2 { margin: 5mm 0; color: white; font-size: 36pt; line-height: 1.12; }.closing p { color: #d7e6ef; font-size: 12pt; }.closing footer { color: rgba(255,255,255,.68); }
+
+@media print {
+  html, body { background: white; }
+  body { padding: 0; }
+  .report-book { margin: 0; }
+  .pdf-page { box-shadow: none; }
+  .pdf-page + .pdf-page { margin-top: 0; }
+}
+
+@page { size: A4; margin: 0; }
+</style>
+</head>
+<body>
+  <main class="report-book">
+    <section class="pdf-page cover" data-page>
+      <div class="cover-mark">TZ</div>
+      <div class="cover-title">
+        <span>PERSONAL BAZI READING</span>
+        <h1>Your Pattern<br>of Potential</h1>
+        <p>A 24-part interpretation of character, relationships, work, timing, and personal growth.</p>
+      </div>
+      <div class="cover-orbit" aria-hidden="true"><i></i><i></i><i></i><strong>命</strong></div>
+      <dl class="cover-meta">
+        <div><dt>Prepared for</dt><dd>August 16, 1994</dd></div>
+        <div><dt>Chart</dt><dd>甲戌 / 壬申 / 甲戌 / 壬申</dd></div>
+        <div><dt>Prepared</dt><dd>July 18, 2026</dd></div>
+      </dl>
+      <footer><span>TENGYUNZI</span><span>CONFIDENTIAL PERSONAL READING</span></footer>
+    </section>
+
+    <section class="pdf-page overview" data-page>
+      <div class="page-topline"><span>EXECUTIVE VIEW</span><span>PERSONAL BAZI READING</span></div>
+      <header class="overview-head"><div><span>THE CHART AT A GLANCE</span><h2>Wood at the center.<br>Four forces in dialogue.</h2></div><p>Your visible chart distributes energy across Wood, Earth, Metal, Water. Fire is not visibly emphasized, making conscious replenishment and timing especially important.</p></header>
+      <div class="overview-grid">
+        <div class="pillars-panel">
+          <h3>Four Pillars</h3>
+          <div class="pillar-row">
+            <div class="pillar-card">
+    <span>YEAR</span>
+    <strong class="wx-wood">甲</strong>
+    <strong class="wx-earth">戌</strong>
+    <small>甲戌</small>
+  </div>
+            <div class="pillar-card">
+    <span>MONTH</span>
+    <strong class="wx-water">壬</strong>
+    <strong class="wx-metal">申</strong>
+    <small>壬申</small>
+  </div>
+            <div class="pillar-card">
+    <span>DAY</span>
+    <strong class="wx-wood">甲</strong>
+    <strong class="wx-earth">戌</strong>
+    <small>Day Master</small>
+  </div>
+            <div class="pillar-card">
+    <span>HOUR</span>
+    <strong class="wx-water">壬</strong>
+    <strong class="wx-metal">申</strong>
+    <small>Birth hour</small>
+  </div>
+          </div>
+          <p class="unknown-note">The recorded birth time is 16:00. All four pillars are included in this reading.</p>
+        </div>
+        <div class="signal-panel">
+          <div><span>DAY MASTER</span><strong class="wx-wood">甲</strong><small>Yang Wood</small></div>
+          <div><span>CURRENT CYCLE</span><strong>己巳</strong><small>Structure + resource flow</small></div>
+          <div><span>CORE POSTURE</span><strong>INTEGRATE</strong><small>Coordinate before expansion</small></div>
+        </div>
+      </div>
+      <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+    </section>
+
+    <section class="pdf-page energy-page" data-page>
+      <div class="page-topline"><span>ELEMENTAL PROFILE</span><span>PERSONAL BAZI READING</span></div>
+      <header><span>FIVE ELEMENT ENERGY</span><h2>A broad 4-element profile</h2><p>The chart counts visible stems and branches only. Zero does not mean an element is absent from life; it means that function is not visibly emphasized in the natal pillars used here.</p></header>
+      <div class="energy-layout">
+        <div class="chart radar-chart" id="element-radar"></div>
+        <div class="chart bars-chart" id="element-bars"></div>
+      </div>
+      <div class="energy-legend"><div><i class="wood"></i><strong>Wood / Companion</strong><span>Identity, peers, continuity</span></div><div><i class="fire"></i><strong>Fire / Output</strong><span>Expression, craft, production</span></div><div><i class="earth"></i><strong>Earth / Wealth</strong><span>Resources, exchange, stewardship</span></div><div><i class="metal"></i><strong>Metal / Officer</strong><span>Direction, standards, authority</span></div><div><i class="water"></i><strong>Water / Resource</strong><span>Learning, support, replenishment</span></div></div>
+      <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+    </section>
+
+    <section class="pdf-page ten-gods-page" data-page>
+    <div class="page-topline"><span>TEN-GOD PROFILE</span><span>STRUCTURAL EMPHASIS</span></div>
+    <header><span>RELATIONAL ENERGIES</span><h2>How the chart's forces<br>relate to the Day Master</h2><p>This profile combines visible stems with weighted hidden stems. It describes structural emphasis, not a fixed percentage of personality.</p></header>
+    <div class="ten-god-table"><div class="ten-god-row">
+    <div class="ten-god-name"><strong>偏印</strong><span>Indirect Resource</span></div>
+    <div class="ten-god-meter"><i class="wx-water" style="width:38%"></i></div>
+    <b>38%</b>
+    <small>Pattern recognition and intuition</small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>偏财</strong><span>Indirect Wealth</span></div>
+    <div class="ten-god-meter"><i class="wx-earth" style="width:19%"></i></div>
+    <b>19%</b>
+    <small>Opportunity and flexible exchange</small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>七杀</strong><span>Seven Killings</span></div>
+    <div class="ten-god-meter"><i class="wx-metal" style="width:19%"></i></div>
+    <b>19%</b>
+    <small>Pressure, courage, decisive action</small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>比肩</strong><span>Peer</span></div>
+    <div class="ten-god-meter"><i class="wx-wood" style="width:14%"></i></div>
+    <b>14%</b>
+    <small>Identity and self-direction</small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>正官</strong><span>Direct Officer</span></div>
+    <div class="ten-god-meter"><i class="wx-metal" style="width:8%"></i></div>
+    <b>8%</b>
+    <small>Standards, duty, legitimate authority</small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>伤官</strong><span>Hurting Officer</span></div>
+    <div class="ten-god-meter"><i class="wx-fire" style="width:3%"></i></div>
+    <b>3%</b>
+    <small>Originality and challenge</small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>劫财</strong><span>Companion</span></div>
+    <div class="ten-god-meter"><i class="wx-wood" style="width:2%"></i></div>
+    <b>0%</b>
+    <small>Competition and shared resources</small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>食神</strong><span>Eating God</span></div>
+    <div class="ten-god-meter"><i class="wx-fire" style="width:2%"></i></div>
+    <b>0%</b>
+    <small>Gentle expression and craft</small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>正财</strong><span>Direct Wealth</span></div>
+    <div class="ten-god-meter"><i class="wx-earth" style="width:2%"></i></div>
+    <b>0%</b>
+    <small>Steady resources and stewardship</small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>正印</strong><span>Direct Resource</span></div>
+    <div class="ten-god-meter"><i class="wx-water" style="width:2%"></i></div>
+    <b>0%</b>
+    <small>Learning, support, restoration</small>
+  </div></div>
+    <div class="ten-god-note"><strong>Reading the scale</strong><p>Higher values indicate functions repeated or rooted across the chart. Lower values may still become important through Luck Pillars, annual cycles, environment, and conscious practice.</p></div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </section>
+
+    <section class="pdf-page contents" data-page>
+      <div class="page-topline"><span>READING MAP</span><span>24-PART INTERPRETATION</span></div>
+      <header><h2>What this report explores</h2><p>Six lenses, moving from the structure of the chart to practical choices and long-term growth.</p></header>
+      <ol><li><span>01</span><strong>Core Elemental Force</strong><small>FOUNDATION</small></li><li><span>02</span><strong>Five-Element Balance</strong><small>FOUNDATION</small></li><li><span>03</span><strong>Underlying Motivations</strong><small>FOUNDATION</small></li><li><span>04</span><strong>Natural Strengths and Talents</strong><small>FOUNDATION</small></li><li><span>05</span><strong>Best-Fit Working Style</strong><small>WORK & VALUE</small></li><li><span>06</span><strong>How You Create Value</strong><small>WORK & VALUE</small></li><li><span>07</span><strong>Fields Where You Can Contribute Best</strong><small>WORK & VALUE</small></li><li><span>08</span><strong>Independence and Collaboration</strong><small>WORK & VALUE</small></li><li><span>09</span><strong>Emotional Relating Style</strong><small>RELATIONSHIPS</small></li><li><span>10</span><strong>Relationship User Manual</strong><small>RELATIONSHIPS</small></li><li><span>11</span><strong>Repeating Patterns in Intimacy</strong><small>RELATIONSHIPS</small></li><li><span>12</span><strong>Early Family Imprint</strong><small>FAMILY & SOCIAL</small></li><li><span>13</span><strong>Your Role in Family Systems</strong><small>FAMILY & SOCIAL</small></li><li><span>14</span><strong>Social Interaction Style</strong><small>FAMILY & SOCIAL</small></li><li><span>15</span><strong>Symbolic Pattern Reading</strong><small>INNER STRUCTURE</small></li><li><span>16</span><strong>Inner Tensions and Integration</strong><small>INNER STRUCTURE</small></li><li><span>17</span><strong>The Sense of Something Missing</strong><small>INNER STRUCTURE</small></li><li><span>18</span><strong>Resources and Security</strong><small>INNER STRUCTURE</small></li><li><span>19</span><strong>Character Emphasis Across Life Stages</strong><small>TIMING & GROWTH</small></li><li><span>20</span><strong>Growth Rhythm</strong><small>TIMING & GROWTH</small></li><li><span>21</span><strong>Blind Spots That Drain You</strong><small>TIMING & GROWTH</small></li><li><span>22</span><strong>Central Growth Lessons</strong><small>TIMING & GROWTH</small></li><li><span>23</span><strong>Practical Self-Development Guidance</strong><small>TIMING & GROWTH</small></li><li><span>24</span><strong>Core Life Theme</strong><small>TIMING & GROWTH</small></li></ol>
+      <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+    </section>
+
+    <article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>FOUNDATION</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>01</span><small>Core Pattern</small></aside>
+      <div class="section-content">
+        <h2>Core Elemental Force</h2>
+        
+        <div class="section-copy"><p>Your Day Master is 甲 (Jia, Yang Wood), representing a tall tree or a strong pillar. In your chart, 甲 appears twice—once in the Year Pillar and once in the Day Pillar—giving you a double dose of this assertive, upward-growing energy. The 壬 (Ren, Yang Water) stems in the Month and Hour Pillars act as a Resource, nourishing your Wood like rain feeding a forest. This makes you fundamentally resilient and self-reliant. You are not easily swayed by external pressure because your inner structure is reinforced by Water’s support. However, the Earth branches (戌, Xu) in both Year and Day, along with the Metal branches (申, Shen) in Month and Hour, create a controlling dynamic: Metal cuts Wood, and Earth drains Wood’s energy. So while you have a strong core, you often feel constrained or tested by circumstances that demand discipline, structure, or competition. Your elemental force is that of a tree growing in rocky soil—rooted but constantly pushing against resistance.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>FOUNDATION</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>02</span><small>Core Pattern</small></aside>
+      <div class="section-content">
+        <h2>Five-Element Balance</h2>
+        <div class="chart chart-wide" id="section-elements"></div>
+        <div class="section-copy"><p>Your chart shows a visible count of two Wood, two Water, two Earth, two Metal, and zero Fire. This is a balanced distribution in terms of raw numbers, but the absence of Fire is critical. Fire is your Output—it represents expression, warmth, creativity, and visibility. Without it, your Wood energy has no outlet to bloom or be seen. The two Water stems (壬) are your Resource, giving you deep thinking and emotional depth, but they can also make you overly internal or passive if not channeled. The two Earth branches (戌) are your Wealth, indicating a practical, material focus, but Earth also controls Water, creating a tension between your need for security and your need for emotional flow. The two Metal branches (申) are your Officer and Seven Killing, representing authority, rules, and challenges. This balance means you are not dominated by any single element, but you lack the Fire to fully express your ideas and feelings. You are like a well-watered tree in shade—strong but not fully flowering.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>FOUNDATION</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>03</span><small>Core Pattern</small></aside>
+      <div class="section-content">
+        <h2>Underlying Motivations</h2>
+        
+        <div class="section-copy"><p>Your primary motivation stems from the interaction between your 甲 Wood and the 壬 Water Resource. You are driven to learn, understand, and accumulate knowledge or skills that make you self-sufficient. The Water gives you a reflective, almost philosophical bent—you want to know the “why” behind things. At the same time, the Earth Wealth in your pillars pushes you toward tangible results: you want your efforts to produce something real, like money, status, or a stable home. The Metal Officer energy adds a layer of ambition—you seek recognition and order, but you also resist being controlled. This creates a push-pull: you want to be your own authority while also craving external validation. Your deepest motivation is to prove your worth through competence and endurance, not through flashy displays. You are motivated by mastery, not applause.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>FOUNDATION</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>04</span><small>Core Pattern</small></aside>
+      <div class="section-content">
+        <h2>Natural Strengths and Talents</h2>
+        
+        <div class="section-copy"><p>Your double 甲 Wood gives you natural leadership and initiative. You are not a follower; you prefer to start projects or take charge when things are unclear. The 壬 Water Resource makes you a quick learner with a good memory, especially for abstract or technical subjects. You can absorb complex information and synthesize it into practical use. The Earth Wealth indicates a talent for managing resources—money, time, or people—with a steady hand. You are patient and methodical, not impulsive. The Metal Officer energy gives you a strong sense of duty and a knack for working within systems, such as corporate hierarchies or legal frameworks. Your hidden strength is endurance: you can outlast others in difficult situations because you are not easily discouraged. You are also good at reading underlying dynamics, thanks to the Water’s depth, which helps you navigate politics or negotiations without being obvious about it.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>WORK & VALUE</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>05</span><small>Contribution</small></aside>
+      <div class="section-content">
+        <h2>Best-Fit Working Style</h2>
+        
+        <div class="section-copy"><p>You work best in environments that offer structure but also autonomy. The Metal Officer in your chart means you can follow rules and respect authority, but the 甲 Wood wants to grow in its own direction. So you thrive in roles where you have clear objectives but freedom in how you achieve them. You are not suited for micromanagement or chaotic, unstructured settings. Your Water Resource makes you a natural researcher, analyst, or strategist—you prefer to think before acting. You also work well in long-term projects that require patience, like product development, academic research, or financial planning. You are not a fast-paced, high-pressure person by nature; you prefer steady progress. Collaboration is fine, but you need solo time to process. You are most productive when you can control your schedule and have access to information or mentorship.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>WORK & VALUE</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>06</span><small>Contribution</small></aside>
+      <div class="section-content">
+        <h2>How You Create Value</h2>
+        
+        <div class="section-copy"><p>You create value through reliability and depth. Your double 甲 Wood means you are a builder—you construct systems, relationships, or knowledge bases that last. The Earth Wealth indicates you are good at turning ideas into assets, whether that means saving money, building a career, or creating a stable home. Your Water Resource allows you to see patterns others miss, so you can offer insights that prevent problems before they arise. You also create value by being a stabilizing force in groups—you do not panic under pressure, and you can hold a team together during transitions. Your Metal Officer energy makes you a natural gatekeeper or quality controller; you ensure that standards are met. In practical terms, you are the person others trust to handle details, manage budgets, or mentor juniors because you are consistent and fair.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>WORK & VALUE</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>07</span><small>Contribution</small></aside>
+      <div class="section-content">
+        <h2>Fields Where You Can Contribute Best</h2>
+        
+        <div class="section-copy"><p>Given your elemental makeup, you are well-suited for fields that combine analysis, structure, and tangible outcomes. Finance, accounting, or real estate align with your Earth Wealth and Metal Officer—you can manage money and follow regulations. Education, research, or publishing fit your Water Resource—you enjoy learning and teaching. Law, compliance, or government work matches the Metal Officer’s emphasis on rules and order. You could also excel in engineering, architecture, or project management, where your Wood’s building instinct meets Metal’s precision. The absence of Fire means you may not thrive in highly creative or performance-based fields like advertising, entertainment, or art, unless you develop that Fire consciously. Your best contributions come from roles where you can apply knowledge to create stable, functional systems.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>WORK & VALUE</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>08</span><small>Contribution</small></aside>
+      <div class="section-content">
+        <h2>Independence and Collaboration</h2>
+        
+        <div class="section-copy"><p>You are fundamentally independent. The double 甲 Wood makes you self-starting, and the 壬 Water Resource means you rely on your own mind. You do not need constant input from others to feel confident. However, the Earth and Metal in your chart mean you understand the value of collaboration when it serves a purpose. You can work in teams, but you prefer to have a defined role and clear boundaries. You are not a natural networker or social butterfly; you choose collaborators carefully. In group settings, you tend to take a quiet leadership role—you observe, then act. You are comfortable delegating but dislike being delegated to without reason. Your independence is a strength, but it can also make you seem aloof or resistant to feedback. The key is to balance your self-reliance with openness to others’ input, especially when their expertise complements yours.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page dense" data-page>
+    <div class="page-topline"><span>RELATIONSHIPS</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>09</span><small>Connection</small></aside>
+      <div class="section-content">
+        <h2>Emotional Relating Style</h2>
+        
+        <div class="section-copy"><p>Your emotional relating style is shaped by the Day Master 甲 (Wood) and the double 壬 (Water) Resource pillars, which create a pattern of deep feeling that you do not easily express. The 壬 Water is the element that nurtures your Wood, so you absorb emotional cues from your environment like a sponge, often sensing what others feel before they articulate it. However, the 申 (Metal) branches in the Month and Hour Pillars act as a controlling force—Metal cuts Wood—so you instinctively hold back vulnerability. You are drawn to partners who feel safe and steady, because your own emotional landscape is layered and sometimes heavy. The 戌 (Earth) branches in the Year and Day Pillars represent Wealth, which in relationship terms means you value tangible expressions of care, such as reliability, practical support, or shared routines. You are not naturally demonstrative; you show love through consistency and quiet attention rather than grand gestures. When you feel secure, you can be deeply loyal and protective, but when you sense instability, you withdraw into your own thoughts. The double 壬 Water also gives you a tendency to overthink emotional situations, replaying conversations and searching for hidden meanings. You need a partner who respects your need for private processing time and does not mistake your silence for coldness. Your emotional style is best described as reserved but profound—you feel intensely, but you reveal that intensity only to those who have earned your trust over time.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page dense" data-page>
+    <div class="page-topline"><span>RELATIONSHIPS</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>10</span><small>Connection</small></aside>
+      <div class="section-content">
+        <h2>Relationship User Manual</h2>
+        
+        <div class="section-copy"><p>To understand you in a relationship, others need to know that your primary love language is unspoken reliability. The 甲 Wood Day Master paired with 戌 Earth Wealth means you feel most valued when a partner shows up consistently and keeps their word. You are not swayed by flattery or dramatic romance; you notice small, repeated acts of consideration. The 壬 Water Resources make you highly intuitive, so you can tell when someone is being insincere, and that erodes trust quickly. You need a partner who gives you space to retreat without interpreting it as rejection. When you are upset, you may go quiet for hours or days—this is your processing mode, not punishment. The 申 Metal in your pillars means you respect competence and structure; you are drawn to people who have their own direction and do not rely on you to fill their emotional gaps. You also need clear boundaries around your alone time, because the double Water can make you feel drained if you are constantly attending to someone else’s mood. In conflict, you prefer logic over emotional escalation. You will listen carefully, but you need time to formulate your response. A partner who pushes for immediate resolution will trigger your withdrawal. Practical guidance: schedule regular check-ins where you both share needs without pressure, and let your partner know that your silence is a sign of thoughtfulness, not disinterest. You thrive when the relationship feels like a calm harbor, not a storm.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>RELATIONSHIPS</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>11</span><small>Connection</small></aside>
+      <div class="section-content">
+        <h2>Repeating Patterns in Intimacy</h2>
+        
+        <div class="section-copy"><p>A repeating pattern in your intimate relationships involves the dynamic between the 甲 Wood Day Master and the 申 Metal branches. Metal controls Wood, so you are often drawn to partners who are strong-willed, competent, or even slightly dominant—people who seem to have their lives organized. Initially, this feels stabilizing, but over time, you may feel that your own needs are being cut down or dismissed. The 戌 Earth in your Day Pillar reinforces this: you may attract partners who are practical and grounded but also rigid, expecting you to adapt to their routines. Another pattern is the double 壬 Water, which can lead you to take on a caretaker role. You sense what your partner needs emotionally and provide it, sometimes at the expense of your own boundaries. This can create a cycle where you feel unseen because you are always the one giving. The 申 Metal also suggests a pattern of intellectual distance—you may choose partners who are analytical or career-focused, only to realize later that emotional intimacy is lacking. You may also notice that you repeat the experience of being the more patient, understanding one in the relationship, while your partner is more self-directed. Recognizing this pattern allows you to consciously seek partners who are both competent and emotionally available, and to practice stating your own needs early rather than waiting until resentment builds.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>FAMILY & SOCIAL</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>12</span><small>Belonging</small></aside>
+      <div class="section-content">
+        <h2>Early Family Imprint</h2>
+        
+        <div class="section-copy"><p>Your early family environment is reflected in the Year Pillar 甲戌 (Wood on Earth) and the Month Pillar 壬申 (Water on Metal). The 甲 Wood in the Year represents your lineage and early sense of self, while the 戌 Earth suggests a family atmosphere that emphasized duty, practicality, and material stability. You likely grew up in a home where roles were clear and expectations were high, especially around responsibility and achievement. The 壬 Water in the Month Pillar points to a nurturing figure—likely a mother or maternal influence—who was emotionally present but perhaps also anxious or overprotective. This person may have provided intellectual or spiritual guidance, but their care came with an undercurrent of worry. The 申 Metal in the Month Pillar indicates a father figure or authority who was disciplined, structured, and possibly demanding. You may have felt that love was conditional on meeting standards, whether academic, behavioral, or practical. The combination of 壬 Water and 申 Metal created a dynamic where you were both supported and controlled: you received resources and attention, but also felt pressure to conform. This early imprint taught you to be self-reliant and observant, but it also instilled a tendency to suppress your own emotions to maintain harmony. You learned early that expressing needs openly could disrupt the family order, so you became skilled at reading the room and adjusting yourself accordingly.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>FAMILY & SOCIAL</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>13</span><small>Belonging</small></aside>
+      <div class="section-content">
+        <h2>Your Role in Family Systems</h2>
+        
+        <div class="section-copy"><p>In family systems, you naturally take on the role of the stabilizer and the silent problem-solver. The 甲 Wood Day Master with double 壬 Water makes you someone who absorbs tension and tries to smooth things over without drawing attention to yourself. You are the person others turn to for practical help or a listening ear, but you rarely ask for the same in return. The 戌 Earth in your Year and Day Pillars reinforces a sense of duty—you feel responsible for maintaining family harmony and may carry burdens that are not yours to carry. The 申 Metal branches give you a structured approach: you organize, plan, and execute behind the scenes. In family gatherings, you are more likely to observe and mediate than to be the center of attention. You may also be the one who holds the family history, remembering details and patterns that others overlook. However, this role can become exhausting. Because you give so much quietly, family members may not realize when you are overwhelmed. You may need to consciously set boundaries, especially with siblings or parents who rely on your emotional labor. Your growth in this area involves learning to say no without guilt and allowing others to handle their own problems. You are not the family’s designated rescuer, even if it feels natural to step into that role.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>FAMILY & SOCIAL</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>14</span><small>Belonging</small></aside>
+      <div class="section-content">
+        <h2>Social Interaction Style</h2>
+        
+        <div class="section-copy"><p>Socially, you come across as composed, observant, and slightly reserved. The 甲 Wood Day Master gives you a natural dignity, while the double 壬 Water adds a layer of depth that makes you seem thoughtful rather than aloof. You are not the person who fills silences with small talk; you prefer conversations that have substance or a clear purpose. The 申 Metal branches make you value efficiency, so you may find large social gatherings draining unless there is a structure or shared activity. You are skilled at reading group dynamics and often know who needs support or who is being left out. People may perceive you as wise beyond your years, and they often confide in you because you listen without judgment. However, the 戌 Earth can make you cautious in new settings—you take time to assess before you open up. You are not interested in being the life of the party; you are interested in genuine connection. In professional social settings, you excel at one-on-one conversations where you can focus. You may avoid networking events that feel transactional, but you build deep, lasting relationships with a small circle. Your social style is best described as selective depth: you invest your energy where it matters, and you do not waste it on surface-level interactions.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>INNER STRUCTURE</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>15</span><small>Integration</small></aside>
+      <div class="section-content">
+        <h2>Symbolic Pattern Reading</h2>
+        
+        <div class="section-copy"><p>The symbolic pattern of your chart is one of layered protection and hidden richness. The double 壬申 (Water on Metal) in the Month and Hour Pillars creates a repeating image of a deep well surrounded by a metal frame. The Water represents your inner emotional and intuitive resources, while the Metal represents the structure that contains them. This suggests that you have a vast inner world, but you access it only through discipline and careful boundaries. The 甲戌 (Wood on Earth) in the Year and Day Pillars is like a tree growing on a rocky hill—you are rooted in practical reality, but your growth requires effort and patience. The Earth here is Wealth, so your life path involves learning to value what is tangible and stable without losing your flexibility. The absence of Fire in the visible stems and branches is significant: Fire represents outward expression, joy, and visibility. Its absence means you tend to keep your light hidden, expressing yourself through action rather than words. The pattern overall is one of a person who carries a reservoir of depth and capability but needs conscious practice to let that depth be seen. The 2026 丙午 (Fire on Fire) year introduces a Fire element that temporarily lights up your chart, encouraging you to express yourself more openly. This is a symbolic invitation to let your inner well become visible to others, even if it feels vulnerable.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page dense" data-page>
+    <div class="page-topline"><span>INNER STRUCTURE</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>16</span><small>Integration</small></aside>
+      <div class="section-content">
+        <h2>Inner Tensions and Integration</h2>
+        
+        <div class="section-copy"><p>Your primary inner tension is between the 甲 Wood Day Master and the 申 Metal branches. Metal cuts Wood, so you experience a constant internal push-pull between your desire to grow freely and your need for structure and control. You may set high standards for yourself and then feel frustrated when you cannot meet them with ease. The double 壬 Water adds another layer: Water nourishes Wood, but too much Water can drown it. This means you can become overwhelmed by your own emotions or by the emotional demands of others, leading to paralysis or overthinking. Another tension is between the 戌 Earth Wealth and the 壬 Water Resource. Earth controls Water, so your practical, material concerns can suppress your intuitive, nurturing side. You may feel torn between pursuing financial security and honoring your emotional or creative needs. The absence of Fire means you lack a natural outlet for self-expression, so these tensions can build up internally without release. Integration comes through consciously creating space for Fire—activities that bring joy, visibility, and spontaneity. This could be creative hobbies, physical movement, or simply allowing yourself to speak your mind without editing. The 2026 丙午 year offers a supportive window for this integration, as the Fire energy helps you bridge your inner depth with outer expression. Over time, your growth involves learning that structure and freedom are not opposites—they are partners. The Metal can shape the Wood into something strong and beautiful, and the Water can nourish without flooding, if you set boundaries that protect your inner garden.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>INNER STRUCTURE</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>17</span><small>Integration</small></aside>
+      <div class="section-content">
+        <h2>The Sense of Something Missing</h2>
+        
+        <div class="section-copy"><p>Your chart carries a strong structural symmetry—two 甲 (Wood) stems paired with two 壬 (Water) stems, and two 戌 (Earth) branches paired with two 申 (Metal) branches. This balance can create a surface impression of completeness, yet the absence of Fire (Output) is a persistent gap. Fire represents visible expression, warmth, creativity, and the ability to let go of control. Without it, you may feel that your efforts, no matter how competent, lack a certain spark or recognition. The 壬 Water Resources nourish your Wood Day Master abundantly, but Water can also flood and suppress Fire, making it harder to translate inner depth into outward joy or spontaneous connection. You might sense that something is missing in the realm of emotional release—a capacity to simply enjoy the moment without analyzing it. This gap often manifests as a quiet longing for more lightness, play, or creative risk, even when your life appears well-ordered. The 申 Metal branches, acting as Officer elements, further reinforce a tendency to prioritize duty and structure over personal expression. The missing Fire is not a flaw but a developmental invitation: you are learning to cultivate warmth and visibility without abandoning your natural discipline.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>INNER STRUCTURE</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>18</span><small>Integration</small></aside>
+      <div class="section-content">
+        <h2>Resources and Security</h2>
+        
+        <div class="section-copy"><p>Your chart is rich in Resource energy, with two 壬 Water stems in the Month and Hour Pillars. Water produces Wood, so you have a strong internal support system—intellectual curiosity, access to knowledge, and a tendency to seek guidance from mentors, books, or structured learning. This Resource abundance means you rarely feel truly stranded; you can always find a way to gather information or draw on past experience. However, the same Water that nourishes can also overwhelm, especially when combined with the Metal branches that generate it. You may over-rely on external validation or theoretical frameworks, delaying action while you gather more data. The 戌 Earth branches, as Wealth elements, represent tangible resources like money, property, or career assets. Earth controls Water, so there is a natural tension between your desire for security (Earth) and your instinct to learn and absorb (Water). You may oscillate between saving cautiously and investing in self-development. The 2026 丙午 year introduces Fire, which can help you convert knowledge into visible results, but the underlying pattern suggests that true security comes from balancing Resource intake with Output expression. Practical growth involves setting limits on information consumption and trusting that you already have enough to act.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page timing-atlas" data-page>
+    <div class="page-topline"><span>19 / TIMING & GROWTH</span><span>LUCK PILLARS + ANNUAL WEATHER</span></div>
+    <header><span>THE TIMING ATLAS</span><h2>Long cycles set the terrain.<br>Each year changes the weather.</h2><p>Luck Pillars describe decade-long developmental conditions. Annual pillars add shorter emphasis inside that terrain.</p></header>
+    <section class="cycle-section"><h3>Eight Luck Pillars</h3><div class="cycle-grid"><div class="cycle ">
+      <span class="cycle-state">AGE 3-12</span>
+      <span class="colored-ganzhi "><i class="wx-metal">辛</i><i class="wx-earth">未</i></span>
+      <strong>1997-2006</strong>
+      <small>正官 / 正财</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 13-22</span>
+      <span class="colored-ganzhi "><i class="wx-metal">庚</i><i class="wx-fire">午</i></span>
+      <strong>2007-2016</strong>
+      <small>七杀 / 伤官</small>
+    </div><div class="cycle is-current">
+      <span class="cycle-state">CURRENT</span>
+      <span class="colored-ganzhi "><i class="wx-earth">己</i><i class="wx-fire">巳</i></span>
+      <strong>2017-2026</strong>
+      <small>正财 / 食神</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 33-42</span>
+      <span class="colored-ganzhi "><i class="wx-earth">戊</i><i class="wx-earth">辰</i></span>
+      <strong>2027-2036</strong>
+      <small>偏财 / 偏财</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 43-52</span>
+      <span class="colored-ganzhi "><i class="wx-fire">丁</i><i class="wx-wood">卯</i></span>
+      <strong>2037-2046</strong>
+      <small>伤官 / 劫财</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 53-62</span>
+      <span class="colored-ganzhi "><i class="wx-fire">丙</i><i class="wx-wood">寅</i></span>
+      <strong>2047-2056</strong>
+      <small>食神 / 比肩</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 63-72</span>
+      <span class="colored-ganzhi "><i class="wx-wood">乙</i><i class="wx-earth">丑</i></span>
+      <strong>2057-2066</strong>
+      <small>劫财 / 正财</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 73-82</span>
+      <span class="colored-ganzhi "><i class="wx-wood">甲</i><i class="wx-water">子</i></span>
+      <strong>2067-2076</strong>
+      <small>比肩 / 正印</small>
+    </div></div></section>
+    <section class="annual-section"><div><h3>Five-year annual view</h3><p>The transition year is marked where a new ten-year cycle begins.</p></div><div class="annual-grid"><div class="annual-year is-now">
+      <span>2026</span>
+      <span class="colored-ganzhi small"><i class="wx-fire">丙</i><i class="wx-fire">午</i></span>
+      <small>食神 / 伤官</small>
+    </div><div class="annual-year ">
+      <span>2027 / NEW CYCLE</span>
+      <span class="colored-ganzhi small"><i class="wx-fire">丁</i><i class="wx-earth">未</i></span>
+      <small>伤官 / 正财</small>
+    </div><div class="annual-year ">
+      <span>2028</span>
+      <span class="colored-ganzhi small"><i class="wx-earth">戊</i><i class="wx-metal">申</i></span>
+      <small>偏财 / 七杀</small>
+    </div><div class="annual-year ">
+      <span>2029</span>
+      <span class="colored-ganzhi small"><i class="wx-earth">己</i><i class="wx-metal">酉</i></span>
+      <small>正财 / 正官</small>
+    </div><div class="annual-year ">
+      <span>2030</span>
+      <span class="colored-ganzhi small"><i class="wx-metal">庚</i><i class="wx-earth">戌</i></span>
+      <small>七杀 / 偏财</small>
+    </div></div></section>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>TIMING & GROWTH</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>19</span><small>Direction</small></aside>
+      <div class="section-content">
+        <h2>Character Emphasis Across Life Stages</h2>
+        
+        <div class="section-copy"><p>Your Luck Pillars trace a clear developmental arc. From age 3 to 12 (辛未), the 辛 Metal Officer and 未 Earth Wealth emphasized early discipline and family expectations. You likely learned to meet standards and manage responsibilities young. From age 13 to 22 (庚午), the 庚 Metal Officer and 午 Fire Output introduced a more competitive, expressive phase. This period may have involved testing authority or finding your voice through creative or academic pursuits. From age 23 to 32 (己巳), the 己 Earth Wealth and 巳 Fire Output deepened your focus on career and tangible achievement. You built skills and gained confidence in producing results. Now, as you approach age 33 in 2027, you will enter the 戊辰 Earth Wealth Luck Pillar. This is a decade of intensified Wealth energy—two Earth branches and a strong Earth stem. Your attention will shift toward material stability, long-term planning, and managing resources. The 辰 Earth also contains hidden Water, so intellectual depth remains relevant, but the dominant theme is consolidation. From age 43 onward, the 丁卯 and 丙寅 Luck Pillars bring Fire and Wood, gradually restoring Output and Companion energy. Your later years will likely emphasize creative expression, collaboration, and a lighter approach to life. The structural markers at 2000 and 2060 庚辰 suggest that years with strong Earth-Metal combinations will periodically challenge you to balance duty with personal needs.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>TIMING & GROWTH</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>20</span><small>Direction</small></aside>
+      <div class="section-content">
+        <h2>Growth Rhythm</h2>
+        <div class="rhythm-strip">
+      <div><span>NOW</span><strong>Structure</strong><small>Build order and authority</small></div>
+      <div><span>NEXT</span><strong>Consolidate</strong><small>Make growth sustainable</small></div>
+      <div><span>LATER</span><strong>Express</strong><small>Lead with warmth and clarity</small></div>
+    </div>
+        <div class="section-copy"><p>Your growth rhythm is cyclical, driven by the interplay of Water and Earth. Periods when Water dominates—such as years with 壬 or 癸 stems, or 子, 亥 branches—tend to be introspective, learning-heavy, and slower in outward progress. You may feel a pull toward study, reflection, or seeking guidance. These phases are essential for building internal resources but can feel stagnant if you resist action. Conversely, periods when Earth dominates—such as the upcoming 戊辰 Luck Pillar or years with 戊, 己 stems, or 辰, 戌, 丑, 未 branches—accelerate your focus on tangible outcomes, career moves, and financial decisions. The 2026 丙午 year, with its Fire energy, acts as a bridge: it encourages you to express what you have learned and to take creative risks. Growth happens when you honor both rhythms—allowing yourself to retreat and absorb, then stepping forward to build and produce. The 申 Metal branches in your chart add a third rhythm: periodic challenges or authority checks that refine your discipline. These are not setbacks but recalibrations. Your natural tendency is to push through without pause, but sustainable growth requires recognizing when to rest and when to act.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>TIMING & GROWTH</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>21</span><small>Direction</small></aside>
+      <div class="section-content">
+        <h2>Blind Spots That Drain You</h2>
+        
+        <div class="section-copy"><p>Your chart’s symmetry can create a blind spot around emotional vulnerability. The abundance of Water and Metal, combined with the absence of Fire, may lead you to intellectualize feelings or dismiss them as inefficient. You might believe that if you can analyze a situation, you have resolved it, but this leaves unexpressed emotions to accumulate and drain your energy. Another blind spot is over-responsibility. The two 戌 Earth Wealth branches and the Officer Metal can make you feel that you must carry the weight of outcomes alone. You may resist delegating or asking for help, assuming that others cannot meet your standards. This self-reliance, while admirable, leads to burnout. The 壬 Water Resources can also become a trap: you may over-consume information, seeking certainty before acting, which delays progress and creates mental clutter. Finally, the lack of Fire means you may undervalue joy, play, and spontaneity. You might dismiss these as frivolous, yet their absence leaves you feeling dry or disconnected. Recognizing these blind spots is the first step—the second is deliberately introducing small acts of vulnerability, delegation, and unstructured pleasure into your routine.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>TIMING & GROWTH</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>22</span><small>Direction</small></aside>
+      <div class="section-content">
+        <h2>Central Growth Lessons</h2>
+        
+        <div class="section-copy"><p>Your central growth lessons revolve around three themes: expression, balance, and trust. First, you must learn to express what you know and feel, even when it feels imperfect or risky. The missing Fire in your chart is not a permanent void but a muscle to be developed. Start with low-stakes creative acts—writing, speaking, or sharing an opinion without over-editing. Second, you must balance your Resource intake with Output. You have a natural gift for learning, but knowledge without application becomes a weight. Practice the discipline of finishing and releasing, even if the result is not flawless. Third, you must trust that you are enough without constant external validation. The Officer Metal in your chart can create an inner critic that measures you against impossible standards. Growth involves quieting that voice and acting from your own authority. The 2026 丙午 year, with its Fire and Horse energy, is a favorable time to practice these lessons. The Fire will help you shine, but the Horse’s restless nature may also push you to move before you are ready. The lesson is to move anyway, with imperfect courage.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>TIMING & GROWTH</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>23</span><small>Direction</small></aside>
+      <div class="section-content">
+        <h2>Practical Self-Development Guidance</h2>
+        
+        <div class="section-copy"><p>To address the missing Fire, schedule regular, non-negotiable time for creative or expressive activities that have no performance pressure—journaling, painting, dancing, or even cooking without a recipe. These acts train your Output muscle. To manage the Water overload, set boundaries on information consumption: limit news, social media, or research to specific times, and practice making decisions with 80% of the data rather than waiting for 100%. To counter over-responsibility, delegate one task per week that you normally handle alone, and resist the urge to correct how others do it. To soften the Officer’s inner critic, practice self-compassion statements when you make mistakes, such as “This is a learning step, not a failure.” For the upcoming 戊辰 Earth Luck Pillar starting at age 33, focus on building systems that support your long-term goals—financial planning, career structures, and health routines. Earth energy favors stability, but it can also become rigid. Counter this by maintaining one flexible, playful outlet. Finally, use the 2026 丙午 year to initiate a project that requires visibility, such as presenting your work publicly or starting a creative side venture. The Fire will amplify your efforts, but the key is to start before you feel ready.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" data-page>
+    <div class="page-topline"><span>TIMING & GROWTH</span><span>PERSONAL BAZI READING</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>24</span><small>Direction</small></aside>
+      <div class="section-content">
+        <h2>Core Life Theme</h2>
+        <blockquote>Become fertile ground, not hardened stone.</blockquote>
+        <div class="section-copy"><p>Your core life theme is the integration of depth and expression. You are built with substantial inner resources—intellectual depth, discipline, and a capacity for sustained effort. These qualities allow you to navigate complexity and build solid foundations. Yet your chart’s symmetry and missing Fire reveal that your purpose is not merely to accumulate knowledge or meet external standards, but to bring your inner world into visible, warm, and authentic form. You are here to learn that competence without expression is incomplete, and that discipline without joy becomes a cage. The 甲 Wood Day Master, nourished by 壬 Water and shaped by 申 Metal, is a tree that grows tall and strong, but it also needs sunlight (Fire) to flower and bear fruit. Your life’s work is to let that sunlight in—to trust that your contributions are worthy of being seen, and that your own happiness is not a distraction from duty but a necessary part of it. The structural markers at 2000 and 2060 庚辰 suggest that you will periodically face tests of integrity and responsibility, but these are opportunities to reaffirm your commitment to both structure and self-expression. Ultimately, your journey is about becoming whole by embracing what is missing, not by perfecting what is already strong.</p></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+  </article>
+
+    <section class="pdf-page methodology" data-page>
+      <div class="page-topline"><span>METHOD & LIMITS</span><span>PERSONAL BAZI READING</span></div>
+      <div class="method-layout">
+        <div><h2>How to use this reading</h2><p>BaZi is used here as a structured language for self-observation. Treat each interpretation as a hypothesis to test against lived experience, not as an instruction or fixed prediction.</p><p>The analysis is grounded in the calculated pillars, visible Five Element balance, Ten-God roles relative to the Day Master, and the sequence of Luck Pillars. Because the birth hour is unknown, no Hour Pillar conclusions are included.</p></div>
+        <dl>
+          <div><dt>01</dt><dd><strong>Notice</strong><span>Mark patterns that feel observably true.</span></dd></div>
+          <div><dt>02</dt><dd><strong>Compare</strong><span>Look for exceptions and changing contexts.</span></dd></div>
+          <div><dt>03</dt><dd><strong>Choose</strong><span>Turn useful insight into one practical experiment.</span></dd></div>
+        </dl>
+      </div>
+      <div class="disclaimer"><strong>Important</strong><p>This report is for educational and reflective purposes. It is not medical, legal, financial, or mental-health advice, and it does not guarantee future events.</p></div>
+      <footer><span>TENGYUNZI / PERSONAL READING</span><span data-page-number></span></footer>
+    </section>
+
+    <section class="pdf-page closing" data-page>
+      <div class="closing-mark">TZ</div>
+      <div><span>YOUR NEXT CHAPTER</span><h2>Use the pattern.<br>Keep the choice.</h2><p>The chart offers a map of tendencies. The direction remains yours.</p></div>
+      <footer><span>hello@tengyunzi.com</span><span>tengyunzi.com</span></footer>
+    </section>
+  </main>
+  <script>
+    window.__REPORT_DATA__ = {"elements":{"fire":0,"wood":2,"earth":2,"metal":2,"water":2},"luck":[{"gz":"辛未","age":3,"year":1997},{"gz":"庚午","age":13,"year":2007},{"gz":"己巳","age":23,"year":2017},{"gz":"戊辰","age":33,"year":2027},{"gz":"丁卯","age":43,"year":2037},{"gz":"丙寅","age":53,"year":2047},{"gz":"乙丑","age":63,"year":2057},{"gz":"甲子","age":73,"year":2067}]};
+    document.querySelectorAll('[data-page]').forEach((page, index) => {
+      page.querySelector('[data-page-number]')?.replaceChildren(String(index + 1).padStart(2, '0'));
+    });
+    const palette = { wood:'#398064', fire:'#c65d4b', earth:'#aa823f', metal:'#73839a', water:'#2478b5', ink:'#0b2943', grid:'#dce8f1' };
+    const labels = ['Wood','Fire','Earth','Metal','Water'];
+    const values = labels.map((key) => Number(window.__REPORT_DATA__.elements[key.toLowerCase()] || 0));
+    function mountChart(id, option) {
+      const node = document.getElementById(id);
+      if (!node || !window.echarts) return;
+      const chart = echarts.init(node, null, { renderer:'svg' });
+      chart.setOption(option);
+    }
+    mountChart('element-radar', {
+      animation:false,
+      radar:{ indicator:labels.map((name)=>({name,max:4})), radius:'63%', splitNumber:4, axisName:{color:palette.ink,fontFamily:'Noto Sans',fontWeight:700,fontSize:12}, splitLine:{lineStyle:{color:palette.grid}}, splitArea:{areaStyle:{color:['#fbfdff','#f4f8fb']}}, axisLine:{lineStyle:{color:palette.grid}} },
+      series:[{type:'radar',symbol:'circle',symbolSize:7,data:[{value:values,areaStyle:{color:'rgba(36,120,181,.18)'},lineStyle:{color:palette.water,width:3},itemStyle:{color:palette.water}}]}]
+    });
+    mountChart('element-bars', {
+      animation:false, grid:{left:72,right:28,top:22,bottom:32}, xAxis:{type:'value',min:0,max:4,interval:1,axisLabel:{color:'#5d7183'},splitLine:{lineStyle:{color:palette.grid}},axisLine:{show:false},axisTick:{show:false}}, yAxis:{type:'category',data:labels,axisLabel:{color:palette.ink,fontWeight:700},axisLine:{show:false},axisTick:{show:false}}, series:[{type:'bar',data:values.map((value,index)=>({value,itemStyle:{color:[palette.wood,palette.fire,palette.earth,palette.metal,palette.water][index]}})),barWidth:18,label:{show:true,position:'right',color:palette.ink,fontWeight:800}}]
+    });
+    mountChart('section-elements', {
+      animation:false, grid:{left:80,right:28,top:18,bottom:24}, xAxis:{type:'value',max:4,splitLine:{lineStyle:{color:palette.grid}},axisLabel:{show:false},axisLine:{show:false},axisTick:{show:false}}, yAxis:{type:'category',data:labels,axisLabel:{color:palette.ink,fontWeight:700},axisLine:{show:false},axisTick:{show:false}}, series:[{type:'bar',data:values,barWidth:13,itemStyle:{color:palette.water,borderRadius:[0,3,3,0]},label:{show:true,position:'right',color:palette.ink,fontWeight:800}}]
+    });
+  </script>
+</body>
+</html>

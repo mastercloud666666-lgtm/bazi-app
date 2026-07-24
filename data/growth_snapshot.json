@@ -1,0 +1,864 @@
+{
+  "generated_at_utc": "2026-04-06T05:18:31.367Z",
+  "windows": {
+    "traffic_hours_24": 24,
+    "traffic_hours_7d": 168,
+    "funnel_days": 7
+  },
+  "metrics": {
+    "visits_24h": 3,
+    "unique_visitors_24h": 2,
+    "visits_7d": 63,
+    "unique_visitors_7d": 47,
+    "bot_visit_ratio_pct": 0,
+    "orders_7d": 102,
+    "paid_orders_7d": 10,
+    "delivered_orders_7d": 2,
+    "order_to_paid_pct": 9.8,
+    "order_to_delivered_pct": 1.96,
+    "unresolved_failures_7d": 78
+  },
+  "score": {
+    "final_score": 45.41,
+    "sub_scores": {
+      "visit": 1,
+      "leads": 120,
+      "paid_conversion": 24.5,
+      "delivered_conversion": 6.53,
+      "compliance": 75
+    },
+    "targets": {
+      "visits_24h": 300,
+      "orders_7d": 30,
+      "paid_rate_pct": 40,
+      "delivered_rate_pct": 30
+    },
+    "penalties": {
+      "bot_penalty": 0,
+      "unresolved_failure_penalty": 25
+    }
+  },
+  "policy": {
+    "policy": "reduce_frequency_and_rewrite",
+    "reason": "below_target"
+  },
+  "raw": {
+    "source_mode": "service_role_postgrest",
+    "traffic_24h": {
+      "ok": true,
+      "hours": 24,
+      "since": "2026-04-05T05:18:27.109Z",
+      "scanned_rows": 3,
+      "summary": {
+        "total_visits": 3,
+        "unique_ip": 2,
+        "unique_visitor": 2,
+        "tester_visits": 1,
+        "owner_visits": 1,
+        "bot_visits": 0,
+        "normal_visits": 2
+      },
+      "top_pages": [
+        {
+          "page_path": "/index.html",
+          "page_title": "云子命理 | 免费八字算命·命理解读·玄学占卜",
+          "count": 3,
+          "unique_ip": 2
+        }
+      ],
+      "top_source_medium": [
+        {
+          "source_medium": "(none) / (none)",
+          "count": 3
+        }
+      ],
+      "top_utm_sources": [],
+      "top_utm_campaigns": []
+    },
+    "traffic_7d": {
+      "ok": true,
+      "hours": 168,
+      "since": "2026-03-30T05:18:27.114Z",
+      "scanned_rows": 63,
+      "summary": {
+        "total_visits": 63,
+        "unique_ip": 43,
+        "unique_visitor": 47,
+        "tester_visits": 11,
+        "owner_visits": 13,
+        "bot_visits": 16,
+        "normal_visits": 36
+      },
+      "top_pages": [
+        {
+          "page_path": "/index.html",
+          "page_title": "云子命理 | 免费八字算命·命理解读·玄学占卜",
+          "count": 53,
+          "unique_ip": 40
+        },
+        {
+          "page_path": "/result.html",
+          "page_title": "八字排盘结果 · 云子命理",
+          "count": 9,
+          "unique_ip": 7
+        },
+        {
+          "page_path": "/hepan.html",
+          "page_title": "八字合盘配对·算命婚姻缘分 | 云子命理",
+          "count": 1,
+          "unique_ip": 1
+        }
+      ],
+      "top_source_medium": [
+        {
+          "source_medium": "(none) / (none)",
+          "count": 63
+        }
+      ],
+      "top_utm_sources": [],
+      "top_utm_campaigns": []
+    },
+    "funnel": {
+      "ok": true,
+      "days": 7,
+      "since": "2026-03-30T05:18:27.114Z",
+      "scanned_rows": 102,
+      "summary": {
+        "total_orders": 102,
+        "payment_created": 80,
+        "paid": 10,
+        "verified": 10,
+        "delivered": 2
+      },
+      "conversion": {
+        "order_to_payment_created": 78.43,
+        "payment_created_to_paid": 12.5,
+        "paid_to_verified": 100,
+        "verified_to_delivered": 20,
+        "order_to_delivered": 1.96,
+        "order_to_paid": 9.8
+      },
+      "by_service": {
+        "bazi": {
+          "total": 98,
+          "paid": 10,
+          "delivered": 2
+        },
+        "hepan": {
+          "total": 1,
+          "paid": 0,
+          "delivered": 0
+        },
+        "pdf": {
+          "total": 3,
+          "paid": 0,
+          "delivered": 0
+        }
+      },
+      "failures": [
+        {
+          "trade_no": "bazi-vq4f7blx-1774934812207",
+          "created_at": "2026-03-31T05:26:53.332628+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 8631
+        },
+        {
+          "trade_no": "bazi-codextest-1774938345",
+          "created_at": "2026-03-31T06:25:51.542844+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 8572
+        },
+        {
+          "trade_no": "bazi-wxprobe-1774945690",
+          "created_at": "2026-03-31T08:28:15.827816+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 8450
+        },
+        {
+          "trade_no": "bazi-55jy6olt-1774945997737",
+          "created_at": "2026-03-31T08:33:17.916508+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 8445
+        },
+        {
+          "trade_no": "bazi-1u9ope40-1774946042423",
+          "created_at": "2026-03-31T08:34:03.465487+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 8444
+        },
+        {
+          "trade_no": "bazi-health-wx-yed1at",
+          "created_at": "2026-03-31T08:51:43.237229+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 8426
+        },
+        {
+          "trade_no": "bazi-health-hepan",
+          "created_at": "2026-03-31T08:51:42.016296+00:00",
+          "service": "hepan",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 8426
+        },
+        {
+          "trade_no": "bazi-health-pdf",
+          "created_at": "2026-03-31T08:51:40.81313+00:00",
+          "service": "pdf",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 8426
+        },
+        {
+          "trade_no": "bazi-health-consult",
+          "created_at": "2026-03-31T08:51:39.408115+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 8426
+        },
+        {
+          "trade_no": "bazi-health-vip",
+          "created_at": "2026-03-31T08:51:37.790879+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 8426
+        },
+        {
+          "trade_no": "bazi-health-pro",
+          "created_at": "2026-03-31T08:51:36.507249+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 8426
+        },
+        {
+          "trade_no": "bazi-health-basic",
+          "created_at": "2026-03-31T08:51:34.158065+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 8426
+        },
+        {
+          "trade_no": "bazi-health-wx-o0h289",
+          "created_at": "2026-03-31T08:53:48.784756+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 8424
+        },
+        {
+          "trade_no": "bazi-vq4f7blx-1774967105734",
+          "created_at": "2026-03-31T14:25:06.659951+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 8093
+        },
+        {
+          "trade_no": "bazi-65vrq21m-1774967155102",
+          "created_at": "2026-03-31T14:25:56.188456+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 8092
+        },
+        {
+          "trade_no": "bazi-stock-oq7106eio4-1774969759233",
+          "created_at": "2026-03-31T15:09:49.90483+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 8048
+        },
+        {
+          "trade_no": "bazi-stock-oq7106eio4-1774969953123",
+          "created_at": "2026-03-31T15:12:34.019399+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 8045
+        },
+        {
+          "trade_no": "bazi-stock-bvip47h1mq-1774975000131",
+          "created_at": "2026-03-31T16:36:41.278762+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 7961
+        },
+        {
+          "trade_no": "bazi-stock-bvip47h1mq-1774976779197",
+          "created_at": "2026-03-31T17:06:19.902005+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 7932
+        },
+        {
+          "trade_no": "bazi-stock-bvip47h1mq-1774976816289",
+          "created_at": "2026-03-31T17:07:16.887576+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 7931
+        },
+        {
+          "trade_no": "bazi-stock-test1774977131694",
+          "created_at": "2026-03-31T17:12:16.039673+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 7926
+        },
+        {
+          "trade_no": "bazi-stock-debug-1774978708733",
+          "created_at": "2026-03-31T17:38:30.790117+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 7900
+        },
+        {
+          "trade_no": "bazi-stock-debug-1774978762625",
+          "created_at": "2026-03-31T17:39:25.591526+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 7899
+        },
+        {
+          "trade_no": "bazi-health-pay-1923984222",
+          "created_at": "2026-04-01T17:09:46.818885+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6488
+        },
+        {
+          "trade_no": "bazi-health-stock_test-124768543",
+          "created_at": "2026-04-01T17:10:54.434845+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6487
+        },
+        {
+          "trade_no": "bazi-health-stock-477599718",
+          "created_at": "2026-04-01T17:10:51.560495+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6487
+        },
+        {
+          "trade_no": "bazi-health-consult-1166400803",
+          "created_at": "2026-04-01T17:10:48.954335+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6487
+        },
+        {
+          "trade_no": "bazi-health-pdf-746217365",
+          "created_at": "2026-04-01T17:10:46.174043+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6487
+        },
+        {
+          "trade_no": "bazi-health-vip-1551391668",
+          "created_at": "2026-04-01T17:10:43.1378+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6487
+        },
+        {
+          "trade_no": "bazi-health-pro-1538679508",
+          "created_at": "2026-04-01T17:10:40.504147+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6487
+        },
+        {
+          "trade_no": "bazi-health-basic-1118403730",
+          "created_at": "2026-04-01T17:10:37.696943+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6487
+        },
+        {
+          "trade_no": "bazi-manual-1775064424-3189",
+          "created_at": "2026-04-01T17:27:10.648237+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6471
+        },
+        {
+          "trade_no": "bazi-manual-1775065637-5904",
+          "created_at": "2026-04-01T17:47:24.433346+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6451
+        },
+        {
+          "trade_no": "bazi-wechat-1775066436-1538",
+          "created_at": "2026-04-01T18:00:43.549536+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6437
+        },
+        {
+          "trade_no": "bazi-manual-1775066489-8926",
+          "created_at": "2026-04-01T18:01:36.131862+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6436
+        },
+        {
+          "trade_no": "bazi-55jy6olt-1775066619582",
+          "created_at": "2026-04-01T18:03:41.958551+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6434
+        },
+        {
+          "trade_no": "bazi-55jy6olt-1775068333776",
+          "created_at": "2026-04-01T18:32:21.633643+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6406
+        },
+        {
+          "trade_no": "bazi-test364884-1775098053",
+          "created_at": "2026-04-01T18:47:39.107026+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6390
+        },
+        {
+          "trade_no": "bazi-test114594-1775098156",
+          "created_at": "2026-04-01T18:49:21.160439+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6389
+        },
+        {
+          "trade_no": "bazi-test648256-1775098297",
+          "created_at": "2026-04-01T18:51:41.836487+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6386
+        },
+        {
+          "trade_no": "bazi-55jy6olt-1775069711868",
+          "created_at": "2026-04-01T18:55:17.40231+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6383
+        },
+        {
+          "trade_no": "bazi-vq4f7blx-1775069749600",
+          "created_at": "2026-04-01T18:55:53.506503+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6382
+        },
+        {
+          "trade_no": "bazi-vq4f7blx-1775069807927",
+          "created_at": "2026-04-01T18:56:51.459691+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6381
+        },
+        {
+          "trade_no": "bazi-test821479-1775098706",
+          "created_at": "2026-04-01T18:58:29.931674+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6380
+        },
+        {
+          "trade_no": "bazi-test294144-1775098704",
+          "created_at": "2026-04-01T18:58:27.348875+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6380
+        },
+        {
+          "trade_no": "bazi-test805106-1775098701",
+          "created_at": "2026-04-01T18:58:24.977551+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6380
+        },
+        {
+          "trade_no": "bazi-test663106-1775098697",
+          "created_at": "2026-04-01T18:58:22.148759+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6380
+        },
+        {
+          "trade_no": "bazi-vq4f7blx-1775069926503",
+          "created_at": "2026-04-01T18:58:50.04088+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6379
+        },
+        {
+          "trade_no": "bazi-test320390-1775098709",
+          "created_at": "2026-04-01T18:58:32.687631+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6379
+        },
+        {
+          "trade_no": "bazi-vq4f7blx-1775070619540",
+          "created_at": "2026-04-01T19:10:52.079283+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6367
+        },
+        {
+          "trade_no": "bazi-test590551-1775099435",
+          "created_at": "2026-04-01T19:10:38.311946+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6367
+        },
+        {
+          "trade_no": "bazi-test204119-1775099430",
+          "created_at": "2026-04-01T19:10:34.91123+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6367
+        },
+        {
+          "trade_no": "bazi-test224557-1775099661",
+          "created_at": "2026-04-01T19:14:24.292836+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6364
+        },
+        {
+          "trade_no": "bazi-test537325-1775099656",
+          "created_at": "2026-04-01T19:14:20.770896+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6364
+        },
+        {
+          "trade_no": "bazi-vq4f7blx-1775070920108",
+          "created_at": "2026-04-01T19:15:23.825856+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6363
+        },
+        {
+          "trade_no": "bazi-vq4f7blx-1775077141634",
+          "created_at": "2026-04-01T20:59:05.586105+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6259
+        },
+        {
+          "trade_no": "bazi-vq4f7blx-1775077204212",
+          "created_at": "2026-04-01T21:00:07.759526+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 6258
+        },
+        {
+          "trade_no": "bazi-55jy6olt-1775106006511",
+          "created_at": "2026-04-02T05:00:10.002554+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 5778
+        },
+        {
+          "trade_no": "bazi-55jy6olt-1775106069058",
+          "created_at": "2026-04-02T05:01:12.841627+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 5777
+        },
+        {
+          "trade_no": "bazi-health-wx-sihb7c",
+          "created_at": "2026-04-02T05:51:17.992984+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 5727
+        },
+        {
+          "trade_no": "bazi-health-wx-9u8k4s",
+          "created_at": "2026-04-03T05:51:28.682202+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 4287
+        },
+        {
+          "trade_no": "bazi-auxvuae2-1775213356224",
+          "created_at": "2026-04-03T10:49:24.586389+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 3989
+        },
+        {
+          "trade_no": "bazi-health-wx-f1zpvh",
+          "created_at": "2026-04-04T05:15:24.168582+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 2883
+        },
+        {
+          "trade_no": "bazi-health-wx-ceeyne",
+          "created_at": "2026-04-05T05:56:29.340066+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 1402
+        },
+        {
+          "trade_no": "bazi-vq4f7blx-1775422282231",
+          "created_at": "2026-04-05T20:51:21.375345+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 507
+        },
+        {
+          "trade_no": "bazi-probe-47ce174e0c-1775455166",
+          "created_at": "2026-04-05T21:59:25.286657+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 439
+        },
+        {
+          "trade_no": "bazi-probe-f3186cf5ca-1775456074",
+          "created_at": "2026-04-05T22:14:34.055441+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 423
+        },
+        {
+          "trade_no": "bazi-probe-a6d04893ef-1775456471",
+          "created_at": "2026-04-05T22:21:09.158861+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 417
+        },
+        {
+          "trade_no": "bazi-55jy6olt-1775428226205",
+          "created_at": "2026-04-05T22:30:26.72911+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 408
+        },
+        {
+          "trade_no": "bazi-testerbypass-1775432950562",
+          "created_at": "2026-04-05T23:49:10.521867+00:00",
+          "service": "bazi",
+          "paid": true,
+          "has_analysis": false,
+          "issue": "paid_not_delivered",
+          "age_minutes": 329
+        },
+        {
+          "trade_no": "bazi-vq4f7blx-1775433357184",
+          "created_at": "2026-04-05T23:55:55.255636+00:00",
+          "service": "bazi",
+          "paid": true,
+          "has_analysis": false,
+          "issue": "paid_not_delivered",
+          "age_minutes": 322
+        },
+        {
+          "trade_no": "bazi-55jy6olt-1775433409814",
+          "created_at": "2026-04-05T23:57:03.2631+00:00",
+          "service": "bazi",
+          "paid": true,
+          "has_analysis": false,
+          "issue": "paid_not_delivered",
+          "age_minutes": 321
+        },
+        {
+          "trade_no": "bazi-m3zpf3gm-1775433480454",
+          "created_at": "2026-04-05T23:57:58.031168+00:00",
+          "service": "bazi",
+          "paid": true,
+          "has_analysis": false,
+          "issue": "paid_not_delivered",
+          "age_minutes": 320
+        },
+        {
+          "trade_no": "bazi-m3zpf3gm-1775435554081",
+          "created_at": "2026-04-06T00:32:32.037266+00:00",
+          "service": "bazi",
+          "paid": true,
+          "has_analysis": false,
+          "issue": "paid_not_delivered",
+          "age_minutes": 285
+        },
+        {
+          "trade_no": "bazi-m3zpf3gm-1775435624879",
+          "created_at": "2026-04-06T00:33:42.363532+00:00",
+          "service": "bazi",
+          "paid": true,
+          "has_analysis": false,
+          "issue": "paid_not_delivered",
+          "age_minutes": 284
+        },
+        {
+          "trade_no": "bazi-55jy6olt-1775435697483",
+          "created_at": "2026-04-06T00:34:58.53945+00:00",
+          "service": "bazi",
+          "paid": true,
+          "has_analysis": false,
+          "issue": "paid_not_delivered",
+          "age_minutes": 283
+        },
+        {
+          "trade_no": "bazi-lj5ta5n1-1775435862306",
+          "created_at": "2026-04-06T00:37:50.856545+00:00",
+          "service": "bazi",
+          "paid": false,
+          "has_analysis": false,
+          "issue": "payment_not_completed",
+          "age_minutes": 280
+        },
+        {
+          "trade_no": "bazi-test-1775440796376",
+          "created_at": "2026-04-06T01:59:56.72363+00:00",
+          "service": "bazi",
+          "paid": true,
+          "has_analysis": false,
+          "issue": "paid_not_delivered",
+          "age_minutes": 198
+        }
+      ]
+    }
+  }
+}

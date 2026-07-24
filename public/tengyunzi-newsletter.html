@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="canonical" href="https://www.tengyunzi.com/tengyunzi-newsletter.html">
+  <title>Daily Chinese Almanac &amp; Monthly BaZi Forecast | Tengyunzi</title>
+  <meta name="description" content="Receive a free daily Chinese almanac or subscribe to a personal monthly BaZi forecast for career, wealth, relationships, wellbeing, and action strategy.">
+  <meta property="og:title" content="Daily Chinese Almanac &amp; Monthly BaZi Forecast">
+  <meta property="og:description" content="Start with the free daily calendar and upgrade to a monthly forecast calculated from your own BaZi chart.">
+  <meta property="og:url" content="https://www.tengyunzi.com/tengyunzi-newsletter.html">
+  <meta property="og:type" content="website">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": "Tengyunzi Almanac and Personal Monthly BaZi Forecast",
+      "url": "https://www.tengyunzi.com/tengyunzi-newsletter.html",
+      "description": "A free daily Chinese almanac and an optional paid monthly BaZi forecast calculated from the subscriber's birth chart.",
+      "provider": { "@id": "https://www.tengyunzi.com/#organization" },
+      "areaServed": "Worldwide",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Free Daily Almanac",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        {
+          "@type": "Offer",
+          "name": "Personal Monthly BaZi Forecast - Monthly",
+          "price": "9.90",
+          "priceCurrency": "USD"
+        },
+        {
+          "@type": "Offer",
+          "name": "Personal Monthly BaZi Forecast - Yearly",
+          "price": "69",
+          "priceCurrency": "USD"
+        }
+      ]
+    }
+  </script>
+  <link rel="stylesheet" href="./tengyunzi-fonts.css?v=20260722seo1">
+
+  <link rel="stylesheet" href="./tengyunzi-sales.css?v=20260713h">
+  <style>
+    .newsletter-hero {
+      min-height: min(700px, calc(100svh - 60px));
+      display: grid;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding: clamp(58px, 7vw, 90px) 0;
+      background: #f8fbfe;
+    }
+
+    .newsletter-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(360px, 0.75fr);
+      gap: clamp(40px, 7vw, 84px);
+      align-items: center;
+    }
+
+    .newsletter-intro h1 {
+      max-width: 10em;
+      margin-top: 16px;
+      font-family: var(--body-font);
+      font-size: 5rem;
+      font-weight: 900;
+      line-height: 1.02;
+    }
+
+    .newsletter-intro p {
+      max-width: 54ch;
+      margin: 22px 0 0;
+      color: var(--text);
+      font-size: 1.1rem;
+      line-height: 1.72;
+    }
+
+    .letter-card {
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+      padding: clamp(24px, 5vw, 40px);
+    }
+
+    .letter-card h2 {
+      margin-top: 10px;
+      font-family: var(--body-font);
+      font-size: 2.8rem;
+      font-weight: 900;
+    }
+
+    .letter-card > p {
+      margin: 14px 0 0;
+      line-height: 1.68;
+    }
+
+    .letter-form {
+      display: grid;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .letter-form input[type="email"],
+    .letter-form select {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid rgba(16, 47, 73, 0.2);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      padding: 0 12px;
+      outline: none;
+    }
+
+    .letter-form input[type="email"]:focus,
+    .letter-form select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(36, 116, 165, 0.12);
+    }
+
+    .issue-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .issue-item {
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.76);
+      padding: 16px;
+    }
+
+    .issue-item b {
+      color: var(--blue);
+      font-family: var(--display-font);
+      font-size: 1.22rem;
+      line-height: 1;
+    }
+
+    .issue-item h3 {
+      margin: 0;
+      font-size: 1.18rem;
+    }
+
+    .issue-item p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .segment-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .segment-pill {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.8);
+      color: var(--blue-dark);
+      padding: 10px 12px;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      .newsletter-hero {
+        min-height: 0;
+        padding: 52px 0;
+      }
+
+      .newsletter-layout {
+        grid-template-columns: 1fr;
+        gap: 34px;
+      }
+
+      .newsletter-intro h1 {
+        max-width: 9em;
+        font-family: var(--display-font);
+        font-size: 3.5rem;
+      }
+
+      .segment-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .issue-item {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 460px) {
+      .newsletter-intro h1 {
+        font-size: 2.7rem;
+      }
+
+      .letter-card h2 {
+        font-size: 2.15rem;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="./tengyunzi-newsletter.css?v=20260717a">
+  <link rel="stylesheet" href="./tengyunzi-shell.css?v=20260715nav">
+</head>
+<body>
+  <header class="nav">
+    <div class="shell nav-inner">
+      <a class="brand" href="./index.html#top">Tengyunzi</a>
+      <nav class="nav-links" aria-label="Page navigation"><a href="./tengyunzi-calculator.html#top">Calculator</a><a href="./tengyunzi-readings.html#top">Readings</a><a href="./tengyunzi-what-is-bazi.html#top">What is BaZi</a><a href="./tengyunzi-12-month-calendar.html#top">12-Month Forecast</a><a href="./tengyunzi-blog.html#top">Blog</a><a href="./tengyunzi-free-resources.html#top">Free Resources</a><a class="is-active" aria-current="page" href="./tengyunzi-newsletter.html#top">Letters</a><a href="./tengyunzi-about.html#top">About</a><a href="./tengyunzi-contact.html#top">Contact</a><a class="nav-cta" href="./tengyunzi-report.html#reading-form">Start Reading</a></nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="newsletter-hero">
+      <div class="shell newsletter-layout">
+        <div class="newsletter-intro">
+          <span class="kicker">Free Daily Almanac + Personal Forecast</span>
+          <h1>One daily calendar<br>One personal monthly strategy</h1>
+          <p>Receive the general Chinese perpetual calendar free each morning. Upgrade when you want a monthly forecast calculated from your own BaZi chart, annual energy, and solar-month interactions.</p>
+          <div class="newsletter-actions">
+            <a class="button" href="#subscribe">Get Free Daily Almanac</a>
+            <a class="button secondary" href="#monthly">Explore Personal Forecast</a>
+          </div>
+        </div>
+
+        <aside class="letter-card" id="subscribe" aria-labelledby="daily-subscribe-title">
+          <strong class="free-letter-label">Free Daily Almanac</strong>
+          <h2 id="daily-subscribe-title">Start with today's calendar</h2>
+          <p>Get the lunar date, daily pillars, solar term, supportive activities, cautions, clash, and traditional directions. No birth date required.</p>
+          <form class="letter-form" data-letter-form>
+            <input type="email" placeholder="you@example.com" aria-label="Email address" required>
+            <select aria-label="Time zone" data-free-timezone>
+              <option value="Asia/Taipei">Asia / Taipei</option><option value="Asia/Shanghai">Asia / Shanghai</option><option value="Asia/Hong_Kong">Asia / Hong Kong</option><option value="Asia/Singapore">Asia / Singapore</option><option value="Asia/Tokyo">Asia / Tokyo</option><option value="America/Los_Angeles">America / Los Angeles</option><option value="America/New_York">America / New York</option><option value="Europe/London">Europe / London</option><option value="Europe/Paris">Europe / Paris</option><option value="Australia/Sydney">Australia / Sydney</option><option value="UTC">UTC</option>
+            </select>
+            <select aria-label="Delivery time" data-free-hour>
+              <option value="6">6:00 AM</option><option value="7" selected>7:00 AM</option><option value="8">8:00 AM</option><option value="9">9:00 AM</option>
+            </select>
+            <label class="checkbox-row">
+              <input type="checkbox" checked>
+              <span>Send me the free Daily Almanac. I can stop it from any email.</span>
+            </label>
+            <button class="submit-button" type="submit">Start Free Daily Almanac</button>
+            <p class="form-note" aria-live="polite"></p>
+          </form>
+        </aside>
+      </div>
+    </section>
+
+    <section class="daily-membership" id="monthly">
+      <div class="shell daily-membership-layout">
+        <div class="daily-story">
+          <span class="kicker">Personal Monthly BaZi Forecast</span>
+          <h2>Your chart, read against each new solar month</h2>
+          <p>Receive a personal forecast when the BaZi solar month changes. Your natal chart is compared with the annual and monthly pillars to identify supportive elements, caution elements, branch interactions, and the right operating posture for the month.</p>
+
+          <ul class="daily-includes">
+            <li class="daily-include"><strong>Annual and monthly energy</strong><span>See how the current annual pillar and solar-month pillar meet your natal chart.</span></li>
+            <li class="daily-include"><strong>Clash, Harm, Break, and Punishment</strong><span>Branch interactions are surfaced as pressure points to manage, not fixed predictions.</span></li>
+            <li class="daily-include"><strong>Advance or protect</strong><span>Each month receives a practical posture: advance, build steadily, consolidate, or protect and review.</span></li>
+            <li class="daily-include"><strong>Four personal areas</strong><span>Career, wealth, relationships, and health &amp; wellbeing each receive a score and action guidance.</span></li>
+          </ul>
+
+          <article class="daily-preview" aria-label="Personal Monthly BaZi Forecast email preview">
+            <div class="daily-preview-head">
+              <div><span data-preview-period>Current solar month</span><strong data-preview-theme>Build steadily</strong></div>
+              <time data-preview-date>Personal preview</time>
+            </div>
+            <div class="daily-preview-personal">
+              <strong data-preview-personal>Enter your birth date to calculate the monthly posture.</strong>
+              <p data-preview-guidance>The preview will compare your natal pillars with the annual and monthly energies.</p>
+            </div>
+            <div class="daily-preview-facts">
+              <div class="daily-preview-fact"><span>Supportive elements</span><strong data-preview-supportive>Calculated from your chart</strong></div>
+              <div class="daily-preview-fact"><span>Handle carefully</span><strong data-preview-caution>Calculated from your chart</strong></div>
+              <div class="daily-preview-fact"><span>Branch interactions</span><strong data-preview-interactions>Clash, Harm, Break, Punishment</strong></div>
+            </div>
+            <div class="daily-preview-actions">
+              <div><strong>Priority areas</strong><ul data-preview-priorities><li>Career and wealth strategy</li></ul></div>
+              <div><strong>Caution areas</strong><ul data-preview-cautions><li>Relationships and wellbeing</li></ul></div>
+            </div>
+          </article>
+        </div>
+
+        <aside class="daily-signup-panel" aria-labelledby="daily-signup-title">
+          <h3 id="daily-signup-title">Build your monthly forecast</h3>
+          <p class="daily-panel-intro">Save your birth details first. Your PayPal membership opens only after your secure email account is connected.</p>
+
+          <div class="daily-account-state">
+            <span data-daily-account><strong>Not signed in</strong><br>Sign in before checkout</span>
+            <button class="daily-text-button" type="button" data-daily-login>Sign in</button>
+          </div>
+
+          <div class="daily-membership-state" data-daily-membership-state hidden>
+            <span data-daily-membership-text><strong>Monthly forecast active</strong></span>
+          </div>
+
+          <div class="daily-plan-toggle" data-daily-plan-toggle role="group" aria-label="Billing period">
+            <button type="button" data-daily-plan="monthly" aria-pressed="false"><strong>$9.90</strong>Monthly</button>
+            <button type="button" data-daily-plan="yearly" aria-pressed="true"><strong>$69</strong>Yearly | Save $49.80</button>
+          </div>
+
+          <form class="daily-profile-form" data-daily-form>
+            <label class="daily-field"><span>Date of birth</span><input type="date" name="birth_date" min="1900-01-01" max="2100-12-31" required></label>
+            <div class="daily-field-grid">
+              <label class="daily-field"><span>Hour of birth</span>
+                <select name="birth_hour">
+                  <option value="-1">Unknown</option>
+                  <option value="23">11 PM-12:59 AM | Zi</option>
+                  <option value="1">1-2:59 AM | Chou</option>
+                  <option value="3">3-4:59 AM | Yin</option>
+                  <option value="5">5-6:59 AM | Mao</option>
+                  <option value="7">7-8:59 AM | Chen</option>
+                  <option value="9">9-10:59 AM | Si</option>
+                  <option value="11">11 AM-12:59 PM | Wu</option>
+                  <option value="13">1-2:59 PM | Wei</option>
+                  <option value="15">3-4:59 PM | Shen</option>
+                  <option value="17">5-6:59 PM | You</option>
+                  <option value="19">7-8:59 PM | Xu</option>
+                  <option value="21">9-10:59 PM | Hai</option>
+                </select>
+              </label>
+              <label class="daily-field"><span>Gender</span>
+                <select name="gender"><option value="unspecified">Prefer not to say</option><option value="female">Female</option><option value="male">Male</option></select>
+              </label>
+            </div>
+            <label class="daily-field"><span>Time zone</span>
+              <select name="timezone">
+                <option value="Asia/Taipei">Asia / Taipei</option><option value="Asia/Shanghai">Asia / Shanghai</option><option value="Asia/Hong_Kong">Asia / Hong Kong</option><option value="Asia/Singapore">Asia / Singapore</option><option value="Asia/Tokyo">Asia / Tokyo</option><option value="America/Los_Angeles">America / Los Angeles</option><option value="America/New_York">America / New York</option><option value="Europe/London">Europe / London</option><option value="Europe/Paris">Europe / Paris</option><option value="Australia/Sydney">Australia / Sydney</option><option value="UTC">UTC</option>
+              </select>
+            </label>
+            <div class="daily-field-grid">
+              <label class="daily-field"><span>Email language</span><select name="language"><option value="en">English</option></select></label>
+              <label class="daily-field"><span>Monthly email time</span><select name="delivery_hour"><option value="6">6:00 AM</option><option value="7" selected>7:00 AM</option><option value="8">8:00 AM</option><option value="9">9:00 AM</option></select></label>
+            </div>
+            <label class="daily-consent"><input type="checkbox" data-daily-consent checked><span>I agree to receive my Personal Monthly BaZi Forecast by email. PayPal subscriptions renew automatically until cancelled.</span></label>
+            <button class="submit-button daily-submit" type="submit" data-daily-submit>Start Annual Membership | $69</button>
+            <button class="daily-pause" type="button" data-daily-pause hidden>Pause Monthly Forecast</button>
+            <p class="daily-form-note" data-daily-note aria-live="polite"></p>
+            <p class="daily-terms">Cancel auto-renewal in PayPal at any time. Access continues through the paid period. See the <a href="./terms-of-service.html">terms</a>, <a href="./refund-policy.html">refund policy</a>, and <a href="./privacy-policy.html">privacy policy</a>.</p>
+          </form>
+        </aside>
+      </div>
+    </section>
+
+    <section id="sample">
+      <div class="shell">
+        <div class="section-head center">
+          <h2>What the Personal Forecast Covers</h2>
+          <p>Every paid monthly email uses the same structured decision framework, calculated from your saved birth chart.</p>
+        </div>
+        <div class="issue-list">
+          <article class="issue-item"><b>01</b><div><h3>Your chart basis</h3><p>Day Master, element balance, chart tendency, supportive elements, caution elements, and confidence level.</p></div></article>
+          <article class="issue-item"><b>02</b><div><h3>Annual and solar-month interactions</h3><p>Current year and month pillars are compared with your natal branches for Clash, Harm, Break, and Punishment.</p></div></article>
+          <article class="issue-item"><b>03</b><div><h3>Your operating posture</h3><p>Advance, build steadily, consolidate, or protect and review, with decisive, stable, or conservative pacing.</p></div></article>
+          <article class="issue-item"><b>04</b><div><h3>Four life areas</h3><p>Career, wealth, relationships, and health &amp; wellbeing receive separate signals and practical guidance.</p></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-soft">
+      <div class="shell split">
+        <div class="section-head">
+          <span class="kicker">Two Clear Products</span>
+          <h2>General calendar free<br>Personal calculation paid</h2>
+          <p>The free email describes the day for everyone. The paid membership calculates the month against one person's natal chart.</p>
+        </div>
+        <div class="timeline">
+          <div class="timeline-step"><b>01</b><div><h3>Free every day</h3><p>Lunar date, daily pillars, solar term, supportive activities, cautions, clash, and directions.</p></div></div>
+          <div class="timeline-step"><b>02</b><div><h3>Paid every solar month</h3><p>A new personal forecast is sent when the BaZi month changes, usually near the month's first solar term.</p></div></div>
+          <div class="timeline-step"><b>03</b><div><h3>Birth hour can be unknown</h3><p>The system uses three pillars and clearly lowers confidence instead of inventing an hour pillar.</p></div></div>
+          <div class="timeline-step"><b>04</b><div><h3>Planning, not certainty</h3><p>Signals guide pacing and risk management. They never guarantee outcomes or replace professional advice.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-soft">
+      <div class="shell">
+        <div class="section-head center">
+          <h2>Common Questions</h2>
+          <p>Clear delivery, clear billing, and clear limits.</p>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>What is free?</summary>
+            <p>The general Daily Almanac is free. It includes traditional calendar information for the day and does not require your birth date.</p>
+          </details>
+          <details>
+            <summary>What does the paid membership add?</summary>
+            <p>The Personal Monthly BaZi Forecast compares your natal chart with the annual and solar-month pillars. It costs $9.90 monthly or $69 yearly.</p>
+          </details>
+          <details>
+            <summary>Can I stop either email?</summary>
+            <p>Yes. Every free Daily Almanac includes a one-click stop link. Paid members can pause monthly forecasts without ending paid access, or cancel renewal separately in PayPal.</p>
+          </details>
+          <details>
+            <summary>Is the forecast a prediction?</summary>
+            <p>No. It converts traditional chart relationships into a reflective planning framework. It does not guarantee outcomes or replace medical, financial, legal, or other professional advice.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="shell">
+        <h2>Start free<br>Add personal timing when you need it</h2>
+        <p>Use the free calendar for daily context, then add the monthly forecast when you want strategy calculated from your own chart.</p>
+        <div class="cta-actions">
+          <a class="button" href="#subscribe">Get Free Daily Almanac</a>
+          <a class="button secondary" href="#monthly">Start Personal Forecast</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell">Tengyunzi emails are educational and reflective. They do not replace professional advice.</div>
+  </footer>
+
+  <script src="./js/newsletter.js?v=20260716-en"></script>
+  <script src="./js/tengyunzi-auth.js" data-tengyunzi-auth></script>
+  <script>
+    const form = document.querySelector("[data-letter-form]");
+    const note = form.querySelector(".form-note");
+    const timezone = document.querySelector("[data-free-timezone]");
+    const deliveryHour = document.querySelector("[data-free-hour]");
+    const submitButton = form.querySelector("button[type='submit']");
+
+    try {
+      const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (detected && !Array.from(timezone.options).some((option) => option.value === detected)) {
+        const option = document.createElement("option");
+        option.value = detected;
+        option.textContent = detected.replace(/_/g, " ");
+        timezone.appendChild(option);
+      }
+      if (detected) timezone.value = detected;
+    } catch (error) {}
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const email = form.querySelector("input[type='email']").value.trim();
+      const consent = form.querySelector("input[type='checkbox']");
+
+      if (!window.YZNewsletter?.isValidEmail(email)) {
+        note.textContent = "Please enter a valid email address.";
+        note.style.color = "#b42318";
+        return;
+      }
+
+      if (consent && !consent.checked) {
+        note.textContent = "Please confirm that you want to receive Tengyunzi emails.";
+        note.style.color = "#b42318";
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.textContent = "Subscribing...";
+      note.textContent = "";
+
+      try {
+        await window.YZNewsletter.subscribe({
+          email,
+          source: "free-daily-almanac",
+          language: "en",
+          timezone: timezone.value,
+          delivery_hour: Number(deliveryHour.value || 7),
+          free_daily_enabled: true,
+          tags: ["newsletter-page", "free-daily-almanac"],
+          metadata: {
+            product: "free-daily-almanac",
+            timezone: timezone.value,
+            delivery_hour: Number(deliveryHour.value || 7),
+          },
+        });
+        note.style.color = "var(--blue-dark)";
+        note.textContent = `Your free Daily Almanac will arrive around ${deliveryHour.options[deliveryHour.selectedIndex].text} in ${timezone.value.replace(/_/g, " ")}.`;
+        form.reset();
+        if (consent) consent.checked = true;
+        timezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Taipei";
+        deliveryHour.value = "7";
+      } catch (error) {
+        note.style.color = "#b42318";
+        note.textContent = error?.code === "invalid_email"
+          ? "Please enter a valid email address."
+          : "Signup failed. Please try again in a moment.";
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = "Start Free Daily Almanac";
+      }
+    });
+  </script>
+  <script src="./js/daily-almanac.js?v=20260718-forecast-plans"></script>
+  <script src="./js/tengyunzi-shell.js"></script>
+</body>
+</html>
+
+
+

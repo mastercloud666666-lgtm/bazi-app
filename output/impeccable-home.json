@@ -1,0 +1,11 @@
+﻿[
+  {
+    "antipattern": "single-font",
+    "name": "Single font for everything",
+    "description": "Only one font family is used for the entire page. Pair a distinctive display font with a refined body font to create typographic hierarchy.",
+    "severity": "warning",
+    "file": "C:\\Users\\tgspc\\bazi-app\\public\\index.html",
+    "line": 21,
+    "snippet": "only font used is noto sans"
+  }
+]

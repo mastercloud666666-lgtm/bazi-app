@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Free BaZi Reading Preview &amp; Full Report | Tengyunzi</title>
+  <meta name="description" content="Create a free personal BaZi preview, then unlock a complete report covering Ten Gods, useful elements, Shen Sha, Luck Pillars, and annual timing.">
+  <link rel="canonical" href="https://www.tengyunzi.com/tengyunzi-report.html">
+  <link rel="stylesheet" href="./tengyunzi-fonts.css?v=20260722seo1">
+
+  <link rel="stylesheet" href="./tengyunzi-clean.css?v=20260722seo1">
+  <link rel="stylesheet" href="./tengyunzi-shell.css?v=20260715nav">
+  <link rel="stylesheet" href="./tengyunzi-product.css?v=20260714a">
+</head>
+<body>
+  <header class="nav">
+    <div class="shell nav-inner">
+      <a class="brand" href="./index.html#top" aria-label="Tengyunzi home">
+        <span class="brand-mark" aria-hidden="true">TZ</span>
+        <span class="brand-copy"><strong>Tengyunzi</strong><span>Traditional Four Pillars</span></span>
+      </a>
+      <nav class="nav-links" aria-label="Page navigation">
+        <a class="is-active" href="./tengyunzi-report.html#top">My Reading</a>
+        <a href="./tengyunzi-what-is-bazi.html#top">What is BaZi</a>
+        <a href="./tengyunzi-whats-inside.html#top">What's Inside</a>
+        <a href="./tengyunzi-newsletter.html#top">Letters</a>
+        <a href="./tengyunzi-contact.html#top">Contact</a>
+        <a class="nav-cta" href="#reading-form">Start Free</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="product-main" id="top">
+    <section class="product-hero">
+      <div class="shell">
+        <span class="kicker">Personal BaZi Reading</span>
+        <h1>Read the pattern behind your Four Pillars</h1>
+        <p>Begin with a free English preview, then unlock an immediate standard BaZi report generated from Tengyunzi's evidence-led interpretation framework.</p>
+      </div>
+    </section>
+
+    <section class="product-workspace" id="reading-form">
+      <div class="shell">
+        <form class="report-form" data-report-form>
+          <h2>Birth details</h2>
+          <p>Your chart is calculated first. You choose the reading depth after you see the Four Pillars.</p>
+          <div class="report-form-grid">
+            <label class="field"><span>Day</span><input type="number" name="day" min="1" max="31" inputmode="numeric" required></label>
+            <label class="field"><span>Month</span>
+              <select name="month" required>
+                <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+              </select>
+            </label>
+            <label class="field"><span>Year</span><input type="number" name="year" min="1900" max="2100" inputmode="numeric" required></label>
+            <label class="field wide"><span>Hour of birth</span>
+              <select name="hour" required>
+                <option value="unknown" selected>Unknown</option>
+                <option value="0">12:00 AM - 12:59 AM</option><option value="1">1:00 AM - 1:59 AM</option>
+                <option value="2">2:00 AM - 2:59 AM</option><option value="3">3:00 AM - 3:59 AM</option>
+                <option value="4">4:00 AM - 4:59 AM</option><option value="5">5:00 AM - 5:59 AM</option>
+                <option value="6">6:00 AM - 6:59 AM</option><option value="7">7:00 AM - 7:59 AM</option>
+                <option value="8">8:00 AM - 8:59 AM</option><option value="9">9:00 AM - 9:59 AM</option>
+                <option value="10">10:00 AM - 10:59 AM</option><option value="11">11:00 AM - 11:59 AM</option>
+                <option value="12">12:00 PM - 12:59 PM</option><option value="13">1:00 PM - 1:59 PM</option>
+                <option value="14">2:00 PM - 2:59 PM</option><option value="15">3:00 PM - 3:59 PM</option>
+                <option value="16">4:00 PM - 4:59 PM</option><option value="17">5:00 PM - 5:59 PM</option>
+                <option value="18">6:00 PM - 6:59 PM</option><option value="19">7:00 PM - 7:59 PM</option>
+                <option value="20">8:00 PM - 8:59 PM</option><option value="21">9:00 PM - 9:59 PM</option>
+                <option value="22">10:00 PM - 10:59 PM</option><option value="23">11:00 PM - 11:59 PM</option>
+              </select>
+            </label>
+            <label class="field wide"><span>Gender</span>
+              <select name="gender" required><option value="female">Female</option><option value="male">Male</option></select>
+            </label>
+            <label class="field wide"><span>Birthplace (optional)</span><input type="text" name="birthplace" maxlength="180" placeholder="City, country" autocomplete="address-level2"></label>
+          </div>
+          <button class="button primary" type="submit">Calculate my Four Pillars</button>
+          <p class="report-status" data-report-status aria-live="polite"></p>
+        </form>
+
+        <section class="chart-preview" data-chart-preview aria-labelledby="chart-heading">
+          <div class="chart-frame">
+            <div class="chart-frame-head">
+              <div><span class="kicker">Your chart</span><h2 id="chart-heading">Four Pillars</h2></div>
+              <p data-chart-date></p>
+            </div>
+            <div class="report-pillars">
+              <div class="report-pillar"><small>Year</small><strong data-pillar="year">--</strong></div>
+              <div class="report-pillar"><small>Month</small><strong data-pillar="month">--</strong></div>
+              <div class="report-pillar"><small>Day</small><strong data-pillar="day">--</strong></div>
+              <div class="report-pillar"><small>Hour</small><strong data-pillar="hour">--</strong></div>
+            </div>
+            <div class="element-summary" aria-label="Five Element counts">
+              <div>Wood <b data-element="wood">0</b></div><div>Fire <b data-element="fire">0</b></div>
+              <div>Earth <b data-element="earth">0</b></div><div>Metal <b data-element="metal">0</b></div>
+              <div>Water <b data-element="water">0</b></div>
+            </div>
+          </div>
+
+          <div class="reading-options">
+            <article class="reading-option">
+              <span class="kicker">Start here</span>
+              <h3>Free BaZi Preview</h3>
+              <p>Three focused sections on your Four Pillars and Day Master, seasonal Five-Element structure, and Ten Gods.</p>
+              <strong class="reading-price">Free</strong>
+              <button class="button" type="button" data-create-free>Generate free preview</button>
+            </article>
+            <article class="reading-option featured" data-price-product="ai_report">
+              <span class="kicker">Immediate AI delivery</span>
+              <h3>Standard English BaZi Report</h3>
+              <p>A full English reading with Day Master strength, hidden stems, Ten Gods, useful elements, natal interactions, Shen Sha, life topics, Luck Pillars, and annual timing.</p>
+              <div class="report-specs" aria-label="Report format"><span>24-page PDF</span><span>Approximately 6,000+ words</span><span>30-35 min read</span></div>
+              <strong class="reading-price" data-ai-price-usd>$9.99 USD</strong>
+              <button class="button primary" type="button" data-create-paid data-price-checkout="ai_report">Unlock immediate report</button>
+            </article>
+          </div>
+          <div class="personal-reading-offer">
+            <p>Prefer a report written personally by Tengyunzi?</p>
+            <a class="button personal-reading-button" data-price-product="personal_reading" data-price-checkout="personal_reading" href="./tengyunzi-readings.html?checkout=Tengyunzi%20Personal%20Reading">Choose <span data-manual-price>$99</span> Personal Reading</a>
+            <span>Written personally by Tengyunzi and delivered within 72 hours.</span>
+          </div>
+        </section>
+
+        <section class="report-stage" id="report-output" data-report-stage aria-live="polite">
+          <div class="report-stage-head">
+            <div><span class="kicker" data-report-label>Your reading</span><h2 data-report-title>BaZi Reading</h2></div>
+            <div class="report-stage-actions"><button class="button" type="button" data-print-report>Print</button><a class="button" href="./tengyunzi-account.html#top">My Readings</a></div>
+          </div>
+          <div class="mobile-report-summary" data-mobile-report-summary></div>
+          <nav class="report-section-nav" data-report-section-nav aria-label="Report chapters"></nav>
+          <div class="report-body" data-report-body></div>
+          <section class="report-next-steps" data-report-next-steps>
+            <span class="kicker">Continue your reading</span>
+            <h2>Choose the next layer</h2>
+            <div>
+              <a href="./tengyunzi-readings.html#personal-reading"><strong>Personal reading</strong><span>Written by Tengyunzi and delivered within 72 hours.</span></a>
+              <a href="./tengyunzi-annual-forecast.html#top"><strong>Monthly timing</strong><span>Follow your BaZi through each solar month.</span></a>
+              <a href="./tengyunzi-newsletter.html#top"><strong>Free daily almanac</strong><span>Receive the general Chinese calendar by email.</span></a>
+            </div>
+          </section>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="shell">Tengyunzi presents traditional BaZi interpretation with calculated facts separated from contextual reading.</div></footer>
+
+  <script src="./js/lunar.js?v=1.7.7"></script>
+  <script src="./js/bazi.js?v=20260719lunar1"></script>
+  <script src="./js/tengyunzi-auth.js" data-tengyunzi-auth></script>
+  <script src="./js/report-pricing.js?v=20260718ab1"></script>
+  <script src="./js/tengyunzi-shell.js"></script>
+  <script src="./js/tengyunzi-report.js?v=20260722mobile"></script>
+</body>
+</html>

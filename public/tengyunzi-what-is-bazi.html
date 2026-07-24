@@ -1,0 +1,1086 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="canonical" href="https://www.tengyunzi.com/tengyunzi-what-is-bazi.html">
+  <title>What is BaZi? Four Pillars Explained | Tengyunzi</title>
+  <meta name="description" content="Learn what BaZi means and how the Four Pillars, Day Master, Five Elements, Ten Gods, hidden stems, and Luck Pillars form a Chinese birth chart.">
+  <meta property="og:title" content="What is BaZi? Four Pillars Explained">
+  <meta property="og:description" content="A clear guide to the Four Pillars, Day Master, Five Elements, Ten Gods, and Luck Pillars.">
+  <meta property="og:url" content="https://www.tengyunzi.com/tengyunzi-what-is-bazi.html">
+  <meta property="og:type" content="article">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Article",
+          "headline": "What is BaZi? Four Pillars Explained",
+          "description": "A guide to BaZi, the Four Pillars, Day Master, Five Elements, Ten Gods, hidden stems, and Luck Pillars.",
+          "url": "https://www.tengyunzi.com/tengyunzi-what-is-bazi.html",
+          "mainEntityOfPage": "https://www.tengyunzi.com/tengyunzi-what-is-bazi.html",
+          "datePublished": "2026-07-15",
+          "dateModified": "2026-07-22",
+          "author": { "@id": "https://www.tengyunzi.com/#organization" },
+          "publisher": { "@id": "https://www.tengyunzi.com/#organization" },
+          "inLanguage": "en"
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Is BaZi the same as Chinese zodiac?",
+              "acceptedAnswer": { "@type": "Answer", "text": "No. The zodiac only uses the year animal. BaZi uses year, month, day, hour, stems, branches, hidden stems, elements, Ten Gods, and Luck Pillars." }
+            },
+            {
+              "@type": "Question",
+              "name": "Do I need my birth hour?",
+              "acceptedAnswer": { "@type": "Answer", "text": "A birth hour makes the chart more complete. If it is unknown, you can still read the year, month, and day structure, but later-life and private themes will be less precise." }
+            },
+            {
+              "@type": "Question",
+              "name": "Is BaZi a fixed prediction?",
+              "acceptedAnswer": { "@type": "Answer", "text": "We do not use it that way. The chart shows patterns and timing pressures. Your choices, environment, skill, and awareness still matter." }
+            },
+            {
+              "@type": "Question",
+              "name": "Why does the Day Master matter?",
+              "acceptedAnswer": { "@type": "Answer", "text": "The Day Master is the reference point. Every other symbol is interpreted by its relationship to that central stem, so it anchors the entire reading." }
+            }
+          ]
+        }
+      ]
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700;900&family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f9fc;
+      --bg-soft: #edf5f9;
+      --surface: #ffffff;
+      --ink: #102f49;
+      --text: #284a63;
+      --muted: #667f91;
+      --line: rgba(20, 65, 98, 0.16);
+      --line-strong: rgba(20, 65, 98, 0.28);
+      --blue: #2474a5;
+      --blue-dark: #123f63;
+      --seal: #bd604d;
+      --gold: #a8873b;
+      --green: #3c8660;
+      --water-ink: #1e6598;
+      --radius: 8px;
+      --shadow-tight: 0 8px 18px rgba(24, 73, 107, 0.06);
+      --ease: cubic-bezier(.22, 1, .36, 1);
+      --display: "Noto Serif SC", Georgia, serif;
+      --body: "Source Sans 3", "Noto Sans", system-ui, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--body);
+      letter-spacing: 0;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      display: none;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .shell {
+      width: min(1080px, calc(100% - 44px));
+      margin: 0 auto;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid rgba(20, 65, 98, 0.12);
+      background: rgba(250, 253, 255, 0.9);
+      backdrop-filter: blur(16px);
+    }
+
+    .nav-inner {
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand {
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: 1.05rem;
+      font-weight: 900;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .nav-links a:not(.nav-cta) {
+      opacity: 0.8;
+      transition: opacity 180ms var(--ease), color 180ms var(--ease);
+    }
+
+    .nav-links a:not(.nav-cta):hover {
+      color: var(--blue-dark);
+      opacity: 1;
+    }
+
+    .nav-links .is-active {
+      color: var(--blue-dark);
+      opacity: 1;
+      font-weight: 800;
+    }
+
+    .nav-cta,
+    .button {
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--blue);
+      border-radius: 999px;
+      background: var(--blue);
+      color: #fff;
+      padding: 0 18px;
+      font-weight: 800;
+      transition: transform 180ms var(--ease), background 180ms var(--ease);
+    }
+
+    .button:hover,
+    .nav-cta:hover {
+      transform: translateY(-1px);
+      background: var(--blue-dark);
+    }
+
+    .button.secondary {
+      border-color: var(--line-strong);
+      background: transparent;
+      color: var(--ink);
+    }
+
+    .button.secondary:hover {
+      background: rgba(36, 116, 165, 0.08);
+    }
+
+    .hero {
+      padding: clamp(66px, 6vw, 82px) 0 clamp(44px, 4vw, 48px);
+      border-bottom: 1px solid rgba(20, 65, 98, 0.1);
+      background: #f8fbfe;
+      text-align: center;
+    }
+
+    .hero .shell {
+      max-width: 760px;
+    }
+
+    .breadcrumb {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .breadcrumb a {
+      color: var(--blue-dark);
+      border-bottom: 1px solid rgba(18, 63, 99, 0.28);
+    }
+
+    .hero-kicker {
+      display: block;
+      color: var(--blue);
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--display);
+      letter-spacing: 0;
+      text-wrap: balance;
+    }
+
+    h1 {
+      margin: 14px 0 0;
+      max-width: none;
+      font-family: var(--body);
+      font-size: clamp(3rem, 5vw, 4.15rem);
+      font-weight: 800;
+      line-height: 1.06;
+    }
+
+    .hero p {
+      max-width: 620px;
+      margin: 20px auto 0;
+      color: var(--muted);
+      font-size: clamp(1.06rem, 1.5vw, 1.2rem);
+      line-height: 1.62;
+      text-wrap: pretty;
+    }
+
+    section {
+      padding: clamp(58px, 8vw, 92px) 0;
+    }
+
+    .intro-section {
+      padding-top: clamp(58px, 6vw, 72px);
+      padding-bottom: clamp(58px, 6vw, 72px);
+    }
+
+    .section-soft {
+      background: rgba(237, 245, 249, 0.72);
+      border-top: 1px solid rgba(20, 65, 98, 0.08);
+      border-bottom: 1px solid rgba(20, 65, 98, 0.08);
+    }
+
+    .content {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .content p {
+      margin: 0 0 22px;
+      color: var(--text);
+      font-size: 1.09rem;
+      line-height: 1.78;
+      text-wrap: pretty;
+    }
+
+    .content p:last-child {
+      margin-bottom: 0;
+    }
+
+    .content strong {
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .section-head {
+      max-width: 720px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .section-head h2 {
+      font-size: clamp(2.15rem, 4.6vw, 4rem);
+      line-height: 1.08;
+    }
+
+    .section-head p {
+      margin: 16px auto 0;
+      max-width: 620px;
+      color: var(--muted);
+      font-size: 1.08rem;
+      line-height: 1.65;
+    }
+
+    .pillars-visual {
+      width: min(100%, 500px);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 42px auto 0;
+    }
+
+    .pillar {
+      overflow: hidden;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: var(--shadow-tight);
+      text-align: center;
+    }
+
+    .pillar small {
+      min-height: 34px;
+      display: grid;
+      place-items: center;
+      border-bottom: 1px solid var(--line);
+      background: rgba(20, 65, 98, 0.06);
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .pillar b {
+      min-height: 72px;
+      display: grid;
+      place-items: center;
+      border-bottom: 1px solid var(--line);
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: clamp(2rem, 4vw, 2.5rem);
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .pillar b:nth-of-type(2) {
+      background: rgba(20, 65, 98, 0.045);
+    }
+
+    .pillar em {
+      min-height: 34px;
+      display: grid;
+      place-items: center;
+      padding: 5px 6px;
+      color: var(--muted);
+      font-family: var(--display);
+      font-size: 0.92rem;
+      font-style: normal;
+      font-weight: 700;
+    }
+
+    .stem-metal { color: var(--gold) !important; }
+    .stem-water { color: var(--water-ink) !important; }
+    .stem-earth { color: #956236 !important; }
+    .stem-wood { color: var(--green) !important; }
+    .branch-fire { color: var(--seal) !important; }
+
+    .element-strip {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 26px auto 0;
+    }
+
+    .element-strip span {
+      min-height: 34px;
+      min-width: 64px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 999px;
+      padding: 0 14px;
+      font-family: var(--display);
+      font-weight: 900;
+    }
+
+    .wood { background: rgba(71, 123, 75, 0.12); color: #2f6935; }
+    .fire { background: rgba(180, 95, 73, 0.13); color: #a64f3d; }
+    .earth { background: rgba(184, 139, 50, 0.14); color: #8a6420; }
+    .metal { background: rgba(184, 139, 50, 0.18); color: #79601d; }
+    .water { background: rgba(36, 116, 165, 0.13); color: #1e6598; }
+
+    .pillar-copy {
+      max-width: 760px;
+      margin: 36px auto 0;
+      color: var(--text);
+      font-size: 1.04rem;
+      line-height: 1.72;
+      text-align: center;
+    }
+
+    .element-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-top: 36px;
+    }
+
+    .element-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.72);
+      padding: 22px 18px;
+      text-align: center;
+    }
+
+    .element-card strong {
+      display: block;
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .element-card h3 {
+      margin-top: 12px;
+      font-size: 1.22rem;
+    }
+
+    .element-card p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.55;
+    }
+
+    .cycle-grid,
+    .gods-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 34px;
+    }
+
+    .cycle-panel,
+    .god-panel {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.72);
+      padding: clamp(20px, 3vw, 28px);
+    }
+
+    .cycle-panel h3,
+    .god-panel h3 {
+      font-size: 1.45rem;
+    }
+
+    .cycle-panel p,
+    .god-panel p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.62;
+    }
+
+    .cycle-list,
+    .luck-list {
+      display: grid;
+      gap: 8px;
+      margin: 18px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .cycle-list li,
+    .luck-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+      color: var(--text);
+      font-size: 0.98rem;
+    }
+
+    .cycle-list span,
+    .luck-list span {
+      color: var(--blue-dark);
+      font-family: var(--display);
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .gods-grid {
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    }
+
+    .god-panel {
+      padding: 22px;
+    }
+
+    .luck-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(300px, 0.7fr);
+      gap: clamp(28px, 6vw, 68px);
+      align-items: center;
+      margin-top: 38px;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .timeline div {
+      display: grid;
+      grid-template-columns: 82px 1fr;
+      gap: 18px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding: 12px 0;
+    }
+
+    .timeline strong {
+      color: var(--blue-dark);
+      font-family: var(--display);
+      font-size: 1.2rem;
+    }
+
+    .timeline span {
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .calculator-card {
+      max-width: 520px;
+      margin: 0 auto;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.86);
+      padding: clamp(22px, 4vw, 34px);
+      box-shadow: var(--shadow-tight);
+    }
+
+    .calculator-card h2 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 92px 1fr 96px;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid rgba(16, 47, 73, 0.2);
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--ink);
+      padding: 0 13px;
+      outline: none;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(36, 116, 165, 0.12);
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .calculator-card .button {
+      width: 100%;
+      margin-top: 16px;
+    }
+
+    .faq {
+      max-width: 760px;
+      margin: 34px auto 0;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.78);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    summary {
+      position: relative;
+      cursor: pointer;
+      list-style: none;
+      padding: 18px 54px 18px 20px;
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::after {
+      content: "+";
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--blue);
+      font-size: 1.4rem;
+      font-weight: 400;
+      transition: transform 180ms var(--ease);
+    }
+
+    details[open] summary::after {
+      transform: translateY(-50%) rotate(45deg);
+    }
+
+    details p {
+      margin: 0;
+      padding: 0 20px 18px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .cta {
+      background: linear-gradient(135deg, var(--ink), var(--blue-dark));
+      color: #fffaf5;
+      text-align: center;
+    }
+
+    .cta h2 {
+      color: #fffaf5;
+      font-size: clamp(2.2rem, 5vw, 4.2rem);
+    }
+
+    .cta p {
+      max-width: 580px;
+      margin: 16px auto 28px;
+      color: rgba(255, 250, 245, 0.78);
+      font-size: 1.08rem;
+      line-height: 1.65;
+    }
+
+    .cta-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .cta .button {
+      border-color: #fffaf5;
+      background: #fffaf5;
+      color: var(--ink);
+    }
+
+    .cta .button.secondary {
+      background: transparent;
+      color: #fffaf5;
+      border-color: rgba(255, 250, 245, 0.45);
+    }
+
+    .footer {
+      padding: 34px 0 40px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 780px) {
+      .nav-links a:not(.nav-cta) {
+        display: none;
+      }
+
+      .hero {
+        padding-top: 52px;
+      }
+
+      h1 {
+        font-size: clamp(2.55rem, 12vw, 4rem);
+      }
+
+      .pillars-visual {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .cycle-grid,
+      .luck-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .shell {
+        width: min(100% - 28px, 980px);
+      }
+
+      .nav-inner {
+        min-height: 52px;
+      }
+
+      .brand {
+        font-size: 1rem;
+      }
+
+      .nav-cta {
+        min-height: 38px;
+        padding-inline: 13px;
+        font-size: 0.86rem;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .pillar b {
+        min-height: 64px;
+      }
+
+      .cycle-list li,
+      .luck-list li {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 1ms !important;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="./tengyunzi-shell.css?v=20260715nav">
+</head>
+<body>
+  <header class="nav">
+    <div class="shell nav-inner">
+      <a class="brand" href="./index.html#top">Tengyunzi</a>
+      <nav class="nav-links" aria-label="Page navigation"><a href="./tengyunzi-calculator.html#top">Calculator</a><a href="./tengyunzi-readings.html#top">Readings</a><a class="is-active" aria-current="page" href="./tengyunzi-what-is-bazi.html#top">What is BaZi</a><a href="./tengyunzi-12-month-calendar.html#top">12-Month Forecast</a><a href="./tengyunzi-blog.html#top">Blog</a><a href="./tengyunzi-free-resources.html#top">Free Resources</a><a href="./tengyunzi-newsletter.html#top">Letters</a><a href="./tengyunzi-about.html#top">About</a><a href="./tengyunzi-contact.html#top">Contact</a><a class="nav-cta" href="./tengyunzi-report.html#reading-form">Start Reading</a></nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="page-title">
+      <div class="shell">
+        <span class="hero-kicker">The Ancient System</span>
+        <h1 id="page-title">What is BaZi?</h1>
+        <p>BaZi, also known as the Four Pillars of Destiny, is a traditional Chinese system for reading temperament, life timing, and repeating patterns from a person&apos;s birth data.</p>
+      </div>
+    </section>
+
+    <section class="intro-section">
+      <div class="shell content">
+        <p><strong>BaZi</strong> means eight characters. A chart is built from four columns: the year, month, day, and hour of birth. Each column contains one Heavenly Stem and one Earthly Branch, creating eight symbols in total.</p>
+        <p>The useful point of BaZi is not to frighten people with fixed predictions. At Tengyunzi, we treat it as a self-knowledge framework: a way to observe personality, pressure, relationships, work style, and timing with more precision.</p>
+        <p>A complete reading starts with the chart structure, then studies the Five Elements, the Day Master, the Ten Gods, and the Luck Pillars. Together they show both your baseline pattern and the seasons when that pattern changes.</p>
+      </div>
+    </section>
+
+    <section class="section-soft" id="pillars">
+      <div class="shell">
+        <div class="section-head">
+          <h2>The Four Pillars</h2>
+          <p>The chart is arranged as four pillars. The Day Pillar is the center of the reading because its Heavenly Stem represents the Day Master.</p>
+        </div>
+
+        <div class="pillars-visual" aria-label="Chinese BaZi four pillars chart">
+          <div class="pillar">
+            <small>Year</small>
+            <b class="stem-metal">庚</b>
+            <b class="branch-fire">午</b>
+            <em>金 / 马</em>
+          </div>
+          <div class="pillar">
+            <small>Month</small>
+            <b class="stem-water">壬</b>
+            <b class="branch-fire">午</b>
+            <em>水 / 马</em>
+          </div>
+          <div class="pillar">
+            <small>Day</small>
+            <b class="stem-earth">戊</b>
+            <b class="stem-water">子</b>
+            <em>土 / 鼠</em>
+          </div>
+          <div class="pillar">
+            <small>Hour</small>
+            <b class="stem-wood">甲</b>
+            <b class="stem-wood">寅</b>
+            <em>木 / 虎</em>
+          </div>
+        </div>
+
+        <div class="element-strip" aria-label="Five elements">
+          <span class="wood">木</span>
+          <span class="fire">火</span>
+          <span class="earth">土</span>
+          <span class="metal">金</span>
+          <span class="water">水</span>
+        </div>
+
+        <p class="pillar-copy">Year often describes background and public-facing influences. Month describes season, environment, and career pressure. Day describes the self and intimate life. Hour points toward later life, output, children, and private aspiration.</p>
+      </div>
+    </section>
+
+    <section id="elements">
+      <div class="shell">
+        <div class="section-head">
+          <h2>The Five Elements</h2>
+          <p>Wood, Fire, Earth, Metal, and Water are the basic language of the chart. Their balance explains how energy moves, where stress collects, and what type of support is useful.</p>
+        </div>
+
+        <div class="element-grid">
+          <article class="element-card">
+            <strong class="wood">木</strong>
+            <h3>Wood</h3>
+            <p>Growth, planning, learning, kindness, and the urge to keep expanding.</p>
+          </article>
+          <article class="element-card">
+            <strong class="fire">火</strong>
+            <h3>Fire</h3>
+            <p>Warmth, visibility, expression, inspiration, and emotional ignition.</p>
+          </article>
+          <article class="element-card">
+            <strong class="earth">土</strong>
+            <h3>Earth</h3>
+            <p>Stability, care, trust, responsibility, and the ability to hold complexity.</p>
+          </article>
+          <article class="element-card">
+            <strong class="metal">金</strong>
+            <h3>Metal</h3>
+            <p>Structure, standards, discipline, discernment, and refined value.</p>
+          </article>
+          <article class="element-card">
+            <strong class="water">水</strong>
+            <h3>Water</h3>
+            <p>Wisdom, movement, memory, strategy, and the ability to adapt.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-soft">
+      <div class="shell">
+        <div class="section-head">
+          <h2>How the Cycles Work</h2>
+          <p>The elements do not sit still. They support one another through a generating cycle and regulate one another through a controlling cycle.</p>
+        </div>
+
+        <div class="cycle-grid">
+          <article class="cycle-panel">
+            <h3>Generating Cycle</h3>
+            <p>This is the flow of support. One element produces the next, like a chain of nourishment.</p>
+            <ul class="cycle-list">
+              <li><span>木 → 火</span>Wood feeds Fire</li>
+              <li><span>火 → 土</span>Fire creates Earth</li>
+              <li><span>土 → 金</span>Earth bears Metal</li>
+              <li><span>金 → 水</span>Metal carries Water</li>
+              <li><span>水 → 木</span>Water nourishes Wood</li>
+            </ul>
+          </article>
+
+          <article class="cycle-panel">
+            <h3>Controlling Cycle</h3>
+            <p>This is the flow of restraint. Control is not bad; it keeps an element from becoming excessive.</p>
+            <ul class="cycle-list">
+              <li><span>木 → 土</span>Wood parts Earth</li>
+              <li><span>土 → 水</span>Earth contains Water</li>
+              <li><span>水 → 火</span>Water cools Fire</li>
+              <li><span>火 → 金</span>Fire refines Metal</li>
+              <li><span>金 → 木</span>Metal shapes Wood</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="ten-gods">
+      <div class="shell">
+        <div class="section-head">
+          <h2>The Ten Gods</h2>
+          <p>The Ten Gods translate element relationships into practical life themes. They explain how a chart expresses ambition, pressure, money, creativity, support, and competition.</p>
+        </div>
+
+        <div class="gods-grid">
+          <article class="god-panel">
+            <h3>Companion</h3>
+            <p>Peers, identity, friendship, comparison, and the need to stand beside others without losing yourself.</p>
+          </article>
+          <article class="god-panel">
+            <h3>Output</h3>
+            <p>Expression, talent, speaking, making, teaching, and the way your inner pattern becomes visible.</p>
+          </article>
+          <article class="god-panel">
+            <h3>Wealth</h3>
+            <p>Resources, value, desire, management, action, and the capacity to work with the material world.</p>
+          </article>
+          <article class="god-panel">
+            <h3>Officer</h3>
+            <p>Rules, duty, authority, reputation, pressure, and the structure that asks you to become more precise.</p>
+          </article>
+          <article class="god-panel">
+            <h3>Resource</h3>
+            <p>Learning, protection, recovery, intuition, guidance, and the support that returns you to center.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-soft" id="luck">
+      <div class="shell">
+        <div class="section-head">
+          <h2>Luck Pillars</h2>
+          <p>A BaZi chart is not only a fixed birth map. It also unfolds through ten-year chapters that change the elemental weather around your chart.</p>
+        </div>
+
+        <div class="luck-layout">
+          <div class="content">
+            <p><strong>Luck Pillars</strong> are the timing layer of BaZi. Each decade brings a new stem and branch, and that combination interacts with the original chart.</p>
+            <p>This is why two people with similar personalities can experience very different seasons. A chart may be quiet in one decade, pressured in another, and highly visible in the next.</p>
+          </div>
+          <div class="timeline" aria-label="Example Luck Pillar timeline">
+            <div><strong>0-9</strong><span>Early environment and family imprint.</span></div>
+            <div><strong>10-19</strong><span>Learning patterns, friendships, and self-image.</span></div>
+            <div><strong>20-29</strong><span>Career direction, independence, and first major choices.</span></div>
+            <div><strong>30-39</strong><span>Responsibility, relationship patterns, and visible results.</span></div>
+            <div><strong>40+</strong><span>Refinement, repositioning, and longer-range meaning.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="calculator">
+      <div class="shell">
+        <div class="calculator-card">
+          <h2>BaZi Calculator</h2>
+          <p style="margin:12px 0 0;color:var(--muted);line-height:1.6;">Enter a birth date to start from the chart structure before moving into a deeper report.</p>
+          <form>
+            <div class="form-grid">
+              <div class="field">
+                <label for="day">Day</label>
+                <input id="day" value="15" inputmode="numeric">
+              </div>
+              <div class="field">
+                <label for="month">Month</label>
+                <select id="month">
+                  <option>January</option>
+                  <option>February</option>
+                  <option>March</option>
+                  <option>April</option>
+                  <option>May</option>
+                  <option selected>June</option>
+                  <option>July</option>
+                  <option>August</option>
+                  <option>September</option>
+                  <option>October</option>
+                  <option>November</option>
+                  <option>December</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="year">Year</label>
+                <input id="year" value="1990" inputmode="numeric">
+              </div>
+              <div class="field wide">
+                <label for="hour">Hour of Birth</label>
+                <select id="hour">
+                  <option selected>Unknown</option>
+                  <option>子时</option>
+                  <option>丑时</option>
+                  <option>寅时</option>
+                  <option>卯时</option>
+                  <option>辰时</option>
+                  <option>巳时</option>
+                  <option>午时</option>
+                  <option>未时</option>
+                  <option>申时</option>
+                  <option>酉时</option>
+                  <option>戌时</option>
+                  <option>亥时</option>
+                </select>
+              </div>
+              <div class="field wide">
+                <label for="gender">Gender</label>
+                <select id="gender">
+                  <option selected>Male</option>
+                  <option>Female</option>
+                  <option>Prefer not to say</option>
+                </select>
+              </div>
+            </div>
+            <a class="button" href="./tengyunzi-calculator.html#top">Calculate</a>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-soft">
+      <div class="shell">
+        <div class="section-head">
+          <h2>Questions about BaZi</h2>
+          <p>These are the questions most people ask before they trust a reading enough to enter their birth data.</p>
+        </div>
+
+        <div class="faq">
+          <details>
+            <summary>Is BaZi the same as Chinese zodiac?</summary>
+            <p>No. The zodiac only uses the year animal. BaZi uses year, month, day, hour, stems, branches, hidden stems, elements, Ten Gods, and Luck Pillars.</p>
+          </details>
+          <details>
+            <summary>Do I need my birth hour?</summary>
+            <p>A birth hour makes the chart more complete. If it is unknown, you can still read the year, month, and day structure, but later-life and private themes will be less precise.</p>
+          </details>
+          <details>
+            <summary>Is BaZi a fixed prediction?</summary>
+            <p>We do not use it that way. The chart shows patterns and timing pressures. Your choices, environment, skill, and awareness still matter.</p>
+          </details>
+          <details>
+            <summary>Why does the Day Master matter?</summary>
+            <p>The Day Master is the reference point. Every other symbol is interpreted by its relationship to that central stem, so it anchors the entire reading.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="shell">
+        <h2>Start with your own chart</h2>
+        <p>Use the free calculator first. Once the structure is clear, an immediate AI report or a personal reading by Tengyunzi can turn the symbols into practical self-knowledge.</p>
+        <div class="cta-actions">
+          <a class="button" href="./tengyunzi-calculator.html#top">Free BaZi Calculator</a>
+          <a class="button secondary" href="./tengyunzi-readings.html#top">View Readings</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell">Tengyunzi reads BaZi as a self-knowledge framework, not as fear-based fortune telling.</div>
+  </footer>
+  <script src="./js/tengyunzi-shell.js"></script>
+</body>
+</html>
+
+
+

@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tengyunzi Standard BaZi Report 975CBA04 - V4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&family=Noto+Serif:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>:root {
+  --navy: #0b2943;
+  --navy-2: #123f63;
+  --blue: #2478b5;
+  --blue-soft: #eaf4fb;
+  --sky: #d9ecf8;
+  --paper: #fbfdff;
+  --white: #ffffff;
+  --ink: #17364f;
+  --muted: #5d7183;
+  --line: #cddde8;
+  --wood: #398064;
+  --fire: #c65d4b;
+  --earth: #aa823f;
+  --metal: #73839a;
+  --water: #2478b5;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+html, body { margin: 0; background: #dfe8ee; color: var(--ink); font-family: "Noto Sans", sans-serif; }
+body { padding: 20px 0; }
+.report-book { width: 210mm; margin: 0 auto; }
+.pdf-page {
+  position: relative;
+  width: 210mm;
+  height: 297mm;
+  overflow: hidden;
+  break-after: page;
+  page-break-after: always;
+  background: var(--paper);
+  padding: 18mm 18mm 16mm;
+  box-shadow: 0 2px 8px rgba(11, 41, 67, .16);
+}
+.pdf-page + .pdf-page { margin-top: 18px; }
+.pdf-page footer { position: absolute; left: 18mm; right: 18mm; bottom: 8mm; display: flex; justify-content: space-between; align-items: center; color: #688093; font-size: 7.5pt; font-weight: 700; }
+.page-topline { display: flex; justify-content: space-between; padding-bottom: 4mm; border-bottom: 1px solid var(--line); color: var(--blue); font-size: 7.5pt; font-weight: 800; }
+h1, h2, h3, p { margin-top: 0; }
+h1, h2, h3 { color: var(--navy); font-family: "Noto Serif", serif; text-wrap: balance; }
+p { color: var(--ink); font-size: 10pt; line-height: 1.64; text-wrap: pretty; }
+
+.cover { background: var(--navy); color: white; padding: 19mm 18mm 15mm; }
+.cover::before { content: ""; position: absolute; inset: 0 0 auto auto; width: 86mm; height: 86mm; background: var(--blue); clip-path: polygon(32% 0,100% 0,100% 100%,0 100%); opacity: .18; }
+.cover::after { content: ""; position: absolute; left: 18mm; right: 18mm; top: 34mm; border-top: 1px solid rgba(255,255,255,.25); }
+.cover-mark { width: 13mm; height: 13mm; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.65); font-family: "Noto Serif", serif; font-weight: 900; }
+.cover-title { position: absolute; left: 18mm; top: 58mm; width: 118mm; }
+.cover-title > span, .overview-head span, .energy-page header > span, .closing span { color: #8fd1f4; font-size: 8pt; font-weight: 800; }
+.cover-title h1 { margin: 5mm 0 7mm; color: white; font-size: 34pt; line-height: 1.08; letter-spacing: 0; }
+.cover-title p { width: 102mm; color: #d7e6ef; font-size: 12pt; line-height: 1.6; }
+.cover-orbit { position: absolute; right: 17mm; top: 96mm; width: 58mm; height: 58mm; display: grid; place-items: center; border: 1px solid rgba(143,209,244,.46); border-radius: 50%; }
+.cover-orbit::before, .cover-orbit::after, .cover-orbit i { content: ""; position: absolute; border: 1px solid rgba(143,209,244,.25); border-radius: 50%; }
+.cover-orbit::before { inset: 7mm; }.cover-orbit::after { inset: 14mm; }.cover-orbit i:nth-child(1) { inset: 22mm; background: rgba(143,209,244,.12); }
+.cover-orbit i:nth-child(2) { left: 50%; top: -2mm; bottom: -2mm; border-radius: 0; border-width: 0 0 0 1px; }
+.cover-orbit i:nth-child(3) { top: 50%; left: -2mm; right: -2mm; border-radius: 0; border-width: 1px 0 0; }
+.cover-orbit strong { z-index: 1; color: white; font-family: "Noto Serif", serif; font-size: 18pt; }
+.cover-meta { position: absolute; left: 18mm; right: 18mm; bottom: 30mm; display: grid; grid-template-columns: 1fr 1.25fr .8fr; gap: 8mm; padding-top: 6mm; border-top: 1px solid rgba(255,255,255,.25); }
+.cover-meta div { display: grid; gap: 2mm; }.cover-meta dt { color: #8fd1f4; font-size: 7.5pt; font-weight: 800; }.cover-meta dd { margin: 0; color: white; font-size: 9pt; line-height: 1.45; }
+.cover footer { color: rgba(255,255,255,.65); }
+
+.overview-head { display: grid; grid-template-columns: 1.12fr .88fr; gap: 18mm; align-items: end; margin: 13mm 0 10mm; }
+.overview-head h2 { margin: 3mm 0 0; font-size: 27pt; line-height: 1.16; }
+.overview-head p { margin-bottom: 1mm; color: var(--muted); font-size: 10.5pt; }
+.overview-grid { display: grid; gap: 9mm; }
+.pillars-panel { padding: 6mm 8mm; background: var(--white); border-top: 3px solid var(--blue); }
+.pillars-panel h3 { font-size: 13pt; }
+.pillar-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 3mm; }
+.pillar-card { display: grid; grid-template-rows: auto 1fr 1fr auto; min-height: 52mm; border: 1px solid var(--line); text-align: center; background: #f7fbfe; }
+.pillar-card > span { padding: 3mm; background: var(--blue-soft); color: var(--muted); font-size: 7pt; font-weight: 800; }
+.pillar-card strong { display: grid; place-items: center; color: var(--navy); font-family: "Noto Serif", serif; font-size: 23pt; }
+.pillar-card strong + strong { border-top: 1px solid var(--line); }
+.pillar-card small { padding: 2.5mm; border-top: 1px solid var(--line); color: var(--muted); font-size: 7.5pt; }
+.unknown-note { margin: 3mm 0 0; padding: 3mm 5mm; background: var(--blue-soft); color: #365a74; font-size: 8.5pt; }
+.signal-panel { display: grid; grid-template-columns: repeat(3,1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.signal-panel div { min-height: 45mm; display: flex; flex-direction: column; justify-content: center; padding: 7mm; border-right: 1px solid var(--line); }.signal-panel div:last-child { border-right: 0; }
+.signal-panel span { color: var(--blue); font-size: 7pt; font-weight: 800; }.signal-panel strong { margin: 3mm 0 1mm; color: var(--navy); font-family: "Noto Serif", serif; font-size: 21pt; }.signal-panel small { color: var(--muted); font-size: 8pt; }
+.signal-panel.four-up { grid-template-columns: repeat(4, 1fr); }
+.signal-panel.four-up div { min-height: 34mm; padding: 4.2mm 5mm; }
+.signal-panel.four-up strong { font-size: 17pt; }
+.executive-priorities { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 3mm; border-top: 2px solid var(--blue); border-bottom: 1px solid var(--line); }
+.executive-priorities > div { min-height: 23mm; padding: 3.2mm 4mm; border-right: 1px solid var(--line); }
+.executive-priorities > div:last-child { border-right: 0; }
+.executive-priorities span { color: var(--blue); font-size: 5.8pt; font-weight: 800; }
+.executive-priorities strong { display: block; margin: 1.5mm 0 1mm; color: var(--navy); font-size: 8pt; line-height: 1.3; }
+.executive-priorities p { margin: 0; color: var(--muted); font-size: 6.3pt; line-height: 1.35; }
+.confidence-key { display: flex; gap: 5mm; margin-top: 2mm; color: var(--muted); font-size: 5.8pt; line-height: 1.25; }
+.confidence-key span { flex: 1; }.confidence-key b { color: var(--navy); }
+.overview .confidence-key { position: absolute; left: 18mm; right: 18mm; bottom: 20mm; margin-top: 0; }
+
+.energy-page header { max-width: 142mm; margin: 12mm 0 8mm; }
+.energy-page h2 { margin: 3mm 0; font-size: 26pt; }.energy-page header p { color: var(--muted); }
+.energy-layout { display: grid; grid-template-columns: .95fr 1.05fr; gap: 6mm; height: 91mm; }
+.chart { width: 100%; min-height: 68mm; background: var(--white); }
+.energy-legend { margin-top: 8mm; display: grid; grid-template-columns: repeat(2,1fr); gap: 3mm 8mm; }
+.energy-legend div { display: grid; grid-template-columns: 4mm 1fr; column-gap: 3mm; padding: 3.2mm 0; border-bottom: 1px solid var(--line); }
+.energy-legend i { width: 3mm; height: 3mm; margin-top: 1mm; border-radius: 50%; }.energy-legend strong { font-size: 8.5pt; }.energy-legend span { grid-column: 2; color: var(--muted); font-size: 7.5pt; }
+.energy-legend .wood{background:var(--wood)}.energy-legend .fire{background:var(--fire)}.energy-legend .earth{background:var(--earth)}.energy-legend .metal{background:var(--metal)}.energy-legend .water{background:var(--water)}
+
+.wx-wood { color: var(--wood) !important; }
+.wx-fire { color: var(--fire) !important; }
+.wx-earth { color: var(--earth) !important; }
+.wx-metal { color: var(--metal) !important; }
+.wx-water { color: var(--water) !important; }
+
+.ten-gods-page header { display: grid; grid-template-columns: 1fr .82fr; gap: 13mm; align-items: end; margin: 12mm 0 9mm; }
+.ten-gods-page header > span { grid-column: 1 / -1; color: var(--blue); font-size: 8pt; font-weight: 800; }
+.ten-gods-page header h2 { margin: -1mm 0 0; font-size: 25pt; line-height: 1.16; }
+.ten-gods-page header p { margin: 0; color: var(--muted); font-size: 9pt; }
+.ten-god-table { border-top: 2px solid var(--blue); }
+.ten-god-row { min-height: 13.5mm; display: grid; grid-template-columns: 39mm 1fr 11mm 54mm; gap: 4mm; align-items: center; border-bottom: 1px solid var(--line); }
+.ten-god-name { display: grid; grid-template-columns: 12mm 1fr; align-items: baseline; }.ten-god-name strong { color: var(--navy); font-family: "Noto Serif", serif; font-size: 12pt; }.ten-god-name span { color: var(--ink); font-size: 8pt; font-weight: 700; }
+.ten-god-meter { height: 4mm; overflow: hidden; background: #e8f0f5; }.ten-god-meter i { display: block; height: 100%; background: currentColor; }
+.ten-god-row > b { color: var(--navy); font-size: 8pt; text-align: right; }.ten-god-row > small { display: grid; gap: 1mm; color: var(--muted); font-size: 7.3pt; line-height: 1.35; }
+.ten-god-row > small em { color: var(--blue); font-size: 6.2pt; font-style: normal; font-weight: 800; }
+.ten-god-note { display: grid; grid-template-columns: 34mm 1fr; gap: 7mm; margin-top: 6mm; padding: 5mm 6mm; background: var(--blue-soft); }.ten-god-note strong { color: var(--blue); font-size: 8pt; }.ten-god-note p { margin: 0; font-size: 8.3pt; }
+
+.shen-sha-page header { display: grid; grid-template-columns: 1fr .82fr; gap: 13mm; align-items: end; margin: 12mm 0 9mm; }
+.shen-sha-page header > span { grid-column: 1 / -1; color: var(--blue); font-size: 8pt; font-weight: 800; }
+.shen-sha-page header h2 { margin: -1mm 0 0; font-size: 25pt; line-height: 1.16; }
+.shen-sha-page header p { margin: 0; color: var(--muted); font-size: 8.6pt; }
+.shen-sha-table { width: 100%; border-collapse: collapse; border-top: 2px solid var(--blue); table-layout: fixed; }
+.shen-sha-table th { padding: 3mm 2.5mm; background: var(--blue-soft); color: var(--blue); font-size: 6.5pt; text-align: left; text-transform: uppercase; }
+.shen-sha-table th:nth-child(1) { width: 38mm; }.shen-sha-table th:nth-child(2) { width: 27mm; }.shen-sha-table th:nth-child(3) { width: 27mm; }
+.shen-sha-table td { padding: 3mm 2.5mm; border-bottom: 1px solid var(--line); color: var(--ink); font-size: 7.2pt; line-height: 1.38; vertical-align: top; }
+.shen-sha-table td:first-child strong { display: block; color: var(--navy); font-family: "Noto Serif", serif; font-size: 10.5pt; }.shen-sha-table td:first-child span, .shen-sha-table td:nth-child(2) span { display: block; margin-top: .8mm; color: var(--muted); font-size: 6.5pt; }
+.shen-sha-table td:nth-child(2) b { color: var(--blue); font-size: 6.5pt; }.shen-sha-table td:nth-child(2) span { color: var(--navy); font-family: "Noto Serif", serif; font-size: 11pt; font-weight: 800; }
+.shen-sha-note { display: grid; grid-template-columns: 38mm 1fr; gap: 7mm; margin-top: 7mm; padding: 5mm 6mm; background: var(--navy); }.shen-sha-note strong { color: #8fd1f4; font-size: 7.5pt; }.shen-sha-note p { margin: 0; color: #d7e6ef; font-size: 7.6pt; line-height: 1.5; }
+
+.contents header { margin: 12mm 0 8mm; }.contents h2 { margin-bottom: 3mm; font-size: 27pt; }.contents header p { color: var(--muted); }
+.contents ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2,1fr); column-gap: 10mm; }
+.contents li { min-height: 14mm; display: grid; grid-template-columns: 8mm 1fr; column-gap: 3mm; align-content: center; border-bottom: 1px solid var(--line); }
+.contents li > span { color: var(--blue); font-family: "Noto Serif", serif; font-size: 9pt; font-weight: 800; }.contents li a { display: grid; gap: .5mm; color: inherit; text-decoration: none; }.contents li strong { color: var(--navy); font-size: 8.5pt; }.contents li small { color: var(--muted); font-size: 6.6pt; font-weight: 700; }
+
+.section-layout { display: grid; grid-template-columns: 21mm 1fr; gap: 8mm; margin-top: 11mm; }
+.section-index { min-height: 178mm; border-right: 1px solid var(--line); }.section-index span { display: block; color: var(--blue); font-family: "Noto Serif", serif; font-size: 27pt; font-weight: 800; }.section-index small { display: block; width: 19mm; margin-top: 3mm; color: var(--muted); font-size: 7pt; font-weight: 800; line-height: 1.4; }
+.section-content h2 { max-width: 132mm; margin: 0 0 5mm; font-size: 22pt; line-height: 1.16; }
+.core-insight { margin-bottom: 4mm; padding: 4.5mm 5mm; background: var(--navy); }
+.core-insight span { display: block; margin-bottom: 1.5mm; color: #8fd1f4; font-size: 6.2pt; font-weight: 800; }
+.core-insight p { margin: 0; color: white; font-family: "Noto Serif", serif; font-size: 10.2pt; font-weight: 700; line-height: 1.48; }
+.chart-basis { display: grid; grid-template-columns: 25mm 1fr; gap: 4mm; margin-bottom: 4mm; padding-bottom: 3mm; border-bottom: 1px solid var(--line); }
+.chart-basis strong { color: var(--blue); font-size: 7pt; }.chart-basis span { color: var(--muted); font-size: 7.4pt; line-height: 1.45; }
+.section-copy { columns: 2; column-gap: 7mm; column-rule: 1px solid var(--line); }
+.section-copy p { margin-bottom: 3mm; color: #25435a; font-size: 8.15pt; line-height: 1.52; break-inside: avoid; }
+.section-page.dense .section-copy p { font-size: 7.75pt; line-height: 1.46; }
+.section-page.extra-dense .section-copy p { font-size: 7.3pt; line-height: 1.4; }
+.practice-panel { display: grid; grid-template-columns: 1.08fr .92fr; gap: 5mm; margin-top: 4mm; padding-top: 4mm; border-top: 2px solid var(--blue); }
+.practice-panel > div { display: grid; align-content: start; gap: 1.5mm; }
+.practice-panel strong { color: var(--navy); font-size: 7.3pt; }
+.practice-panel span { position: relative; padding-left: 4mm; color: var(--ink); font-size: 7pt; line-height: 1.35; }
+.practice-panel span::before { content: ""; position: absolute; left: 0; top: 1.7mm; width: 2mm; border-top: 2px solid var(--blue); }
+.practice-panel p { margin: 0; color: var(--muted); font-size: 7.2pt; font-style: italic; line-height: 1.45; }
+.practice-panel.confidence-calculated { border-top-color: var(--wood); }
+.practice-panel.confidence-supported { border-top-color: var(--blue); }
+.practice-panel.confidence-contextual { border-top-color: var(--earth); }
+.section-page .chart-wide { height: 54mm; min-height: 54mm; margin: -1mm 0 6mm; }
+.section-page .timeline-chart { height: 56mm; min-height: 56mm; margin: -1mm 0 6mm; }
+.section-page blockquote { margin: 2mm 0 8mm; padding: 6mm; background: var(--navy); color: white; font-family: "Noto Serif", serif; font-size: 16pt; line-height: 1.45; }
+.rhythm-strip { display: grid; grid-template-columns: repeat(3,1fr); margin: 0 0 7mm; border-top: 2px solid var(--blue); border-bottom: 1px solid var(--line); }
+.rhythm-strip div { padding: 4mm 3mm; border-right: 1px solid var(--line); }.rhythm-strip div:last-child{border-right:0}.rhythm-strip span { color: var(--blue); font-size: 6.5pt; font-weight: 800; }.rhythm-strip strong { display: block; margin: 2mm 0 1mm; color: var(--navy); font-size: 9pt; }.rhythm-strip small { color: var(--muted); font-size: 6.8pt; line-height: 1.35; }
+
+.timing-atlas header { display: grid; grid-template-columns: 1.16fr .84fr; gap: 12mm; align-items: end; margin: 10mm 0 8mm; }
+.timing-atlas header > span { grid-column: 1 / -1; color: var(--blue); font-size: 8pt; font-weight: 800; }.timing-atlas header h2 { margin: -1mm 0 0; font-size: 23pt; line-height: 1.15; }.timing-atlas header p { margin: 0; color: var(--muted); font-size: 8.8pt; }
+.timing-atlas h3 { margin: 0 0 4mm; font-family: "Noto Sans", sans-serif; font-size: 9pt; }
+.cycle-section { padding-top: 5mm; border-top: 2px solid var(--blue); }
+.cycle-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; }
+.cycle { position: relative; min-height: 39mm; display: grid; align-content: start; gap: 2mm; padding: 4mm; background: #f1f6f9; border-top: 2px solid #aebfca; }
+.cycle.is-current { background: var(--navy); border-top-color: #7dcbf1; }.cycle-state { color: var(--blue); font-size: 6.2pt; font-weight: 800; }.cycle.is-current .cycle-state { color: #8fd1f4; }
+.colored-ganzhi { display: inline-flex; gap: 1.5mm; font-family: "Noto Serif", serif; font-size: 18pt; font-weight: 900; line-height: 1; }.colored-ganzhi i { font-style: normal; }.cycle.is-current .colored-ganzhi i { filter: brightness(1.35) saturate(.8); }
+.cycle > strong { color: var(--navy); font-size: 7.3pt; }.cycle.is-current > strong { color: white; }.cycle > small { color: var(--muted); font-size: 6.5pt; line-height: 1.35; }.cycle.is-current > small { color: #c9dbe6; }
+.annual-section { display: grid; grid-template-columns: 40mm 1fr; gap: 7mm; margin-top: 9mm; padding-top: 6mm; border-top: 1px solid var(--line); }.annual-section > div:first-child p { color: var(--muted); font-size: 7.5pt; }
+.annual-grid { display: grid; grid-template-columns: repeat(5,1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.annual-year { min-height: 46mm; display: grid; align-content: start; gap: 1.4mm; padding: 3mm 2.5mm; border-right: 1px solid var(--line); }.annual-year:last-child { border-right: 0; }.annual-year.is-now { background: var(--blue-soft); }.annual-year > span { color: var(--blue); font-size: 5.5pt; font-weight: 800; min-height: 3mm; }.annual-year .colored-ganzhi.small { margin: 1mm 0; font-size: 15pt; }.annual-year small { color: var(--muted); font-size: 5.4pt; line-height: 1.25; }.annual-year em { color: var(--ink); font-size: 5.2pt; font-style: normal; line-height: 1.28; }
+.strategy { justify-self: start; padding: .7mm 1.4mm; color: white; background: var(--blue); font-size: 5pt; font-weight: 900; }
+.strategy-steady { background: var(--metal); }.strategy-defend { background: var(--fire); }
+.strategy-key { display: flex; flex-wrap: wrap; gap: 1.2mm; margin-top: 3mm; }.strategy-key span { padding: .7mm 1.3mm; background: var(--blue-soft); color: var(--blue); font-size: 5.2pt; font-weight: 800; }
+
+.method-layout { display: grid; grid-template-columns: .9fr 1.1fr; gap: 12mm; margin-top: 15mm; }.method-layout h2 { font-size: 25pt; }.method-layout > div p { font-size: 9.5pt; }.method-layout dl { margin: 0; }.method-layout dl div { display: grid; grid-template-columns: 10mm 1fr; gap: 3mm; padding: 4mm 0; border-bottom: 1px solid var(--line); }.method-layout dt { color: var(--blue); font-family: "Noto Serif", serif; font-weight: 800; }.method-layout dd { margin: 0; display: grid; gap: 1mm; }.method-layout dd strong { color: var(--navy); font-size: 8.5pt; }.method-layout dd span { color: var(--muted); font-size: 7.5pt; line-height: 1.42; }
+.disclaimer { margin-top: 22mm; padding: 7mm; background: var(--blue-soft); }.disclaimer strong { color: var(--blue); font-size: 8pt; }.disclaimer p { margin: 2mm 0 0; font-size: 9pt; }
+.closing { display: flex; flex-direction: column; justify-content: center; background: var(--navy); color: white; }.closing-mark { position: absolute; top: 18mm; left: 18mm; width: 13mm; height: 13mm; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.55); font-family: "Noto Serif", serif; font-weight: 900; }.closing h2 { margin: 5mm 0; color: white; font-size: 34pt; line-height: 1.12; }.closing p { color: #d7e6ef; font-size: 11pt; }.closing footer { color: rgba(255,255,255,.68); }
+.closing-copy { max-width: 158mm; }
+.closing-access { display: grid; grid-template-columns: 28mm 1fr; gap: 6mm; align-items: center; max-width: 125mm; margin-top: 12mm; padding: 6mm; background: white; }
+.closing-access img { width: 28mm; height: 28mm; }
+.closing-access strong { color: var(--navy); font-size: 9pt; }
+.closing-access p { margin: 1.5mm 0; color: var(--muted); font-size: 7pt; line-height: 1.4; }
+.closing-access a { color: var(--blue); font-size: 7pt; font-weight: 800; text-decoration: none; }
+.closing-next { display: flex; gap: 7mm; margin-top: 8mm; }
+.closing-next a { color: #8fd1f4; font-size: 7pt; font-weight: 800; text-decoration: none; border-bottom: 1px solid rgba(143,209,244,.55); }
+
+@media print {
+  html, body { background: white; }
+  body { padding: 0; }
+  .report-book { margin: 0; }
+  .pdf-page { box-shadow: none; }
+  .pdf-page + .pdf-page { margin-top: 0; }
+}
+
+@page { size: A4; margin: 0; }
+</style>
+</head>
+<body>
+  <main class="report-book">
+    <section class="pdf-page cover" data-page>
+      <div class="cover-mark">TZ</div>
+      <div class="cover-title">
+        <span>STANDARD AI BAZI REPORT</span>
+        <h1>Your Four Pillars<br>Interpretation</h1>
+        <p>A traditional BaZi reading of chart structure, Ten Gods, useful elements, life topics, Luck Pillars, and annual timing.</p>
+      </div>
+      <div class="cover-orbit" aria-hidden="true"><i></i><i></i><i></i><strong>命</strong></div>
+      <dl class="cover-meta">
+        <div><dt>Birth profile</dt><dd>August 16, 1994</dd></div>
+        <div><dt>Chart</dt><dd>甲戌 / 壬申 / 甲戌 / 壬申</dd></div>
+        <div><dt>Report ID</dt><dd>975CBA04 · V4<br>July 22, 2026</dd></div>
+      </dl>
+      <footer><span>TENGYUNZI</span><span>CONFIDENTIAL AI-GENERATED REPORT</span></footer>
+    </section>
+
+    <section class="pdf-page overview" data-page>
+      <div class="page-topline"><span>EXECUTIVE VIEW</span><span>STANDARD EDITION</span></div>
+      <header class="overview-head"><div><span>THE CHART AT A GLANCE</span><h2>Wood at the center.<br>Four forces in dialogue.</h2></div><p>The visible stems and branches emphasize Wood, Earth, Metal, Water. Fire appears only in hidden stems. Every element is present either visibly or in hidden stems.</p></header>
+      <div class="overview-grid">
+        <div class="pillars-panel">
+          <h3>Four Pillars</h3>
+          <div class="pillar-row">
+            <div class="pillar-card">
+    <span>YEAR</span>
+    <strong class="wx-wood">甲</strong>
+    <strong class="wx-earth">戌</strong>
+    <small>甲戌</small>
+  </div>
+            <div class="pillar-card">
+    <span>MONTH</span>
+    <strong class="wx-water">壬</strong>
+    <strong class="wx-metal">申</strong>
+    <small>壬申</small>
+  </div>
+            <div class="pillar-card">
+    <span>DAY</span>
+    <strong class="wx-wood">甲</strong>
+    <strong class="wx-earth">戌</strong>
+    <small>Day Master</small>
+  </div>
+            <div class="pillar-card">
+    <span>HOUR</span>
+    <strong class="wx-water">壬</strong>
+    <strong class="wx-metal">申</strong>
+    <small>Birth hour</small>
+  </div>
+          </div>
+          <p class="unknown-note">The recorded birth time is 16:00. All four pillars are included in this reading.</p>
+        </div>
+        <div class="signal-panel four-up">
+          <div><span>DAY MASTER</span><strong class="wx-wood">甲</strong><small>Yang Wood</small></div>
+          <div><span>LEADING FUNCTION</span><strong>偏印</strong><small>Indirect Resource · 41%</small></div>
+          <div><span>CURRENT CYCLE</span><strong>己巳</strong><small>2017-2026</small></div>
+          <div><span>CORE POSTURE</span><strong>SUPPORT</strong><small>Reinforce before loading</small></div>
+        </div>
+        <div class="executive-priorities">
+          <div><span>01 / FOUNDATION</span><strong>甲 Wood in 申 season</strong><p>No same-element branch root; support must be read from the remaining stems and branches.</p></div>
+          <div><span>02 / STRUCTURE</span><strong>Indirect Resource leads at 41%</strong><p>Calculated from visible non-Day stems and weighted hidden stems, then interpreted with the full chart.</p></div>
+          <div><span>03 / TIMING</span><strong>2026 丙午 · STEADY</strong><p>Planning posture uses the active Luck Pillar and supported annual contacts; it is not an event guarantee.</p></div>
+        </div>
+        <div class="confidence-key"><span><b>CALCULATED</b> direct chart or timing data</span><span><b>SUPPORTED</b> structural interpretation</span><span><b>CONTEXTUAL</b> compare with lived circumstances</span></div>
+      </div>
+      <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+    </section>
+
+    <section class="pdf-page energy-page" data-page>
+      <div class="page-topline"><span>ELEMENTAL PROFILE</span><span>STANDARD EDITION</span></div>
+      <header><span>FIVE ELEMENT ENERGY</span><h2>A broad 4-element profile</h2><p>The chart counts visible stems and branches only. Zero does not mean an element is absent from life; it means that function is not visibly emphasized in the natal pillars used here.</p></header>
+      <div class="energy-layout">
+        <div class="chart radar-chart" id="element-radar"></div>
+        <div class="chart bars-chart" id="element-bars"></div>
+      </div>
+      <div class="energy-legend"><div><i class="wood"></i><strong>Wood / Companion</strong><span>Identity, peers, continuity</span></div><div><i class="fire"></i><strong>Fire / Output</strong><span>Expression, craft, production</span></div><div><i class="earth"></i><strong>Earth / Wealth</strong><span>Resources, exchange, stewardship</span></div><div><i class="metal"></i><strong>Metal / Officer</strong><span>Direction, standards, authority</span></div><div><i class="water"></i><strong>Water / Resource</strong><span>Learning, support, replenishment</span></div></div>
+      <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+    </section>
+
+    <section class="pdf-page ten-gods-page" data-page>
+    <div class="page-topline"><span>TEN-GOD PROFILE</span><span>STRUCTURAL EMPHASIS</span></div>
+    <header><span>RELATIONAL ENERGIES</span><h2>How the chart's forces<br>relate to the Day Master</h2><p>This profile combines visible stems with weighted hidden stems. It describes structural emphasis, not a fixed share of life outcomes.</p></header>
+    <div class="ten-god-table"><div class="ten-god-row">
+    <div class="ten-god-name"><strong>偏印</strong><span>Indirect Resource</span></div>
+    <div class="ten-god-meter"><i class="wx-water" style="width:41%"></i></div>
+    <b>41%</b>
+    <small><span>Pattern recognition and intuition</span><em>Visible 2.3 · Hidden 0.7</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>七杀</strong><span>Seven Killings</span></div>
+    <div class="ten-god-meter"><i class="wx-metal" style="width:19%"></i></div>
+    <b>19%</b>
+    <small><span>Pressure, courage, and decisive action</span><em>Visible 0.0 · Hidden 1.4</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>偏财</strong><span>Indirect Wealth</span></div>
+    <div class="ten-god-meter"><i class="wx-earth" style="width:18%"></i></div>
+    <b>18%</b>
+    <small><span>Opportunity and flexible exchange</span><em>Visible 0.0 · Hidden 1.3</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>比肩</strong><span>Friend</span></div>
+    <div class="ten-god-meter"><i class="wx-wood" style="width:12%"></i></div>
+    <b>12%</b>
+    <small><span>Identity and self-direction</span><em>Visible 0.8 · Hidden 0.0</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>正官</strong><span>Direct Officer</span></div>
+    <div class="ten-god-meter"><i class="wx-metal" style="width:8%"></i></div>
+    <b>8%</b>
+    <small><span>Standards, duty, and legitimate authority</span><em>Visible 0.0 · Hidden 0.6</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>伤官</strong><span>Hurting Officer</span></div>
+    <div class="ten-god-meter"><i class="wx-fire" style="width:2%"></i></div>
+    <b>2%</b>
+    <small><span>Originality and challenge</span><em>Visible 0.0 · Hidden 0.2</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>劫财</strong><span>Rob Wealth</span></div>
+    <div class="ten-god-meter"></div>
+    <b>0%</b>
+    <small><span>Competition, alliances, and shared resources</span><em>Visible 0.0 · Hidden 0.0</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>食神</strong><span>Eating God</span></div>
+    <div class="ten-god-meter"></div>
+    <b>0%</b>
+    <small><span>Gentle expression and craft</span><em>Visible 0.0 · Hidden 0.0</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>正财</strong><span>Direct Wealth</span></div>
+    <div class="ten-god-meter"></div>
+    <b>0%</b>
+    <small><span>Steady resources and stewardship</span><em>Visible 0.0 · Hidden 0.0</em></small>
+  </div><div class="ten-god-row">
+    <div class="ten-god-name"><strong>正印</strong><span>Direct Resource</span></div>
+    <div class="ten-god-meter"></div>
+    <b>0%</b>
+    <small><span>Learning, support, and restoration</span><em>Visible 0.0 · Hidden 0.0</em></small>
+  </div></div>
+    <div class="ten-god-note"><strong>Reading the scale</strong><p>Percentages use largest-remainder rounding and total exactly 100%. Visible counts come from non-Day stems; hidden scores use weighted branch roots. This is a technical distribution index for the natal chart.</p></div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </section>
+
+    <section class="pdf-page shen-sha-page" data-page>
+    <div class="page-topline"><span>SYMBOLIC-STAR PROFILE</span><span>SECONDARY READING LENS</span></div>
+    <header><span>神煞 / SHEN SHA</span><h2>Markers that add nuance,<br>not fixed outcomes</h2><p>Each marker is calculated from the natal stems and branches. It is interpreted as supporting context and never overrides the Day Master, Five Elements, or Ten-God structure.</p></header>
+    <table class="shen-sha-table"><thead><tr><th>Marker</th><th>Location</th><th>Derived from</th><th>Practical interpretation</th></tr></thead><tbody><tr>
+    <td><strong>华盖</strong><span>Canopy Star</span></td>
+    <td><b>2 PLACEMENTS</b><span>YEAR 戌 · DAY 戌</span></td>
+    <td>Day Pillar + Year Pillar</td>
+    <td>Supports specialist depth, solitude, aesthetics, and the ability to work beyond conventional opinion. Repetition increases emphasis across life contexts.</td>
+  </tr><tr>
+    <td><strong>驿马</strong><span>Travel Horse</span></td>
+    <td><b>2 PLACEMENTS</b><span>MONTH 申 · HOUR 申</span></td>
+    <td>Day Pillar + Year Pillar</td>
+    <td>Adds momentum through movement, changing environments, travel, or roles that resist stagnation. Repetition increases emphasis across life contexts.</td>
+  </tr></tbody></table>
+    <div class="shen-sha-note"><strong>How to read this page</strong><p>A marker describes a recurring symbolic tendency. Repetition can strengthen emphasis, but no single Shen Sha guarantees an event, relationship, or outcome.</p></div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </section>
+
+    <section class="pdf-page contents" data-page>
+      <div class="page-topline"><span>READING MAP</span><span>STANDARD BAZI INTERPRETATION</span></div>
+      <header><h2>What this report covers</h2><p>15 evidence-led chapters, moving from the natal chart to life topics, Luck Pillars, and annual timing.</p></header>
+      <ol><li><span>01</span><a href="#section-1"><strong>Four Pillars and Day Master</strong><small>CHART FOUNDATION</small></a></li><li><span>02</span><a href="#section-2"><strong>Seasonal Qi and Day Master Strength</strong><small>CHART FOUNDATION</small></a></li><li><span>03</span><a href="#section-3"><strong>Five Elements and Hidden Stems</strong><small>CHART FOUNDATION</small></a></li><li><span>04</span><a href="#section-4"><strong>Ten Gods in the Natal Chart</strong><small>CHART FOUNDATION</small></a></li><li><span>05</span><a href="#section-5"><strong>Chart Structure, Useful Elements, and Unfavorable Elements</strong><small>CHART STRUCTURE</small></a></li><li><span>06</span><a href="#section-6"><strong>Stems, Branches, and Natal Interactions</strong><small>CHART STRUCTURE</small></a></li><li><span>07</span><a href="#section-7"><strong>Shen Sha: Secondary Symbolic Stars</strong><small>CHART STRUCTURE</small></a></li><li><span>08</span><a href="#section-8"><strong>Career and Suitable Work Environments</strong><small>LIFE TOPICS</small></a></li><li><span>09</span><a href="#section-9"><strong>Wealth Pattern and Resource Management</strong><small>LIFE TOPICS</small></a></li><li><span>10</span><a href="#section-10"><strong>Relationships, Partner Star, and Spouse Palace</strong><small>LIFE TOPICS</small></a></li><li><span>11</span><a href="#section-11"><strong>Health Tendencies Through the Five Elements</strong><small>LIFE TOPICS</small></a></li><li><span>12</span><a href="#section-12"><strong>Luck Pillar Direction and Starting Age</strong><small>TIMING</small></a></li><li><span>13</span><a href="#section-13"><strong>Ten-Year Luck Pillars</strong><small>TIMING</small></a></li><li><span>14</span><a href="#section-14"><strong>Annual Outlook for the Next Five Years</strong><small>TIMING</small></a></li><li><span>15</span><a href="#section-15"><strong>Timing Priorities and Practical Summary</strong><small>TIMING</small></a></li></ol>
+      <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+    </section>
+
+    <article class="pdf-page section-page" id="section-1" data-page>
+    <div class="page-topline"><span>CHART FOUNDATION</span><span>CONFIDENCE / CALCULATED</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>01</span><small>Structure</small></aside>
+      <div class="section-content">
+        <h2>Four Pillars and Day Master</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>The calculated Four Pillars are Year 甲戌; Month 壬申; Day 甲戌; Hour 壬申.  The Day Master is the Day Stem 甲, a Yang Wood stem.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Day Master: 甲, a Wood Heavenly Stem. Day Pillar and Day Master are kept distinct.</span></div>
+        <div class="section-copy"><p> The two-character Day Pillar is 甲戌; it must not be substituted for the one-character Day Master.  In standard BaZi, each position provides a different frame: Year represents ancestry, early environment, and the wider social field; Month represents seasonal command, work structure, and the chart climate; Day represents the Day Master and Spouse Palace; Hour represents later-stage projects, output, and descendants.  These are traditional chart positions, not verified biographical facts.</p><p> The Month Branch is given priority when evaluating seasonal qi, while the Day Stem remains the reference point for Ten-God relationships.  The natal chart contains exact whole-pillar repeats: 甲戌 across year and day; 壬申 across month and hour.  These are calculated Fu Yin contacts and are analyzed in Section 6.</p><p> At this foundation stage, no claim is made about temperament or future events.  The direct facts are the four pillar positions, the 甲 Day Master, their Yin-Yang polarity, and their Five-Element and Ten-God mappings.</p></div>
+        <div class="practice-panel confidence-calculated"><div><strong>Calculated fact</strong><span>Directly derived from the supplied Four Pillars.</span></div><div><strong>Interpretation boundary</strong><p>Calculated facts are separated from interpretation. No single symbol is proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-2" data-page>
+    <div class="page-topline"><span>CHART FOUNDATION</span><span>CONFIDENCE / SUPPORTED</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>02</span><small>Structure</small></aside>
+      <div class="section-content">
+        <h2>Seasonal Qi and Day Master Strength</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Seasonal qi is read from the Month Branch 申, whose base element is Metal.  This report does not infer a lunar month number from the Gregorian birth month.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Month Branch: 申; strength is read through season, roots, support, drains, and controls.</span></div>
+        <div class="section-copy"><p> For the 甲 Wood Day Master, Metal is Officer and controls the Day Master, Water is Resource and produces it, Fire is Output and is produced by it, and Earth is Wealth and is controlled by it.  The rooting check finds same-element roots in: none.  None of the supplied branches contains a canonical hidden Wood stem, so the Day Master has no same-element branch root.</p><p> Rooting is only one part of strength.  Visible Resource stems, hidden Resource, seasonal control, Output drains, and Wealth expenditure must also be compared.  For this chart, the structural conclusion is a Wood Day Master under Metal seasonal command, with visible Water Resource support and no same-element branch root.</p><p> Under the report&#039;s stated scoring method, support is 3.78, drain-and-control pressure is 6.42, and the working strength assessment is weak but supported.  This describes chart structure, not the person&#039;s character.  Different classical schools may weight seasonal regulation and transformation conditions differently, but the underlying season, roots, support, drains, and controls remain calculated facts.</p></div>
+        <div class="practice-panel confidence-supported"><div><strong>Structural reading</strong><span>Supported by season, roots, support, drains, and controls; school weighting may differ.</span></div><div><strong>Interpretation boundary</strong><p>Calculated facts are separated from interpretation. No single symbol is proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page dense" id="section-3" data-page>
+    <div class="page-topline"><span>CHART FOUNDATION</span><span>CONFIDENCE / CALCULATED</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>03</span><small>Structure</small></aside>
+      <div class="section-content">
+        <h2>Five Elements and Hidden Stems</h2>
+        <div class="chart chart-wide" id="section-elements"></div>
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>The visible pillar layer contains Wood 2, Fire 0, Earth 2, Metal 2, Water 2.  These counts combine Heavenly Stems with the base element of each Earthly Branch; they are not stem-only counts.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Visible leaders: Wood + Earth + Metal + Water. Hidden-only elements: Fire.</span></div>
+        <div class="section-copy"><p> Fire appears only in hidden stems.  Every Five-Element category is represented either visibly or in hidden stems.  The canonical hidden stems are fixed by branch: Year Branch 戌 contains 戊 Earth (Indirect Wealth), 辛 Metal (Direct Officer), 丁 Fire (Hurting Officer); Month Branch 申 contains 庚 Metal (Seven Killings), 壬 Water (Indirect Resource), 戊 Earth (Indirect Wealth); Day Branch 戌 contains 戊 Earth (Indirect Wealth), 辛 Metal (Direct Officer), 丁 Fire (Hurting Officer); Hour Branch 申 contains 庚 Metal (Seven Killings), 壬 Water (Indirect Resource), 戊 Earth (Indirect Wealth).</p><p> A hidden stem is part of the branch structure but is less exposed than a Heavenly Stem.  It must not be counted as an additional visible pillar, and it must not be invented from the branch&#039;s base element.  For this chart, the distinction matters because visible emphasis and hidden support answer different questions.</p><p> Visible counts show what is directly present in the four pillars.  Hidden stems show the internal composition through which Ten Gods, rooting, and seasonal support are assessed.  A hidden stem can contribute to a Ten-God weighting or provide a root without becoming a visible stem.</p><p> Conversely, a branch&#039;s base element does not erase its internal stems.  This chapter records those calculated layers only; strength and useful-element conclusions are made in the following structural chapter.</p></div>
+        <div class="practice-panel confidence-calculated"><div><strong>Calculated fact</strong><span>Directly derived from visible elements and canonical hidden stems.</span></div><div><strong>Interpretation boundary</strong><p>Calculated facts are separated from interpretation. No single symbol is proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-4" data-page>
+    <div class="page-topline"><span>CHART FOUNDATION</span><span>CONFIDENCE / CALCULATED</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>04</span><small>Structure</small></aside>
+      <div class="section-content">
+        <h2>Ten Gods in the Natal Chart</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>The Ten Gods are relational labels calculated from the 甲 Day Master; they are not separate deities or fixed identities.  The visible non-Day stems map as follows: year stem 甲: Friend; month stem 壬: Indirect Resource; hour stem 壬: Indirect Resource.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Canonical weighted Ten-God leaders: Indirect Resource 41%, Seven Killings 19%, Indirect Wealth 18%. Visible and hidden sources are listed separately.</span></div>
+        <div class="section-copy"><p> Branch contributions are calculated from canonical hidden stems with position and hidden-stem weights.  The weighted profile is 偏印 (Indirect Resource) 41%, visible and hidden; 七杀 (Seven Killings) 19%, hidden only; 偏财 (Indirect Wealth) 18%, hidden only; 比肩 (Friend) 12%, visible and hidden; 正官 (Direct Officer) 8%, hidden only; 伤官 (Hurting Officer) 2%, hidden only.  A percentage shows relative emphasis inside this report&#039;s stated weighting method.</p><p> It does not mean that a Ten God controls the same percentage of a person&#039;s life, and a hidden-only Ten God should not be described as a visible stem.  Traditional functions are kept distinct: Companion concerns same-element agency and peers; Output is what the Day Master produces; Wealth is what the Day Master controls; Officer is what controls the Day Master; Resource is what produces the Day Master.  Direct and Indirect forms are separated by polarity.</p><p> The leading functions provide evidence for later career, wealth, and relationship chapters, but those life-topic interpretations remain contextual.  The calculated facts here are each stem mapping, each branch&#039;s canonical hidden stems, and the resulting weighted profile.</p></div>
+        <div class="practice-panel confidence-calculated"><div><strong>Calculated profile</strong><span>Ten Gods are mapped from the Day Master and weighted visible and hidden stems.</span></div><div><strong>Interpretation boundary</strong><p>Calculated facts are separated from interpretation. No single symbol is proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-5" data-page>
+    <div class="page-topline"><span>CHART STRUCTURE</span><span>CONFIDENCE / SUPPORTED</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>05</span><small>Evidence</small></aside>
+      <div class="section-content">
+        <h2>Chart Structure, Useful Elements, and Unfavorable Elements</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>The chart structure is assessed from the Month Branch, Day Master strength, roots, support, drains, controls, and the Ten-God distribution.  The Wood Day Master is assessed as weak but supported.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Useful and unfavorable elements must follow the stated strength and balancing logic; they are not inferred from a simple missing-element count.</span></div>
+        <div class="section-copy"><p> The first balancing question is whether Water Resource and Wood Companion can sustain the Day Master before Fire Output, Earth Wealth, and Metal Officer demands are added.  Under this strength method, Water Resource and Wood Companion are provisional support candidates.  Fire Output is conditional because it is produced by the Day Master.</p><p> Earth Wealth and Metal Officer require caution until support is sufficient.  These are balancing categories, not a claim that every appearance of an element is automatically favorable or unfavorable.  Quantity, position, season, and transformation conditions still matter.</p><p> No definitive Yong Shen is asserted.  A classical seasonal-regulation method may prioritize a different element from a strength-balancing method, and transformation conditions must be verified rather than assumed.  The conclusion is deliberately provisional and tied to the stated calculation.</p><p> It is a supported structural interpretation, not a universal school verdict or a promise about favorable events.</p></div>
+        <div class="practice-panel confidence-supported"><div><strong>Structural reading</strong><span>A balancing interpretation; useful-element schools may weigh the same evidence differently.</span></div><div><strong>Interpretation boundary</strong><p>Calculated facts are separated from interpretation. No single symbol is proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-6" data-page>
+    <div class="page-topline"><span>CHART STRUCTURE</span><span>CONFIDENCE / CALCULATED</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>06</span><small>Evidence</small></aside>
+      <div class="section-content">
+        <h2>Stems, Branches, and Natal Interactions</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Natal interaction analysis compares the supplied pillar stems and branches directly.  The calculated contacts are: Stem repeat: 甲-甲 (year and day pillars); Branch repeat: 戌-戌 (year and day pillars); Fu Yin: 甲戌 (year and day pillars); Stem repeat: 壬-壬 (month and hour pillars); Branch repeat: 申-申 (month and hour pillars); Fu Yin: 壬申 (month and hour pillars).</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Only exact supported stem and branch relations are reported; repeats are not treated as two-member combinations.</span></div>
+        <div class="section-copy"><p> Repeated stems and repeated branches are recorded separately from combinations, clashes, harms, breaks, punishments, and meetings.  This chart contains 2 exact whole-pillar repeats, so Fu Yin is present: 甲戌 across year and day; 壬申 across month and hour.  Fu Yin here means an exact same Ganzhi pillar occurs in two natal positions.</p><p> It does not by itself prove a fixed event, biography, or outcome.  These contacts describe how chart components are linked before Luck Pillars or annual years are added.  A repeat can concentrate a theme, while a clash or combination describes a different structural relation.</p><p> Stem repeat, branch repeat, and Fu Yin are therefore listed as separate calculated facts even when they arise from the same pair of pillars.  The calculation does not treat one branch as both members of a pair, does not call ordinary repetition self-punishment, and does not infer an interaction that is absent from the canonical relation list.  Interpretation should begin with the exact contacts above and remain secondary to season, Day Master strength, and the Ten-God structure.</p></div>
+        <div class="practice-panel confidence-calculated"><div><strong>Calculated contacts</strong><span>Only canonical stem and branch relations found in the supplied natal chart are included.</span></div><div><strong>Interpretation boundary</strong><p>Calculated facts are separated from interpretation. No single symbol is proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-7" data-page>
+    <div class="page-topline"><span>CHART STRUCTURE</span><span>CONFIDENCE / CONTEXTUAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>07</span><small>Evidence</small></aside>
+      <div class="section-content">
+        <h2>Shen Sha: Secondary Symbolic Stars</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>The supported Shen Sha in this chart are: 华盖 (Canopy Star) at the year Branch 戌, derived from Day Pillar + Year Pillar; it traditionally marks specialist study, art, religion, or work carried out with independence.  驿马 (Travel Horse) at the month Branch 申, derived from Day Pillar + Year Pillar; it traditionally marks movement, travel, relocation, or changing operational conditions.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Canonical Shen Sha only, grouped by marker and shown with every natal placement on the Shen Sha table.</span></div>
+        <div class="section-copy"><p> 华盖 (Canopy Star) at the day Branch 戌, derived from Day Pillar + Year Pillar; it traditionally marks specialist study, art, religion, or work carried out with independence.  驿马 (Travel Horse) at the hour Branch 申, derived from Day Pillar + Year Pillar; it traditionally marks movement, travel, relocation, or changing operational conditions.  Shen Sha are derived lookup markers.</p><p> Their locations and reference pillars are calculated, but their meanings are secondary to seasonal qi, Day Master strength, Ten Gods, useful-element analysis, and direct stem-branch interactions.  Repetition can increase the prominence of a marker, yet it does not convert that marker into a guaranteed event.  Travel Horse does not prove travel, Peach Blossom does not prove a relationship, and Canopy Star does not establish a fixed disposition or profession.</p><p> This chapter therefore records only the supported markers, their natal locations, their derivation source, and their conventional scope.</p></div>
+        <div class="practice-panel confidence-contextual"><div><strong>Secondary symbol</strong><span>Shen Sha adds context and never overrides the main chart structure.</span></div><div><strong>Interpretation boundary</strong><p>Calculated facts are separated from interpretation. No single symbol is proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-8" data-page>
+    <div class="page-topline"><span>LIFE TOPICS</span><span>CONFIDENCE / CONTEXTUAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>08</span><small>Application</small></aside>
+      <div class="section-content">
+        <h2>Career and Suitable Work Environments</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Career is read from chart structure and Ten-God functions.  In the weighted Ten-God profile, Resource accounts for 41%, Officer and Seven Killings for 27%, Output for 2%, and Wealth for 18%.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master, interpreted through Ten Gods, the Day Branch, and relevant natal interactions.</span></div>
+        <div class="section-copy"><p> Visible Resource stems occur at month stem 壬, hour stem 壬; visible Officer stems occur at none.  Hidden-stem contributions remain part of the profile but are not presented as visible stems.  The standard occupational themes of a Resource-Officer emphasis include knowledge, qualifications, research, documentation, rules, supervision, and risk control.</p><p> The Day Master is assessed as weak but supported.  Career responsibility is easier to carry when Water Resource and Wood Companion support are available; heavy Metal Officer pressure or Earth Wealth obligations should be judged against that support.  Fire Output is conditional because it draws from the Day Master.</p><p> The active Luck Pillar is 己巳 (2017-2026).  Its stem maps to Direct Wealth, so current career timing must be read by comparing that added function and its branch contacts with the natal structure.  This chapter identifies traditional work functions and load conditions; it does not select a guaranteed profession, employer, title, or outcome.</p></div>
+        <div class="practice-panel confidence-contextual"><div><strong>Contextual interpretation</strong><span>Career expression depends on education, location, opportunity, and chosen field.</span></div><div><strong>Interpretation boundary</strong><p>Calculated facts are separated from interpretation. No single symbol is proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-9" data-page>
+    <div class="page-topline"><span>LIFE TOPICS</span><span>CONFIDENCE / CONTEXTUAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>09</span><small>Application</small></aside>
+      <div class="section-content">
+        <h2>Wealth Pattern and Resource Management</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>For the 甲 Day Master, Earth is the Wealth element.  The weighted chart contains 18% Wealth, located at year Branch 戌 hidden stem 戊 Indirect Wealth; month Branch 申 hidden stem 戊 Indirect Wealth; day Branch 戌 hidden stem 戊 Indirect Wealth; hour Branch 申 hidden stem 戊 Indirect Wealth.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master, interpreted through Ten Gods, the Day Branch, and relevant natal interactions.</span></div>
+        <div class="section-copy"><p> A branch&#039;s base element and its hidden Wealth stems are recorded separately; neither should be mistaken for cash, salary, or a guaranteed asset.  In standard BaZi, Wealth is what the Day Master controls.  The Day Master is assessed as weak but supported.</p><p> Water Resource and Wood Companion support must be sufficient before sustained Earth Wealth activity is treated as easy to carry.  Fire Output can generate Earth Wealth, but the actual pathway depends on whether Output is visible, hidden, seasonally usable, or activated by timing.  Wealth timing is evaluated when Luck Pillars or annual stems and branches introduce Wealth, Output, support, or direct contacts with the natal chart.</p><p> The annual evidence is listed in Sections 13 and 14.  This chapter describes the traditional Wealth structure and carrying capacity; it does not predict income level, investment returns, debt, inheritance, or business success.</p></div>
+        <div class="practice-panel confidence-contextual"><div><strong>Contextual interpretation</strong><span>Wealth symbolism describes structure and operating style, not financial outcomes.</span></div><div><strong>Interpretation boundary</strong><p>Calculated facts are separated from interpretation. No single symbol is proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-10" data-page>
+    <div class="page-topline"><span>LIFE TOPICS</span><span>CONFIDENCE / CONTEXTUAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>10</span><small>Application</small></aside>
+      <div class="section-content">
+        <h2>Relationships, Partner Star, and Spouse Palace</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>For a female chart, the traditional partner stars are Direct Officer and Seven Killings, both belonging to Metal for a 甲 Wood Day Master.  Their weighted shares are Direct Officer 8% and Seven Killings 19%.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master, interpreted through Ten Gods, the Day Branch, and relevant natal interactions.</span></div>
+        <div class="section-copy"><p> In this natal chart they are carried in canonical hidden stems rather than displayed as non-Day Heavenly Stems.  Hidden presence is structurally valid but is not the same as a visible partner star.  The Spouse Palace is the Day Branch 戌.</p><p> Its canonical hidden stems are 戊 Indirect Wealth, 辛 Direct Officer, 丁 Hurting Officer.  The natal contacts involving the Day Pillar or Day Branch are Stem repeat: 甲-甲 (year and day pillars); Branch repeat: 戌-戌 (year and day pillars); Fu Yin: 甲戌 (year and day pillars).  These contacts describe the structure of the Spouse Palace.</p><p> They do not by themselves prove a spouse&#039;s age, occupation, temperament, location, marital status, or a fixed relationship event.  Relationship timing requires the natal Officer stars and Spouse Palace to be compared with each Luck Pillar and annual year.  A combination, clash, repeat, harm, break, or punishment is recorded as an activation, not automatically as marriage or separation.</p><p> Sections 13 and 14 provide those calculated contacts.  This chapter therefore establishes the partner-star element, visibility, Spouse Palace contents, and natal interactions before any timing interpretation is attempted.</p></div>
+        <div class="practice-panel confidence-contextual"><div><strong>Contextual interpretation</strong><span>Relationship symbolism is not a verified biography or event prediction.</span></div><div><strong>Interpretation boundary</strong><p>Calculated facts are separated from interpretation. No single symbol is proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page dense" id="section-11" data-page>
+    <div class="page-topline"><span>LIFE TOPICS</span><span>CONFIDENCE / CONTEXTUAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>11</span><small>Application</small></aside>
+      <div class="section-content">
+        <h2>Health Tendencies Through the Five Elements</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>Traditional BaZi associates the Five Elements with broad bodily systems: Wood with the liver, gallbladder, tendons, and eyes; Fire with the heart and circulation; Earth with the spleen, stomach, and muscles; Metal with the lungs and skin; and Water with the kidneys and urinary system.  These are historical correspondence categories used to describe elemental balance.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>甲 Wood Day Master, interpreted through Ten Gods, the Day Branch, and relevant natal interactions.</span></div>
+        <div class="section-copy"><p> They are not medical findings and do not identify a symptom, diagnosis, constitution, or future illness.  The chart evidence should therefore be read structurally.  The Day Master is 甲 Wood.</p><p> Elements represented in the pillar stems or branch base elements are Wood, Earth, Metal, Water.  Elements found only among hidden stems are Fire, while elements not represented in the supplied chart are none.  This distinction matters because a hidden-only element is present but less exposed; it must not be described as completely absent.</p><p> In a standard BaZi reading, this section is limited to observing whether elemental functions are concentrated, restrained, supported, or underrepresented in the natal structure and later timing cycles.  It does not convert those patterns into claims about the reader&#039;s organs, energy level, digestion, sleep, mood, fertility, or disease risk.  Luck Pillars and annual years may change which element is emphasized, but they still do not provide a medical forecast.</p><p> Use this chapter as a record of traditional Five-Element correspondence only.  Personal health decisions should be based on qualified healthcare assessment rather than a BaZi chart.</p></div>
+        <div class="practice-panel confidence-contextual"><div><strong>Traditional correspondence</strong><span>Five-Element associations are non-diagnostic and are not medical findings.</span></div><div><strong>Interpretation boundary</strong><p>Calculated facts are separated from interpretation. No single symbol is proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-12" data-page>
+    <div class="page-topline"><span>TIMING</span><span>CONFIDENCE / CALCULATED</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>12</span><small>Da Yun & Liu Nian</small></aside>
+      <div class="section-content">
+        <h2>Luck Pillar Direction and Starting Age</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>The Luck Pillars (Da Yun) are sequenced in reverse order.  The calculation basis is female birth in a yang-stem year.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Luck direction: Reverse. Basis: Female birth in a Yang-stem year.</span></div>
+        <div class="section-copy"><p> This is the standard gender and Year-Stem polarity rule used to choose the order of the ten-year pillars.  The supplied starting age is 3.  The first Luck Pillar is 辛未, beginning at age 3 in 1997.</p><p> The full supplied sequence is 辛未 from age 3 (1997) | 庚午 from age 13 (2007) | 己巳 from age 23 (2017) | 戊辰 from age 33 (2027) | 丁卯 from age 43 (2037) | 丙寅 from age 53 (2047) | 乙丑 from age 63 (2057) | 甲子 from age 73 (2067).  These ages and start years are treated as calculated inputs and are not reconstructed in this report.  Direction controls sequence only.</p><p> Reverse does not mean a backward life, delayed development, or a need to revisit the past; forward does not mean automatic expansion.  Likewise, the starting age does not establish maturity, childhood character, or the timing of a life event.  It simply anchors the ten-year intervals shown in the timing table.</p><p> Ages should be read with their stated start years, especially around a cycle boundary.  Interpretation begins only after each calculated Luck Pillar is compared with the natal chart&#039;s season, Day Master, Ten Gods, and exact stem-branch contacts.</p></div>
+        <div class="practice-panel confidence-calculated"><div><strong>Calculated timing</strong><span>Direction and starting age are supplied by the calculator and define cycle sequence only.</span></div><div><strong>Interpretation boundary</strong><p>Calculated facts are separated from interpretation. No single symbol is proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page timing-atlas" data-page>
+    <div class="page-topline"><span>TIMING / DA YUN & LIU NIAN</span><span>CALCULATED CYCLES</span></div>
+    <header><span>THE TIMING ATLAS</span><h2>Ten-year Luck Pillars<br>and annual contacts</h2><p>Direction: <strong>Reverse</strong>. Basis: Female birth in a Yang-stem year. Starting age: 3. Each annual contact below names its source in the natal chart or active Luck Pillar.</p></header>
+    <section class="cycle-section"><h3>Luck Pillars (Da Yun)</h3><div class="cycle-grid"><div class="cycle ">
+      <span class="cycle-state">AGE 3-12</span>
+      <span class="colored-ganzhi "><i class="wx-metal">辛</i><i class="wx-earth">未</i></span>
+      <strong>1997-2006</strong>
+      <small>正官 / 正财</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 13-22</span>
+      <span class="colored-ganzhi "><i class="wx-metal">庚</i><i class="wx-fire">午</i></span>
+      <strong>2007-2016</strong>
+      <small>七杀 / 伤官</small>
+    </div><div class="cycle is-current">
+      <span class="cycle-state">CURRENT</span>
+      <span class="colored-ganzhi "><i class="wx-earth">己</i><i class="wx-fire">巳</i></span>
+      <strong>2017-2026</strong>
+      <small>正财 / 食神</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 33-42</span>
+      <span class="colored-ganzhi "><i class="wx-earth">戊</i><i class="wx-earth">辰</i></span>
+      <strong>2027-2036</strong>
+      <small>偏财 / 偏财</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 43-52</span>
+      <span class="colored-ganzhi "><i class="wx-fire">丁</i><i class="wx-wood">卯</i></span>
+      <strong>2037-2046</strong>
+      <small>伤官 / 劫财</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 53-62</span>
+      <span class="colored-ganzhi "><i class="wx-fire">丙</i><i class="wx-wood">寅</i></span>
+      <strong>2047-2056</strong>
+      <small>食神 / 比肩</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 63-72</span>
+      <span class="colored-ganzhi "><i class="wx-wood">乙</i><i class="wx-earth">丑</i></span>
+      <strong>2057-2066</strong>
+      <small>劫财 / 正财</small>
+    </div><div class="cycle ">
+      <span class="cycle-state">AGE 73-82</span>
+      <span class="colored-ganzhi "><i class="wx-wood">甲</i><i class="wx-water">子</i></span>
+      <strong>2067-2076</strong>
+      <small>比肩 / 正印</small>
+    </div></div></section>
+    <section class="annual-section"><div><h3>Five-year annual view (Liu Nian)</h3><p>The planning posture is derived from the annual Ten God and supported stem-branch contacts. It is not a guarantee of events.</p><div class="strategy-key"><span>ADVANCE</span><span>STEADY</span><span>DEFEND</span></div></div><div class="annual-grid"><div class="annual-year is-now">
+      <span>2026</span><b class="strategy strategy-steady">STEADY</b>
+      <span class="colored-ganzhi small"><i class="wx-fire">丙</i><i class="wx-fire">午</i></span>
+      <small>食神 / 伤官</small>
+      <em>Stem clash (丙-壬; natal month) · Stem clash (丙-壬; natal hour) · Half Harmony (午戌; natal)</em>
+    </div><div class="annual-year ">
+      <span>2027 / NEW CYCLE</span><b class="strategy strategy-defend">DEFEND</b>
+      <span class="colored-ganzhi small"><i class="wx-fire">丁</i><i class="wx-earth">未</i></span>
+      <small>伤官 / 正财</small>
+      <em>Six break (未-戌; natal year) · Three-branch punishment contact (未-戌; natal year) · Stem combine (丁-壬; natal month) · Six break (未-戌; natal day)</em>
+    </div><div class="annual-year ">
+      <span>2028</span><b class="strategy strategy-steady">STEADY</b>
+      <span class="colored-ganzhi small"><i class="wx-earth">戊</i><i class="wx-metal">申</i></span>
+      <small>偏财 / 七杀</small>
+      <em>Branch repeat (申; natal month) · Branch repeat (申; natal hour) · Stem repeat (戊; active Luck Pillar) · Arch Harmony (申辰; luck)</em>
+    </div><div class="annual-year ">
+      <span>2029</span><b class="strategy strategy-defend">DEFEND</b>
+      <span class="colored-ganzhi small"><i class="wx-earth">己</i><i class="wx-metal">酉</i></span>
+      <small>正财 / 正官</small>
+      <em>Stem combine (己-甲; natal year) · Six harm (酉-戌; natal year) · Stem combine (己-甲; natal day) · Six harm (酉-戌; natal day)</em>
+    </div><div class="annual-year ">
+      <span>2030</span><b class="strategy strategy-defend">DEFEND</b>
+      <span class="colored-ganzhi small"><i class="wx-metal">庚</i><i class="wx-earth">戌</i></span>
+      <small>七杀 / 偏财</small>
+      <em>Stem clash (庚-甲; natal year) · Branch repeat (戌; natal year) · Stem clash (庚-甲; natal day) · Branch repeat (戌; natal day)</em>
+    </div></div></section>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page extra-dense" id="section-13" data-page>
+    <div class="page-topline"><span>TIMING</span><span>CONFIDENCE / SUPPORTED</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>13</span><small>Da Yun & Liu Nian</small></aside>
+      <div class="section-content">
+        <h2>Ten-Year Luck Pillars</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>The calculated ten-year Luck Pillars are read in the supplied reverse sequence.  At the report date, the active pillar is 己巳, covering 2017-2026.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Current Luck Pillar: 己巳 (2017-2026); annual contacts are shown with their natal or Luck-Pillar source.</span></div>
+        <div class="section-copy"><p> Each pillar is compared with the natal chart; it is not interpreted in isolation.  辛未, ages 3-12 (1997-2006).  The Luck-Pillar stem maps to Direct Officer; branch 未 contains 己 Direct Wealth, 丁 Hurting Officer, 乙 Rob Wealth.</p><p> Contacts with the natal chart: Six break: 未-戌 (natal year); Three-branch punishment contact: 未-戌 (natal year); Six break: 未-戌 (natal day); Three-branch punishment contact: 未-戌 (natal day).  庚午, ages 13-22 (2007-2016).  The Luck-Pillar stem maps to Seven Killings; branch 午 contains 丁 Hurting Officer, 己 Direct Wealth.</p><p> Contacts with the natal chart: Stem clash: 庚-甲 (natal year); Stem clash: 庚-甲 (natal day); Half Harmony: 午戌, associated with Fire.  己巳, ages 23-32 (2017-2026).  The Luck-Pillar stem maps to Direct Wealth; branch 巳 contains 丙 Eating God, 戊 Indirect Wealth, 庚 Seven Killings.</p><p> Contacts with the natal chart: Stem combine: 己-甲 (natal year), associated with Earth; Six combine: 巳-申 (natal month), associated with Water; Six break: 巳-申 (natal month); Three-branch punishment contact: 巳-申 (natal month); Stem combine: 己-甲 (natal day), associated with Earth; Six combine: 巳-申 (natal hour), associated with Water; Six break: 巳-申 (natal hour); Three-branch punishment contact: 巳-申 (natal hour).  戊辰, ages 33-42 (2027-2036).  The Luck-Pillar stem maps to Indirect Wealth; branch 辰 contains 戊 Indirect Wealth, 乙 Rob Wealth, 癸 Direct Resource.</p><p> Contacts with the natal chart: Six clash: 辰-戌 (natal year); Six clash: 辰-戌 (natal day); Arch Harmony: 申辰, associated with Water.  丁卯, ages 43-52 (2037-2046).  The Luck-Pillar stem maps to Hurting Officer; branch 卯 contains 乙 Rob Wealth.</p><p> Contacts with the natal chart: Six combine: 卯-戌 (natal year), associated with Fire; Stem combine: 丁-壬 (natal month), associated with Wood; Six combine: 卯-戌 (natal day), associated with Fire; Stem combine: 丁-壬 (natal hour), associated with Wood.  丙寅, ages 53-62 (2047-2056).  The Luck-Pillar stem maps to Eating God; branch 寅 contains 甲 Friend, 丙 Eating God, 戊 Indirect Wealth.</p><p> Contacts with the natal chart: Stem clash: 丙-壬 (natal month); Six clash: 寅-申 (natal month); Fan Yin: 丙寅-壬申 (natal month); Three-branch punishment contact: 寅-申 (natal month); Stem clash: 丙-壬 (natal hour); Six clash: 寅-申 (natal hour); Fan Yin: 丙寅-壬申 (natal hour); Three-branch punishment contact: 寅-申 (natal hour); Arch Harmony: 寅戌, associated with Fire.  乙丑, ages 63-72 (2057-2066).  The Luck-Pillar stem maps to Rob Wealth; branch 丑 contains 己 Direct Wealth, 癸 Direct Resource, 辛 Direct Officer.</p><p> Contacts with the natal chart: Three-branch punishment contact: 丑-戌 (natal year); Three-branch punishment contact: 丑-戌 (natal day).  甲子, ages 73-82 (2067-2076).  The Luck-Pillar stem maps to Friend; branch 子 contains 癸 Direct Resource.</p><p> Contacts with the natal chart: Stem repeat: 甲-甲 (natal year); Stem repeat: 甲-甲 (natal day); Half Harmony: 申子, associated with Water.  A Luck Pillar changes the timing context but does not replace the natal chart.  Its stem adds a visible Ten-God function for the decade, its branch carries a base element and canonical hidden stems, and its exact contacts can repeat, combine, clash, harm, break, punish, or complete a meeting with natal branches.</p><p> The list above records those contacts without turning them into guaranteed events.  Years near a Luck-Pillar boundary should be checked against the stated start year rather than inferred from age alone.</p></div>
+        <div class="practice-panel confidence-supported"><div><strong>Structural timing</strong><span>Luck Pillars are calculated; their interpretation remains conditional.</span></div><div><strong>Interpretation boundary</strong><p>Calculated facts are separated from interpretation. No single symbol is proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page extra-dense" id="section-14" data-page>
+    <div class="page-topline"><span>TIMING</span><span>CONFIDENCE / SUPPORTED</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>14</span><small>Da Yun & Liu Nian</small></aside>
+      <div class="section-content">
+        <h2>Annual Outlook for the Next Five Years</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>2026 丙午.  The annual stem maps to Eating God for the 甲 Day Master, and the active Luck Pillar is 己巳.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Current Luck Pillar: 己巳 (2017-2026); annual contacts are shown with their natal or Luck-Pillar source.</span></div>
+        <div class="section-copy"><p> Calculated contacts: Stem clash: 丙-壬 (natal month); Stem clash: 丙-壬 (natal hour); Half Harmony: 午戌, associated with Fire.  Planning posture: STEADY.  Maintain a measured pace, verify assumptions, and preserve flexibility.</p><p> 2027 丁未.  The annual stem maps to Hurting Officer for the 甲 Day Master, and the active Luck Pillar is 戊辰.  Calculated contacts: Six break: 未-戌 (natal year); Three-branch punishment contact: 未-戌 (natal year); Stem combine: 丁-壬 (natal month), associated with Wood; Six break: 未-戌 (natal day); Three-branch punishment contact: 未-戌 (natal day); Stem combine: 丁-壬 (natal hour), associated with Wood.</p><p> Planning posture: DEFEND.  Protect time, liquidity, and decision quality; avoid treating pressure as proof that an irreversible move is required.  2028 戊申.</p><p> The annual stem maps to Indirect Wealth for the 甲 Day Master, and the active Luck Pillar is 戊辰.  Calculated contacts: Branch repeat: 申-申 (natal month); Branch repeat: 申-申 (natal hour); Stem repeat: 戊-戊 (active Luck Pillar); Arch Harmony: 申辰, associated with Water.  Planning posture: STEADY.</p><p> Maintain a measured pace, verify assumptions, and preserve flexibility.  2029 己酉.  The annual stem maps to Direct Wealth for the 甲 Day Master, and the active Luck Pillar is 戊辰.</p><p> Calculated contacts: Stem combine: 己-甲 (natal year), associated with Earth; Six harm: 酉-戌 (natal year); Stem combine: 己-甲 (natal day), associated with Earth; Six harm: 酉-戌 (natal day); Six combine: 酉-辰 (active Luck Pillar), associated with Metal; Three Meeting: 申酉戌, associated with Metal.  Planning posture: DEFEND.  Protect time, liquidity, and decision quality; avoid treating pressure as proof that an irreversible move is required.</p><p> 2030 庚戌.  The annual stem maps to Seven Killings for the 甲 Day Master, and the active Luck Pillar is 戊辰.  Calculated contacts: Stem clash: 庚-甲 (natal year); Branch repeat: 戌-戌 (natal year); Stem clash: 庚-甲 (natal day); Branch repeat: 戌-戌 (natal day); Six clash: 戌-辰 (active Luck Pillar).</p><p> Planning posture: DEFEND.  Protect time, liquidity, and decision quality; avoid treating pressure as proof that an irreversible move is required.  These labels describe structural timing, not guaranteed events.</p><p> A contact can emphasize a topic without proving that a particular career, financial, relationship, or health event will occur.</p></div>
+        <div class="practice-panel confidence-supported"><div><strong>Structural timing</strong><span>Annual contacts are calculated; practical outcomes depend on real-world context.</span></div><div><strong>Interpretation boundary</strong><p>Calculated facts are separated from interpretation. No single symbol is proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+<article class="pdf-page section-page" id="section-15" data-page>
+    <div class="page-topline"><span>TIMING</span><span>CONFIDENCE / CONTEXTUAL</span></div>
+    <div class="section-layout">
+      <aside class="section-index"><span>15</span><small>Da Yun & Liu Nian</small></aside>
+      <div class="section-content">
+        <h2>Timing Priorities and Practical Summary</h2>
+        
+        <div class="core-insight"><span>CORE INTERPRETATION</span><p>The five-year timing sequence is calculated as follows: ADVANCE: none in this window; STEADY: 2026, 2028; DEFEND: 2027, 2029, 2030.  These postures come from the annual Ten God and the exact natal or Luck-Pillar contacts listed in Section 14.</p></div>
+        <div class="chart-basis"><strong>Chart basis</strong><span>Current Luck Pillar: 己巳 (2017-2026); annual contacts are shown with their natal or Luck-Pillar source.</span></div>
+        <div class="section-copy"><p> ADVANCE means the annual element or a completed supportive contact aligns with the provisional balancing candidates and can justify moving a defined plan forward.  STEADY means the year is conditional or does not require either acceleration or retreat; maintain pace and review results.  DEFEND means clashes, harms, punishments, or other pressure contacts make reversibility and resource protection more important.</p><p> None of the three labels predicts success or failure.  Use the sequence as a calendar for decision discipline.  Compare each year with the active ten-year Luck Pillar, then return to the natal chart&#039;s useful-element hypothesis and Ten-God structure.</p><p> Real decisions still depend on facts outside the chart, including finances, health, law, relationships, location, and opportunity.  The highest-confidence statements are the calculated pillars, dates, Ten-God mappings, and contacts.  Structural weighting is supported interpretation, while the planning posture is a contextual synthesis rather than a forecast.</p><p> Recheck the timing analysis when the active Luck Pillar or calendar year changes.</p></div>
+        <div class="practice-panel confidence-contextual"><div><strong>Planning synthesis</strong><span>A practical summary of preceding evidence, not a guaranteed forecast.</span></div><div><strong>Interpretation boundary</strong><p>Calculated facts are separated from interpretation. No single symbol is proof of a fixed event.</p></div></div>
+      </div>
+    </div>
+    <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+  </article>
+
+    <section class="pdf-page methodology" data-page>
+      <div class="page-topline"><span>METHOD & LIMITS</span><span>STANDARD EDITION</span></div>
+      <div class="method-layout">
+        <div><h2>Calculation basis<br>and reading limits</h2><p>This report was generated by Tengyunzi's AI interpretation system from calculated chart data. It is not represented as a report written personally by Tengyunzi.</p><p>The report follows standard BaZi order: season and Day Master strength first, then Five Elements, Ten Gods, chart structure, life topics, and timing. Interpretation remains conditional rather than a guarantee of events. The recorded birth time of 16:00 is included, so the Hour Pillar is part of the structural analysis.</p></div>
+        <dl>
+          <div><dt>01</dt><dd><strong>Birth input</strong><span>Gregorian civil date · Asia/Taipei · birthplace not supplied</span></dd></div>
+          <div><dt>02</dt><dd><strong>Chart source</strong><span>Four Pillars and Luck Pillars supplied by the Tengyunzi calculation engine; solar-time correction is not applied without birthplace data.</span></dd></div>
+          <div><dt>03</dt><dd><strong>Ten-God weighting</strong><span>Visible non-Day stems weight 1.0. Hidden branch stems use 60/30/10 weighting, adjusted by pillar position.</span></dd></div>
+          <div><dt>04</dt><dd><strong>Shen Sha scope</strong><span>Supported canonical markers only. They remain secondary to Day Master, Five Elements, and Ten-God structure.</span></dd></div>
+        </dl>
+      </div>
+      <div class="disclaimer"><strong>Important</strong><p>This report is for educational and reflective purposes. It is not medical, legal, financial, or mental-health advice, and it does not guarantee future events.</p></div>
+      <footer><span>TENGYUNZI / AI BAZI REPORT</span><span data-page-number></span></footer>
+    </section>
+
+    <section class="pdf-page closing" data-page>
+      <div class="closing-mark">TZ</div>
+      <div class="closing-copy"><span>REPORT COMPLETE</span><h2>Chart evidence.<br>Traditional interpretation.</h2><p>Keep this report with your birth data and revisit the timing sections when the active Luck Pillar or calendar year changes.</p></div>
+      <div class="closing-access">
+        <img src="data:image/png;base64,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" alt="QR code to open this report securely on mobile">
+        <div><strong>Continue securely on your phone</strong><p>Scan to open this report in My Readings. Sign-in with the report account is required.</p><a href="https://www.tengyunzi.com/tengyunzi-report.html?report=975cba04-9a1b-41bb-ba74-576378c06903#report-output">Open mobile reading</a></div>
+      </div>
+      <nav class="closing-next" aria-label="Next steps"><a href="https://www.tengyunzi.com/tengyunzi-readings.html">Personal reading</a><a href="https://www.tengyunzi.com/tengyunzi-annual-forecast.html">Monthly timing</a><a href="https://www.tengyunzi.com/tengyunzi-newsletter.html">Free daily almanac</a></nav>
+      <footer><span>hello@tengyunzi.com</span><span>tengyunzi.com</span></footer>
+    </section>
+  </main>
+  <script>
+    window.__REPORT_DATA__ = {"elements":{"wood":2,"fire":0,"earth":2,"metal":2,"water":2},"luck":[{"gz":"辛未","age":3,"year":1997},{"gz":"庚午","age":13,"year":2007},{"gz":"己巳","age":23,"year":2017},{"gz":"戊辰","age":33,"year":2027},{"gz":"丁卯","age":43,"year":2037},{"gz":"丙寅","age":53,"year":2047},{"gz":"乙丑","age":63,"year":2057},{"gz":"甲子","age":73,"year":2067}]};
+    document.querySelectorAll('[data-page]').forEach((page, index) => {
+      page.querySelector('[data-page-number]')?.replaceChildren(String(index + 1).padStart(2, '0'));
+    });
+    const palette = { wood:'#398064', fire:'#c65d4b', earth:'#aa823f', metal:'#73839a', water:'#2478b5', ink:'#0b2943', grid:'#dce8f1' };
+    const labels = ['Wood','Fire','Earth','Metal','Water'];
+    const values = labels.map((key) => Number(window.__REPORT_DATA__.elements[key.toLowerCase()] || 0));
+    function mountChart(id, option) {
+      const node = document.getElementById(id);
+      if (!node || !window.echarts) return;
+      const chart = echarts.init(node, null, { renderer:'svg' });
+      chart.setOption(option);
+    }
+    mountChart('element-radar', {
+      animation:false,
+      radar:{ indicator:labels.map((name)=>({name,max:4})), radius:'63%', splitNumber:4, axisName:{color:palette.ink,fontFamily:'Noto Sans',fontWeight:700,fontSize:12}, splitLine:{lineStyle:{color:palette.grid}}, splitArea:{areaStyle:{color:['#fbfdff','#f4f8fb']}}, axisLine:{lineStyle:{color:palette.grid}} },
+      series:[{type:'radar',symbol:'circle',symbolSize:7,data:[{value:values,areaStyle:{color:'rgba(36,120,181,.18)'},lineStyle:{color:palette.water,width:3},itemStyle:{color:palette.water}}]}]
+    });
+    mountChart('element-bars', {
+      animation:false, grid:{left:72,right:28,top:22,bottom:32}, xAxis:{type:'value',min:0,max:4,interval:1,axisLabel:{color:'#5d7183'},splitLine:{lineStyle:{color:palette.grid}},axisLine:{show:false},axisTick:{show:false}}, yAxis:{type:'category',data:labels,axisLabel:{color:palette.ink,fontWeight:700},axisLine:{show:false},axisTick:{show:false}}, series:[{type:'bar',data:values.map((value,index)=>({value,itemStyle:{color:[palette.wood,palette.fire,palette.earth,palette.metal,palette.water][index]}})),barWidth:18,label:{show:true,position:'right',color:palette.ink,fontWeight:800}}]
+    });
+    mountChart('section-elements', {
+      animation:false, grid:{left:80,right:28,top:18,bottom:24}, xAxis:{type:'value',max:4,splitLine:{lineStyle:{color:palette.grid}},axisLabel:{show:false},axisLine:{show:false},axisTick:{show:false}}, yAxis:{type:'category',data:labels,axisLabel:{color:palette.ink,fontWeight:700},axisLine:{show:false},axisTick:{show:false}}, series:[{type:'bar',data:values,barWidth:13,itemStyle:{color:palette.water,borderRadius:[0,3,3,0]},label:{show:true,position:'right',color:palette.ink,fontWeight:800}}]
+    });
+  </script>
+</body>
+</html>

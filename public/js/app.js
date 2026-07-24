@@ -1418,7 +1418,7 @@ async function fetchOrderByTradeNo(tradeNo) {
   if (!tradeNo) return null;
   try {
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(tradeNo)}&select=trade_no,paid,analysis,birth_input&limit=1`,
+      `${SUPABASE_URL}/functions/v1/order-access?trade_no=${encodeURIComponent(tradeNo)}`,
       { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
     );
     if (!response.ok) return null;
@@ -1427,6 +1427,22 @@ async function fetchOrderByTradeNo(tradeNo) {
   } catch (err) {
     console.warn('fetch order failed:', err);
     return null;
+  }
+}
+
+async function fetchRecentOrdersByClientId(clientId) {
+  if (!clientId) return [];
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/functions/v1/order-access?client_id=${encodeURIComponent(clientId)}&limit=5`,
+      { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
+    );
+    if (!response.ok) return [];
+    const rows = await response.json();
+    return Array.isArray(rows) ? rows : [];
+  } catch (err) {
+    console.warn('fetch recent orders failed:', err);
+    return [];
   }
 }
 
@@ -2774,26 +2790,17 @@ if (form) {
 
     if (!pendingTradeNo && clientId) {
       try {
-        const pattern = `bazi-${clientId}-*`;
-        const recentRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/orders?trade_no=like.${pattern}&select=trade_no,paid,analysis,birth_input&order=trade_no.desc&limit=5`,
-          { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
-        );
-        if (recentRes.ok) {
-          const recentRows = await recentRes.json();
-          const recentOrder = Array.isArray(recentRows)
-            ? (recentRows.find((row) => {
-              const birth = parseBirthInputSafe(row?.birth_input);
-              if (birth?.order_service === 'pdf') return false;
-              const paid = !!row?.paid;
-              const hasAnalysis = !!String(row?.analysis || '').trim();
-              return !paid || !hasAnalysis;
-            }) || null)
-            : null;
-          if (recentOrder?.trade_no) {
-            pendingTradeNo = recentOrder.trade_no;
-            setPendingTradeNo(pendingTradeNo);
-          }
+        const recentRows = await fetchRecentOrdersByClientId(clientId);
+        const recentOrder = recentRows.find((row) => {
+          const birth = parseBirthInputSafe(row?.birth_input);
+          if (birth?.order_service === 'pdf') return false;
+          const paid = !!row?.paid;
+          const hasAnalysis = !!String(row?.analysis || '').trim();
+          return !paid || !hasAnalysis;
+        }) || null;
+        if (recentOrder?.trade_no) {
+          pendingTradeNo = recentOrder.trade_no;
+          setPendingTradeNo(pendingTradeNo);
         }
       } catch (err) {
         console.warn('recover latest trade by client id failed:', err);
@@ -2865,16 +2872,7 @@ if (form) {
     };
 
     try {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(pendingTradeNo)}&select=paid,analysis,birth_input`,
-        { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
-      );
-      if (!res.ok) {
-        renderPendingPanel(false);
-        return;
-      }
-      const rows = await res.json();
-      const order = Array.isArray(rows) ? rows[0] : null;
+      const order = await fetchOrderByTradeNo(pendingTradeNo);
       if (!order) {
         renderPendingPanel(false);
         return;
@@ -3228,7 +3226,7 @@ function renderColorToken(char, classSuffix = '') {
     ? STEM_ELEMENT_INDEX[char]
     : BRANCH_ELEMENT_INDEX[char];
   const cls = elementIdx !== undefined ? ELEMENT_CLASSES[elementIdx] : '';
-  return `<span class="bzg-token ${classSuffix} ${cls}">${escapeHtml(char)}</span>`;
+  return `<span class="bzg-token ${classSuffix} ${cls}" data-bazi-symbol="${escapeHtml(char)}">${escapeHtml(char)}</span>`;
 }
 
 function renderStackLines(items, mapFn) {
@@ -3549,6 +3547,7 @@ function renderBaziDetailGrid(bazi) {
     + `　·　${ftL[2]} <b style="color:#0A2540;">${escapeHtml(getShenGong(bazi))}</b>`
     + `</div>`;
   gridEl.innerHTML = html;
+  window.BaziCalc?.colorizeSymbols(gridEl);
 }
 
 
@@ -3592,16 +3591,9 @@ function renderBaziDetailGrid(bazi) {
     let order = null;
     for (let i = 0; i < 6; i++) {
       try {
-        const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(tradeNo)}&select=birth_input`,
-          { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` }}
-        );
-        if (res.ok) {
-          const rows = await res.json();
-          if (Array.isArray(rows) && rows[0]) {
-            order = rows[0];
-            break;
-          }
+        order = await fetchOrderByTradeNo(tradeNo);
+        if (order) {
+          break;
         }
       } catch (err) {
         console.warn('restore birth_input failed:', err);
@@ -3683,14 +3675,16 @@ function renderBaziDetailGrid(bazi) {
   const bazi = BaziCalc.calculateBazi(year, month, day, hour);
 
   // 渲染四柱
-  document.getElementById('year-tg').textContent  = bazi.year.tg;
-  document.getElementById('year-dz').textContent  = bazi.year.dz;
-  document.getElementById('month-tg').textContent = bazi.month.tg;
-  document.getElementById('month-dz').textContent = bazi.month.dz;
-  document.getElementById('day-tg').textContent   = bazi.day.tg;
-  document.getElementById('day-dz').textContent   = bazi.day.dz;
-  document.getElementById('hour-tg').textContent  = bazi.hour.tg;
-  document.getElementById('hour-dz').textContent  = bazi.hour.dz;
+  [
+    ['year-tg', bazi.year.tg],
+    ['year-dz', bazi.year.dz],
+    ['month-tg', bazi.month.tg],
+    ['month-dz', bazi.month.dz],
+    ['day-tg', bazi.day.tg],
+    ['day-dz', bazi.day.dz],
+    ['hour-tg', bazi.hour.tg],
+    ['hour-dz', bazi.hour.dz],
+  ].forEach(([id, symbol]) => BaziCalc.applySymbolColor(document.getElementById(id), symbol));
   renderBaziDetailGrid(bazi);
 
   // 渲染五行
@@ -3841,13 +3835,8 @@ function renderBaziDetailGrid(bazi) {
     let snapshotOptionId = '';
     let reconcilePaidFromUnpaidCheck = false;
     try {
-      const snapRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(tradeNo)}&select=paid,analysis,birth_input&limit=1`,
-        { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } },
-      );
-      if (snapRes.ok) {
-        const snapRows = await snapRes.json();
-        orderSnapshot = Array.isArray(snapRows) ? (snapRows[0] || null) : null;
+      orderSnapshot = await fetchOrderByTradeNo(tradeNo);
+      if (orderSnapshot) {
         const snapBirth = parseBirthInputSafe(orderSnapshot?.birth_input);
         const snapOptionId = snapBirth?.payment_option?.id;
         if (snapOptionId) {
@@ -4393,19 +4382,7 @@ async function pollForAnalysis(tradeNo, cacheKey, birthData, bazi, daYunData, sp
   for (let i = 0; i < maxAttempts; i++) {
     try {
       await new Promise((r) => setTimeout(r, pollIntervalMs));
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(tradeNo)}&select=paid,analysis,birth_input&_=${Date.now()}`,
-        {
-          cache: 'no-store',
-          headers: {
-            apikey: SUPABASE_ANON,
-            Authorization: `Bearer ${SUPABASE_ANON}`,
-            'Cache-Control': 'no-cache',
-          },
-        },
-      );
-
-      const [order] = await res.json();
+      const order = await fetchOrderByTradeNo(tradeNo);
       const nowTs = Date.now();
 
       if (
@@ -5637,5 +5614,3 @@ async function autoAnalyze(birthData, bazi, daYunData, specialYears) {
     showAnalysis(buildLocalFreeAnalysis(birthData, bazi, daYunData, specialYears, err?.message || err));
   }
 }
-
-

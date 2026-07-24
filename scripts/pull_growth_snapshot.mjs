@@ -545,66 +545,37 @@ async function run() {
     });
     sourceMode = 'admin_orders_function';
   } else {
-    const primaryReadKey = serviceRoleKey || supabaseAnon;
-    if (!primaryReadKey) {
-      throw new Error('Missing readable key: SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON');
+    if (!serviceRoleKey) {
+      throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY for direct database reads');
     }
     const since24Iso = new Date(Date.now() - hours24 * 60 * 60 * 1000).toISOString();
     const since7dIso = new Date(Date.now() - hours7d * 60 * 60 * 1000).toISOString();
     const sinceFunnelMs = Date.now() - funnelDays * 24 * 60 * 60 * 1000;
     const sinceFunnelIso = new Date(sinceFunnelMs).toISOString();
 
-    let rows24 = [];
-    let rows7d = [];
-    let orderRows = [];
-    let usedReadKey = primaryReadKey;
-    try {
-      rows24 = await queryVisitRows({
-        supabaseUrl,
-        authKey: usedReadKey,
-        sinceIso: since24Iso,
-        limit: maxVisitRows,
-      });
-      rows7d = await queryVisitRows({
-        supabaseUrl,
-        authKey: usedReadKey,
-        sinceIso: since7dIso,
-        limit: maxVisitRows,
-      });
-      orderRows = await queryOrderRows({
-        supabaseUrl,
-        authKey: usedReadKey,
-        sinceIso: sinceFunnelIso,
-        limit: maxOrderRows,
-      });
-    } catch (primaryErr) {
-      const canFallbackToAnon = Boolean(serviceRoleKey) && Boolean(supabaseAnon) && serviceRoleKey !== supabaseAnon;
-      if (!canFallbackToAnon) throw primaryErr;
-      usedReadKey = supabaseAnon;
-      rows24 = await queryVisitRows({
-        supabaseUrl,
-        authKey: usedReadKey,
-        sinceIso: since24Iso,
-        limit: maxVisitRows,
-      });
-      rows7d = await queryVisitRows({
-        supabaseUrl,
-        authKey: usedReadKey,
-        sinceIso: since7dIso,
-        limit: maxVisitRows,
-      });
-      orderRows = await queryOrderRows({
-        supabaseUrl,
-        authKey: usedReadKey,
-        sinceIso: sinceFunnelIso,
-        limit: maxOrderRows,
-      });
-    }
+    const rows24 = await queryVisitRows({
+      supabaseUrl,
+      authKey: serviceRoleKey,
+      sinceIso: since24Iso,
+      limit: maxVisitRows,
+    });
+    const rows7d = await queryVisitRows({
+      supabaseUrl,
+      authKey: serviceRoleKey,
+      sinceIso: since7dIso,
+      limit: maxVisitRows,
+    });
+    const orderRows = await queryOrderRows({
+      supabaseUrl,
+      authKey: serviceRoleKey,
+      sinceIso: sinceFunnelIso,
+      limit: maxOrderRows,
+    });
 
     traffic24h = computeTrafficDashboard(rows24, hours24, since24Iso);
     traffic7d = computeTrafficDashboard(rows7d, hours7d, since7dIso);
     funnel = computeFunnelDashboard(orderRows, funnelDays, sinceFunnelIso, sinceFunnelMs);
-    sourceMode = usedReadKey === serviceRoleKey ? 'service_role_postgrest' : 'anon_postgrest';
+    sourceMode = 'service_role_postgrest';
   }
 
   const summary24 = traffic24h.summary || {};

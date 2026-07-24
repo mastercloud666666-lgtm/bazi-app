@@ -113,14 +113,41 @@ function getWuxingCount(pillars) {
  * @param {number} hour   0-23
  * @returns {{ year, month, day, hour, wuxing }}
  */
-function calculateBazi(year, month, day, hour) {
+function calculateBazi(year, month, day, hour, minute = 0) {
+  if (globalThis.Solar?.fromYmdHms) {
+    try {
+      const lunar = globalThis.Solar.fromYmdHms(year, month, day, hour, minute, 0).getLunar();
+      const eight = lunar.getEightChar();
+      const makePillar = (tg, dz) => ({
+        tg,
+        dz,
+        tgIdx: TIANGAN.indexOf(tg),
+        dzIdx: DIZHI.indexOf(dz),
+      });
+      const yearPillar = makePillar(eight.getYearGan(), eight.getYearZhi());
+      const monthPillar = makePillar(eight.getMonthGan(), eight.getMonthZhi());
+      const dayPillar = makePillar(eight.getDayGan(), eight.getDayZhi());
+      const hourPillar = makePillar(eight.getTimeGan(), eight.getTimeZhi());
+      const pillars = [yearPillar, monthPillar, dayPillar, hourPillar];
+      return {
+        year: yearPillar,
+        month: monthPillar,
+        day: dayPillar,
+        hour: hourPillar,
+        wuxing: getWuxingCount(pillars),
+        calculation: 'lunar-javascript',
+      };
+    } catch (error) {
+      console.warn('Falling back to the approximate BaZi calculation', error);
+    }
+  }
   const yearPillar  = getYearPillar(year);
   const monthPillar = getMonthPillar(year, month, day, yearPillar.tgIdx);
   const dayPillar   = getDayPillar(year, month, day);
   const hourPillar  = getHourPillar(hour, dayPillar.tgIdx);
   const pillars = [yearPillar, monthPillar, dayPillar, hourPillar];
   const wuxing = getWuxingCount(pillars);
-  return { year: yearPillar, month: monthPillar, day: dayPillar, hour: hourPillar, wuxing };
+  return { year: yearPillar, month: monthPillar, day: dayPillar, hour: hourPillar, wuxing, calculation: 'approximate' };
 }
 
 // ── 大运计算 ──────────────────────────────────────────────────────
@@ -147,7 +174,44 @@ function daysBetween(d1, d2) {
  * 计算大运
  * @returns {{ startAge, dayuns: [{gz, tgIdx, dzIdx, ageStart, yearStart}] }}
  */
-function calculateDaYun(yearPillar, monthPillar, gender, birthYear, birthMonth, birthDay) {
+function calculateDaYun(yearPillar, monthPillar, gender, birthYear, birthMonth, birthDay, birthHour = 12, birthMinute = 0) {
+  if (globalThis.Solar?.fromYmdHms) {
+    try {
+      const lunar = globalThis.Solar.fromYmdHms(
+        birthYear,
+        birthMonth,
+        birthDay,
+        birthHour,
+        birthMinute,
+        0,
+      ).getLunar();
+      const yun = lunar.getEightChar().getYun(gender === '男' ? 1 : 0, 1);
+      const dayuns = yun.getDaYun(9)
+        .filter((item) => item.getIndex() > 0)
+        .slice(0, 8)
+        .map((item) => {
+          const gz = item.getGanZhi();
+          return {
+            gz,
+            tgIdx: TIANGAN.indexOf(gz[0]),
+            dzIdx: DIZHI.indexOf(gz[1]),
+            ageStart: item.getStartAge(),
+            yearStart: item.getStartYear(),
+            yearEnd: item.getEndYear(),
+          };
+        });
+      if (dayuns.length) {
+        return {
+          forward: yun.isForward(),
+          startAge: dayuns[0].ageStart,
+          dayuns,
+          calculation: 'lunar-javascript',
+        };
+      }
+    } catch (error) {
+      console.warn('Falling back to the approximate Luck Pillar calculation', error);
+    }
+  }
   // 阳男阴女顺行，阴男阳女逆行
   const yearTgYang = yearPillar.tgIdx % 2 === 0;
   const isMale     = gender === '男';
@@ -187,7 +251,7 @@ function calculateDaYun(yearPillar, monthPillar, gender, birthYear, birthMonth, 
     });
   }
 
-  return { forward, startAge, dayuns };
+  return { forward, startAge, dayuns, calculation: 'approximate' };
 }
 
 /**
@@ -233,5 +297,127 @@ function calcSpecialYears(bazi, dayuns, birthYear, startYear, endYear) {
   return special;
 }
 
+// Readable Five Element colors shared by every chart renderer.
+const ELEMENT_COLORS = {
+  '木': '#287A4B',
+  '火': '#C43D32',
+  '土': '#8A5B2B',
+  '金': '#806A19',
+  '水': '#176D9C',
+};
+
+const ELEMENT_SLUGS = {
+  '木': 'wood',
+  '火': 'fire',
+  '土': 'earth',
+  '金': 'metal',
+  '水': 'water',
+};
+
+function getElementColor(symbol) {
+  return ELEMENT_COLORS[WUXING[symbol]] || '';
+}
+
+function applySymbolColor(node, symbol) {
+  if (!node) return node;
+  const value = symbol || '';
+  const element = WUXING[value] || '';
+  node.textContent = value;
+  node.classList.add('bazi-symbol');
+  if (element) {
+    node.dataset.baziSymbol = value;
+    node.dataset.baziElement = ELEMENT_SLUGS[element];
+    node.style.color = ELEMENT_COLORS[element];
+  } else {
+    delete node.dataset.baziSymbol;
+    delete node.dataset.baziElement;
+    node.style.removeProperty('color');
+  }
+  return node;
+}
+
+function renderColoredPillar(node, stem, branch, unknownLabel = '') {
+  if (!node) return node;
+  node.replaceChildren();
+  node.classList.toggle('is-unknown', Boolean(unknownLabel));
+  node.style.removeProperty('color');
+  delete node.dataset.baziElement;
+  if (unknownLabel) {
+    node.textContent = unknownLabel;
+    return node;
+  }
+  for (const symbol of [stem, branch]) {
+    if (!symbol) continue;
+    const span = document.createElement('span');
+    applySymbolColor(span, symbol);
+    node.appendChild(span);
+  }
+  return node;
+}
+
+function colorizeSymbols(root = document) {
+  if (!root) return;
+  const nodes = [];
+  if (root.matches?.('[data-bazi-symbol]')) nodes.push(root);
+  root.querySelectorAll?.('[data-bazi-symbol]').forEach((node) => nodes.push(node));
+  nodes.forEach((node) => applySymbolColor(node, node.dataset.baziSymbol || node.textContent.trim()));
+}
+
+function renderLuckPillars(root, luck, currentYear = new Date().getFullYear()) {
+  if (!root || !luck || !Array.isArray(luck.dayuns)) return;
+  const track = root.querySelector('[data-dayun-track]');
+  const summary = root.querySelector('[data-dayun-summary]');
+  if (!track) return;
+
+  const direction = luck.forward ? 'Forward sequence' : 'Reverse sequence';
+  if (summary) {
+    summary.textContent = `${direction} | starts around age ${luck.startAge}`;
+  }
+
+  track.replaceChildren();
+  for (const pillar of luck.dayuns) {
+    const endYear = Number.isInteger(pillar.yearEnd) ? pillar.yearEnd : pillar.yearStart + 9;
+    const isCurrent = currentYear >= pillar.yearStart && currentYear <= endYear;
+    const item = document.createElement('article');
+    item.className = 'luck-pillar';
+    item.classList.toggle('is-current', isCurrent);
+    item.setAttribute(
+      'aria-label',
+      `${pillar.gz}, ages ${pillar.ageStart} to ${pillar.ageStart + 9}, years ${pillar.yearStart} to ${endYear}${isCurrent ? ', current luck pillar' : ''}`
+    );
+
+    const status = document.createElement('small');
+    status.className = 'luck-pillar-status';
+    status.textContent = isCurrent ? 'Current' : `Age ${pillar.ageStart}`;
+
+    const symbols = document.createElement('b');
+    symbols.className = 'luck-pillar-symbols';
+    renderColoredPillar(symbols, pillar.gz[0], pillar.gz[1]);
+
+    const ages = document.createElement('span');
+    ages.textContent = `${pillar.ageStart}-${pillar.ageStart + 9}`;
+
+    const years = document.createElement('time');
+    years.textContent = `${pillar.yearStart}-${endYear}`;
+    years.dateTime = String(pillar.yearStart);
+
+    item.append(status, symbols, ages, years);
+    track.appendChild(item);
+  }
+}
+
 // 导出（浏览器全局）
-window.BaziCalc = { calculateBazi, calculateDaYun, calcSpecialYears, WUXING, TIANGAN, DIZHI };
+window.BaziCalc = {
+  calculateBazi,
+  calculateDaYun,
+  calcSpecialYears,
+  WUXING,
+  TIANGAN,
+  DIZHI,
+  ELEMENT_COLORS,
+  getElementColor,
+  applySymbolColor,
+  renderColoredPillar,
+  colorizeSymbols,
+  renderLuckPillars,
+};

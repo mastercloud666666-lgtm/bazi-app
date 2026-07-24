@@ -2,13 +2,26 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   buildRateLimitIdentifier as buildSharedRateLimitIdentifier,
   consumeRateLimit as consumeSharedRateLimit,
+  isAllowedOrigin as isSharedAllowedOrigin,
   isLikelyAutomatedUa as isLikelyAutomatedUaShared,
   recordAbuseLog as recordSharedAbuseLog,
   tooManyRequestsResponse as sharedTooManyRequestsResponse,
 } from '../_shared/security.ts';
+import {
+  adminHasPermission,
+  authenticateAdminRequest,
+  createAdminSessionToken,
+  createPasswordCredentials,
+  normalizeAdminUsername,
+  recordAdminAudit,
+  requestIp,
+  timingSafeEqual as timingSafeAdminEqual,
+  verifyAdminPassword,
+} from '../_shared/admin-auth.ts';
 
 const ALLOWED_PAYMENT_OPTION_IDS = new Set(['basic', 'pro', 'vip', 'pdf', 'consult']);
 const DEFAULT_CORS_ORIGINS = ['https://tengyunzi.com', 'https://www.tengyunzi.com'];
+const LOCAL_DEVELOPMENT_ORIGINS = ['http://127.0.0.1:8765', 'http://localhost:8765'];
 const DEFAULT_SITE_ORIGIN = 'https://tengyunzi.com';
 const DEFAULT_PDF_PATH = 'downloads/yunzi-bazi-guide.pdf';
 const DEFAULT_PDF_STORAGE_BUCKET = 'paid-docs';
@@ -24,6 +37,19 @@ const PLATFORM_FEE_RATE = 0.02;
 const SITE_VISIT_RATE_LIMIT_WINDOW_SECONDS = 60;
 const SITE_VISIT_RATE_LIMIT_MAX_REQUESTS = 60;
 const DEFAULT_OWNER_TESTER_IDS = ['guoyuan'];
+const DEFAULT_ADMIN_PERMISSIONS = [
+  'overview',
+  'orders_read',
+  'visits_read',
+  'users_read',
+  'reports_read',
+  'newsletter_read',
+  'newsletter_send',
+  'ai_test',
+  'exports',
+  'audit_read',
+  'account_manage',
+];
 const DEFAULT_OWNER_DEVICE_UA_FINGERPRINTS = [
   'micromessenger/8.0.69(0x18004539)',
   'mozilla/5.0 (windows nt 10.0; win64; x64) applewebkit/537.36 (khtml, like gecko) chrome/146.0.0.0 safari/537.36',
@@ -93,17 +119,20 @@ function resolveAllowedOrigins(): string[] {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
-  return fromEnv.length ? fromEnv : DEFAULT_CORS_ORIGINS;
+  return Array.from(new Set([
+    ...(fromEnv.length ? fromEnv : DEFAULT_CORS_ORIGINS),
+    ...LOCAL_DEVELOPMENT_ORIGINS,
+  ]));
 }
 
 function corsHeaders(req: Request): Record<string, string> {
   const allowedOrigins = resolveAllowedOrigins();
   const reqOrigin = (req.headers.get('origin') || '').trim();
-  const allowOrigin = reqOrigin && allowedOrigins.includes(reqOrigin) ? reqOrigin : allowedOrigins[0];
+  const allowOrigin = reqOrigin && isSharedAllowedOrigin(reqOrigin, allowedOrigins) ? reqOrigin : allowedOrigins[0];
   return {
     'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, x-admin-token, x-koc-token',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, apikey, x-admin-token, x-admin-bootstrap, x-koc-token',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin',
   };
@@ -340,6 +369,64 @@ function parseBirthInput(value: unknown): JsonRecord {
 
 function asString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+async function sendPersonalReadingDelivery(input: {
+  apiKey: string;
+  from: string;
+  replyTo: string;
+  email: string;
+  name: string;
+  product: string;
+  deliveryUrl: string;
+  deliveryNote: string;
+  orderReference: string;
+}): Promise<string> {
+  const greeting = input.name ? `Hello ${input.name},` : 'Hello,';
+  const isBundle = input.product === 'Tengyunzi Reading + Annual Forecast Bundle';
+  const isAnnual = input.product === 'Tengyunzi 12-Month Forecast';
+  const productLabel = isBundle ? 'Tengyunzi Reading + Annual Forecast Bundle'
+    : (isAnnual ? 'Tengyunzi 12-Month Forecast' : 'Tengyunzi Personal Reading');
+  const heading = isBundle ? 'Your two reports are ready'
+    : (isAnnual ? 'Your 12-month forecast is ready' : 'Your personal reading is ready');
+  const buttonLabel = isBundle ? 'Open your reports'
+    : (isAnnual ? 'Open your 12-month forecast' : 'Open your personal reading');
+  const noteHtml = input.deliveryNote
+    ? `<p style="margin:0 0 18px;line-height:1.75;color:#284a63;">${escapeHtml(input.deliveryNote).replace(/\n/g, '<br>')}</p>`
+    : '';
+  const html = `<!doctype html><html><body style="margin:0;background:#f3f7fb;font-family:Arial,sans-serif;color:#17324d;"><div style="max-width:640px;margin:0 auto;padding:36px 20px;"><div style="background:#ffffff;border:1px solid #c9d8e6;padding:34px;"><div style="font-size:12px;text-transform:uppercase;color:#2e6d9e;margin-bottom:18px;">${escapeHtml(productLabel)}</div><h1 style="font-family:Georgia,serif;font-size:30px;line-height:1.2;margin:0 0 24px;color:#102e49;">${escapeHtml(heading)}</h1><p style="margin:0 0 18px;line-height:1.75;color:#284a63;">${escapeHtml(greeting)}</p>${noteHtml}<p style="margin:26px 0;"><a href="${escapeHtml(input.deliveryUrl)}" style="display:inline-block;background:#1f7ab8;color:#ffffff;text-decoration:none;padding:13px 20px;font-weight:700;">${escapeHtml(buttonLabel)}</a></p><p style="margin:0;line-height:1.7;color:#536579;">Order reference: ${escapeHtml(input.orderReference || productLabel)}</p><p style="margin:28px 0 0;line-height:1.7;color:#526b82;">Tengyunzi<br>BaZi for self-knowledge</p></div></div></body></html>`;
+  const text = `${greeting}\n\n${input.deliveryNote ? `${input.deliveryNote}\n\n` : ''}${heading}:\n${input.deliveryUrl}\n\nOrder reference: ${input.orderReference || productLabel}\n\nTengyunzi`;
+  const message: JsonRecord = {
+    from: input.from,
+    to: [input.email],
+    subject: heading,
+    html,
+    text,
+  };
+  if (input.replyTo) message.reply_to = input.replyTo;
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${input.apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(message),
+    signal: AbortSignal.timeout(25000),
+  });
+  const data = await response.json().catch(() => ({})) as JsonRecord;
+  if (!response.ok) {
+    throw new Error(asString(data.message || data.error) || `resend_failed_${response.status}`);
+  }
+  return asString(data.id);
 }
 
 function hasText(value: unknown): boolean {
@@ -943,6 +1030,116 @@ function asRecord(value: unknown): JsonRecord {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as JsonRecord : {};
 }
 
+function buildPriceExperimentSummary(rows: JsonRecord[]) {
+  type Bucket = {
+    product: string;
+    price: number;
+    exposures: Set<string>;
+    checkouts: Set<string>;
+    orders: Set<string>;
+    paid: Set<string>;
+    revenue: number;
+  };
+  type Cell = {
+    variant_id: string;
+    ai_price: number;
+    manual_price: number;
+    exposures: Set<string>;
+    orders: Set<string>;
+    paid: Set<string>;
+    revenue: number;
+  };
+  const byPrice = new Map<string, Bucket>();
+  const byCell = new Map<string, Cell>();
+
+  for (const row of rows) {
+    const product = asString(row.product);
+    const eventType = asString(row.event_type);
+    const visitorId = asString(row.visitor_id);
+    const variantId = asString(row.variant_id);
+    const tradeNo = asString(row.trade_no);
+    const aiPrice = Number(row.ai_price || 0);
+    const manualPrice = Number(row.manual_price || 0);
+    const price = product === 'ai_report' ? aiPrice : manualPrice;
+    const identity = tradeNo || visitorId;
+    if (!product || !eventType || !visitorId || visitorId.startsWith('verification-') || !variantId || !price) continue;
+
+    const priceKey = `${product}:${price.toFixed(2)}`;
+    if (!byPrice.has(priceKey)) {
+      byPrice.set(priceKey, {
+        product,
+        price,
+        exposures: new Set(),
+        checkouts: new Set(),
+        orders: new Set(),
+        paid: new Set(),
+        revenue: 0,
+      });
+    }
+    const bucket = byPrice.get(priceKey)!;
+    if (eventType === 'exposure') bucket.exposures.add(visitorId);
+    if (eventType === 'checkout') bucket.checkouts.add(visitorId);
+    if (eventType === 'order_created' && identity) bucket.orders.add(identity);
+    if (eventType === 'paid' && identity && !bucket.paid.has(identity)) {
+      bucket.paid.add(identity);
+      bucket.revenue += Number(row.revenue || 0);
+    }
+
+    if (!byCell.has(variantId)) {
+      byCell.set(variantId, {
+        variant_id: variantId,
+        ai_price: aiPrice,
+        manual_price: manualPrice,
+        exposures: new Set(),
+        orders: new Set(),
+        paid: new Set(),
+        revenue: 0,
+      });
+    }
+    const cell = byCell.get(variantId)!;
+    if (eventType === 'exposure') cell.exposures.add(visitorId);
+    if (eventType === 'order_created' && identity) cell.orders.add(identity);
+    if (eventType === 'paid' && identity && !cell.paid.has(identity)) {
+      cell.paid.add(identity);
+      cell.revenue += Number(row.revenue || 0);
+    }
+  }
+
+  const priceRows = Array.from(byPrice.values()).map((bucket) => {
+    const exposures = bucket.exposures.size;
+    const paid = bucket.paid.size;
+    return {
+      product: bucket.product,
+      price: bucket.price,
+      exposures,
+      checkouts: bucket.checkouts.size,
+      orders: bucket.orders.size,
+      paid,
+      paid_conversion: exposures ? paid / exposures : 0,
+      revenue: Number(bucket.revenue.toFixed(2)),
+      revenue_per_exposure: exposures ? Number((bucket.revenue / exposures).toFixed(4)) : 0,
+    };
+  }).sort((left, right) => left.product.localeCompare(right.product) || left.price - right.price);
+
+  const cellRows = Array.from(byCell.values()).map((cell) => ({
+    variant_id: cell.variant_id,
+    ai_price: cell.ai_price,
+    manual_price: cell.manual_price,
+    exposures: cell.exposures.size,
+    orders: cell.orders.size,
+    paid: cell.paid.size,
+    revenue: Number(cell.revenue.toFixed(2)),
+  })).sort((left, right) => left.ai_price - right.ai_price || left.manual_price - right.manual_price);
+  const minimumExposure = priceRows.length === 5 ? Math.min(...priceRows.map((row) => row.exposures)) : 0;
+
+  return {
+    minimum_exposure: minimumExposure,
+    recommended_sample_reached: minimumExposure >= 100,
+    by_price: priceRows,
+    by_variant: cellRows,
+  };
+}
+
 function extractClientIp(req: Request): string {
   const candidates = [
     asString(req.headers.get('cf-connecting-ip')),
@@ -1534,7 +1731,7 @@ async function buildKocDashboardData(
   }
 
   const byKoc = Array.from(byKocMap.values())
-    .map((row) => ({
+    .map((row): Record<string, any> => ({
       ...row,
       ...buildKocTierProgress(toNumber(cumulativePaidByKoc.get(asString(row.koc_id)) || 0)),
     }))
@@ -1889,6 +2086,92 @@ Deno.serve(async (req) => {
     if (!supabaseUrl || !serviceKey) return json(req, { error: 'missing_supabase_env' }, 500);
     const supabase = createClient(supabaseUrl, serviceKey);
 
+    if (action === 'admin_bootstrap') {
+      const expectedBootstrap = asString(Deno.env.get('ADMIN_ACCOUNT_BOOTSTRAP_TOKEN'));
+      const providedBootstrap = asString(req.headers.get('x-admin-bootstrap'));
+      if (!expectedBootstrap || !providedBootstrap || !timingSafeAdminEqual(expectedBootstrap, providedBootstrap)) {
+        return json(req, { error: 'admin_bootstrap_disabled' }, 403);
+      }
+
+      const username = normalizeAdminUsername((body as JsonRecord).username);
+      const password = asString((body as JsonRecord).password);
+      const displayName = asString((body as JsonRecord).display_name || username).slice(0, 120);
+      if (!/^[a-z0-9._-]{3,64}$/.test(username)) return json(req, { error: 'invalid_admin_username' }, 400);
+
+      const credentials = await createPasswordCredentials(password);
+      const permissions = Array.isArray((body as JsonRecord).permissions)
+        ? ((body as JsonRecord).permissions as unknown[]).map((item) => asString(item).slice(0, 80)).filter(Boolean)
+        : DEFAULT_ADMIN_PERMISSIONS;
+      const { data: account, error } = await supabase
+        .from('admin_users')
+        .upsert({
+          username,
+          username_normalized: username,
+          display_name: displayName,
+          ...credentials,
+          permissions,
+          active: true,
+          must_change_password: false,
+          session_version: 1,
+          failed_login_count: 0,
+          locked_until: null,
+          password_changed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'username_normalized' })
+        .select('id,username,display_name,permissions,active,created_at')
+        .single();
+      if (error || !account) return json(req, { error: 'admin_bootstrap_failed', details: error?.message }, 500);
+      return json(req, { ok: true, account });
+    }
+
+    if (action === 'admin_login') {
+      const username = normalizeAdminUsername((body as JsonRecord).username);
+      const password = asString((body as JsonRecord).password);
+      if (!username || !password) return json(req, { error: 'username_and_password_required' }, 400);
+
+      const { data: account, error } = await supabase
+        .from('admin_users')
+        .select('id,username,username_normalized,display_name,password_salt,password_hash,password_iterations,permissions,active,must_change_password,session_version,failed_login_count,locked_until')
+        .eq('username_normalized', username)
+        .maybeSingle();
+      const lockedUntil = account?.locked_until ? new Date(account.locked_until).getTime() : 0;
+      if (lockedUntil > Date.now()) return json(req, { error: 'admin_account_temporarily_locked' }, 429);
+
+      const valid = !error && account?.active === true && await verifyAdminPassword(password, account as JsonRecord);
+      if (!valid || !account) {
+        if (account?.id) {
+          const failures = Number(account.failed_login_count || 0) + 1;
+          await supabase.from('admin_users').update({
+            failed_login_count: failures >= 5 ? 0 : failures,
+            locked_until: failures >= 5 ? new Date(Date.now() + 15 * 60 * 1000).toISOString() : null,
+            updated_at: new Date().toISOString(),
+          }).eq('id', account.id);
+        }
+        return json(req, { error: 'invalid_admin_credentials' }, 401);
+      }
+
+      await supabase.from('admin_users').update({
+        failed_login_count: 0,
+        locked_until: null,
+        last_login_at: new Date().toISOString(),
+        last_login_ip: requestIp(req),
+        updated_at: new Date().toISOString(),
+      }).eq('id', account.id);
+      const issued = await createAdminSessionToken(account as JsonRecord);
+      await recordAdminAudit(supabase, req, issued.session, 'admin_login');
+      return json(req, {
+        ok: true,
+        token: issued.token,
+        expires_in: issued.expires_in,
+        admin: {
+          username: issued.session.username,
+          display_name: issued.session.display_name,
+          permissions: issued.session.permissions,
+          must_change_password: issued.session.must_change_password,
+        },
+      });
+    }
+
     if (action === 'site_visit_track') {
       const pagePath = asString((body as JsonRecord).page_path || (body as JsonRecord).page || '/').slice(0, 180) || '/';
       const pageTitle = asString((body as JsonRecord).page_title).slice(0, 120);
@@ -1931,6 +2214,7 @@ Deno.serve(async (req) => {
           identifier: visitRateIdentifier,
           event: 'rate_limited',
           meta: {
+            ip_address: clientIp,
             ip_masked: ipMasked,
             current_count: visitRateResult.currentCount,
             max_requests: visitRateMaxRequests,
@@ -1953,6 +2237,7 @@ Deno.serve(async (req) => {
           identifier,
           event: 'page_view',
           meta: {
+            ip_address: clientIp,
             ip_masked: ipMasked,
             device,
             page_path: pagePath,
@@ -2016,15 +2301,64 @@ Deno.serve(async (req) => {
       });
     }
 
-    const expectedAdminToken = (Deno.env.get('ADMIN_DASHBOARD_TOKEN') || '').trim();
-    if (!expectedAdminToken) return json(req, { error: 'missing_admin_token_env' }, 500);
+    const adminSession = await authenticateAdminRequest(req, supabase);
+    if (!adminSession) return json(req, { error: 'unauthorized' }, 401);
 
-    const providedToken = getAdminToken(req);
-    if (!providedToken || !timingSafeEqual(providedToken, expectedAdminToken)) {
-      return json(req, { error: 'unauthorized' }, 401);
+    if (action === 'personal_reading_update' && !adminHasPermission(adminSession, 'orders_read')) {
+      return json(req, { error: 'forbidden' }, 403);
     }
 
     const internalAuthHeader = getInternalAuthHeader(req, serviceKey);
+
+    if (action === 'admin_profile') {
+      return json(req, {
+        ok: true,
+        admin: {
+          username: adminSession.username,
+          display_name: adminSession.display_name,
+          permissions: adminSession.permissions,
+          must_change_password: adminSession.must_change_password,
+          expires_at: new Date(adminSession.exp * 1000).toISOString(),
+        },
+      });
+    }
+
+    if (action === 'admin_change_password') {
+      if (adminSession.legacy) return json(req, { error: 'legacy_admin_cannot_change_password' }, 400);
+      const currentPassword = asString((body as JsonRecord).current_password);
+      const newPassword = asString((body as JsonRecord).new_password);
+      const { data: account, error: accountError } = await supabase
+        .from('admin_users')
+        .select('id,password_salt,password_hash,password_iterations,session_version')
+        .eq('id', adminSession.id)
+        .maybeSingle();
+      if (accountError || !account) return json(req, { error: 'admin_account_not_found' }, 404);
+      if (!(await verifyAdminPassword(currentPassword, account as JsonRecord))) {
+        return json(req, { error: 'current_password_incorrect' }, 401);
+      }
+      const credentials = await createPasswordCredentials(newPassword);
+      const { error: updateError } = await supabase.from('admin_users').update({
+        ...credentials,
+        must_change_password: false,
+        session_version: Number(account.session_version || 1) + 1,
+        password_changed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }).eq('id', adminSession.id);
+      if (updateError) return json(req, { error: 'admin_password_update_failed', details: updateError.message }, 500);
+      await recordAdminAudit(supabase, req, adminSession, 'admin_password_changed');
+      return json(req, { ok: true, reauthentication_required: true });
+    }
+
+    if (action === 'admin_audit_list') {
+      const limit = Math.min(Math.max(Number((body as JsonRecord).limit || 100), 1), 300);
+      const { data, error } = await supabase
+        .from('admin_audit_logs')
+        .select('id,username,action,target_type,target_id,ip_address,metadata,created_at')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      if (error) return json(req, { error: 'admin_audit_query_failed', details: error.message }, 500);
+      return json(req, { ok: true, rows: data || [] });
+    }
 
     if (action === 'koc_accounts_status') {
       const accounts = parseKocAccounts();
@@ -2065,6 +2399,300 @@ Deno.serve(async (req) => {
           details: err instanceof Error ? err.message : String(err),
         }, 500);
       }
+    }
+
+    if (action === 'tengyunzi_overview') {
+      const days = Math.min(Math.max(Number((body as JsonRecord).days || 30), 1), 365);
+      const sinceIso = new Date(Date.now() - days * 86400000).toISOString();
+
+      const [reportsResult, manualResult, subscriberResult, visitsResult, priceEventsResult] = await Promise.all([
+        supabase
+          .from('english_ai_reports')
+          .select('id,user_id,email,trade_no,access_type,status,birth_input,amount,currency,paypal_order_id,is_test,created_at,updated_at')
+          .gte('created_at', sinceIso)
+          .order('created_at', { ascending: false })
+          .limit(3000),
+        supabase
+          .from('order_intakes')
+          .select('id,product,email,name,birth_year,birth_month,birth_day,birth_hour,birth_place,gender,focus_area,question,event_one,event_two,payment_status,status,order_reference,metadata,created_at,updated_at')
+          .gte('created_at', sinceIso)
+          .order('created_at', { ascending: false })
+          .limit(3000),
+        supabase
+          .from('newsletter_subscribers')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'subscribed'),
+        supabase
+          .from('api_abuse_logs')
+          .select('created_at,identifier,meta')
+          .eq('scope', 'site_visit')
+          .eq('event', 'page_view')
+          .gte('created_at', sinceIso)
+          .order('created_at', { ascending: false })
+          .limit(8000),
+        supabase
+          .from('report_price_experiment_events')
+          .select('visitor_id,variant_id,ai_price,manual_price,event_type,product,trade_no,revenue,created_at')
+          .gte('created_at', sinceIso)
+          .order('created_at', { ascending: false })
+          .limit(20000),
+      ]);
+
+      if (reportsResult.error) return json(req, { error: 'report_overview_failed', details: reportsResult.error.message }, 500);
+      if (manualResult.error) return json(req, { error: 'manual_order_overview_failed', details: manualResult.error.message }, 500);
+      if (subscriberResult.error) return json(req, { error: 'subscriber_count_failed', details: subscriberResult.error.message }, 500);
+      if (visitsResult.error) return json(req, { error: 'visit_overview_failed', details: visitsResult.error.message }, 500);
+      if (priceEventsResult.error) return json(req, { error: 'price_experiment_overview_failed', details: priceEventsResult.error.message }, 500);
+
+      const reports = Array.isArray(reportsResult.data) ? reportsResult.data as JsonRecord[] : [];
+      const manualOrders = Array.isArray(manualResult.data) ? manualResult.data as JsonRecord[] : [];
+      const visits = Array.isArray(visitsResult.data) ? visitsResult.data as JsonRecord[] : [];
+      const priceEvents = Array.isArray(priceEventsResult.data) ? priceEventsResult.data as JsonRecord[] : [];
+      const { data: authUsersData, error: authUsersError } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      const registeredUsers = authUsersError || !Array.isArray(authUsersData?.users)
+        ? []
+        : authUsersData.users.filter((user) => user.user_metadata?.system_account !== true);
+      const paidReports = reports.filter((row) => row.access_type === 'paid' && row.is_test !== true);
+      const testReports = reports.filter((row) => row.is_test === true);
+      const paidOrders = paidReports.filter((row) => row.status !== 'awaiting_payment');
+      const paidManualOrders = manualOrders.filter((row) => {
+        const payment = asString(row.payment_status).toLowerCase();
+        const status = asString(row.status).toLowerCase();
+        return payment === 'paid' || ['paid_ready', 'in_progress', 'delivered', 'completed', 'fulfilled'].includes(status);
+      });
+      const deliveredManualOrders = paidManualOrders.filter((row) => ['delivered', 'completed', 'fulfilled'].includes(asString(row.status).toLowerCase()));
+      const userIds = new Set(reports.map((row) => asString(row.user_id)).filter(Boolean));
+      const visitors = new Set<string>();
+      const pageCounts: Record<string, number> = {};
+      let normalVisits = 0;
+
+      for (const visit of visits) {
+        const meta = asRecord(visit.meta);
+        const visitorId = asString(meta.visitor_id || visit.identifier);
+        const pagePath = asString(meta.page_path) || '/';
+        const visitType = asString(meta.visit_type);
+        if (visitorId) visitors.add(visitorId);
+        pageCounts[pagePath] = Number(pageCounts[pagePath] || 0) + 1;
+        if (!['owner', 'tester', 'bot'].includes(visitType)) normalVisits += 1;
+      }
+
+      const aiRevenue = paidOrders.reduce((total, row) => total + Number(row.amount || 0), 0);
+      const manualRevenue = paidManualOrders.reduce((total, row) => {
+        const metadata = asRecord(row.metadata);
+        return total + Number(metadata.amount || 0);
+      }, 0);
+      const revenue = aiRevenue + manualRevenue;
+      const recentReports = reports.slice(0, 80).map((row) => {
+        const birth = asRecord(row.birth_input);
+        return {
+          id: row.id,
+          email: row.email,
+          trade_no: row.trade_no,
+          access_type: row.access_type,
+          status: row.status,
+          amount: Number(row.amount || 0),
+          currency: row.currency || 'USD',
+          paypal_order_id: row.paypal_order_id,
+          is_test: row.is_test === true,
+          birth_date: [birth.year, birth.month, birth.day].filter(Boolean).join('-'),
+          birth_hour: birth.hour_known === false ? 'Unknown' : String(birth.hour ?? '-'),
+          gender: asString(birth.gender) || '-',
+          birthplace: asString(birth.birthplace) || '-',
+          created_at: row.created_at,
+          updated_at: row.updated_at,
+        };
+      });
+      const recentManualOrders = manualOrders.slice(0, 80).map((row) => {
+        const metadata = asRecord(row.metadata);
+        return {
+          id: row.id,
+          email: row.email,
+          name: row.name,
+          product: row.product,
+          trade_no: row.order_reference,
+          status: row.status,
+          payment_status: row.payment_status,
+          amount: Number(metadata.amount || 0),
+          currency: asString(metadata.currency) || 'USD',
+          birth_date: [row.birth_year, row.birth_month, row.birth_day].filter(Boolean).join('-'),
+          birth_hour: asString(row.birth_hour) || 'Unknown',
+          gender: asString(row.gender) || '-',
+          birthplace: asString(row.birth_place) || '-',
+          focus_area: row.focus_area,
+          question: row.question,
+          event_one: row.event_one,
+          event_two: row.event_two,
+          true_solar_time: asRecord(metadata.true_solar_time),
+          manual_delivery: asRecord(metadata.manual_delivery || metadata.personal_delivery),
+          personal_delivery: asRecord(metadata.personal_delivery),
+          created_at: row.created_at,
+          updated_at: row.updated_at,
+        };
+      });
+      const recentVisits = visits.slice(0, 120).map((row) => {
+        const meta = asRecord(row.meta);
+        return {
+          created_at: row.created_at,
+          visitor_id: asString(meta.visitor_id || row.identifier),
+          ip_address: asString(meta.ip_address || meta.ip_masked) || 'unknown',
+          page_path: asString(meta.page_path) || '/',
+          country: asString(meta.country) || 'unknown',
+          province: asString(meta.province) || 'unknown',
+          city: asString(meta.city) || 'unknown',
+          device: asString(meta.device) || 'unknown',
+          visit_type: asString(meta.visit_type) || 'normal',
+          referrer: asString(meta.referrer),
+        };
+      });
+      const recentRegistrations = registeredUsers
+        .filter((user) => new Date(user.created_at || 0).getTime() >= new Date(sinceIso).getTime())
+        .sort((left, right) => new Date(right.created_at || 0).getTime() - new Date(left.created_at || 0).getTime())
+        .slice(0, 100)
+        .map((user) => ({
+          id: user.id,
+          email: user.email || '',
+          created_at: user.created_at,
+          last_sign_in_at: user.last_sign_in_at,
+          email_confirmed_at: user.email_confirmed_at,
+        }));
+
+      return json(req, {
+        ok: true,
+        days,
+        since: sinceIso,
+        summary: {
+          registered_users: registeredUsers.length || userIds.size,
+          reports_total: reports.length,
+          free_reports: reports.filter((row) => row.access_type === 'free').length,
+          admin_test_reports: testReports.length,
+          paid_orders: paidOrders.length + paidManualOrders.length,
+          ai_paid_orders: paidOrders.length,
+          manual_paid_orders: paidManualOrders.length,
+          manual_in_queue: Math.max(0, paidManualOrders.length - deliveredManualOrders.length),
+          manual_delivered: deliveredManualOrders.length,
+          awaiting_payment: paidReports.filter((row) => row.status === 'awaiting_payment').length,
+          reports_ready: reports.filter((row) => row.status === 'ready').length,
+          reports_generating: reports.filter((row) => row.status === 'generating').length,
+          reports_failed: reports.filter((row) => row.status === 'failed').length,
+          revenue_usd: Number(revenue.toFixed(2)),
+          ai_revenue_usd: Number(aiRevenue.toFixed(2)),
+          manual_revenue_usd: Number(manualRevenue.toFixed(2)),
+          active_subscribers: Number(subscriberResult.count || 0),
+          visits: visits.length,
+          normal_visits: normalVisits,
+          unique_visitors: visitors.size,
+        },
+        top_pages: Object.entries(pageCounts)
+          .map(([page_path, count]) => ({ page_path, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 20),
+        recent_reports: recentReports,
+        recent_manual_orders: recentManualOrders,
+        recent_visits: recentVisits,
+        recent_registrations: recentRegistrations,
+        price_experiment: buildPriceExperimentSummary(priceEvents),
+      });
+    }
+
+    if (action === 'personal_reading_update') {
+      const intakeId = asString((body as JsonRecord).intake_id);
+      const nextStatus = asString((body as JsonRecord).status).toLowerCase();
+      const deliveryUrl = asString((body as JsonRecord).delivery_url).slice(0, 1200);
+      const deliveryNote = asString((body as JsonRecord).delivery_note).slice(0, 5000);
+      const internalNote = asString((body as JsonRecord).internal_note).slice(0, 5000);
+      const notifyCustomer = (body as JsonRecord).notify_customer === true;
+      const allowedStatuses = new Set(['paid_ready', 'in_progress', 'delivered', 'closed']);
+      if (!/^[0-9a-f-]{36}$/i.test(intakeId)) return json(req, { error: 'invalid_intake_id' }, 400);
+      if (!allowedStatuses.has(nextStatus)) return json(req, { error: 'invalid_personal_reading_status' }, 400);
+      if (deliveryUrl && !/^https:\/\//i.test(deliveryUrl)) return json(req, { error: 'delivery_url_must_use_https' }, 400);
+      if (nextStatus === 'delivered' && !deliveryUrl) return json(req, { error: 'delivery_url_required' }, 400);
+      if (notifyCustomer && nextStatus !== 'delivered') return json(req, { error: 'customer_notification_requires_delivered_status' }, 400);
+
+      const resendKey = asString(Deno.env.get('RESEND_API_KEY'));
+      const from = asString(Deno.env.get('PERSONAL_READING_FROM_EMAIL') || Deno.env.get('NEWSLETTER_FROM_EMAIL'));
+      const replyTo = asString(Deno.env.get('NEWSLETTER_REPLY_TO'));
+      if (notifyCustomer && (!resendKey || !from)) {
+        return json(req, { error: 'personal_delivery_email_not_configured' }, 503);
+      }
+
+      const { data: intake, error: intakeError } = await supabase
+        .from('order_intakes')
+        .select('id,email,name,product,payment_status,status,order_reference,metadata')
+        .eq('id', intakeId)
+        .maybeSingle();
+      if (intakeError || !intake) return json(req, { error: 'personal_reading_not_found' }, 404);
+      if (asString(intake.payment_status).toLowerCase() !== 'paid') {
+        return json(req, { error: 'personal_reading_payment_not_completed' }, 409);
+      }
+
+      const now = new Date().toISOString();
+      const previousMetadata = asRecord(intake.metadata);
+      const previousDelivery = asRecord(previousMetadata.manual_delivery || previousMetadata.personal_delivery);
+      let providerMessageId = '';
+      let notificationError = '';
+      if (notifyCustomer) {
+        try {
+          providerMessageId = await sendPersonalReadingDelivery({
+            apiKey: resendKey,
+            from,
+            replyTo,
+            email: asString(intake.email).toLowerCase(),
+            name: asString(intake.name),
+            product: asString(intake.product),
+            deliveryUrl,
+            deliveryNote,
+            orderReference: asString(intake.order_reference),
+          });
+        } catch (error) {
+          notificationError = error instanceof Error ? error.message : String(error);
+        }
+      }
+
+      const personalDelivery: JsonRecord = {
+        ...previousDelivery,
+        delivery_url: deliveryUrl || asString(previousDelivery.delivery_url),
+        delivery_note: deliveryNote,
+        internal_note: internalNote,
+        updated_by: adminSession.username,
+        updated_at: now,
+      };
+      if (nextStatus === 'delivered') personalDelivery.delivered_at = now;
+      if (providerMessageId) {
+        personalDelivery.customer_notified_at = now;
+        personalDelivery.provider_message_id = providerMessageId;
+        personalDelivery.notification_error = null;
+      } else if (notificationError) {
+        personalDelivery.notification_error = notificationError.slice(0, 500);
+      }
+      const nextMetadata = {
+        ...previousMetadata,
+        manual_delivery: personalDelivery,
+        personal_delivery: personalDelivery,
+      };
+      const { data: updated, error: updateError } = await supabase
+        .from('order_intakes')
+        .update({ status: nextStatus, metadata: nextMetadata, updated_at: now })
+        .eq('id', intakeId)
+        .select('id,email,status,payment_status,order_reference,metadata,updated_at')
+        .single();
+      if (updateError || !updated) return json(req, { error: 'personal_reading_update_failed', details: updateError?.message }, 500);
+
+      await recordAdminAudit(supabase, req, adminSession, 'personal_reading_updated', {
+        target_type: 'order_intake',
+        target_id: intakeId,
+        metadata: {
+          previous_status: intake.status,
+          status: nextStatus,
+          customer_notified: Boolean(providerMessageId),
+          notification_error: notificationError ? notificationError.slice(0, 200) : null,
+        },
+      });
+      return json(req, {
+        ok: true,
+        order: updated,
+        customer_notified: Boolean(providerMessageId),
+        notification_error: notificationError || null,
+      }, notificationError ? 207 : 200);
     }
 
     if (action === 'list') {

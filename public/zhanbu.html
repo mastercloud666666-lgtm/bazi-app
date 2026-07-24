@@ -335,7 +335,7 @@
         var paid=false;
         for (var i=0;i<4 && !paid;i++){
           try {
-            var rr = await fetch(SUPABASE_URL+'/rest/v1/orders?trade_no=eq.'+encodeURIComponent(q.get('trade_no'))+'&select=paid&limit=1', { headers:{ apikey:SUPABASE_ANON, Authorization:'Bearer '+SUPABASE_ANON } });
+            var rr = await fetch(SUPABASE_URL+'/functions/v1/order-access?trade_no='+encodeURIComponent(q.get('trade_no')), { headers:{ apikey:SUPABASE_ANON, Authorization:'Bearer '+SUPABASE_ANON } });
             var rows = await rr.json().catch(function(){return [];});
             if (rows[0] && rows[0].paid){ paid=true; break; }
           } catch(e){}

@@ -4,3 +4,25 @@
 node_modules/
 .supabase/
 public/env.js
+.vercel
+.gstack/
+
+# secrets / local dumps — never commit
+*.env
+tmp_*.env
+tmp_admin_orders.json
+tmp_orders_dump.sql
+.impeccable/
+.playwright-cli/
+.codex/
+.claude/settings.local.json
+__pycache__/
+.DS_Store
+
+# local scratch
+tmp/
+_t.txt
+tmp_*.js
+tmp_*.json
+tmp_*.txt
+tmp_*.sql

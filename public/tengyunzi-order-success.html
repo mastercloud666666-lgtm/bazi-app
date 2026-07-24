@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Order Confirmation | Tengyunzi</title>
+  <meta name="description" content="Confirm your Tengyunzi report payment and delivery details.">
+  <link rel="stylesheet" href="./tengyunzi-sales.css?v=20260713c">
+  <style>
+    .confirmation-main {
+      min-height: calc(100vh - 60px);
+      display: grid;
+      place-items: center;
+      padding: clamp(72px, 10vw, 120px) 20px;
+    }
+
+    .confirmation-panel {
+      width: min(100%, 660px);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: clamp(28px, 6vw, 52px);
+      text-align: center;
+    }
+
+    .confirmation-panel h1 {
+      max-width: 12ch;
+      margin: 10px auto 16px;
+      font-size: clamp(2.5rem, 8vw, 4.8rem);
+    }
+
+    .confirmation-copy {
+      max-width: 54ch;
+      margin: 0 auto;
+      font-size: 1.08rem;
+      line-height: 1.75;
+    }
+
+    .confirmation-reference {
+      margin: 24px auto 0;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface-soft);
+      color: var(--blue-dark);
+      font-size: 0.92rem;
+      overflow-wrap: anywhere;
+    }
+
+    .confirmation-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 26px;
+    }
+
+    .confirmation-status {
+      min-height: 24px;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+  </style>
+  <link rel="stylesheet" href="./tengyunzi-shell.css?v=20260715nav">
+</head>
+<body>
+  <nav class="nav" aria-label="Primary navigation">
+    <div class="shell nav-inner">
+      <a class="brand" href="./index.html#top">Tengyunzi</a>
+      <div class="nav-links">
+        <a href="./tengyunzi-calculator.html#top">Calculator</a>
+        <a href="./tengyunzi-readings.html#top">Reading</a>
+        <a href="./tengyunzi-12-month-calendar.html#top">Forecast</a>
+        <a class="nav-cta" href="./tengyunzi-contact.html#top">Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="confirmation-main" id="top">
+    <section class="confirmation-panel" aria-live="polite">
+      <strong id="status-label" class="kicker">Confirming payment</strong>
+      <h1 id="status-title">One moment</h1>
+      <p id="status-copy" class="confirmation-copy">PayPal is confirming your payment and matching it to your intake.</p>
+      <p id="order-reference" class="confirmation-reference" hidden></p>
+      <p id="status-detail" class="confirmation-status">Please keep this page open.</p>
+      <div class="confirmation-actions">
+        <a class="button" href="./index.html#top">Return Home</a>
+        <a class="button secondary" href="./tengyunzi-contact.html#top">Contact Support</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell">Tengyunzi uses BaZi as a self-knowledge framework, not fear-based prediction.</div>
+  </footer>
+
+  <script>
+    (function () {
+      const SUPABASE_URL = 'https://rcyssrsnalefzhzsvswm.supabase.co';
+      const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
+      const params = new URLSearchParams(window.location.search);
+
+      function storageGet(key) {
+        try {
+          return window.localStorage.getItem(key) || '';
+        } catch (_error) {
+          return '';
+        }
+      }
+
+      function storageRemove(key) {
+        try {
+          window.localStorage.removeItem(key);
+        } catch (_error) {
+          // Storage can be unavailable in strict privacy modes.
+        }
+      }
+
+      const tradeNo = params.get('trade_no') || storageGet('tengyunzi_pending_trade_no');
+      const paypalOrderId = params.get('token') || '';
+      const cancelled = params.get('pp') === 'cancel';
+      const product = storageGet('tengyunzi_pending_product') || 'Your Tengyunzi order';
+      const label = document.getElementById('status-label');
+      const title = document.getElementById('status-title');
+      const copy = document.getElementById('status-copy');
+      const detail = document.getElementById('status-detail');
+      const reference = document.getElementById('order-reference');
+
+      function showReference() {
+        if (!tradeNo) return;
+        reference.hidden = false;
+        reference.textContent = `Order reference: ${tradeNo}`;
+      }
+
+      function showSuccess(result) {
+        const confirmedProduct = result.product || product;
+        const isBundle = confirmedProduct === 'Tengyunzi Reading + Annual Forecast Bundle';
+        label.textContent = 'Payment confirmed';
+        title.textContent = 'Your order is in.';
+        copy.textContent = `${confirmedProduct} is now in the Tengyunzi writing queue. ${isBundle ? 'Both reports will' : 'Your report will'} be delivered to the email in your intake.`;
+        detail.textContent = 'Delivery target: within 72 hours.';
+        showReference();
+        storageRemove('tengyunzi_pending_trade_no');
+        storageRemove('tengyunzi_pending_intake_id');
+        storageRemove('tengyunzi_pending_product');
+      }
+
+      function showProblem(message) {
+        label.textContent = 'Payment needs attention';
+        title.textContent = 'We could not confirm it yet.';
+        copy.textContent = 'No second payment is needed. Keep your order reference and contact Tengyunzi so the payment can be checked manually.';
+        detail.textContent = message || 'The confirmation service did not return a completed payment.';
+        showReference();
+      }
+
+      async function existingPaidOrder() {
+        if (!tradeNo) return false;
+        const query = `${SUPABASE_URL}/functions/v1/order-access?trade_no=${encodeURIComponent(tradeNo)}`;
+        const res = await fetch(query, {
+          headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` },
+        });
+        if (!res.ok) return false;
+        const rows = await res.json().catch(() => []);
+        return Boolean(rows[0]?.paid);
+      }
+
+      async function confirmPayment() {
+        if (cancelled) {
+          label.textContent = 'Checkout cancelled';
+          title.textContent = 'Your order is saved.';
+          copy.textContent = 'You were not charged. Your intake remains available if you decide to complete payment later.';
+          detail.textContent = 'Return to the product page when you are ready.';
+          showReference();
+          return;
+        }
+
+        if (!tradeNo) {
+          showProblem('The order reference is missing.');
+          return;
+        }
+
+        if (await existingPaidOrder()) {
+          showSuccess({ product });
+          return;
+        }
+
+        if (!paypalOrderId) {
+          showProblem('The PayPal confirmation token is missing.');
+          return;
+        }
+
+        try {
+          const res = await fetch(`${SUPABASE_URL}/functions/v1/paypal`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              apikey: SUPABASE_ANON,
+              Authorization: `Bearer ${SUPABASE_ANON}`,
+            },
+            body: JSON.stringify({
+              action: 'capture',
+              paypal_order_id: paypalOrderId,
+              trade_no: tradeNo,
+            }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.ok || !data.paid) {
+            throw new Error(data.message || data.error || 'Payment was not completed.');
+          }
+          showSuccess(data);
+        } catch (err) {
+          showProblem(err instanceof Error ? err.message : String(err));
+        }
+      }
+
+      confirmPayment();
+    })();
+  </script>
+  <script src="./js/tengyunzi-shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tengyunzi BaZi Calculator and Readings</title>
+  <meta name="description" content="Free BaZi calculator, Four Pillars preview, personal readings, yearly forecasts, and weekly Eastern philosophy letters.">
+  <link rel="stylesheet" href="./tengyunzi-fonts.css?v=20260722seo1">
+
+  <link rel="stylesheet" href="./tengyunzi-clean.css">
+  <style>
+    :root {
+      --body-font: "Noto Sans", system-ui, sans-serif;
+      --display-font: "Noto Serif", Georgia, serif;
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="shell nav-inner">
+      <a class="brand" href="#top" aria-label="Tengyunzi">
+        <span class="brand-mark" aria-hidden="true">TZ</span>
+        <span class="brand-copy">
+          <strong>Tengyunzi</strong>
+          <span>BaZi for self-knowledge</span>
+        </span>
+      </a>
+      <nav class="nav-links" aria-label="Page navigation"><a href="./tengyunzi-calculator.html#top">Calculator</a><a href="./tengyunzi-readings.html#top">Readings</a><a href="./tengyunzi-what-is-bazi.html#top">What is BaZi</a><a href="./tengyunzi-12-month-calendar.html#top">12-Month Forecast</a><a href="./tengyunzi-blog.html#top">Blog</a><a href="./tengyunzi-free-resources.html#top">Free Resources</a><a href="./tengyunzi-newsletter.html#top">Letters</a><a href="./tengyunzi-about.html#top">About</a><a href="./tengyunzi-contact.html#top">Contact</a><a class="nav-cta" href="./tengyunzi-report.html#reading-form">Start Reading</a></nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="shell hero-grid">
+        <div class="hero-copy">
+          <span class="kicker">BaZi Calculator and Readings</span>
+          <h1>Decode Your Four Pillars</h1>
+          <p>Start with a free chart. See your Day Master, Five Elements, and timing cycles, then choose a deeper report when you want the story behind the symbols.</p>
+          <div class="hero-actions">
+            <a class="button primary" href="#calculator">Calculate My Chart</a>
+            <a class="button" href="./tengyunzi-readings.html#top">View Readings</a>
+            <a class="button" href="./tengyunzi-whats-inside.html#top">What's Inside</a>
+          </div>
+          <ul class="trust-list">
+            <li>Free chart first</li>
+            <li>Clear report examples</li>
+            <li>No fear-based prediction</li>
+            <li>Private readings available</li>
+          </ul>
+        </div>
+
+        <article class="hero-card" aria-label="Chart preview">
+          <div class="report-head">
+            <div>
+              <span>Free Preview</span>
+              <h2>Your chart at a glance</h2>
+            </div>
+            <div class="seal" aria-hidden="true">TZ</div>
+          </div>
+          <div class="pillar-mini">
+            <div><small>Year</small><b>Jia Chen</b></div>
+            <div><small>Month</small><b>Ding Mao</b></div>
+            <div><small>Day</small><b>Ren Shen</b></div>
+            <div><small>Hour</small><b>Yi Si</b></div>
+          </div>
+          <div class="element-bars">
+            <div><span>Wood</span><i style="--value: 74%"></i><small>Strong</small></div>
+            <div><span>Fire</span><i style="--value: 46%"></i><small>Steady</small></div>
+            <div><span>Earth</span><i style="--value: 34%"></i><small>Low</small></div>
+          </div>
+          <a class="button primary" href="#calculator">Start Free</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="calculator" id="calculator" aria-labelledby="calculator-title">
+      <div class="shell">
+        <div class="section-head center">
+          <h2 id="calculator-title">BaZi Calculator | Four Pillars of Destiny</h2>
+          <p>Enter your birth date, birth hour, and gender to open a sample Four Pillars result.</p>
+        </div>
+
+        <div class="calc-layout">
+          <form class="calc-card" data-chart-form aria-label="Free BaZi calculator">
+            <h3>Birth Details</h3>
+            <div class="field-grid">
+              <div class="field dob-field">
+                <span>Date of Birth</span>
+                <div class="dob-row">
+                  <label class="field">
+                    <span>Day</span>
+                    <input inputmode="numeric" value="15" aria-label="Birth day">
+                  </label>
+                  <label class="field">
+                    <span>Month</span>
+                    <select aria-label="Birth month">
+                      <option>January</option>
+                      <option>February</option>
+                      <option>March</option>
+                      <option>April</option>
+                      <option>May</option>
+                      <option selected>June</option>
+                      <option>July</option>
+                      <option>August</option>
+                      <option>September</option>
+                      <option>October</option>
+                      <option>November</option>
+                      <option>December</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Year</span>
+                    <input inputmode="numeric" value="1990" aria-label="Birth year">
+                  </label>
+                </div>
+              </div>
+              <label class="field wide-field">
+                <span>Hour of Birth</span>
+                <select aria-label="Birth hour">
+                  <option selected>Unknown</option>
+                  <option>Snake Hour</option>
+                  <option>Horse Hour</option>
+                  <option>Goat Hour</option>
+                </select>
+              </label>
+              <label class="field wide-field">
+                <span>Gender</span>
+                <select aria-label="Gender">
+                  <option selected>Male</option>
+                  <option>Female</option>
+                  <option>Prefer not to say</option>
+                </select>
+              </label>
+            </div>
+            <button class="submit-button" type="submit">Calculate</button>
+            <p class="form-note" aria-live="polite"></p>
+          </form>
+
+          <div class="result-card" data-chart-result>
+            <span class="result-label">Sample Result</span>
+            <h3>Four Pillars Preview</h3>
+            <p>The free result gives the structure first, then points you toward the deeper report.</p>
+            <div class="result-grid">
+              <div class="result-table">
+                <div><small>Year Pillar</small><b>Jia Chen</b></div>
+                <div><small>Month Pillar</small><b>Ding Mao</b></div>
+                <div><small>Day Pillar</small><b>Ren Shen</b></div>
+                <div><small>Hour Pillar</small><b>Yi Si</b></div>
+              </div>
+              <div class="element-bars">
+                <div><span>Wood</span><i style="--value: 74%"></i><small>Strong</small></div>
+                <div><span>Fire</span><i style="--value: 46%"></i><small>Steady</small></div>
+                <div><span>Earth</span><i style="--value: 34%"></i><small>Low</small></div>
+                <div><span>Water</span><i style="--value: 52%"></i><small>Active</small></div>
+              </div>
+              <div class="result-actions">
+                <a class="button primary" href="./tengyunzi-whats-inside.html#top">See Full Report Sections</a>
+                <a class="button" href="./tengyunzi-readings.html#top">Order a Reading</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="learn">
+      <div class="shell split">
+        <div class="text-block">
+          <span class="kicker">How BaZi Works</span>
+          <h2>A chart is a map of patterns, not a sentence about fate</h2>
+          <p>BaZi reads your birth year, month, day, and hour as a symbolic structure. The useful question is not "what will happen to me", but "what pattern keeps repeating, and how do I work with it better".</p>
+          <ul class="concept-list">
+            <li><strong>Four Pillars</strong><span>Year, month, day, and hour form the base chart.</span></li>
+            <li><strong>Day Master</strong><span>The center of the reading, used to interpret the rest of the chart.</span></li>
+            <li><strong>Five Elements</strong><span>Wood, Fire, Earth, Metal, and Water describe balance, stress, and expression.</span></li>
+            <li><strong>Luck Cycles</strong><span>Timing cycles help you read seasons of expansion, pressure, and change.</span></li>
+          </ul>
+        </div>
+        <div class="chart-visual" aria-hidden="true"><span>TZ</span></div>
+      </div>
+    </section>
+
+    <section id="readings" aria-labelledby="readings-title">
+      <div class="shell">
+        <div class="section-head">
+          <h2 id="readings-title">Personal Readings</h2>
+          <p>Choose the depth that fits your question. Each reading turns traditional BaZi language into practical self-knowledge.</p>
+        </div>
+        <div class="products">
+          <article class="product-card">
+            <strong>Starter</strong>
+            <h3>Core Chart Report</h3>
+            <p>Day Master, Four Pillars, Five Elements, and the main personality pattern.</p>
+            <span class="price">$19</span>
+          </article>
+          <article class="product-card">
+            <strong>Most Useful</strong>
+            <h3>Full Personal Reading</h3>
+            <p>Relationships, career, money, stress patterns, timing, and action notes.</p>
+            <span class="price">$49</span>
+          </article>
+          <article class="product-card">
+            <strong>Deep Work</strong>
+            <h3>Private Consultation</h3>
+            <p>A focused session for life transitions, relationship questions, and career choices.</p>
+            <span class="price">$199+</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="forecast" aria-labelledby="forecast-title">
+      <div class="shell">
+        <div class="section-head">
+          <h2 id="forecast-title">Yearly Forecast</h2>
+          <p>A forecast is not a fixed prediction. It is a timing lens for decisions, energy, and attention.</p>
+        </div>
+        <div class="forecast-line">
+          <article class="forecast-step"><strong>Step 1</strong><h3>Current Cycle</h3><p>Read the active luck pillar and annual influence.</p></article>
+          <article class="forecast-step"><strong>Step 2</strong><h3>Main Theme</h3><p>Name the year as expansion, repair, pressure, or transition.</p></article>
+          <article class="forecast-step"><strong>Step 3</strong><h3>Focus Areas</h3><p>Apply the timing to work, relationships, money, and health habits.</p></article>
+          <article class="forecast-step"><strong>Step 4</strong><h3>Action Notes</h3><p>End with simple decisions you can actually use.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell bundle">
+        <div>
+          <h2>Chart, report, forecast, and consultation in one path</h2>
+          <p>Start with the free calculator. Move into a personal report. Add a yearly forecast or private reading when the question needs more context.</p>
+        </div>
+        <a class="button primary" href="./tengyunzi-report.html#reading-form">Start Reading</a>
+      </div>
+    </section>
+
+    <section id="about">
+      <div class="shell about-grid">
+        <div class="about-copy">
+          <span class="kicker">About Tengyunzi</span>
+          <h2>Traditional metaphysics, translated into modern self-knowledge</h2>
+          <p>Tengyunzi treats BaZi and Eastern philosophy as a language for observing life patterns. The tone is calm, clear, and practical, without fear tactics or mystical performance.</p>
+          <p>The goal is not to make you dependent on a reading. The goal is to help you make better sense of your own timing, temperament, and choices.</p>
+        </div>
+        <div class="about-panel" aria-hidden="true"><strong>TZ</strong></div>
+      </div>
+    </section>
+
+    <section id="reading-room">
+      <div class="shell">
+        <div class="section-head">
+          <h2>The Reading Room</h2>
+          <p>Short essays for learning BaZi before you order a report. Start with foundations, then move into timing, personality, and yearly cycles.</p>
+        </div>
+        <div class="resource-grid">
+          <article class="resource-card">
+            <div>
+              <strong>Start Here</strong>
+              <h3>What BaZi is actually reading</h3>
+              <p>A simple guide to Four Pillars, Day Master, Five Elements, Ten Gods, and Luck Pillars.</p>
+            </div>
+            <a class="text-link" href="./tengyunzi-what-is-bazi.html#top">Read Guide</a>
+          </article>
+          <article class="resource-card">
+            <div>
+              <strong>Foundations</strong>
+              <h3>The operating system you were born with</h3>
+              <p>Read BaZi as a pattern language for temperament, pressure, expression, and timing.</p>
+            </div>
+            <a class="text-link" href="./tengyunzi-blog-bazi-operating-system.html#top">Open Essay</a>
+          </article>
+          <article class="resource-card">
+            <div>
+              <strong>Annual Timing</strong>
+              <h3>The Fire Horse year, decoded</h3>
+              <p>Use the annual pillar as a climate report, then compare it with your own chart.</p>
+            </div>
+            <a class="text-link" href="./tengyunzi-blog-2026-fire-horse.html#top">Read Forecast</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="decoded-archive">
+      <div class="shell">
+        <div class="section-head">
+          <h2>The Decoded Archive</h2>
+          <p>Practical resources for different levels of commitment: free guides, paid reports, yearly planning, compatibility questions, and business timing.</p>
+        </div>
+        <div class="resource-grid">
+          <article class="resource-card">
+            <div>
+              <strong>Free</strong>
+              <h3>Eastern Astrology Starter Guide</h3>
+              <p>Pull your first chart, find your Day Master, and learn what to look at first.</p>
+            </div>
+            <a class="text-link" href="./tengyunzi-free-resources.html#starter-pack">Get It</a>
+          </article>
+          <article class="resource-card">
+            <div>
+              <strong>Report</strong>
+              <h3>Complete BaZi Blueprint</h3>
+              <p>A deeper written reading for personality, career, relationships, stress patterns, and timing.</p>
+            </div>
+            <a class="text-link" href="./tengyunzi-readings.html#top">View Reading</a>
+          </article>
+          <article class="resource-card">
+            <div>
+              <strong>Forecast</strong>
+              <h3>12-Month Planning Calendar</h3>
+              <p>Turn the year ahead into a month-by-month map for attention, pressure, and action.</p>
+            </div>
+            <a class="text-link" href="./tengyunzi-12-month-calendar.html#top">View Forecast</a>
+          </article>
+          <article class="resource-card">
+            <div>
+              <strong>Bundle</strong>
+              <h3>Reading + Forecast</h3>
+              <p>Combine the lifelong chart pattern with the current year so decisions have context.</p>
+            </div>
+            <a class="text-link" href="./tengyunzi-report.html#reading-form">Start Reading</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="library">
+      <div class="shell">
+        <div class="section-head">
+          <h2>Free Resources</h2>
+          <p>Use free guides and the weekly letter to learn the language of the chart before ordering anything.</p>
+        </div>
+        <div class="resource-grid">
+          <article class="resource-card">
+            <div>
+              <strong>Starter Pack</strong>
+              <h3>Learn BaZi in the right order</h3>
+              <p>Start with Four Pillars, Day Master, Five Elements, and a simple timing worksheet.</p>
+            </div>
+            <a class="text-link" href="./tengyunzi-free-resources.html#starter-pack">Get Free Pack</a>
+          </article>
+          <article class="resource-card">
+            <div>
+              <strong>Newsletter</strong>
+              <h3>One practical note each week</h3>
+              <p>Short Eastern philosophy, chart language, timing examples, and soft links to reports.</p>
+            </div>
+            <a class="text-link" href="./tengyunzi-newsletter.html#top">Join Newsletter</a>
+          </article>
+          <article class="resource-card">
+            <div>
+              <strong>Library</strong>
+              <h3>Read before you buy</h3>
+              <p>Use the free library to understand what a report can explain before ordering one.</p>
+            </div>
+            <a class="text-link" href="./tengyunzi-blog.html#top">Open Library</a>
+          </article>
+          <article class="resource-card">
+            <div>
+              <strong>Year Chart</strong>
+              <h3>Find the zodiac year layer</h3>
+              <p>Use a beginner-friendly year lookup before moving into the full Four Pillars chart.</p>
+            </div>
+            <a class="text-link" href="./tengyunzi-free-resources.html#zodiac-chart">Use Chart</a>
+          </article>
+          <article class="resource-card">
+            <div>
+              <strong>Business Timing</strong>
+              <h3>Plan launch windows</h3>
+              <p>A practical tool path for observing visibility, pressure, and months that need protection.</p>
+            </div>
+            <a class="text-link" href="./tengyunzi-12-month-calendar.html#calendar">View Timing</a>
+          </article>
+          <article class="resource-card">
+            <div>
+              <strong>Compatibility</strong>
+              <h3>Ask better relationship questions</h3>
+              <p>Start with attraction, friction, support, and timing instead of generic compatibility scores.</p>
+            </div>
+            <a class="text-link" href="./tengyunzi-readings.html#top">View Reading</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="shell contact-grid">
+        <div class="section-head">
+          <h2>Questions before you order?</h2>
+          <p>Send a note, or join the weekly letter if you want to stay close before choosing a report.</p>
+        </div>
+        <div class="contact-card">
+          <form class="contact-form" data-contact-form>
+            <input name="name" placeholder="Your name" aria-label="Name" required>
+            <input type="email" name="email" placeholder="you@example.com" aria-label="Email" required>
+            <textarea name="message" placeholder="What would you like to understand?" aria-label="Message"></textarea>
+            <input class="contact-honeypot" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <button class="submit-button" type="submit">Send Message</button>
+            <p class="form-note" aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell">Tengyunzi uses BaZi as a self-knowledge framework, not fear-based prediction or absolute certainty.</div>
+  </footer>
+
+  <script>
+    const SUPABASE_URL = "https://rcyssrsnalefzhzsvswm.supabase.co";
+    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU";
+    const chartForm = document.querySelector("[data-chart-form]");
+    const chartNote = chartForm?.querySelector(".form-note");
+    const contactForm = document.querySelector("[data-contact-form]");
+    const contactNote = contactForm?.querySelector(".form-note");
+
+    function isValidEmail(value) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(value || "").trim());
+    }
+
+    function getUrlParam(name) {
+      try {
+        return new URLSearchParams(window.location.search || "").get(name) || "";
+      } catch (error) {
+        return "";
+      }
+    }
+
+    function setContactStatus(message, isError) {
+      contactNote.textContent = message || "";
+      contactNote.style.color = isError ? "#b42318" : "var(--blue-dark)";
+    }
+
+    chartForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      chartNote.textContent = "Your sample chart is open. The live version would calculate the exact pillars.";
+      document.querySelector("[data-chart-result]")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+
+    contactForm?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const submitButton = contactForm.querySelector("button[type='submit']");
+      const formData = new FormData(contactForm);
+      const name = String(formData.get("name") || "").trim();
+      const email = String(formData.get("email") || "").trim();
+      const message = String(formData.get("message") || "").trim();
+      const website = String(formData.get("website") || "").trim();
+
+      if (!name) {
+        setContactStatus("Please enter your name.", true);
+        return;
+      }
+      if (!isValidEmail(email)) {
+        setContactStatus("Please enter a valid email address.", true);
+        return;
+      }
+      if (message.length < 10) {
+        setContactStatus("Please write at least one clear sentence.", true);
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.textContent = "Sending...";
+      setContactStatus("", false);
+
+      try {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/contact-submit`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${SUPABASE_ANON}`,
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            topic: "Homepage contact",
+            message,
+            website,
+            source: "homepage-contact",
+            language: "en",
+            page_path: window.location.pathname || "/",
+            landing_url: String(window.location.href || "").slice(0, 500),
+            referrer: String(document.referrer || "").slice(0, 500),
+            utm_source: getUrlParam("utm_source"),
+            utm_medium: getUrlParam("utm_medium"),
+            utm_campaign: getUrlParam("utm_campaign"),
+            metadata: {
+              page: "tengyunzi-home-en",
+              placement: "homepage-contact",
+            },
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+        contactForm.reset();
+        setContactStatus("Message sent. We will reply by email if a response is needed.", false);
+      } catch (error) {
+        setContactStatus("Message failed to send. Please try again in a moment.", true);
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = "Send Message";
+      }
+    });
+  </script>
+</body>
+</html>
+
+

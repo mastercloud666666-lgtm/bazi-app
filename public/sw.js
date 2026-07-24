@@ -1,34 +1,51 @@
-const CACHE_NAME = 'yunzi-v1.0.0';
+const CACHE_NAME = 'tengyunzi-english-v8-20260722-seo-performance';
 const STATIC_ASSETS = [
   '/index.html',
-  '/hepan.html',
-  '/result.html',
-  '/css/style.css',
-  '/css/mckinsey-style.css',
-  '/js/app.js',
+  '/tengyunzi-readings.html',
+  '/tengyunzi-bundle.html',
+  '/tengyunzi-annual-forecast.html',
+  '/tengyunzi-report.html',
+  '/tengyunzi-whats-inside.html',
+  '/tengyunzi-free-resources.html',
+  '/tengyunzi-blog.html',
+  '/tengyunzi-account.html',
+  '/tengyunzi-newsletter.html',
+  '/robots.txt',
+  '/sitemap.xml',
+  '/tengyunzi-newsletter.css',
+  '/tengyunzi-sales.css',
+  '/tengyunzi-bundle.css',
+  '/tengyunzi-annual-forecast.css',
+  '/tengyunzi-product.css',
+  '/tengyunzi-shell.css',
+  '/tengyunzi-fonts.css',
+  '/fonts/noto-sans-latin.woff2',
+  '/fonts/noto-serif-latin.woff2',
+  '/images/resources/bazi-foundations-cover.webp',
+  '/images/resources/timing-calendar-cover.webp',
   '/js/bazi.js',
-  '/js/services.js',
-  '/manifest.json',
+  '/js/tengyunzi-shell.js',
+  '/js/tengyunzi-auth.js',
+  '/js/tengyunzi-report.js',
+  '/js/newsletter.js',
+  '/js/daily-almanac.js',
+  '/js/order-intake.js'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    }).catch(() => {
-      // graceful fallback - individual asset failures don't block install
-    })
+    caches.open(CACHE_NAME).then((cache) => (
+      Promise.all(STATIC_ASSETS.map((asset) => cache.add(asset).catch(() => null)))
+    ))
   );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
-      );
-    })
+    caches.keys().then((keys) => Promise.all(
+      keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+    ))
   );
   self.clients.claim();
 });
@@ -37,35 +54,35 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin || url.hostname.includes('supabase.co')) return;
 
-  // Network-first for API / Edge Functions
-  if (
-    url.hostname.includes('supabase.co') ||
-    url.hostname.includes('api.')
-  ) {
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(async () => (
+          (await caches.match(event.request)) || (await caches.match('/index.html'))
+        ))
+    );
     return;
   }
 
-  // Cache-first for static assets
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-
-      return fetch(event.request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
+      const refresh = fetch(event.request).then((response) => {
+        if (response.ok && response.type === 'basic') {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         }
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, clone);
-        });
         return response;
-      }).catch(() => {
-        // Offline fallback for navigation requests
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html');
-        }
       });
+      return cached || refresh;
     })
   );
 });

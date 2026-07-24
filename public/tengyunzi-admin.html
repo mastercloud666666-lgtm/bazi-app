@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tengyunzi Operations</title>
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <link rel="stylesheet" href="./tengyunzi-fonts.css?v=20260722seo1">
+
+  <link rel="stylesheet" href="./tengyunzi-clean.css?v=20260714a">
+  <link rel="stylesheet" href="./tengyunzi-product.css?v=20260722-admin4">
+</head>
+<body class="admin-body">
+  <header class="admin-topbar">
+    <div class="admin-topbar-inner">
+      <div class="admin-brand"><span class="brand-mark" aria-hidden="true">TZ</span><strong>Tengyunzi</strong><small>Operations</small></div>
+      <div class="admin-actions">
+        <span class="admin-account-name" data-admin-account></span>
+        <select data-admin-days aria-label="Reporting period" hidden><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last year</option></select>
+        <button type="button" data-admin-refresh hidden>Refresh</button>
+        <button type="button" data-admin-signout hidden>Sign out</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin-layout is-login" data-admin-layout>
+    <nav class="admin-sidebar" aria-label="Operations navigation" data-admin-navigation hidden>
+      <span>Workspace</span>
+      <a class="is-active" href="#overview">Overview</a>
+      <a href="#price-experiment">Price experiment</a>
+      <a href="#reports">Reports</a>
+      <a href="#personal-orders">Manual orders</a>
+      <a href="#traffic">Traffic</a>
+      <a href="#registrations">Registrations</a>
+      <a href="#newsletter">Newsletter</a>
+      <a href="#ai-test">AI test</a>
+      <a href="#audit">Audit log</a>
+      <a href="#security">Security</a>
+    </nav>
+
+    <main>
+      <div class="admin-content-head">
+        <div><h1>Business operations</h1><p>Orders, AI reports, audience growth, traffic, and customer records in one place.</p></div>
+        <span class="admin-updated" data-admin-updated>Not signed in</span>
+      </div>
+
+      <section class="admin-token" data-admin-token-panel>
+        <h2>Administrator sign in</h2>
+        <p>Use your Tengyunzi operations username and password. Sessions expire automatically.</p>
+        <form class="admin-token-form admin-login-form" data-admin-login-form>
+          <label><span>Username</span><input type="text" name="username" autocomplete="username" required></label>
+          <label><span>Password</span><input type="password" name="password" autocomplete="current-password" required></label>
+          <button type="submit">Sign in</button>
+        </form>
+        <p class="admin-message" data-admin-message aria-live="polite"></p>
+      </section>
+
+      <section class="admin-dashboard" data-admin-dashboard hidden>
+        <div class="admin-metrics" id="overview">
+          <div class="admin-metric"><span>Paid orders</span><strong data-admin-metric="paid_orders">0</strong><small>AI and personal readings</small></div>
+          <div class="admin-metric"><span>Revenue</span><strong data-admin-metric="revenue_usd">$0.00</strong><small>Captured revenue</small></div>
+          <div class="admin-metric"><span>AI orders</span><strong data-admin-metric="ai_paid_orders">0</strong><small>Experiment-priced reports</small></div>
+          <div class="admin-metric"><span>Manual orders</span><strong data-admin-metric="manual_paid_orders">0</strong><small>Written reports and bundles</small></div>
+          <div class="admin-metric"><span>Manual queue</span><strong data-admin-metric="manual_in_queue">0</strong><small>Paid, not delivered</small></div>
+          <div class="admin-metric"><span>Free reports</span><strong data-admin-metric="free_reports">0</strong><small>Generated previews</small></div>
+          <div class="admin-metric"><span>Admin tests</span><strong data-admin-metric="admin_test_reports">0</strong><small>No-charge full reports</small></div>
+          <div class="admin-metric"><span>Subscribers</span><strong data-admin-metric="active_subscribers">0</strong><small>Active emails</small></div>
+          <div class="admin-metric"><span>Visitors</span><strong data-admin-metric="unique_visitors">0</strong><small>Unique browsers</small></div>
+          <div class="admin-metric"><span>Page views</span><strong data-admin-metric="visits">0</strong><small>Tracked visits</small></div>
+          <div class="admin-metric"><span>Registered users</span><strong data-admin-metric="registered_users">0</strong><small>Email accounts</small></div>
+          <div class="admin-metric"><span>Reports ready</span><strong data-admin-metric="reports_ready">0</strong><small><span data-admin-failures>0 failed</span></small></div>
+        </div>
+
+        <div class="admin-grid">
+          <section class="admin-panel" id="price-experiment">
+            <div class="admin-panel-head"><h2>Report price experiment</h2><span data-price-experiment-state>Collecting data</span></div>
+            <p class="admin-panel-copy">Stable six-cell test: AI reports at $9.99, $19.99, or $49.00, paired with personal readings at $99.00 or $149.00. Compare paid conversion and revenue per exposure before choosing a winner.</p>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead><tr><th>Product</th><th>Price</th><th>Exposures</th><th>Checkout</th><th>Orders</th><th>Paid</th><th>Paid conversion</th><th>Revenue</th><th>Revenue / exposure</th></tr></thead>
+                <tbody data-price-summary-rows><tr><td colspan="9">No experiment data loaded.</td></tr></tbody>
+              </table>
+            </div>
+            <div class="admin-table-wrap admin-experiment-cells">
+              <table class="admin-table">
+                <thead><tr><th>Six-cell assignment</th><th>Visitors exposed</th><th>Orders</th><th>Paid</th><th>Revenue</th></tr></thead>
+                <tbody data-price-cell-rows><tr><td colspan="5">No experiment cells loaded.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="admin-panel" id="reports">
+            <div class="admin-panel-head"><h2>AI report activity</h2><span data-report-count>0 rows</span></div>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead><tr><th>User</th><th>Product</th><th>Status</th><th>Amount</th><th>Birth date</th><th>Hour</th><th>Gender</th><th>Birthplace</th><th>Created</th></tr></thead>
+                <tbody data-admin-report-rows><tr><td colspan="9">No data loaded.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="admin-panel" id="personal-orders">
+            <div class="admin-panel-head"><h2>Tengyunzi manual product queue</h2><span data-manual-count>0 rows</span></div>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead><tr><th>Customer</th><th>Product</th><th>Status</th><th>Payment</th><th>Amount</th><th>Focus</th><th>Birth date</th><th>Hour</th><th>Gender</th><th>Birthplace</th><th>Created</th><th>Action</th></tr></thead>
+                <tbody data-admin-manual-rows><tr><td colspan="12">No data loaded.</td></tr></tbody>
+              </table>
+            </div>
+            <form class="admin-personal-form" data-personal-form hidden>
+              <input type="hidden" name="intake_id">
+              <div class="admin-personal-form-head">
+                <div><strong data-personal-customer>Manual order</strong><span data-personal-reference></span></div>
+                <button type="button" data-personal-close aria-label="Close order editor">Close</button>
+              </div>
+              <dl class="admin-order-summary admin-form-wide">
+                <div><dt>Product</dt><dd data-personal-product>-</dd></div>
+                <div><dt>Question</dt><dd data-personal-question>-</dd></div>
+                <div><dt>Selected events</dt><dd data-personal-events>-</dd></div>
+                <div><dt>Chart time</dt><dd data-personal-solar-time>-</dd></div>
+              </dl>
+              <label><span>Order status</span><select name="status"><option value="paid_ready">Paid, ready</option><option value="in_progress">In progress</option><option value="delivered">Delivered</option><option value="closed">Closed</option></select></label>
+              <label class="admin-form-wide"><span>Secure report URL</span><input type="url" name="delivery_url" placeholder="https://..."></label>
+              <label class="admin-form-wide"><span>Customer delivery message</span><textarea name="delivery_note" rows="4" placeholder="Your personal reading is attached and ready..."></textarea></label>
+              <label class="admin-form-wide"><span>Internal note</span><textarea name="internal_note" rows="3" placeholder="Private operations note; never included in customer email."></textarea></label>
+              <label class="admin-notify-row"><input type="checkbox" name="notify_customer"><span>Email the customer when this update is saved</span></label>
+              <div class="admin-pdf-delivery admin-form-wide">
+                <label><span>Finished PDF files</span><input type="file" name="pdf_files" accept="application/pdf,.pdf" multiple></label>
+                <p data-personal-file-note>Select the finished PDF for this order.</p>
+                <button class="is-primary" type="button" data-personal-send-pdf>Send PDF to customer</button>
+              </div>
+              <div class="admin-campaign-actions admin-form-wide"><button class="is-primary" type="submit" data-personal-save>Update order</button></div>
+              <p class="admin-message admin-form-wide" data-personal-message aria-live="polite"></p>
+            </form>
+          </section>
+
+          <section class="admin-panel" id="traffic">
+            <div class="admin-panel-head"><h2>Recent visits</h2><span data-visit-count>0 rows</span></div>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead><tr><th>Time</th><th>IP address</th><th>Location</th><th>Page</th><th>Device</th><th>Type</th><th>Referrer</th></tr></thead>
+                <tbody data-admin-visit-rows><tr><td colspan="7">No data loaded.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="admin-panel" id="registrations">
+            <div class="admin-panel-head"><h2>Recent registrations</h2><span data-registration-count>0 rows</span></div>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead><tr><th>Email</th><th>Registered</th><th>Email confirmed</th><th>Last sign in</th></tr></thead>
+                <tbody data-admin-registration-rows><tr><td colspan="4">No data loaded.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="admin-panel admin-panel-half">
+            <div class="admin-panel-head"><h2>Top pages</h2><span>Page views</span></div>
+            <ol class="admin-pages" data-admin-pages><li><span>No data loaded.</span><strong>0</strong></li></ol>
+          </section>
+
+          <section class="admin-panel admin-panel-half" id="ai-test">
+            <div class="admin-panel-head"><h2>Administrator AI test</h2><span>Full AI product</span></div>
+            <p class="admin-panel-copy">Generate the complete standard English BaZi report through the live AI prompt without creating a PayPal payment or adding revenue.</p>
+            <a class="admin-command-link" href="./tengyunzi-report.html?admin_test=1#reading-form">Open no-charge test mode</a>
+          </section>
+
+          <section class="admin-panel" id="newsletter">
+            <div class="admin-panel-head"><h2>Newsletter campaign</h2><span data-campaign-state>New draft</span></div>
+            <p class="admin-provider-state" data-newsletter-provider>Checking email delivery...</p>
+            <form class="admin-campaign-form" data-campaign-form>
+              <label><span>Subject</span><input type="text" name="subject" maxlength="180" required></label>
+              <label><span>Preview text</span><input type="text" name="preheader" maxlength="240"></label>
+              <label class="admin-form-wide"><span>Letter</span><textarea name="body_text" rows="12" required></textarea></label>
+              <label><span>Test recipient</span><input type="email" name="test_email" placeholder="you@example.com"></label>
+              <div class="admin-campaign-actions">
+                <button type="button" data-campaign-save>Save draft</button>
+                <button type="button" data-campaign-test>Send test</button>
+                <button class="is-primary" type="button" data-campaign-send>Send to subscribers</button>
+              </div>
+            </form>
+            <p class="admin-message" data-campaign-message aria-live="polite"></p>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead><tr><th>Subject</th><th>Status</th><th>Sent</th><th>Failed</th><th>Created</th></tr></thead>
+                <tbody data-admin-campaign-rows><tr><td colspan="5">No campaigns loaded.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="admin-panel" id="audit">
+            <div class="admin-panel-head"><h2>Administrator audit log</h2><span data-audit-count>0 rows</span></div>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead><tr><th>Administrator</th><th>Action</th><th>Target</th><th>IP address</th><th>Time</th></tr></thead>
+                <tbody data-admin-audit-rows><tr><td colspan="5">No audit records loaded.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="admin-panel" id="security">
+            <div class="admin-panel-head"><h2>Account security</h2><span>Password</span></div>
+            <form class="admin-password-form" data-admin-password-form>
+              <label><span>Current password</span><input type="password" name="current_password" autocomplete="current-password" required></label>
+              <label><span>New password</span><input type="password" name="new_password" autocomplete="new-password" minlength="10" required></label>
+              <button type="submit">Change password</button>
+            </form>
+          </section>
+        </div>
+        <p class="admin-message" data-admin-message aria-live="polite"></p>
+      </section>
+    </main>
+  </div>
+
+  <script src="./js/tengyunzi-admin.js?v=20260722-admin4"></script>
+</body>
+</html>

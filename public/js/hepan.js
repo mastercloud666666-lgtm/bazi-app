@@ -58,10 +58,11 @@ function renderMiniPillars(containerId, bazi) {
   el.innerHTML = pillars.map(p => `
     <div class="mini-pillar">
       <div class="mini-pillar-lbl">${p.lbl}</div>
-      <div class="mini-tg">${p.tg}</div>
-      <div class="mini-dz">${p.dz}</div>
+      <div class="mini-tg" data-bazi-symbol="${p.tg}">${p.tg}</div>
+      <div class="mini-dz" data-bazi-symbol="${p.dz}">${p.dz}</div>
     </div>
   `).join('');
+  BaziCalc.colorizeSymbols(el);
 }
 
 // ── 计算快速合缘指标（纯本地，不调AI）────────────────────────────
@@ -775,7 +776,7 @@ async function pollPaidHepanOrder(tradeNo) {
 
     try {
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(tradeNo)}&select=paid,analysis,birth_input`,
+        `${SUPABASE_URL}/functions/v1/order-access?trade_no=${encodeURIComponent(tradeNo)}`,
         {
           headers: {
             apikey: SUPABASE_ANON,

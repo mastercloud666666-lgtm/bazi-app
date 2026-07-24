@@ -1,0 +1,64 @@
+{
+  "generated_at_utc": "2026-04-06T03:19:27.430Z",
+  "score": 45.41,
+  "policy": "reduce_frequency_and_rewrite",
+  "source_mode": "service_role_postgrest",
+  "landing_page": {
+    "id": "shiye",
+    "path": "/bazi-shiye.html",
+    "topic": "事业和工作",
+    "hook": "想换工作、升职、转型，先判断你处在冲刺期还是修整期。",
+    "cta": "先看事业盘，避免高成本试错。",
+    "tags": [
+      "#八字",
+      "#事业运",
+      "#职场",
+      "#命理"
+    ]
+  },
+  "links": {
+    "xiaohongshu": "https://tengyunzi.com/bazi-shiye.html?utm_source=xiaohongshu&utm_medium=social&utm_campaign=growth_20260406&utm_content=shiye_xhs",
+    "wechat": "https://tengyunzi.com/bazi-shiye.html?utm_source=wechat&utm_medium=social&utm_campaign=growth_20260406&utm_content=shiye_wechat",
+    "weibo": "https://tengyunzi.com/bazi-shiye.html?utm_source=weibo&utm_medium=social&utm_campaign=growth_20260406&utm_content=shiye_weibo"
+  },
+  "action_plan": [
+    "降频并重写文案开头，减少泛流量词。",
+    "优先发布高意图主题，避免过宽泛内容。",
+    "当前风险提示：bot比率0.00%，请先控制噪音流量。"
+  ],
+  "posts": [
+    {
+      "platform": "xiaohongshu",
+      "title": "这类事业和工作问题，先看时机再行动",
+      "body": "想换工作、升职、转型，先判断你处在冲刺期还是修整期。\n\n我这段时间看了很多案例，最常见的问题不是“要不要做”，而是：\n1) 什么时候做胜率更高\n2) 该先做哪一步风险更低\n3) 哪些信号说明要先稳住\n\n先看事业盘，避免高成本试错。\n入口：https://tengyunzi.com/bazi-shiye.html?utm_source=xiaohongshu&utm_medium=social&utm_campaign=growth_20260406&utm_content=shiye_xhs\n\n#八字\n#事业运\n#职场\n#命理",
+      "char_count": 266,
+      "call_to_action": "点击链接先做免费测算",
+      "expected_metric": {
+        "target_clicks_24h": 25,
+        "target_leads_24h": 3
+      }
+    },
+    {
+      "platform": "wechat",
+      "title": "事业和工作先看节奏",
+      "body": "最近很多人问我事业和工作，我给一个通用建议：\n先判断节奏，再做决定。\n\n你可以先看这个入口：https://tengyunzi.com/bazi-shiye.html?utm_source=wechat&utm_medium=social&utm_campaign=growth_20260406&utm_content=shiye_wechat\n先有框架，再行动，通常更稳。",
+      "char_count": 188,
+      "call_to_action": "点击链接查看个人节奏",
+      "expected_metric": {
+        "target_clicks_24h": 25,
+        "target_leads_24h": 3
+      }
+    },
+    {
+      "platform": "weibo",
+      "title": "事业和工作决策提醒",
+      "body": "很多事业和工作问题，本质是“时机+顺序”。先判断周期，再行动，能少走弯路。入口：https://tengyunzi.com/bazi-shiye.html?utm_source=weibo&utm_medium=social&utm_campaign=growth_20260406&utm_content=shiye_weibo #八字 #事业运 #职场",
+      "char_count": 178,
+      "call_to_action": "打开链接先看测算",
+      "expected_metric": {
+        "target_clicks_24h": 25,
+        "target_leads_24h": 3
+      }
+    }
+  ]
+}

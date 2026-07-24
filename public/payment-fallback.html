@@ -228,7 +228,7 @@
 
     async function fetchOrder(tradeNo) {
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/orders?trade_no=eq.${encodeURIComponent(tradeNo)}&select=trade_no,paid,analysis,birth_input,created_at&limit=1`,
+        `${SUPABASE_URL}/functions/v1/order-access?trade_no=${encodeURIComponent(tradeNo)}`,
         { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } },
       );
       if (!res.ok) throw new Error(`订单查询失败 HTTP ${res.status}`);
