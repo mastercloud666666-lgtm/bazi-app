@@ -1,0 +1,53 @@
+name: Daily PayPal Reconcile
+
+# Buyers who approve at PayPal but never make it back to the site leave orders that
+# are authorised and never charged. This reports them once a day.
+#
+# Report-only by design: capturing money for people who are not at the keyboard is a
+# deliberate act, so run the workflow manually with apply=true after reading a report.
+
+on:
+  schedule:
+    # 09:00 Asia/Singapore = 01:00 UTC, an hour after the healthcheck
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Actually capture approved orders (default: report only)"
+        type: boolean
+        default: false
+      lookback_days:
+        description: "How many days back to scan"
+        type: string
+        default: "7"
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Reconcile PayPal orders
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON: ${{ secrets.SUPABASE_ANON }}
+          ADMIN_DASHBOARD_TOKEN: ${{ secrets.ADMIN_DASHBOARD_TOKEN }}
+          RECONCILE_NOTIFY_WEBHOOK: ${{ secrets.RECONCILE_NOTIFY_WEBHOOK }}
+          RECONCILE_LOOKBACK_DAYS: ${{ inputs.lookback_days || '7' }}
+          # Scheduled runs never charge anyone; only a manual dispatch can.
+          RECONCILE_APPLY: ${{ github.event_name == 'workflow_dispatch' && inputs.apply == true }}
+        run: node scripts/reconcile-paypal.mjs
+
+      - name: Upload reconcile report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reconcile-report
+          path: reconcile-report.json

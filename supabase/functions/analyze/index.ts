@@ -1279,7 +1279,7 @@ Deno.serve(async (req) => {
   if (!isAllowedRequestOrigin(req, allowedOrigins)) {
     return new Response(JSON.stringify({
       error: 'origin_not_allowed',
-      message: '非法来源请求已被拒绝。',
+      message: 'This request came from an unrecognised origin and was rejected.',
     }), {
       status: 403,
       headers: { ...CORS, 'Content-Type': 'application/json' },
@@ -1362,7 +1362,7 @@ Deno.serve(async (req) => {
     if (service === 'bazi' && free_only === true && !isTrustedInternalCall) {
       const tsOk = await verifyTurnstile((body as Record<string, unknown>).turnstile_token);
       if (!tsOk) {
-        return new Response(JSON.stringify({ error: 'turnstile_failed', message: '人机验证未通过，请重试。' }), {
+        return new Response(JSON.stringify({ error: 'turnstile_failed', message: 'Verification failed. Please try again.' }), {
           status: 403, headers: { ...CORS, 'Content-Type': 'application/json' },
         });
       }
@@ -1486,7 +1486,7 @@ Deno.serve(async (req) => {
     } else if (service === 'zhanbu') {
       const tsOk = await verifyTurnstile((body as Record<string, unknown>).turnstile_token);
       if (!tsOk) {
-        return new Response(JSON.stringify({ error: 'turnstile_failed', message: '人机验证未通过，请重试。' }), {
+        return new Response(JSON.stringify({ error: 'turnstile_failed', message: 'Verification failed. Please try again.' }), {
           status: 403, headers: { ...CORS, 'Content-Type': 'application/json' },
         });
       }
