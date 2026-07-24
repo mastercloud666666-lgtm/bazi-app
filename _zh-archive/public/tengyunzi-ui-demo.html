@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>滕云子八字排盘与解读</title>
+  <meta name="description" content="免费八字排盘、四柱预览、个人报告、年度预测和每周东方哲学来信。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800;900&family=Noto+Serif+SC:wght@600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./tengyunzi-clean.css">
+  <style>
+    :root {
+      --body-font: "Noto Sans SC", system-ui, sans-serif;
+      --display-font: "Noto Serif SC", serif;
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="shell nav-inner">
+      <a class="brand" href="#top" aria-label="滕云子">
+        <span class="brand-mark" aria-hidden="true">云</span>
+        <span class="brand-copy">
+          <strong>滕云子</strong>
+          <span>八字作为自我认知</span>
+        </span>
+      </a>
+      <nav class="nav-links" aria-label="页面导航">
+        <a href="#calculator">排盘</a>
+        <a href="#readings">报告</a>
+        <a href="#forecast">流年</a>
+        <a href="#learn">入门</a>
+        <a href="#contact">联系</a>
+        <a class="nav-action" href="#calculator">免费排盘</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="shell hero-grid">
+        <div class="hero-copy">
+          <span class="kicker">八字排盘与解读</span>
+          <h1>看懂四柱，理解自己</h1>
+          <p>先从免费排盘开始，看到你的日主、五行与周期，再决定是否继续阅读完整报告、年度预测或一对一咨询。</p>
+          <div class="hero-actions">
+            <a class="button primary" href="#calculator">开始免费排盘</a>
+            <a class="button" href="#readings">查看报告</a>
+            <a class="button" href="./tengyunzi-whats-inside-zh.html#top">报告内容</a>
+          </div>
+          <ul class="trust-list">
+            <li>先排盘再付费</li>
+            <li>报告内容先预览</li>
+            <li>不做恐惧式预测</li>
+            <li>可预约私密解读</li>
+          </ul>
+        </div>
+
+        <article class="hero-card" aria-label="命盘预览">
+          <div class="report-head">
+            <div>
+              <span>免费预览</span>
+              <h2>你的命盘概览</h2>
+            </div>
+            <div class="seal" aria-hidden="true">云</div>
+          </div>
+          <div class="pillar-mini">
+            <div><small>年柱</small><b>甲辰</b></div>
+            <div><small>月柱</small><b>丁卯</b></div>
+            <div><small>日柱</small><b>壬申</b></div>
+            <div><small>时柱</small><b>乙巳</b></div>
+          </div>
+          <div class="element-bars">
+            <div><span>木</span><i style="--value: 74%"></i><small>偏旺</small></div>
+            <div><span>火</span><i style="--value: 46%"></i><small>适中</small></div>
+            <div><span>土</span><i style="--value: 34%"></i><small>偏弱</small></div>
+          </div>
+          <a class="button primary" href="#calculator">开始排盘</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="calculator" id="calculator" aria-labelledby="calculator-title">
+      <div class="shell">
+        <div class="section-head center">
+          <h2 id="calculator-title">八字排盘｜四柱命盘</h2>
+          <p>输入出生日期、时辰和性别，先打开一份四柱预览。</p>
+        </div>
+
+        <div class="calc-layout">
+          <form class="calc-card" data-chart-form aria-label="免费八字排盘">
+            <h3>出生信息</h3>
+            <div class="field-grid">
+              <div class="field dob-field">
+                <span>出生日期</span>
+                <div class="dob-row">
+                  <label class="field">
+                    <span>日</span>
+                    <input inputmode="numeric" value="15" aria-label="出生日期">
+                  </label>
+                  <label class="field">
+                    <span>月</span>
+                    <select aria-label="出生月份">
+                      <option>一月</option>
+                      <option>二月</option>
+                      <option>三月</option>
+                      <option>四月</option>
+                      <option>五月</option>
+                      <option selected>六月</option>
+                      <option>七月</option>
+                      <option>八月</option>
+                      <option>九月</option>
+                      <option>十月</option>
+                      <option>十一月</option>
+                      <option>十二月</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>年</span>
+                    <input inputmode="numeric" value="1990" aria-label="出生年份">
+                  </label>
+                </div>
+              </div>
+              <label class="field wide-field">
+                <span>出生时辰</span>
+                <select aria-label="出生时辰">
+                  <option selected>不确定</option>
+                  <option>巳时</option>
+                  <option>午时</option>
+                  <option>未时</option>
+                </select>
+              </label>
+              <label class="field wide-field">
+                <span>性别</span>
+                <select aria-label="性别">
+                  <option selected>男</option>
+                  <option>女</option>
+                  <option>不填写</option>
+                </select>
+              </label>
+            </div>
+            <button class="submit-button" type="submit">开始计算</button>
+            <p class="form-note" aria-live="polite"></p>
+          </form>
+
+          <div class="result-card" data-chart-result>
+            <span class="result-label">示例结果</span>
+            <h3>四柱预览</h3>
+            <p>免费结果先给结构，再引导你进入更完整的报告。</p>
+            <div class="result-grid">
+              <div class="result-table">
+                <div><small>年柱</small><b>甲辰</b></div>
+                <div><small>月柱</small><b>丁卯</b></div>
+                <div><small>日柱</small><b>壬申</b></div>
+                <div><small>时柱</small><b>乙巳</b></div>
+              </div>
+              <div class="element-bars">
+                <div><span>木</span><i style="--value: 74%"></i><small>偏旺</small></div>
+                <div><span>火</span><i style="--value: 46%"></i><small>适中</small></div>
+                <div><span>土</span><i style="--value: 34%"></i><small>偏弱</small></div>
+                <div><span>水</span><i style="--value: 52%"></i><small>活跃</small></div>
+              </div>
+              <div class="result-actions">
+                <a class="button primary" href="./tengyunzi-whats-inside-zh.html#top">查看完整报告章节</a>
+                <a class="button" href="#readings">购买报告</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="learn">
+      <div class="shell split">
+        <div class="text-block">
+          <span class="kicker">八字怎么看</span>
+          <h2>命盘是一张模式地图，不是一句命运判词</h2>
+          <p>八字把出生年、月、日、时变成一套象征结构。真正有用的问题不是“我会不会怎样”，而是“我总在重复什么模式，我可以怎样更好地配合自己的节奏”。</p>
+          <ul class="concept-list">
+            <li><strong>四柱</strong><span>年、月、日、时形成命盘基础。</span></li>
+            <li><strong>日主</strong><span>解读的中心，用来观察其他部分如何作用于你。</span></li>
+            <li><strong>五行</strong><span>木、火、土、金、水描述平衡、压力和表达方式。</span></li>
+            <li><strong>运势周期</strong><span>周期帮助你理解何时扩张、承压、修复或转换。</span></li>
+          </ul>
+        </div>
+        <div class="chart-visual" aria-hidden="true"><span>命</span></div>
+      </div>
+    </section>
+
+    <section id="readings" aria-labelledby="readings-title">
+      <div class="shell">
+        <div class="section-head">
+          <h2 id="readings-title">个人报告</h2>
+          <p>根据你的问题选择深度。每份报告都会把传统术语翻译成可以理解和使用的现实语言。</p>
+        </div>
+        <div class="products">
+          <article class="product-card">
+            <strong>入门</strong>
+            <h3>基础命盘报告</h3>
+            <p>日主、四柱、五行和核心性格模式。</p>
+            <span class="price">十九美元</span>
+          </article>
+          <article class="product-card">
+            <strong>常用</strong>
+            <h3>完整个人报告</h3>
+            <p>关系、事业、金钱、压力模式、周期和行动建议。</p>
+            <span class="price">四十九美元</span>
+          </article>
+          <article class="product-card">
+            <strong>深入</strong>
+            <h3>一对一咨询</h3>
+            <p>适合人生转换、关系困惑和事业选择。</p>
+            <span class="price">预约制</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="forecast" aria-labelledby="forecast-title">
+      <div class="shell">
+        <div class="section-head">
+          <h2 id="forecast-title">年度预测</h2>
+          <p>年度预测不是固定判词，而是帮助你理解某一年的节奏、重点和取舍。</p>
+        </div>
+        <div class="forecast-line">
+          <article class="forecast-step"><strong>第一步</strong><h3>当前周期</h3><p>读取正在发生的大运和流年影响。</p></article>
+          <article class="forecast-step"><strong>第二步</strong><h3>年度主题</h3><p>判断今年更像扩张、修复、压力还是转换。</p></article>
+          <article class="forecast-step"><strong>第三步</strong><h3>重点领域</h3><p>把节奏落到事业、关系、金钱和身心习惯。</p></article>
+          <article class="forecast-step"><strong>第四步</strong><h3>行动建议</h3><p>最后给出可以真正使用的选择提示。</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell bundle">
+        <div>
+          <h2>排盘、报告、流年和咨询，可以是一条完整路径</h2>
+          <p>先用免费排盘建立信任，再进入个人报告。需要更多上下文时，再选择年度预测或一对一咨询。</p>
+        </div>
+        <a class="button primary" href="#readings">选择你的解读</a>
+      </div>
+    </section>
+
+    <section id="about">
+      <div class="shell about-grid">
+        <div class="about-copy">
+          <span class="kicker">关于滕云子</span>
+          <h2>把传统命理翻译成现代人的自我认知工具</h2>
+          <p>滕云子把八字和东方哲学当成观察人生模式的语言。语气保持清楚、克制、实用，不制造恐惧，也不表演神秘。</p>
+          <p>好的解读不是让你依赖命理，而是帮助你更清楚地理解自己的节奏、性格和选择。</p>
+        </div>
+        <div class="about-panel" aria-hidden="true"><strong>云</strong></div>
+      </div>
+    </section>
+
+    <section id="reading-room">
+      <div class="shell">
+        <div class="section-head">
+          <h2>阅读室</h2>
+          <p>先用短文章理解八字，再决定是否购买报告。学习顺序从四柱、日主、五行开始，再进入流年、关系和事业问题。</p>
+        </div>
+        <div class="resource-grid">
+          <article class="resource-card">
+            <div>
+              <strong>先读这里</strong>
+              <h3>八字到底在读什么</h3>
+              <p>用简单语言理解四柱、日主、五行、十神和大运的基本关系。</p>
+            </div>
+            <a class="text-link" href="#learn">阅读入门</a>
+          </article>
+          <article class="resource-card">
+            <div>
+              <strong>基础框架</strong>
+              <h3>你出生时带来的系统</h3>
+              <p>把命盘看成一种模式语言，观察性格、压力、表达方式和人生节奏。</p>
+            </div>
+            <a class="text-link" href="#calculator">先看命盘</a>
+          </article>
+          <article class="resource-card">
+            <div>
+              <strong>年度节奏</strong>
+              <h3>把流年当成气候报告</h3>
+              <p>先看这一年的大环境，再回到你自己的命盘里判断重点和取舍。</p>
+            </div>
+            <a class="text-link" href="#forecast">查看流年</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="decoded-archive">
+      <div class="shell">
+        <div class="section-head">
+          <h2>解读档案</h2>
+          <p>按照不同需求进入：免费入门、完整报告、年度预测、组合方案，以及适合关系和事业问题的深度解读。</p>
+        </div>
+        <div class="resource-grid">
+          <article class="resource-card">
+            <div>
+              <strong>免费</strong>
+              <h3>八字入门路径</h3>
+              <p>先找到日主，看懂四柱，再学习五行和周期的基本语言。</p>
+            </div>
+            <a class="text-link" href="#calculator">开始排盘</a>
+          </article>
+          <article class="resource-card">
+            <div>
+              <strong>报告</strong>
+              <h3>完整个人命盘</h3>
+              <p>用于理解性格、事业、关系、压力模式和长期人生节奏。</p>
+            </div>
+            <a class="text-link" href="#readings">查看报告</a>
+          </article>
+          <article class="resource-card">
+            <div>
+              <strong>流年</strong>
+              <h3>十二个月节奏图</h3>
+              <p>把未来一年拆成可观察、可安排、可调整的行动地图。</p>
+            </div>
+            <a class="text-link" href="#forecast">查看预测</a>
+          </article>
+          <article class="resource-card">
+            <div>
+              <strong>预览</strong>
+              <h3>报告里面有什么</h3>
+              <p>先看章节结构，再决定是否进入完整解读或咨询。</p>
+            </div>
+            <a class="text-link" href="./tengyunzi-whats-inside-zh.html#top">查看内容</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="library">
+      <div class="shell">
+        <div class="section-head">
+          <h2>免费文章</h2>
+          <p>在购买任何报告之前，你可以先学习命盘语言。</p>
+        </div>
+        <div class="resource-grid">
+          <article class="resource-card"><strong>入门</strong><h3>什么是日主</h3><p>从命盘中心开始理解自己。</p></article>
+          <article class="resource-card"><strong>入门</strong><h3>五行如何进入日常生活</h3><p>看五行强弱如何表现为习惯、压力和表达。</p></article>
+          <article class="resource-card"><strong>来信</strong><h3>每周东方哲学</h3><p>每周一个关于节奏、工作、关系和注意力的问题。</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="shell contact-grid">
+        <div class="section-head">
+          <h2>下单前有问题？</h2>
+          <p>你可以先留言，也可以订阅每周来信，慢慢确认这套解读方式是否适合你。</p>
+        </div>
+        <div class="contact-card">
+          <form class="contact-form" data-contact-form>
+            <input name="name" placeholder="你的称呼" aria-label="称呼" required>
+            <input type="email" name="email" placeholder="你的邮箱" aria-label="邮箱" required>
+            <textarea name="message" placeholder="你想理解什么问题？" aria-label="留言"></textarea>
+            <input class="contact-honeypot" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <button class="submit-button" type="submit">发送留言</button>
+            <p class="form-note" aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell">滕云子把八字作为自我认知框架，不提供恐惧式预测或绝对承诺。</div>
+  </footer>
+
+  <script>
+    const SUPABASE_URL = "https://rcyssrsnalefzhzsvswm.supabase.co";
+    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU";
+    const chartForm = document.querySelector("[data-chart-form]");
+    const chartNote = chartForm?.querySelector(".form-note");
+    const contactForm = document.querySelector("[data-contact-form]");
+    const contactNote = contactForm?.querySelector(".form-note");
+
+    function isValidEmail(value) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(value || "").trim());
+    }
+
+    function getUrlParam(name) {
+      try {
+        return new URLSearchParams(window.location.search || "").get(name) || "";
+      } catch (error) {
+        return "";
+      }
+    }
+
+    function setContactStatus(message, isError) {
+      contactNote.textContent = message || "";
+      contactNote.style.color = isError ? "#b42318" : "var(--blue-dark)";
+    }
+
+    chartForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      chartNote.textContent = "示例命盘已打开。正式版本会根据生日计算真实四柱。";
+      document.querySelector("[data-chart-result]")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+
+    contactForm?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const submitButton = contactForm.querySelector("button[type='submit']");
+      const formData = new FormData(contactForm);
+      const name = String(formData.get("name") || "").trim();
+      const email = String(formData.get("email") || "").trim();
+      const message = String(formData.get("message") || "").trim();
+      const website = String(formData.get("website") || "").trim();
+
+      if (!name) {
+        setContactStatus("请填写称呼。", true);
+        return;
+      }
+      if (!isValidEmail(email)) {
+        setContactStatus("请输入有效邮箱。", true);
+        return;
+      }
+      if (message.length < 10) {
+        setContactStatus("请至少写一句清楚的问题。", true);
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.textContent = "发送中...";
+      setContactStatus("", false);
+
+      try {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/contact-submit`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${SUPABASE_ANON}`,
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            topic: "首页留言",
+            message,
+            website,
+            source: "homepage-contact",
+            language: "zh-Hans",
+            page_path: window.location.pathname || "/",
+            landing_url: String(window.location.href || "").slice(0, 500),
+            referrer: String(document.referrer || "").slice(0, 500),
+            utm_source: getUrlParam("utm_source"),
+            utm_medium: getUrlParam("utm_medium"),
+            utm_campaign: getUrlParam("utm_campaign"),
+            metadata: {
+              page: "tengyunzi-home-zh",
+              placement: "homepage-contact",
+            },
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+        contactForm.reset();
+        setContactStatus("留言已发送。如需回复，我们会通过邮箱联系你。", false);
+      } catch (error) {
+        setContactStatus("发送失败，请稍后再试。", true);
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = "发送留言";
+      }
+    });
+  </script>
+</body>
+</html>
+

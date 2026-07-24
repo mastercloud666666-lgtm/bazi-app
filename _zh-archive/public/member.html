@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>会员订阅 · 云子文化</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{--navy:#0a2540;--accent:#0066CC;--gold:#b8892b;--line:#e2e8f0;--gray:#64748b;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"PingFang SC","Microsoft YaHei",sans-serif;color:#1f2937;background:#f7fafc;}
+  .nav{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+  .nav-in{max-width:900px;margin:0 auto;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;}
+  .brand{color:var(--navy);font-weight:700;text-decoration:none;font-size:17px;}
+  .nav-links a{margin-left:16px;color:#4b5563;text-decoration:none;font-size:14px;}
+  .wrap{max-width:900px;margin:0 auto;padding:34px 20px 90px;}
+  h1{font-size:28px;color:var(--navy);margin:6px 0 6px;text-align:center;}
+  .sub{color:var(--gray);font-size:15px;margin:0 0 8px;text-align:center;}
+  .benefits{max-width:640px;margin:18px auto 26px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 24px;}
+  .benefits h3{margin:0 0 12px;font-size:15px;color:var(--navy);}
+  .benefits ul{margin:0;padding-left:20px;color:#334155;font-size:14px;line-height:2;}
+  .status{max-width:640px;margin:0 auto 24px;border-radius:14px;padding:16px 20px;font-size:14px;}
+  .status.active{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;}
+  .status.inactive{background:#fff;border:1px solid var(--line);color:var(--gray);}
+  .plans{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;max-width:700px;margin:0 auto;}
+  .plan{flex:1;min-width:260px;background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:26px 24px;position:relative;}
+  .plan.best{border-color:var(--gold);box-shadow:0 8px 30px rgba(184,137,43,.12);}
+  .plan .tag{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--gold);color:#fff;font-size:12px;font-weight:700;padding:3px 14px;border-radius:999px;white-space:nowrap;}
+  .plan h2{margin:0 0 6px;font-size:18px;color:var(--navy);}
+  .price{font-size:34px;font-weight:800;color:var(--navy);line-height:1.1;}
+  .price small{font-size:15px;font-weight:600;color:var(--gray);}
+  .price-usd{font-size:13px;color:var(--gray);margin-top:4px;}
+  .save-note{font-size:12px;color:#0a8a3a;font-weight:700;margin-top:8px;min-height:16px;}
+  .buy{display:block;width:100%;margin-top:18px;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:13px;font-size:16px;font-weight:700;cursor:pointer;}
+  .buy.gold{background:var(--gold);}
+  .buy:disabled{opacity:.6;cursor:default;}
+  .pay-note{text-align:center;font-size:12px;color:#94a3b8;margin-top:22px;line-height:1.8;}
+  .gate{max-width:520px;margin:0 auto;text-align:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:44px 24px;}
+  .gate p{color:var(--gray);font-size:15px;margin:0 0 20px;}
+  .gate .btn{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:13px 30px;font-size:16px;font-weight:700;cursor:pointer;}
+  .msg{text-align:center;font-size:13px;margin:16px auto 0;max-width:640px;min-height:18px;}
+  .msg.err{color:#dc2626;} .msg.ok{color:#0a8a3a;}
+  .toggle{display:flex;justify-content:center;gap:0;margin:0 auto 22px;max-width:300px;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .toggle button{flex:1;background:#fff;border:none;padding:10px;font-size:14px;font-weight:600;color:var(--gray);cursor:pointer;}
+  .toggle button.on{background:var(--accent);color:#fff;}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-in">
+    <a class="brand" href="/index.html" id="t-brand">云子文化</a>
+    <div class="nav-links">
+      <a href="/index.html" id="t-nav-bazi">八字排盘</a>
+      <a href="/my-records.html" id="t-nav-rec">我的记录</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <h1 id="t-title">开通会员</h1>
+  <p class="sub" id="t-sub">会员期内，完整性格分析报告不限次生成</p>
+
+  <div id="status" class="status inactive" style="display:none"></div>
+
+  <div class="benefits">
+    <h3 id="t-ben-title">会员权益</h3>
+    <ul id="t-ben-list">
+      <li>完整八字性格分析报告（24维系统分析）不限次生成</li>
+      <li>性格特质、优势天赋、适合方向深度解读</li>
+      <li>报告自动保存到「我的记录」，随时回看</li>
+      <li>会员到期前均享上述权益</li>
+    </ul>
+  </div>
+
+  <!-- 支付方式切换 -->
+  <div class="toggle" id="pay-toggle" style="display:none">
+    <button id="ch-cny" class="on">微信 / 支付宝</button>
+    <button id="ch-pp">PayPal（自动续费）</button>
+  </div>
+
+  <div id="plans" class="plans" style="display:none">
+    <div class="plan">
+      <h2 id="t-m-name">月卡</h2>
+      <div class="price" id="t-m-price">¥49<small>/月</small></div>
+      <div class="price-usd" id="t-m-usd">$9.9 / month (PayPal)</div>
+      <div class="save-note">&nbsp;</div>
+      <button class="buy" id="buy-monthly">开通月卡</button>
+    </div>
+    <div class="plan best">
+      <span class="tag" id="t-tag">立省 40%</span>
+      <h2 id="t-y-name">年卡</h2>
+      <div class="price" id="t-y-price">¥398<small>/年</small></div>
+      <div class="price-usd" id="t-y-usd">$69 / year (PayPal)</div>
+      <div class="save-note" id="t-y-save">相当于每月 ¥33</div>
+      <button class="buy gold" id="buy-yearly">开通年卡</button>
+    </div>
+  </div>
+
+  <div id="gate" class="gate" style="display:none">
+    <p id="t-gate-p">请先登录，会员权益与你的账号绑定</p>
+    <button class="btn" id="gate-login" >登录</button>
+  </div>
+
+  <div class="msg" id="msg"></div>
+  <p class="pay-note" id="t-note">微信/支付宝为一次性时长卡，到期手动续费；PayPal 为自动续费订阅，可随时在 PayPal 取消。</p>
+  <p class="pay-note" style="margin-top:6px;">
+    <a href="/terms-of-service.html" id="t-lnk-terms" style="color:#94a3b8;">服务条款</a> ·
+    <a href="/refund-policy.html" id="t-lnk-refund" style="color:#94a3b8;">退款与取消政策</a> ·
+    <a href="/privacy-policy.html" id="t-lnk-privacy" style="color:#94a3b8;">隐私政策</a>
+  </p>
+</div>
+
+<script src="js/human-verify.js"></script>
+<script src="js/turnstile-verify.js?v=ts3"></script>
+<script src="js/auth-records.js?v=ar7"></script>
+<script>
+  var SUPABASE_URL='https://rcyssrsnalefzhzsvswm.supabase.co';
+  var SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXNzcnNuYWxlZnpoenN2c3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTM5NjksImV4cCI6MjA4ODQyOTk2OX0.AiRGSCEYBGWZQgLXjghwjsESKBGSq7a0Z7NBLfrzuWU';
+  var EN=(function(){try{return (localStorage.getItem('site_lang_pref_v2')||'zh-Hans')==='en';}catch(e){return false;}})();
+  var T=EN?{
+    brand:'Yunzi Culture', navBazi:'Bazi Chart', navRec:'My Records',
+    title:'Become a Member', sub:'Unlimited full personality analysis reports while your membership is active',
+    benTitle:'Membership benefits', ben:['Unlimited full Bazi personality reports (24-dimension analysis)','Deep read on your traits, strengths and suitable directions','Reports auto-saved to My Records','All benefits until your membership expires'],
+    chCny:'WeChat / Alipay', chPp:'PayPal (auto-renew)',
+    mName:'Monthly', mPrice:'$9.9<small>/mo</small>', mUsd:'Billed monthly via PayPal',
+    yName:'Yearly', yPrice:'$69<small>/yr</small>', yUsd:'Billed yearly via PayPal', ySave:'≈ $5.75 / month',
+    tag:'Save 40%', buyM:'Get Monthly', buyY:'Get Yearly',
+    gateP:'Please log in first — membership is tied to your account', gateBtn:'Log in',
+    note:'WeChat/Alipay = one-time time pass (renew manually). PayPal = auto-renewing subscription, cancel anytime in PayPal.',
+    redirect:'Redirecting…', payFail:'Payment could not start, please retry',
+    activeFmt:function(p,d){return 'Membership active · '+(p==='yearly'?'Yearly':'Monthly')+' · valid until '+d;},
+    verifying:'Confirming your subscription…', activated:'Membership activated! 🎉'
+  }:{
+    brand:'云子文化', navBazi:'八字排盘', navRec:'我的记录',
+    title:'开通会员', sub:'会员期内，完整性格分析报告不限次生成',
+    benTitle:'会员权益', ben:['完整八字性格分析报告（24维系统分析）不限次生成','性格特质、优势天赋、适合方向深度解读','报告自动保存到「我的记录」，随时回看','会员到期前均享上述权益'],
+    chCny:'微信 / 支付宝', chPp:'PayPal（自动续费）',
+    mName:'月卡', mPrice:'¥49<small>/月</small>', mUsd:'$9.9 / month (PayPal)',
+    yName:'年卡', yPrice:'¥398<small>/年</small>', yUsd:'$69 / year (PayPal)', ySave:'相当于每月 ¥33',
+    tag:'立省 40%', buyM:'开通月卡', buyY:'开通年卡',
+    gateP:'请先登录，会员权益与你的账号绑定', gateBtn:'登录',
+    note:'微信/支付宝为一次性时长卡，到期手动续费；PayPal 为自动续费订阅，可随时在 PayPal 取消。',
+    redirect:'正在跳转…', payFail:'支付创建失败，请重试',
+    activeFmt:function(p,d){return '会员生效中 · '+(p==='yearly'?'年卡':'月卡')+' · 有效期至 '+d;},
+    verifying:'正在确认订阅状态…', activated:'会员已开通！🎉'
+  };
+
+  function $(id){return document.getElementById(id);}
+  function setHTML(id,h){var e=$(id);if(e)e.innerHTML=h;}
+  function setTxt(id,t){var e=$(id);if(e)e.textContent=t;}
+  function msg(t,ok){var m=$('msg');m.textContent=t||'';m.className='msg '+(ok?'ok':'err');}
+  function fmtDate(s){try{var d=new Date(s);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}catch(e){return '';}}
+
+  (function applyLang(){
+    if(EN) document.documentElement.lang='en';
+    document.title=T.title+(EN?' · Yunzi Culture':' · 云子文化');
+    setTxt('t-brand',T.brand); setTxt('t-nav-bazi',T.navBazi); setTxt('t-nav-rec',T.navRec);
+    setTxt('t-title',T.title); setTxt('t-sub',T.sub); setTxt('t-ben-title',T.benTitle);
+    setHTML('t-ben-list',T.ben.map(function(b){return '<li>'+b+'</li>';}).join(''));
+    setTxt('ch-cny',T.chCny); setTxt('ch-pp',T.chPp);
+    setTxt('t-m-name',T.mName); setHTML('t-m-price',T.mPrice); setTxt('t-m-usd',T.mUsd);
+    setTxt('t-y-name',T.yName); setHTML('t-y-price',T.yPrice); setTxt('t-y-usd',T.yUsd); setTxt('t-y-save',T.ySave);
+    setTxt('t-tag',T.tag); setTxt('buy-monthly',T.buyM); setTxt('buy-yearly',T.buyY);
+    setTxt('t-gate-p',T.gateP); setTxt('gate-login',T.gateBtn); setTxt('t-note',T.note);
+    if(EN){ setTxt('t-lnk-terms','Terms of Service'); setTxt('t-lnk-refund','Refund & Cancellation'); setTxt('t-lnk-privacy','Privacy Policy'); }
+  })();
+
+  // 支付渠道：默认按语言（中文→CNY，英文→PayPal）
+  var channel = EN ? 'pp' : 'cny';
+  function applyChannel(){
+    $('ch-cny').className = channel==='cny'?'on':'';
+    $('ch-pp').className = channel==='pp'?'on':'';
+    // 价格显示随渠道切换
+    if(channel==='pp'){
+      setHTML('t-m-price', EN?T.mPrice:'$9.9<small>/月</small>'); setTxt('t-m-usd', EN?T.mUsd:'PayPal 自动续费');
+      setHTML('t-y-price', EN?T.yPrice:'$69<small>/年</small>'); setTxt('t-y-usd', EN?T.yUsd:'PayPal 自动续费');
+    } else {
+      setHTML('t-m-price','¥49<small>'+(EN?'/mo':'/月')+'</small>'); setTxt('t-m-usd', EN?'One-time 30-day pass':'一次性 30 天');
+      setHTML('t-y-price','¥398<small>'+(EN?'/yr':'/年')+'</small>'); setTxt('t-y-usd', EN?'One-time 365-day pass':'一次性 365 天');
+    }
+  }
+  $('ch-cny').onclick=function(){channel='cny';applyChannel();};
+  $('ch-pp').onclick=function(){channel='pp';applyChannel();};
+
+  function memTradeNo(){ return 'bazi-mem-'+Math.random().toString(36).slice(2,10)+'-'+Date.now(); }
+
+  async function subscribe(plan){
+    var s = YZAuth.getSession();
+    if(!s || !s.user_id){ YZAuth.openLogin(render); return; }
+    var btn = $(plan==='yearly'?'buy-yearly':'buy-monthly');
+    btn.disabled=true; var orig=btn.textContent; btn.textContent=T.redirect;
+    var tradeNo = memTradeNo();
+    var birth = { order_service:'membership', plan:plan, user_id:s.user_id, email:s.email||'', lang:(EN?'en':'zh') };
+    try{
+      await fetch(SUPABASE_URL+'/rest/v1/orders',{method:'POST',headers:{apikey:SUPABASE_ANON,Authorization:'Bearer '+SUPABASE_ANON,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({trade_no:tradeNo,birth_input:JSON.stringify(birth)})});
+    }catch(e){}
+    try{ localStorage.setItem('mem_pending_trade',tradeNo); localStorage.setItem('mem_pending_plan',plan); }catch(e){}
+    try{
+      if(channel==='pp'){
+        var r=await fetch(SUPABASE_URL+'/functions/v1/paypal',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+SUPABASE_ANON},body:JSON.stringify({action:'create_subscription',trade_no:tradeNo,plan:plan,origin:location.origin})});
+        var d=await r.json().catch(function(){return {};});
+        if(d.approve_url){ location.href=d.approve_url; return; }
+      } else {
+        var r2=await fetch(SUPABASE_URL+'/functions/v1/create-payment',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+SUPABASE_ANON},body:JSON.stringify({trade_no:tradeNo,payment_option_id:'basic',return_path:'/member.html',birth_input:birth})});
+        var d2=await r2.json().catch(function(){return {};});
+        var url=d2.url||d2.url_qrcode||'';
+        if(url){ location.href=url; return; }
+      }
+    }catch(e){}
+    msg(T.payFail); btn.disabled=false; btn.textContent=orig;
+  }
+  $('buy-monthly').onclick=function(){subscribe('monthly');};
+  $('buy-yearly').onclick=function(){subscribe('yearly');};
+
+  async function handleReturn(){
+    var q=new URLSearchParams(location.search);
+    // PayPal 订阅审批回跳
+    if(q.get('pp_sub')==='1'){
+      var subId=q.get('subscription_id')||'';
+      var tradeNo=q.get('trade_no')||localStorage.getItem('mem_pending_trade')||'';
+      if(subId){
+        msg(T.verifying,true);
+        try{
+          var r=await fetch(SUPABASE_URL+'/functions/v1/paypal',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+SUPABASE_ANON},body:JSON.stringify({action:'verify_subscription',subscription_id:subId,trade_no:tradeNo})});
+          var d=await r.json().catch(function(){return {};});
+          if(d.ok){ msg(T.activated,true); }
+        }catch(e){}
+      }
+      history.replaceState(null,'',location.pathname);
+    } else if(q.get('paid')==='true' && q.get('trade_no')){
+      // CNY 时长卡回跳：轮询订单已付
+      msg(T.verifying,true);
+      for(var i=0;i<5;i++){
+        try{
+          var rr=await fetch(SUPABASE_URL+'/functions/v1/order-access?trade_no='+encodeURIComponent(q.get('trade_no')),{headers:{apikey:SUPABASE_ANON,Authorization:'Bearer '+SUPABASE_ANON}});
+          var rows=await rr.json().catch(function(){return [];});
+          if(rows[0]&&rows[0].paid){ msg(T.activated,true); break; }
+        }catch(e){}
+        await new Promise(function(res){setTimeout(res,1500);});
+      }
+      history.replaceState(null,'',location.pathname);
+    }
+  }
+
+  async function render(){
+    if(!window.YZAuth || !YZAuth.isLoggedIn()){
+      $('gate').style.display='block'; $('plans').style.display='none'; $('pay-toggle').style.display='none'; $('status').style.display='none';
+      return;
+    }
+    $('gate').style.display='none'; $('plans').style.display='flex'; $('pay-toggle').style.display='flex';
+    applyChannel();
+    try{
+      var m=await YZAuth.getMembership();
+      if(m && m.active){
+        var st=$('status'); st.style.display='block'; st.className='status active';
+        st.textContent=T.activeFmt(m.plan,fmtDate(m.expires_at))+(m.auto_renew?(EN?' · auto-renew on':' · 自动续费'):'');
+      } else { $('status').style.display='none'; }
+    }catch(e){}
+  }
+
+  $('gate-login').onclick=function(){ YZAuth.openLogin(render); };
+  handleReturn().then(render);
+</script>
+</body>
+</html>
