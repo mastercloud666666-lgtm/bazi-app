@@ -486,6 +486,10 @@
       chartResult?.scrollIntoView({ behavior: "smooth", block: "center" });
     });
 
+    // Paired with the hidden honeypot input: how long the form was on screen before it
+    // was submitted. A human takes seconds; a script posts immediately.
+    const contactFormReadyAt = Date.now();
+
     contactForm?.addEventListener("submit", async (event) => {
       event.preventDefault();
       const submitButton = contactForm.querySelector("button[type='submit']");
@@ -525,6 +529,7 @@
             topic: "Homepage contact",
             message,
             website,
+            form_elapsed_ms: Date.now() - contactFormReadyAt,
             source: "homepage-contact",
             language: "en",
             page_path: window.location.pathname || "/",

@@ -188,6 +188,10 @@
       contactNote.style.color = isError ? "#b42318" : "var(--blue-dark)";
     }
 
+    // Paired with the hidden honeypot input: how long the form was on screen before it
+    // was submitted. A human takes seconds; a script posts immediately.
+    const contactFormReadyAt = Date.now();
+
     contactForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       const submitButton = contactForm.querySelector("button[type='submit']");
@@ -228,6 +232,7 @@
             topic,
             message,
             website,
+            form_elapsed_ms: Date.now() - contactFormReadyAt,
             source: "contact-page",
             language: "en",
             page_path: window.location.pathname || "/",

@@ -108,6 +108,28 @@ export function isLikelyAutomatedUa(uaRaw: string): boolean {
   return false;
 }
 
+// Companion to the hidden honeypot field: a form a human actually read and filled in
+// takes seconds, a script posts almost instantly. Callers treat a `true` here the same
+// way they treat a filled honeypot — accept silently, so bots get no useful signal.
+//
+// `elapsedMs` comes from the client and is therefore advisory, not a guarantee: a bot
+// can send any number it likes. It costs one extra field to make naive scripted posts
+// fail, which is the point. A missing or non-numeric value is treated as human so that
+// older cached pages (and anyone with JS timing quirks) never get blocked.
+export function isSuspiciouslyFastSubmission(elapsedMsRaw: unknown, minMs: number): boolean {
+  if (minMs <= 0) return false;
+  if (elapsedMsRaw === null || elapsedMsRaw === undefined || elapsedMsRaw === '') return false;
+  const elapsed = Number(elapsedMsRaw);
+  if (!Number.isFinite(elapsed) || elapsed < 0) return false;
+  return elapsed < minMs;
+}
+
+export function readMinFormMillis(envKey: string, fallback = 2500): number {
+  const raw = Number(Deno.env.get(envKey));
+  if (!Number.isFinite(raw) || raw < 0) return fallback;
+  return Math.min(raw, 60000);
+}
+
 async function sha256Hex(value: string): Promise<string> {
   const encoded = new TextEncoder().encode(value);
   const digest = await crypto.subtle.digest('SHA-256', encoded);
@@ -278,7 +300,7 @@ export function tooManyRequestsResponse(
   const retryAfterSeconds = Math.max(1, Number(params.retryAfterSeconds || 60));
   return new Response(JSON.stringify({
     error: 'too_many_requests',
-    message: params.message || '请求过于频繁，请稍后重试。',
+    message: params.message || 'Too many requests. Please wait a moment and try again.',
     retry_after_seconds: retryAfterSeconds,
     scope: params.scope || '',
     current_count: Number(params.currentCount || 0),

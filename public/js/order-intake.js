@@ -127,6 +127,9 @@
       event_one: eventOne,
       event_two: eventTwo,
       website: formValue(form, 'website'),
+      form_elapsed_ms: Number.isFinite(Number(form.dataset.readyAt))
+        ? Date.now() - Number(form.dataset.readyAt)
+        : undefined,
       source: form.dataset.source || 'paid-offer',
       language: form.dataset.language || 'en',
       page_path: window.location.pathname,
@@ -190,6 +193,10 @@
     const note = scope.querySelector('[data-order-note]');
     let previousBodyOverflow = '';
     if (!form) return;
+
+    // Paired with the hidden honeypot input: how long the form was on screen before it
+    // was submitted. Filling in birth details and a question takes a human seconds.
+    form.dataset.readyAt = String(Date.now());
 
     const unknownTime = form.elements.birth_time_unknown;
     const exactTime = form.elements.birth_hour;

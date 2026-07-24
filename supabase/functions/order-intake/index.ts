@@ -6,9 +6,11 @@ import {
   extractClientIp,
   isAllowedRequestOrigin,
   isLikelyAutomatedUa,
+  isSuspiciouslyFastSubmission,
   json as securityJson,
   maskIp,
   recordAbuseLog,
+  readMinFormMillis,
   resolveAllowedOrigins,
   tooManyRequestsResponse,
 } from '../_shared/security.ts';
@@ -144,6 +146,12 @@ Deno.serve(async (req) => {
 
     // Honeypot: accept silently so automated submissions do not get useful feedback.
     if (asString(body?.website, 200)) {
+      return json(req, { ok: true, submitted: true }, 200, allowedOrigins);
+    }
+
+    // Same idea, for bots that skip hidden fields: this form asks for birth details and
+    // a written question. Set MIN_FORM_MILLIS_ORDER_INTAKE=0 to disable.
+    if (isSuspiciouslyFastSubmission(body?.form_elapsed_ms, readMinFormMillis('MIN_FORM_MILLIS_ORDER_INTAKE', 3000))) {
       return json(req, { ok: true, submitted: true }, 200, allowedOrigins);
     }
 

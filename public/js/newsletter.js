@@ -267,6 +267,7 @@
 
     if (payloadOptions.name) body.name = String(payloadOptions.name).trim();
     if (payloadOptions.website) body.website = String(payloadOptions.website);
+    if (Number.isFinite(payloadOptions.form_elapsed_ms)) body.form_elapsed_ms = payloadOptions.form_elapsed_ms;
     if (payloadOptions.language) body.language = String(payloadOptions.language);
     if (payloadOptions.timezone) body.timezone = String(payloadOptions.timezone);
     if (Number.isInteger(payloadOptions.delivery_hour)) body.delivery_hour = payloadOptions.delivery_hour;
@@ -363,7 +364,9 @@
     setStatus(form, '', false);
 
     try {
-      await subscribe({ email, source, website, timezone, delivery_hour: 7, free_daily_enabled: true });
+      const readyAt = Number(form.dataset.readyAt);
+      const formElapsedMs = Number.isFinite(readyAt) ? Date.now() - readyAt : undefined;
+      await subscribe({ email, source, website, timezone, form_elapsed_ms: formElapsedMs, delivery_hour: 7, free_daily_enabled: true });
       setStatus(form, t.success, false);
       if (input) input.value = '';
     } catch (err) {
@@ -414,6 +417,9 @@
 
     const form = host.querySelector('.newsletter-form');
     if (form) {
+      // Paired with the hidden honeypot input: how long the form was on screen before
+      // it was submitted. A human takes a moment to type; a script posts immediately.
+      form.dataset.readyAt = String(Date.now());
       form.addEventListener('submit', function (event) {
         event.preventDefault();
         submitForm(form);

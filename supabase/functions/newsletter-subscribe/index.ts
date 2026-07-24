@@ -6,9 +6,11 @@ import {
   extractClientIp,
   isAllowedRequestOrigin,
   isLikelyAutomatedUa,
+  isSuspiciouslyFastSubmission,
   json as securityJson,
   maskIp,
   recordAbuseLog,
+  readMinFormMillis,
   resolveAllowedOrigins,
   tooManyRequestsResponse,
 } from '../_shared/security.ts';
@@ -175,6 +177,12 @@ Deno.serve(async (req) => {
 
     // Honeypot: pretend success so automated submissions do not learn anything useful.
     if (asString(body?.website, 200)) {
+      return json(req, { ok: true, subscribed: true }, 200, allowedOrigins);
+    }
+
+    // Same idea, for bots that skip hidden fields. One email field still takes a human
+    // a moment to type. Set MIN_FORM_MILLIS_NEWSLETTER=0 to disable.
+    if (isSuspiciouslyFastSubmission(body?.form_elapsed_ms, readMinFormMillis('MIN_FORM_MILLIS_NEWSLETTER', 1500))) {
       return json(req, { ok: true, subscribed: true }, 200, allowedOrigins);
     }
 
