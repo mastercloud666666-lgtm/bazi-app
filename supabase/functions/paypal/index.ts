@@ -47,6 +47,12 @@ function isTengyunziAiBirth(birth: Record<string, any>): boolean {
   return asString(birth?.product_family).toLowerCase() === 'tengyunzi_ai';
 }
 
+// PayPal reports a repeated capture as a 422 with this issue rather than a plain error.
+function isAlreadyCapturedError(payload: any): boolean {
+  const issues = Array.isArray(payload?.details) ? payload.details : [];
+  return issues.some((issue: any) => asString(issue?.issue).toUpperCase() === 'ORDER_ALREADY_CAPTURED');
+}
+
 function isDailyAlmanacBirth(birth: Record<string, any>): boolean {
   return ['daily_almanac', 'monthly_bazi'].includes(asString(birth?.product_family).toLowerCase())
     || ['daily_almanac', 'monthly_bazi'].includes(asString(birth?.membership?.product).toLowerCase());
@@ -586,8 +592,118 @@ Deno.serve(async (req) => {
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok || !d.id) return json({ error: 'paypal_create_failed', detail: d }, 502);
+
+      // Persist the PayPal order id before handing the buyer off. `intent: CAPTURE` only
+      // authorises at PayPal; the money is taken when someone calls capture, and that call
+      // comes from the return page. If the buyer approves and never makes it back (closed
+      // tab, dropped connection, app switch), this id is the only way to find the order
+      // again — without it the payment is unrecoverable. Best-effort: a failed write must
+      // not block a checkout that PayPal has already accepted.
+      birth.tracking = {
+        ...(birth.tracking || {}),
+        paypal_order_id: d.id,
+        paypal_created_at: new Date().toISOString(),
+        paypal_expected_amount: amount,
+      };
+      const { error: trackingError } = await supabase
+        .from('orders')
+        .update({ birth_input: JSON.stringify(birth) })
+        .eq('trade_no', tradeNo);
+      if (trackingError) console.error('paypal create: tracking write failed', tradeNo, trackingError);
+
       const approve = (d.links || []).find((l: any) => l.rel === 'approve');
       return json({ id: d.id, approve_url: approve?.href, amount });
+    }
+
+    // Sweep for orders the buyer approved at PayPal but that were never captured, which
+    // happens whenever the return trip back to the site is lost. Reports by default;
+    // capturing real money requires an explicit dry_run:false, and admin credentials,
+    // because it charges people who are not at the keyboard.
+    if (action === 'reconcile') {
+      const adminSession = await authenticateAdminRequest(req, supabase, 'orders');
+      if (!adminSession) return json({ error: 'reconcile_not_authorized' }, 403);
+
+      const dryRun = body.dry_run !== false;
+      const lookbackDays = Math.min(Math.max(Number(body.lookback_days) || 7, 1), 90);
+      const maxOrders = Math.min(Math.max(Number(body.limit) || 50, 1), 200);
+      const since = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000).toISOString();
+      const singleTradeNo = asString(body.trade_no);
+
+      const baseQuery = supabase
+        .from('orders')
+        .select('trade_no,birth_input,created_at')
+        .eq('paid', false)
+        .order('created_at', { ascending: false })
+        .limit(maxOrders);
+
+      const { data: candidates, error: candidateError } = await (singleTradeNo
+        ? baseQuery.eq('trade_no', singleTradeNo)
+        : baseQuery.gte('created_at', since));
+      if (candidateError) return json({ error: 'reconcile_query_failed', detail: candidateError.message }, 500);
+
+      const token = await ppToken();
+      const results: Record<string, unknown>[] = [];
+      for (const candidate of candidates || []) {
+        const tradeNo = asString(candidate.trade_no);
+        const birth = parseBirth(candidate.birth_input);
+        const ppOrderId = asString(birth?.tracking?.paypal_order_id);
+        // Orders created before this id was persisted cannot be looked up at all.
+        if (!ppOrderId) {
+          results.push({ trade_no: tradeNo, state: 'no_paypal_order_id' });
+          continue;
+        }
+
+        const lookup = await fetch(`${PP_BASE}/v2/checkout/orders/${ppOrderId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const remote = await lookup.json().catch(() => ({}));
+        if (!lookup.ok) {
+          results.push({ trade_no: tradeNo, state: 'lookup_failed', status: lookup.status });
+          continue;
+        }
+
+        const remoteStatus = asString(remote?.status).toUpperCase();
+        if (remoteStatus !== 'APPROVED' && remoteStatus !== 'COMPLETED') {
+          results.push({ trade_no: tradeNo, state: 'skipped', paypal_status: remoteStatus });
+          continue;
+        }
+        if (dryRun) {
+          results.push({ trade_no: tradeNo, state: 'would_settle', paypal_status: remoteStatus, paypal_order_id: ppOrderId });
+          continue;
+        }
+
+        // Reuse the capture path so the amount check, the paid transition and fulfilment
+        // stay in exactly one place. It is idempotent and safe on COMPLETED orders.
+        const settleRes = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/paypal`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
+          },
+          body: JSON.stringify({
+            action: 'capture',
+            paypal_order_id: ppOrderId,
+            trade_no: tradeNo,
+            // capture reads this for the report link it emails out
+            origin: asString(body.origin) || 'https://www.tengyunzi.com',
+          }),
+        });
+        const settled = await settleRes.json().catch(() => ({}));
+        results.push({
+          trade_no: tradeNo,
+          state: settleRes.ok && settled?.ok ? 'settled' : 'settle_failed',
+          paypal_status: remoteStatus,
+          detail: settleRes.ok && settled?.ok ? undefined : settled,
+        });
+      }
+
+      return json({
+        ok: true,
+        dry_run: dryRun,
+        scanned: (candidates || []).length,
+        lookback_days: singleTradeNo ? null : lookbackDays,
+        results,
+      });
     }
 
     if (action === 'capture') {
@@ -598,8 +714,21 @@ Deno.serve(async (req) => {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       });
-      const d = await res.json().catch(() => ({}));
-      if (!res.ok || d.status !== 'COMPLETED') {
+      let d = await res.json().catch(() => ({}));
+
+      // Reloading the return page re-runs capture. PayPal answers ORDER_ALREADY_CAPTURED,
+      // which is success from the buyer's point of view — the money is taken. Read the
+      // order back so the amount check and fulfilment below run on real capture data
+      // instead of showing a paying customer a failure.
+      if (!res.ok && isAlreadyCapturedError(d)) {
+        const lookup = await fetch(`${PP_BASE}/v2/checkout/orders/${ppOrderId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const existing = await lookup.json().catch(() => ({}));
+        if (lookup.ok && existing?.status === 'COMPLETED') d = existing;
+      }
+
+      if (d.status !== 'COMPLETED') {
         return json({ error: 'capture_failed', status: d.status || res.status, detail: d }, 402);
       }
       const pu = (d.purchase_units || [])[0] || {};
@@ -632,7 +761,19 @@ Deno.serve(async (req) => {
       }
 
       birth.tracking = { ...(birth.tracking || {}), paypal_paid_at: new Date().toISOString(), paypal_order_id: ppOrderId };
-      await supabase.from('orders').update({ paid: true, birth_input: JSON.stringify(birth) }).eq('trade_no', tradeNo);
+      // Flip unpaid -> paid conditionally, and let the affected rows tell us whether this
+      // call is the one that made the transition. A reloaded return page, a retried
+      // request and the PAYMENT.CAPTURE.COMPLETED webhook can all arrive for the same
+      // order; fulfilment below (report generation, analyze) must run once, not once per
+      // arrival — each extra run costs an AI generation and can overwrite a good report.
+      const { data: paidRows, error: paidError } = await supabase
+        .from('orders')
+        .update({ paid: true, birth_input: JSON.stringify(birth) })
+        .eq('trade_no', tradeNo)
+        .eq('paid', false)
+        .select('trade_no');
+      if (paidError) return json({ error: 'paid_update_failed', detail: paidError.message }, 500);
+      const settledNow = Array.isArray(paidRows) && paidRows.length > 0;
 
       const orderService = birth?.order_service === 'hepan' ? 'hepan'
         : (birth?.order_service === 'zhanbu' ? 'zhanbu'
@@ -651,7 +792,7 @@ Deno.serve(async (req) => {
           })
           .eq('order_reference', tradeNo);
 
-        if (optionId === 'personal_reading') {
+        if (settledNow && optionId === 'personal_reading') {
           await recordPricingPaid(supabase, birth, tradeNo, 'personal_reading', expectedAmount);
         }
 
@@ -665,10 +806,12 @@ Deno.serve(async (req) => {
       }
 
       if (isTengyunziAiBirth(birth)) {
-        await recordPricingPaid(supabase, birth, tradeNo, 'ai_report', expectedAmount);
-        const origin = resolveReturnOrigin(body.origin, allowedOrigins);
-        const generationTask = generateAndStoreEnglishReport(supabase, tradeNo, birth, ppOrderId, origin);
-        try { (globalThis as any).EdgeRuntime?.waitUntil?.(generationTask); } catch (_error) {}
+        if (settledNow) {
+          await recordPricingPaid(supabase, birth, tradeNo, 'ai_report', expectedAmount);
+          const origin = resolveReturnOrigin(body.origin, allowedOrigins);
+          const generationTask = generateAndStoreEnglishReport(supabase, tradeNo, birth, ppOrderId, origin);
+          try { (globalThis as any).EdgeRuntime?.waitUntil?.(generationTask); } catch (_error) {}
+        }
         return json({
           ok: true,
           paid: true,
@@ -706,12 +849,14 @@ Deno.serve(async (req) => {
         analyzePayload.start_age = birth.start_age;
       }
 
-      const analyzeTask = fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/analyze`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}` },
-        body: JSON.stringify(analyzePayload),
-      }).catch((err) => console.error('paypal analyze trigger failed', tradeNo, err));
-      try { (globalThis as any).EdgeRuntime?.waitUntil?.(analyzeTask); } catch (_e) {}
+      if (settledNow) {
+        const analyzeTask = fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/analyze`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}` },
+          body: JSON.stringify(analyzePayload),
+        }).catch((err) => console.error('paypal analyze trigger failed', tradeNo, err));
+        try { (globalThis as any).EdgeRuntime?.waitUntil?.(analyzeTask); } catch (_e) {}
+      }
 
       return json({ ok: true, paid: true, service: orderService });
     }
@@ -722,7 +867,7 @@ Deno.serve(async (req) => {
       const prodRes = await fetch(`${PP_BASE}/v1/catalogs/products`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'Yunzi Membership', description: 'Yunzi Culture membership', type: 'SERVICE', category: 'SOFTWARE' }),
+        body: JSON.stringify({ name: 'Tengyunzi Membership', description: 'Tengyunzi membership', type: 'SERVICE', category: 'SOFTWARE' }),
       });
       const prod = await prodRes.json().catch(() => ({}));
       if (!prodRes.ok || !prod.id) return json({ error: 'product_failed', detail: prod }, 502);
@@ -743,8 +888,8 @@ Deno.serve(async (req) => {
         });
         return await r.json().catch(() => ({}));
       };
-      const monthly = await mkPlan('Yunzi Membership Monthly', 'MONTH', MEMBERSHIP_USD.monthly);
-      const yearly = await mkPlan('Yunzi Membership Yearly', 'YEAR', MEMBERSHIP_USD.yearly);
+      const monthly = await mkPlan('Tengyunzi Membership Monthly', 'MONTH', MEMBERSHIP_USD.monthly);
+      const yearly = await mkPlan('Tengyunzi Membership Yearly', 'YEAR', MEMBERSHIP_USD.yearly);
       return json({ product_id: prod.id, monthly_plan_id: monthly.id, yearly_plan_id: yearly.id, monthly, yearly });
     }
 
@@ -755,7 +900,7 @@ Deno.serve(async (req) => {
       const origin = resolveReturnOrigin(body.origin, allowedOrigins);
       if (!tradeNo) return json({ error: 'trade_no required' }, 400);
       const planId = Deno.env.get(plan === 'yearly' ? 'PAYPAL_PLAN_YEARLY' : 'PAYPAL_PLAN_MONTHLY');
-      if (!planId) return json({ error: 'plan_not_configured', message: 'PayPal 订阅计划未配置' }, 500);
+      if (!planId) return json({ error: 'plan_not_configured', message: 'This subscription plan is not configured yet.' }, 500);
 
       const { data: subscriptionOrder } = await supabase
         .from('orders')
