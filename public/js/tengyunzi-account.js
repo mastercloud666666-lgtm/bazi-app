@@ -2,6 +2,8 @@
   'use strict';
 
   const REPORT_API = `${TengyunziAuth.SUPABASE_URL}/functions/v1/english-report`;
+  const DELETE_API = `${TengyunziAuth.SUPABASE_URL}/functions/v1/account-delete`;
+  const CONFIRM_PHRASE = 'DELETE';
   const gate = document.querySelector('[data-account-gate]');
   const panel = document.querySelector('[data-account-panel]');
   const list = document.querySelector('[data-reading-list]');
@@ -98,6 +100,82 @@
     panel.hidden = true;
   }
 
+  // Account deletion. Required by App Store guideline 5.1.1(v) for any app with
+  // accounts, and the same flow serves the web. Two gates before anything is
+  // destroyed: reveal the form, then type the confirmation phrase.
+  function setupAccountDeletion() {
+    const openButton = document.querySelector('[data-delete-open]');
+    const form = document.querySelector('[data-delete-form]');
+    if (!openButton || !form) return;
+
+    const input = form.querySelector('input[name="confirm"]');
+    const submit = form.querySelector('[data-delete-submit]');
+    const message = form.querySelector('[data-delete-message]');
+
+    function setMessage(text, state) {
+      message.textContent = text || '';
+      message.dataset.state = state || '';
+    }
+
+    function matchesPhrase() {
+      return input.value.trim().toUpperCase() === CONFIRM_PHRASE;
+    }
+
+    function closeForm() {
+      form.hidden = true;
+      openButton.hidden = false;
+      input.value = '';
+      submit.disabled = true;
+      setMessage('');
+    }
+
+    submit.disabled = true;
+    input.addEventListener('input', () => {
+      submit.disabled = !matchesPhrase();
+    });
+
+    openButton.addEventListener('click', () => {
+      openButton.hidden = true;
+      form.hidden = false;
+      input.focus();
+    });
+    form.querySelector('[data-delete-cancel]').addEventListener('click', closeForm);
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!matchesPhrase()) {
+        setMessage(`Type ${CONFIRM_PHRASE} to confirm.`, 'error');
+        return;
+      }
+
+      submit.disabled = true;
+      submit.textContent = 'Deleting...';
+      setMessage('');
+      try {
+        const response = await TengyunziAuth.authorizedFetch(DELETE_API, {
+          method: 'POST',
+          body: JSON.stringify({ confirm: CONFIRM_PHRASE }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.deleted) throw new Error(data.error || 'account_deletion_failed');
+
+        // The account is gone, so the stored session is already invalid. Clear it
+        // locally before leaving rather than calling signOut, which would POST to
+        // /auth/v1/logout with a token whose user no longer exists.
+        setMessage('Your account has been deleted. Redirecting...', 'success');
+        await TengyunziAuth.signOut().catch(() => {});
+        window.setTimeout(() => { window.location.href = './index.html'; }, 1600);
+      } catch (error) {
+        const reason = error && error.message === 'authentication_required'
+          ? 'Your session expired. Sign in again and retry.'
+          : 'We could not delete your account. Please try again, or email hello@tengyunzi.com.';
+        setMessage(reason, 'error');
+        submit.disabled = false;
+        submit.textContent = 'Permanently delete';
+      }
+    });
+  }
+
   document.querySelector('[data-account-login]').addEventListener('click', () => TengyunziAuth.openLogin(loadReports));
   document.querySelector('[data-account-logout]').addEventListener('click', async () => {
     await TengyunziAuth.signOut();
@@ -109,6 +187,8 @@
     document.querySelectorAll('[data-filter]').forEach((item) => item.classList.toggle('is-active', item === button));
     renderList();
   }));
+
+  setupAccountDeletion();
 
   if (TengyunziAuth.readSession()?.access_token) loadReports();
   else showGate();

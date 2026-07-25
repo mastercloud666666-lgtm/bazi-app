@@ -484,7 +484,9 @@
 }
 
 .account-shell {
-  width: min(100%, 980px);
+  /* .shell gets its gutter from width, not padding, so a plain 100% here left
+     the whole panel flush against the screen edge on narrow viewports. */
+  width: min(980px, calc(100% - 44px));
   margin: 0 auto;
 }
 
@@ -657,6 +659,76 @@
   color: var(--muted);
   padding: 42px 8px;
   text-align: center;
+}
+
+.account-danger {
+  margin-top: 42px;
+  border: 1px solid rgba(189, 96, 77, 0.34);
+  border-radius: var(--radius);
+  background: #fff;
+  padding: 26px;
+}
+
+.account-danger h2 {
+  margin: 0;
+  color: var(--red);
+  font-size: 1.05rem;
+}
+
+.account-danger > p {
+  margin: 10px 0 18px;
+  max-width: 62ch;
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.button.danger {
+  border-color: var(--red);
+  background: #fff;
+  color: var(--red);
+}
+
+.button.danger:hover {
+  background: var(--red);
+  color: #fff;
+}
+
+/* .button sets display: inline-flex, which outranks the UA rule for [hidden]. */
+.account-danger-confirm[hidden],
+.account-danger .button[hidden] {
+  display: none;
+}
+
+.account-danger-confirm {
+  margin-top: 4px;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+
+.account-danger-confirm .field {
+  max-width: 320px;
+}
+
+.account-danger-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.account-danger-message {
+  margin: 14px 0 0;
+  min-height: 1.2em;
+  font-size: 0.86rem;
+}
+
+.account-danger-message[data-state='error'] {
+  color: var(--red);
+}
+
+.account-danger-message[data-state='success'] {
+  color: var(--green);
 }
 
 .admin-body {

@@ -1,0 +1,16 @@
+# The Vercel CLI uploads the whole project directory, not just the
+# outputDirectory named in vercel.json. Without this file that means ~800 extra
+# files and 186MB per deploy -- output/ (screenshots, Lighthouse runs,
+# competitor research), _zh-archive/, docs/, prototypes/ and the loose .xlsx /
+# .png artifacts in the repo root.
+#
+# This site is plain static files, so a deployment needs exactly two things:
+# public/ and vercel.json. An allowlist is used rather than a deny list so that
+# a new scratch directory added later cannot silently start shipping.
+#
+# Pattern note: "/*" matches top-level entries only, and re-including /public
+# re-includes everything under it (gitignore semantics forbid re-including a
+# child whose parent is still excluded, so the parent must be un-ignored).
+/*
+!/public
+!/vercel.json

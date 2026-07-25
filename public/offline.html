@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#f6fafd">
+  <title>Offline | Tengyunzi</title>
+  <!-- Deliberately self-contained: no stylesheet, font or image requests. This
+       page is only ever shown when the network is unreachable, so every external
+       reference would either need precaching (another asset list to keep in sync)
+       or would render unstyled at exactly the wrong moment. -->
+  <style>
+    :root {
+      --bg: #f6fafd;
+      --ink: #0a2540;
+      --text: #284a63;
+      --line-strong: rgba(15, 76, 129, 0.32);
+      --blue-dark: #0f4c81;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Noto Sans", system-ui, -apple-system, sans-serif;
+    }
+
+    .offline-card {
+      width: min(520px, 100%);
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: #fff;
+      padding: 44px 36px;
+      text-align: center;
+    }
+
+    .mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 6px;
+      background: var(--ink);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+
+    h1 {
+      margin: 20px 0 14px;
+      font-family: "Noto Serif", Georgia, serif;
+      font-size: 1.5rem;
+    }
+
+    p {
+      margin: 0 auto 26px;
+      max-width: 40ch;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    button {
+      min-height: 46px;
+      padding: 0 26px;
+      border: 1px solid var(--blue-dark);
+      border-radius: 999px;
+      background: var(--blue-dark);
+      color: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:hover { background: var(--ink); border-color: var(--ink); }
+  </style>
+</head>
+<body>
+  <main class="offline-card">
+    <span class="mark" aria-hidden="true">TZ</span>
+    <h1>You are offline</h1>
+    <p>
+      This page has not been saved to your device yet. Reconnect and try again —
+      pages you have already opened stay available without a connection.
+    </p>
+    <button type="button" onclick="location.reload()">Try again</button>
+  </main>
+</body>
+</html>

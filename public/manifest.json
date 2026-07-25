@@ -1,15 +1,24 @@
 {
-  "name": "云子文化 · 四柱八字与传统智慧",
-  "short_name": "云子文化",
-  "description": "中国传统干支文化科普，四柱八字分析、性格匹配与生活参考",
-  "start_url": "/index.html",
+  "id": "/",
+  "name": "Tengyunzi · BaZi Readings and Forecasts",
+  "short_name": "Tengyunzi",
+  "description": "Calculate your Four Pillars, read your BaZi chart, and follow monthly forecasts grounded in traditional Chinese stem-and-branch analysis.",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#FFFFFF",
-  "theme_color": "#0A2540",
+  "background_color": "#f6fafd",
+  "theme_color": "#0a2540",
   "orientation": "any",
-  "lang": "zh-CN",
+  "lang": "en",
+  "dir": "ltr",
   "categories": ["lifestyle", "education"],
   "icons": [
+    {
+      "src": "/images/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/images/icon-192.png",
       "sizes": "192x192",
