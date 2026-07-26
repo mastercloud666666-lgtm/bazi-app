@@ -66,6 +66,21 @@
       "permanent": true
     },
     {
+      "source": "/fengshui.html",
+      "destination": "/tengyunzi-feng-shui.html",
+      "permanent": true
+    },
+    {
+      "source": "/jiaju-fengshui.html",
+      "destination": "/tengyunzi-feng-shui.html",
+      "permanent": true
+    },
+    {
+      "source": "/zhanbu.html",
+      "destination": "/tengyunzi-decision.html",
+      "permanent": true
+    },
+    {
       "source": "/downloads/yunzi-bazi-guide.pdf",
       "destination": "/downloads/tengyunzi-bazi-starter-guide.pdf",
       "permanent": true
@@ -76,7 +91,7 @@
       "permanent": true
     },
     {
-      "source": "/:path(bazi-caiyun|bazi-hunyin|bazi-quant|bazi-shiye|buzhidao-shichen|dayun-fenxi|fengshui|hepan|jiaju-fengshui|liunian-yunshi|qiming|shenme-shihou-you-shouru|shihe-chuangye-ma|shihe-shenme-gongzuo|zhanbu).html",
+      "source": "/:path(bazi-caiyun|bazi-hunyin|bazi-quant|bazi-shiye|buzhidao-shichen|dayun-fenxi|hepan|liunian-yunshi|qiming|shenme-shihou-you-shouru|shihe-chuangye-ma|shihe-shenme-gongzuo).html",
       "destination": "/tengyunzi-report.html#reading-form",
       "permanent": true
     },

@@ -2502,8 +2502,23 @@ Deno.serve(async (req) => {
           updated_at: row.updated_at,
         };
       });
-      const recentManualOrders = manualOrders.slice(0, 80).map((row) => {
+      const recentManualOrders = await Promise.all(manualOrders.slice(0, 80).map(async (row) => {
         const metadata = asRecord(row.metadata);
+        const fengShui = asRecord(metadata.feng_shui);
+        const floorPlanFiles = Array.isArray(metadata.floor_plan_files) ? metadata.floor_plan_files : [];
+        const signedFloorPlans = await Promise.all(floorPlanFiles.map(async (entry) => {
+          const file = asRecord(entry);
+          const bucket = asString(file.bucket);
+          const path = asString(file.path);
+          if (!bucket || !path) return null;
+          const { data } = await supabase.storage.from(bucket).createSignedUrl(path, 1800);
+          return {
+            name: asString(file.name) || 'Floor plan',
+            content_type: asString(file.content_type),
+            size: Number(file.size || 0),
+            signed_url: data?.signedUrl || '',
+          };
+        }));
         return {
           id: row.id,
           email: row.email,
@@ -2523,12 +2538,14 @@ Deno.serve(async (req) => {
           event_one: row.event_one,
           event_two: row.event_two,
           true_solar_time: asRecord(metadata.true_solar_time),
+          feng_shui: fengShui,
+          floor_plan_files: signedFloorPlans.filter(Boolean),
           manual_delivery: asRecord(metadata.manual_delivery || metadata.personal_delivery),
           personal_delivery: asRecord(metadata.personal_delivery),
           created_at: row.created_at,
           updated_at: row.updated_at,
         };
-      });
+      }));
       const recentVisits = visits.slice(0, 120).map((row) => {
         const meta = asRecord(row.meta);
         return {

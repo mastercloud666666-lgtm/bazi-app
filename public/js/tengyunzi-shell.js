@@ -18,10 +18,26 @@
   const nav = header?.querySelector('.nav-links');
   if (!header || !nav || header.querySelector('.nav-menu-toggle')) return;
 
+  const aboutLink = nav.querySelector('a[href*="tengyunzi-about.html"]');
+  const pathwayLinks = [
+    { href: 'tengyunzi-feng-shui.html#top', label: 'Feng Shui' },
+    { href: 'tengyunzi-decision.html#top', label: 'Decision' }
+  ];
+  pathwayLinks.forEach(({ href, label }) => {
+    if (nav.querySelector(`a[href*="${href.split('#')[0]}"]`)) return;
+    const link = document.createElement('a');
+    link.href = new URL(`../${href}`, scriptBase).href;
+    link.textContent = label;
+    if (aboutLink) nav.insertBefore(link, aboutLink);
+    else nav.appendChild(link);
+  });
+
   const primaryCta = nav.querySelector('.nav-cta');
   if (primaryCta) {
-    primaryCta.href = new URL('../tengyunzi-report.html#reading-form', scriptBase).href;
-    primaryCta.textContent = 'Start Reading';
+    if (!primaryCta.hasAttribute('data-preserve-cta')) {
+      primaryCta.href = new URL('../tengyunzi-report.html#reading-form', scriptBase).href;
+      primaryCta.textContent = 'Start Reading';
+    }
     const mobileCta = primaryCta.cloneNode(true);
     mobileCta.classList.remove('nav-cta');
     mobileCta.classList.add('nav-mobile-cta');
