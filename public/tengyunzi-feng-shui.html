@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="canonical" href="https://www.tengyunzi.com/tengyunzi-feng-shui.html">
+  <title>Personal Feng Shui Review | Written by Tengyunzi</title>
+  <meta name="description" content="Order a manual Feng Shui review of your complete floor plan, facing direction, room areas, doors, windows, occupants, and priorities. Written by Tengyunzi and delivered within 72 hours.">
+  <meta property="og:title" content="Personal Feng Shui Review | Tengyunzi">
+  <meta property="og:description" content="A manual analysis of your actual floor plan—not an automated room score.">
+  <link rel="stylesheet" href="./tengyunzi-fonts.css?v=20260722seo1">
+  <link rel="stylesheet" href="./tengyunzi-sales.css?v=20260713h">
+  <link rel="stylesheet" href="./tengyunzi-pathways.css?v=20260727a">
+  <style>
+    .plan-board {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 22px 56px rgba(10,37,64,.11);
+      padding: 26px;
+    }
+    .plan-outline {
+      display: grid;
+      grid-template-columns: 1.12fr .88fr;
+      grid-template-rows: 1fr .75fr;
+      min-height: 340px;
+      border: 2px solid var(--blue-dark);
+      background: #f8fbfe;
+    }
+    .plan-room {
+      position: relative;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(15,76,129,.36);
+      color: var(--ink);
+      padding: 18px;
+      text-align: center;
+    }
+    .plan-room strong { font-family: var(--display-font); font-size: 1.05rem; }
+    .plan-room span { display: block; margin-top: 4px; color: var(--muted); font-size: .75rem; }
+    .plan-room.primary { grid-row: span 2; }
+    .plan-room::after {
+      position: absolute;
+      width: 32px;
+      height: 5px;
+      bottom: -3px;
+      background: #fff;
+      border-inline: 1px solid var(--blue-dark);
+      content: "";
+    }
+    .plan-compass { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; color: var(--muted); font-size: .82rem; }
+    .plan-compass strong { color: var(--blue-dark); font-size: 1rem; }
+    .manual-price { display: flex; align-items: end; gap: 14px; margin-top: 24px; }
+    .manual-price strong { color: var(--ink); font-family: var(--display-font); font-size: 3.4rem; line-height: 1; }
+    .manual-price span { color: var(--muted); line-height: 1.5; }
+    .requirement-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; margin-top: 34px; }
+    .requirement {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 22px;
+    }
+    .requirement b { color: var(--blue); font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; }
+    .requirement h3 { margin-top: 10px; font-size: 1.25rem; }
+    .requirement p { margin: 9px 0 0; color: var(--text); line-height: 1.62; }
+    .goal-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-top: 30px; }
+    .goal-card { border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 22px; text-align: center; }
+    .goal-card strong { display: block; color: var(--ink); font-family: var(--display-font); font-size: 1.2rem; }
+    .goal-card span { display: block; margin-top: 8px; color: var(--muted); font-size: .85rem; line-height: 1.5; }
+    .intake-shell { display: grid; grid-template-columns: minmax(0,.72fr) minmax(420px,1fr); gap: clamp(32px,6vw,72px); align-items: start; }
+    .intake-form { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+    .intake-shell > *, .intake-form > * { min-width: 0; }
+    .intake-form .wide { grid-column: 1 / -1; }
+    .goal-options { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+    .goal-option {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      padding: 10px 12px;
+      color: var(--text);
+      font-size: .87rem;
+      font-weight: 700;
+    }
+    .goal-option input { width: 17px; height: 17px; accent-color: var(--blue); }
+    .file-drop {
+      position: relative;
+      display: grid;
+      gap: 8px;
+      border: 1px dashed var(--blue);
+      border-radius: 8px;
+      background: rgba(31,122,184,.06);
+      padding: 22px;
+    }
+    .file-drop input {
+      display: none;
+    }
+    .file-upload-button {
+      width: fit-content;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 4px;
+      border: 1px solid var(--blue);
+      border-radius: 7px;
+      background: var(--blue);
+      color: #fff;
+      padding: 11px 16px;
+      font-size: .87rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .file-drop:hover .file-upload-button { background: var(--blue-dark); }
+    .file-upload-button:focus-visible {
+      outline: 3px solid rgba(31,122,184,.22);
+      outline-offset: 3px;
+    }
+    .file-status { color: var(--muted); font-size: .8rem; line-height: 1.5; }
+    .form-status { min-height: 22px; margin: 0; color: var(--muted); font-size: .88rem; line-height: 1.5; }
+    .form-status[data-state="error"] { color: #a32921; }
+    .form-status[data-state="success"] { color: #2f7553; }
+    @media (max-width: 900px) {
+      .intake-shell, .requirement-grid { grid-template-columns: minmax(0,1fr); }
+      .goal-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    }
+    @media (max-width: 600px) {
+      .intake-form, .goal-options, .goal-grid { grid-template-columns: 1fr; }
+      .intake-form .wide { grid-column: auto; }
+      .plan-outline { min-height: 280px; }
+    }
+  </style>
+  <link rel="stylesheet" href="./tengyunzi-shell.css?v=20260727paths">
+</head>
+<body>
+  <header class="nav">
+    <div class="shell nav-inner">
+      <a class="brand" href="./index.html#top">Tengyunzi</a>
+      <nav class="nav-links" aria-label="Page navigation"><a href="./tengyunzi-calculator.html#top">Calculator</a><a href="./tengyunzi-readings.html#top">Readings</a><a href="./tengyunzi-what-is-bazi.html#top">What is BaZi</a><a href="./tengyunzi-12-month-calendar.html#top">12-Month Forecast</a><a href="./tengyunzi-blog.html#top">Blog</a><a href="./tengyunzi-free-resources.html#top">Free Resources</a><a href="./tengyunzi-newsletter.html#top">Letters</a><a class="is-active" aria-current="page" href="./tengyunzi-feng-shui.html#top">Feng Shui</a><a href="./tengyunzi-decision.html#top">Decision</a><a href="./tengyunzi-about.html#top">About</a><a href="./tengyunzi-contact.html#top">Contact</a><a class="nav-cta" data-preserve-cta href="#order">Order Review</a></nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="path-hero">
+      <div class="shell path-hero-grid">
+        <div>
+          <span class="kicker">Manual Feng Shui Review</span>
+          <h1>Your actual floor plan, read by Tengyunzi.</h1>
+          <p class="path-lead">This is a personal, manual analysis—not an automated score. Tengyunzi reviews the complete layout, facing direction, dimensions, rooms, doors, windows, occupants, and the changes you want the space to support.</p>
+          <div class="manual-price"><strong>$149</strong><span>One-time payment<br>English PDF within 72 hours</span></div>
+          <div class="path-actions"><a class="button" href="#order">Order Manual Review</a><a class="button secondary" href="#requirements">What you need</a></div>
+        </div>
+        <div class="plan-board" aria-label="Illustrative floor plan showing rooms, doors, windows, and facing direction">
+          <div class="plan-outline">
+            <div class="plan-room primary"><div><strong>Living · Dining</strong><span>32 m² · windows east</span></div></div>
+            <div class="plan-room"><div><strong>Bedroom</strong><span>14 m² · door southwest</span></div></div>
+            <div class="plan-room"><div><strong>Study</strong><span>9 m² · window north</span></div></div>
+          </div>
+          <div class="plan-compass"><span>Doors · Windows · Room use · Dimensions</span><strong>Facing 128° SE</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="path-section" id="requirements">
+      <div class="shell">
+        <header class="path-section-head">
+          <span class="kicker">Required information</span>
+          <h2>A useful review begins with a complete plan.</h2>
+          <p>Please prepare a readable floor plan. Hand-drawn plans are accepted when the proportions, dimensions, doors, windows, room names, and compass direction are clearly marked.</p>
+        </header>
+        <div class="requirement-grid">
+          <article class="requirement"><b>01 · Floor plan</b><h3>The complete property layout</h3><p>Include every room, hallway, balcony, entrance, bathroom, kitchen, storage area, and any missing or irregular section.</p></article>
+          <article class="requirement"><b>02 · Orientation</b><h3>Accurate facing direction</h3><p>Mark north and provide the measured facing direction or compass degrees. State where and how the measurement was taken.</p></article>
+          <article class="requirement"><b>03 · Openings</b><h3>Doors and windows</h3><p>Show the main entrance, internal doors, balcony doors, windows, large openings, and the direction each door opens when relevant.</p></article>
+          <article class="requirement"><b>04 · Dimensions</b><h3>Room and total area</h3><p>Provide the total property area and room dimensions in square metres or square feet. Approximate measurements should be labelled as approximate.</p></article>
+          <article class="requirement"><b>05 · People</b><h3>Occupants and room use</h3><p>Explain who lives or works there, which rooms they use, and any important changes such as moving, renovation, a new role, or a new relationship.</p></article>
+          <article class="requirement"><b>06 · Objective</b><h3>What you want to adjust</h3><p>Choose the priorities that matter now and describe the current problem in concrete, observable terms.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="path-section is-soft">
+      <div class="shell">
+        <header class="path-section-head center">
+          <span class="kicker">Your priorities</span>
+          <h2>What should the space support?</h2>
+          <p>The review connects traditional spatial analysis with your stated priorities. It identifies areas to examine and practical adjustments; it does not guarantee an outcome.</p>
+        </header>
+        <div class="goal-grid">
+          <article class="goal-card"><strong>Career</strong><span>Focus, authority, visibility, work position, and professional momentum.</span></article>
+          <article class="goal-card"><strong>Wealth</strong><span>Commercial flow, use of resources, stability, storage, and decision areas.</span></article>
+          <article class="goal-card"><strong>Wellbeing</strong><span>Rest, light, circulation, noise, recovery, and daily environmental pressure.</span></article>
+          <article class="goal-card"><strong>Relationships</strong><span>Connection, privacy, shared space, communication, and room balance.</span></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="path-section">
+      <div class="shell">
+        <header class="path-section-head">
+          <span class="kicker">How it works</span>
+          <h2>Four steps. Manual analysis. 72 hours.</h2>
+        </header>
+        <div class="path-steps">
+          <article class="path-step"><div><h3>Submit the complete plan</h3><p>Upload PDF, PNG, JPG, or WebP files and provide the orientation, dimensions, doors, windows, occupants, and goals.</p></div></article>
+          <article class="path-step"><div><h3>Complete secure payment</h3><p>Pay once through PayPal. This is not a subscription and no automated reading is generated.</p></div></article>
+          <article class="path-step"><div><h3>Tengyunzi reviews the property</h3><p>The plan is examined manually in relation to orientation, room use, movement, openings, spatial support, and your stated priorities.</p></div></article>
+          <article class="path-step"><div><h3>Receive the written report</h3><p>Your English PDF is delivered by email within 72 hours, with observations, priorities, practical adjustments, and stated limitations.</p></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="path-section is-soft" id="order">
+      <div class="shell intake-shell">
+        <div class="path-section-head">
+          <span class="kicker">Order your review</span>
+          <h2>Tell Tengyunzi about the property.</h2>
+          <p>Your files are stored privately and used only to prepare this review. Upload only plans you are authorised to share, and remove names or address details you do not want included.</p>
+          <div class="path-note"><strong>Before uploading:</strong> Check that north or the facing direction is marked, every door and window is visible, rooms are named, and dimensions can be read.</div>
+        </div>
+        <form class="path-panel intake-form" data-feng-shui-order enctype="multipart/form-data">
+          <input class="visually-hidden" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <label class="path-field"><span>Name</span><input name="name" autocomplete="name" required></label>
+          <label class="path-field"><span>Email</span><input name="email" type="email" autocomplete="email" required></label>
+          <label class="path-field"><span>Property type</span><select name="property_type" required><option value="">Choose one</option><option>Apartment</option><option>House</option><option>Office</option><option>Shop or studio</option><option>Other property</option></select></label>
+          <label class="path-field"><span>City and country</span><input name="address_region" placeholder="City, Country" required></label>
+          <label class="path-field"><span>Total area</span><input name="total_area" type="number" min="1" step="0.1" required></label>
+          <label class="path-field"><span>Area unit</span><select name="area_unit"><option value="sqm">Square metres (m²)</option><option value="sqft">Square feet (sq ft)</option></select></label>
+          <label class="path-field wide"><span>Facing direction</span><small>Example: “Main entrance faces 128° southeast; measured outside the entrance, facing away from the property.”</small><input name="facing_direction" required></label>
+          <label class="path-field wide"><span>How was the direction measured?</span><input name="compass_method" placeholder="Phone compass, survey drawing, professional compass, or unknown"></label>
+          <label class="path-field wide"><span>Occupants and room use</span><textarea name="occupants" placeholder="Who uses the property, which bedroom or workspace belongs to whom, and the normal use of each important room."></textarea></label>
+          <label class="path-field wide"><span>Property context</span><textarea name="property_context" placeholder="Recent move, renovation, business change, recurring room problem, neighbouring road or building, or anything else Tengyunzi should know."></textarea></label>
+          <fieldset class="path-field wide">
+            <legend>What do you want the space to support?</legend>
+            <div class="goal-options">
+              <label class="goal-option"><input type="checkbox" name="goals" value="Career">Career</label>
+              <label class="goal-option"><input type="checkbox" name="goals" value="Wealth">Wealth</label>
+              <label class="goal-option"><input type="checkbox" name="goals" value="Health and wellbeing">Health and wellbeing</label>
+              <label class="goal-option"><input type="checkbox" name="goals" value="Relationships and romance">Relationships and romance</label>
+              <label class="goal-option"><input type="checkbox" name="goals" value="Study and focus">Study and focus</label>
+              <label class="goal-option"><input type="checkbox" name="goals" value="Family harmony">Family harmony</label>
+            </div>
+          </fieldset>
+          <label class="path-field wide"><span>Main question</span><small>Describe what is happening now and what you hope to adjust. Avoid only writing “wealth” or “health.”</small><textarea name="question" minlength="20" required></textarea></label>
+          <div class="file-drop wide">
+            <strong>Upload the complete floor plan</strong>
+            <span class="path-disclaimer">1–4 files · PDF, PNG, JPG, or WebP · 8 MB per file · 20 MB total</span>
+            <input name="floor_plans" type="file" accept="application/pdf,image/png,image/jpeg,image/webp,.pdf,.png,.jpg,.jpeg,.webp" multiple hidden>
+            <button class="file-upload-button" type="button" data-file-trigger aria-describedby="floor-plan-status">Choose floor plan files</button>
+            <span class="file-status" id="floor-plan-status" data-file-status aria-live="polite">No files selected.</span>
+          </div>
+          <label class="goal-option wide"><input type="checkbox" name="accuracy_confirmed" required><span>I confirm that the plan, orientation, doors, windows, and measurements are complete or clearly marked as approximate.</span></label>
+          <button class="submit-button wide" type="submit">Continue to PayPal · $149</button>
+          <p class="path-disclaimer wide">One-time payment. Manual English PDF delivered within 72 hours. This service does not guarantee career, wealth, health, or relationship outcomes.</p>
+          <p class="form-status wide" data-feng-shui-status aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="shell">Tengyunzi Feng Shui is a traditional, educational spatial review. It does not replace architectural, structural, medical, legal, financial, or safety advice.</div></footer>
+  <script src="./js/tengyunzi-shell.js?v=20260727paths"></script>
+  <script src="./js/feng-shui-order.js?v=20260727b"></script>
+</body>
+</html>

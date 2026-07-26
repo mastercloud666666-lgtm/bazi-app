@@ -26,10 +26,11 @@ const USD_PRICE: Record<string, string> = {
   basic: '3.99', pro: '9.99', vip: '16.99', pdf: '3.99', zhanbu: '9.99', hepan: '29.00',
   english_report: '9.99',
   personal_reading: '99.00',
+  feng_shui: '149.00',
   core_chart: '49.00', reading: '135.00', forecast: '88.00', forecast_core: '128.00', bundle: '169.00',
 };
 const OVERSEAS_DISABLED = new Set(['consult']);
-const TENGYUNZI_MANUAL_OPTIONS = new Set(['personal_reading', 'core_chart', 'reading', 'forecast', 'forecast_core', 'bundle']);
+const TENGYUNZI_MANUAL_OPTIONS = new Set(['personal_reading', 'feng_shui', 'core_chart', 'reading', 'forecast', 'forecast_core', 'bundle']);
 
 function asString(v: unknown): string { return typeof v === 'string' ? v.trim() : ''; }
 function parseBirth(v: unknown): Record<string, any> {
@@ -568,7 +569,7 @@ Deno.serve(async (req) => {
       const token = await ppToken();
       const retPage = service === 'tengyunzi_manual'
         ? 'tengyunzi-order-success.html'
-        : 'tengyunzi-report.html';
+        : (service === 'zhanbu' ? 'tengyunzi-decision.html' : 'tengyunzi-report.html');
       const returnUrl = `${origin}/${retPage}?trade_no=${encodeURIComponent(tradeNo)}&pp=1`;
       const cancelUrl = `${origin}/${retPage}?trade_no=${encodeURIComponent(tradeNo)}&pp=cancel`;
       const res = await fetch(`${PP_BASE}/v2/checkout/orders`, {

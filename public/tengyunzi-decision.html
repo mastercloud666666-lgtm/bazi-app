@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="canonical" href="https://www.tengyunzi.com/tengyunzi-decision.html">
+  <title>I Ching Decision Companion | Tengyunzi</title>
+  <meta name="description" content="Ask one clear question, cast an I Ching hexagram, and use the original hexagram, moving line, and resulting hexagram to examine a changing situation.">
+  <meta property="og:title" content="I Ching Decision Companion | Tengyunzi">
+  <meta property="og:description" content="A traditional lens for one changing situation—not a command and not a guarantee.">
+  <link rel="stylesheet" href="./tengyunzi-fonts.css?v=20260722seo1">
+  <link rel="stylesheet" href="./tengyunzi-sales.css?v=20260713h">
+  <link rel="stylesheet" href="./tengyunzi-pathways.css?v=20260727b">
+  <style>
+    .hexagram-preview {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 20px;
+      align-items: center;
+    }
+    .hexagram-preview[hidden] { display: none; }
+    .hex-card {
+      min-height: 270px;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 18px 46px rgba(10,37,64,.09);
+      padding: 25px;
+      text-align: center;
+    }
+    .hex-lines { width: 112px; display: grid; gap: 9px; margin: 20px auto; transform: rotate(180deg); }
+    .hex-line { height: 9px; display: flex; justify-content: space-between; gap: 14px; }
+    .hex-line::before,
+    .hex-line::after { height: 100%; background: var(--ink); content: ""; }
+    .hex-line.yang::before { width: 100%; }
+    .hex-line.yang::after { display: none; }
+    .hex-line.yin::before,
+    .hex-line.yin::after { width: calc(50% - 7px); }
+    .hex-card small { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 800; }
+    .hex-card strong { color: var(--ink); font-family: var(--display-font); font-size: 1.35rem; }
+    .hex-arrow { color: var(--blue); font-size: 2rem; }
+    .decision-workspace {
+      display: grid;
+      grid-template-columns: minmax(340px, .8fr) minmax(0, 1fr);
+      gap: clamp(28px, 6vw, 70px);
+      align-items: start;
+      margin-top: 40px;
+    }
+    .question-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .question-chip {
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--blue-dark);
+      padding: 8px 12px;
+      font: inherit;
+      font-size: .78rem;
+      font-weight: 800;
+    }
+    .cast-stage {
+      display: grid;
+      justify-items: center;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: linear-gradient(145deg, #fff, #eef6fc);
+      padding: 26px;
+      text-align: center;
+    }
+    .cast-mark {
+      width: 76px;
+      height: 76px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--blue);
+      border-radius: 50%;
+      color: var(--blue-dark);
+      font-family: var(--display-font);
+      font-size: 2rem;
+      font-weight: 900;
+    }
+    .cast-mark span {
+      font-family: var(--body-font);
+      font-size: .78rem;
+      letter-spacing: .08em;
+      line-height: 1.15;
+      text-align: center;
+    }
+    .cast-stage.is-casting .cast-mark { animation: castPulse .55s ease; }
+    @keyframes castPulse { 50% { transform: rotate(18deg) scale(.88); opacity: .55; } }
+    .cast-status { margin: 16px 0 0; color: var(--text); line-height: 1.55; }
+    .cast-slots { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 18px 0; }
+    .cast-slot { border: 1px solid var(--line); border-radius: 7px; background: #fff; padding: 11px 7px; color: var(--muted); font-size: .78rem; }
+    .cast-slot.is-filled { border-color: var(--blue); color: var(--blue-dark); font-weight: 900; }
+    .cast-stage .submit-button { width: 100%; }
+    .cast-payment-note {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: .78rem;
+      line-height: 1.5;
+    }
+    .cast-stage.is-unlocked {
+      border-color: rgba(31,122,184,.55);
+      box-shadow: inset 0 0 0 1px rgba(31,122,184,.08);
+    }
+    .cast-stage.is-unlocked .cast-mark {
+      background: rgba(31,122,184,.07);
+    }
+    .decision-price {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 18px;
+      color: var(--muted);
+    }
+    .decision-price strong {
+      color: var(--ink);
+      font-family: var(--display-font);
+      font-size: 2.2rem;
+      line-height: 1;
+    }
+    .verification-box { margin-top: 14px; }
+    .verification-box:empty { display: none; }
+    .reading-result {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: clamp(24px, 4vw, 40px);
+      box-shadow: 0 20px 50px rgba(10,37,64,.08);
+    }
+    .reading-result[hidden] { display: none; }
+    .reading-text {
+      margin-top: 24px;
+      color: var(--text);
+      line-height: 1.78;
+      white-space: pre-wrap;
+    }
+    .reading-state { color: var(--blue-dark); font-weight: 800; }
+    @media (prefers-reduced-motion: reduce) {
+      .cast-stage.is-casting .cast-mark { animation: none; }
+    }
+    @media (max-width: 900px) {
+      .decision-workspace { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .hexagram-preview { grid-template-columns: 1fr; }
+      .hex-arrow { transform: rotate(90deg); }
+    }
+  </style>
+  <link rel="stylesheet" href="./tengyunzi-shell.css?v=20260726paths">
+</head>
+<body>
+  <header class="nav">
+    <div class="shell nav-inner">
+      <a class="brand" href="./index.html#top">Tengyunzi</a>
+      <nav class="nav-links" aria-label="Page navigation"><a href="./tengyunzi-calculator.html#top">Calculator</a><a href="./tengyunzi-readings.html#top">Readings</a><a href="./tengyunzi-what-is-bazi.html#top">What is BaZi</a><a href="./tengyunzi-12-month-calendar.html#top">12-Month Forecast</a><a href="./tengyunzi-blog.html#top">Blog</a><a href="./tengyunzi-free-resources.html#top">Free Resources</a><a href="./tengyunzi-newsletter.html#top">Letters</a><a href="./tengyunzi-feng-shui.html#top">Feng Shui</a><a class="is-active" aria-current="page" href="./tengyunzi-decision.html#top">Decision</a><a href="./tengyunzi-about.html#top">About</a><a href="./tengyunzi-contact.html#top">Contact</a><a class="nav-cta" href="./tengyunzi-report.html#reading-form">Start Reading</a></nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="path-hero">
+      <div class="shell path-hero-grid">
+        <div>
+          <span class="kicker">I Ching Decision Companion</span>
+          <h1>A traditional lens for one changing situation.</h1>
+          <p class="path-lead">The I Ching does not remove uncertainty. It gives uncertainty a structure: the present condition, the point where change is occurring, and the direction that change may create.</p>
+          <p class="path-lead">Ask one specific question. Cast once. Then compare the reading with facts, alternatives, and your own responsibility.</p>
+          <div class="decision-price"><strong>$9.99</strong><span>One question · one preserved cast · one English interpretation</span></div>
+          <div class="path-actions"><a class="button" href="#ask">Ask one question</a><a class="button secondary" href="#how-it-works">How it works</a></div>
+        </div>
+        <aside class="path-panel">
+          <span class="kicker">Before you cast</span>
+          <h2>Use it to think—not to surrender choice.</h2>
+          <ul class="path-list">
+            <li>Ask about one situation, not your entire future.</li>
+            <li>Include the real constraint or tension.</li>
+            <li>Do not repeat the cast until you get the answer you want.</li>
+            <li>Keep medical, legal, safety, and financial decisions with qualified professionals.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class="path-section is-soft" id="how-it-works">
+      <div class="shell">
+        <header class="path-section-head center">
+          <span class="kicker">The reading structure</span>
+          <h2>Situation. Change. Direction.</h2>
+        </header>
+        <div class="path-grid">
+          <article class="path-card"><strong>Original hexagram</strong><h3>What the situation is now</h3><p>The upper and lower trigrams describe the relationship of forces in the present condition.</p></article>
+          <article class="path-card"><strong>Moving line</strong><h3>Where the tension turns</h3><p>The moving line identifies the part of the structure that is changing and asks what that change demands.</p></article>
+          <article class="path-card"><strong>Resulting hexagram</strong><h3>What the change points toward</h3><p>The transformed hexagram provides a second image for examining likely direction—not a guaranteed outcome.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="path-section" id="ask">
+      <div class="shell">
+        <header class="path-section-head">
+          <span class="kicker">Decision Companion</span>
+          <h2>Write the question before you cast.</h2>
+          <p>A useful question names the decision, the time horizon, and the conflict. “Should I accept this role when it offers growth but reduces stability?” is more useful than “Will my career be good?”</p>
+        </header>
+        <div class="decision-workspace">
+          <form class="path-panel path-form" data-decision-form>
+            <input class="visually-hidden" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <label class="path-field"><span>Type of decision</span>
+              <select name="category" required>
+                <option value="Decision and direction">Decision and direction</option>
+                <option value="Career and work">Career and work</option>
+                <option value="Business and collaboration">Business and collaboration</option>
+                <option value="Relationship and communication">Relationship and communication</option>
+                <option value="Study, travel, or relocation">Study, travel, or relocation</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+            <label class="path-field"><span>Your question</span><small>One question, with enough background to name the real tension.</small>
+              <textarea name="question" minlength="20" maxlength="1200" required placeholder="Should I accept the new role this autumn when it offers more growth but less financial stability?"></textarea>
+            </label>
+            <div class="question-chips" aria-label="Question examples">
+              <button class="question-chip" type="button" data-question-example="Is it better to advance with this project now, or strengthen the foundation first?">Advance or prepare?</button>
+              <button class="question-chip" type="button" data-question-example="What should I understand before entering this collaboration?">A collaboration</button>
+              <button class="question-chip" type="button" data-question-example="What is the most constructive way to approach this difficult conversation?">A conversation</button>
+            </div>
+            <div class="cast-stage" data-cast-stage>
+              <div class="cast-mark" aria-hidden="true"><span>I<br>CHING</span></div>
+              <p class="cast-status" data-cast-status>Write one clear question, then unlock one complete cast.</p>
+              <div class="cast-slots">
+                <span class="cast-slot" data-cast-slot="0">1 · Upper</span>
+                <span class="cast-slot" data-cast-slot="1">2 · Lower</span>
+                <span class="cast-slot" data-cast-slot="2">3 · Moving line</span>
+              </div>
+              <button class="submit-button" type="button" data-cast-button>Unlock 3 Casts · $9.99</button>
+              <p class="cast-payment-note">Secure one-time payment through PayPal. Your question is locked after payment.</p>
+              <div class="verification-box" data-turnstile-box></div>
+            </div>
+            <p class="path-disclaimer">After payment, each click requests one cryptographically generated number from the Tengyunzi server: upper trigram 1–8, lower trigram 1–8, then moving line 1–6. The three values are preserved with this order and cannot be rerolled.</p>
+          </form>
+
+          <div>
+            <div class="hexagram-preview" data-hexagram-preview hidden>
+              <div class="hex-card"><small>Original</small><div class="hex-lines" data-original-lines></div><strong data-original-name>—</strong></div>
+              <div class="hex-arrow" aria-hidden="true">→</div>
+              <div class="hex-card"><small>Resulting</small><div class="hex-lines" data-result-lines></div><strong data-result-name>—</strong></div>
+            </div>
+            <section class="reading-result" data-reading-result hidden aria-live="polite">
+              <span class="kicker">Your reading</span>
+              <h2 data-reading-title>Interpreting the change</h2>
+              <p class="reading-state" data-reading-state></p>
+              <div class="reading-text" data-reading-text></div>
+              <div class="path-note"><strong>Decision boundary:</strong> Compare this interpretation with observable facts, alternatives, consequences, and qualified advice. The final decision remains yours.</div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="shell">This is a traditional I Ching interpretation for reflection only. It does not replace professional advice or personal responsibility.</div></footer>
+  <script src="./js/tengyunzi-shell.js?v=20260727paths"></script>
+  <script src="./js/decision-companion.js?v=20260727paid1"></script>
+</body>
+</html>

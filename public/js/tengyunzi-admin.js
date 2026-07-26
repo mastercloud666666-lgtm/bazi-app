@@ -233,6 +233,29 @@
       ? `${solar.original_local_datetime || item.birth_date} -> ${solar.corrected_local_datetime} (${Number(solar.total_correction_minutes || 0).toFixed(1)} min, ${solar.resolved_place || item.birthplace})`
       : (solar.status ? `Local clock retained: ${statusLabel(solar.status)}` : 'Local clock retained; no correction record');
     document.querySelector('[data-personal-solar-time]').textContent = solarText;
+    const fengShui = item.feng_shui || {};
+    document.querySelector('[data-personal-property]').textContent = [
+      fengShui.property_type,
+      fengShui.address_region,
+      fengShui.total_area ? `${fengShui.total_area} ${fengShui.area_unit || ''}`.trim() : '',
+      fengShui.facing_direction,
+    ].filter(Boolean).join(' | ') || '-';
+    const attachments = document.querySelector('[data-personal-attachments]');
+    attachments.replaceChildren();
+    const floorPlans = Array.isArray(item.floor_plan_files) ? item.floor_plan_files : [];
+    if (!floorPlans.length) {
+      attachments.textContent = '-';
+    } else {
+      floorPlans.forEach((file, index) => {
+        if (index) attachments.appendChild(document.createTextNode(' | '));
+        const link = document.createElement('a');
+        link.href = file.signed_url || '#';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = file.name || `Floor plan ${index + 1}`;
+        attachments.appendChild(link);
+      });
+    }
     form.elements.pdf_files.value = '';
     const isBundle = item.product === 'Tengyunzi Reading + Annual Forecast Bundle';
     document.querySelector('[data-personal-file-note]').textContent = isBundle

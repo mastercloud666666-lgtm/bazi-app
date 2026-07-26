@@ -1369,7 +1369,7 @@ Deno.serve(async (req) => {
     }
 
     const tradeNoSafe = String(trade_no || '').trim();
-    if (tradeNoSafe && /^(bazi|hepan)-[a-z0-9_-]{4,140}$/i.test(tradeNoSafe)) {
+    if (tradeNoSafe && /^(bazi|hepan|zhanbu)-[a-z0-9_-]{4,140}$/i.test(tradeNoSafe)) {
       const perTradeMaxRequests = readEnvNumber('RATE_LIMIT_ANALYZE_MAX_REQUESTS_PER_TRADE', DEFAULT_RATE_LIMIT_MAX_REQUESTS_PER_TRADE, 2, 200);
       const perTradeResult = await consumeRateLimit(supabase, {
         scope: `${rateScope}:trade`,
@@ -1411,13 +1411,13 @@ Deno.serve(async (req) => {
       Number.isFinite(requestedSectionEnd) &&
       requestedSectionStart >= 1 &&
       requestedSectionEnd >= requestedSectionStart;
-    let tradeOrder: { paid?: boolean; birth_input?: string | null } | null = null;
+    let tradeOrder: { paid?: boolean; birth_input?: string | null; analysis?: string | null } | null = null;
     let tradeBirth: Record<string, any> = {};
 
     if (trade_no) {
       const { data } = await supabase
         .from('orders')
-        .select('paid,birth_input')
+        .select('paid,birth_input,analysis')
         .eq('trade_no', trade_no)
         .maybeSingle();
       tradeOrder = data || null;
@@ -1448,7 +1448,7 @@ Deno.serve(async (req) => {
     // 会员默认给完整版（vip）
     if (isActiveMember && !resolvedPaymentOptionId) resolvedPaymentOptionId = 'vip';
 
-    const requiresPaidOrder = ((service === 'bazi' && !free_only) || service === 'hepan') && !isActiveMember;
+    const requiresPaidOrder = ((service === 'bazi' && !free_only) || service === 'hepan' || service === 'zhanbu') && !isActiveMember;
     if (requiresPaidOrder) {
       if (!trade_no) {
         return new Response(JSON.stringify({ error: 'trade_no is required for paid analyze' }), {
@@ -1490,14 +1490,34 @@ Deno.serve(async (req) => {
           status: 403, headers: { ...CORS, 'Content-Type': 'application/json' },
         });
       }
-      const { question, method, category, number1, number2, number3, ke_month, ke_day, ke_hour } = body;
+      const storedCast = tradeBirth?.decision_cast && typeof tradeBirth.decision_cast === 'object'
+        ? tradeBirth.decision_cast
+        : {};
+      const storedValues = Array.isArray(storedCast?.values)
+        ? storedCast.values.map((value: unknown) => Number(value)).slice(0, 3)
+        : [];
+      if (
+        String(tradeBirth?.order_service || '').trim().toLowerCase() !== 'zhanbu'
+        || storedValues.length !== 3
+        || !storedValues.every((value: number, index: number) =>
+          Number.isInteger(value) && value >= 1 && value <= (index === 2 ? 6 : 8))
+      ) {
+        return new Response(JSON.stringify({ error: 'paid_cast_not_ready' }), {
+          status: 409,
+          headers: { 'Content-Type': 'application/json', ...CORS },
+        });
+      }
+      const question = String(tradeBirth?.question || '').trim().slice(0, 1200);
+      const category = String(tradeBirth?.category || '').trim().slice(0, 80) || 'Decision and direction';
+      const method = 'gaodao';
+      const [number1, number2, number3] = storedValues;
+      const { ke_month, ke_day, ke_hour } = body;
 
       if (method === 'gaodao') {
         // 周易六十四卦：摇卦三次 -> 上卦(1-8)、下卦(1-8)、动爻(1-6)
-        const ri = (max: number) => Math.floor(Math.random() * max) + 1;
-        const n1 = Number(number1) || ri(8);
-        const n2 = Number(number2) || ri(8);
-        const n3 = Number(number3) || ri(6);
+        const n1 = Number(number1);
+        const n2 = Number(number2);
+        const n3 = Number(number3);
         // 先天八卦数 1..8 -> [名, 自下而上三爻 bottom,mid,top]
         const TRI: Record<number, [string, number[]]> = {
           1: ['乾', [1, 1, 1]], 2: ['兑', [1, 1, 0]], 3: ['离', [1, 0, 1]], 4: ['震', [1, 0, 0]],
@@ -1808,7 +1828,7 @@ Data contract:
           stemCounts: positionCounts.stemCounts,
           branchCounts: positionCounts.branchCounts,
           elementPresence,
-          luckDirection: canonicalDirection!.direction,
+          luckDirection: canonicalDirection!.direction as 'Forward' | 'Reverse',
           luckBasis: canonicalDirection!.basis,
           startAge: Number(start_age),
           luckPillars: parsedLuckPillars,
@@ -1816,7 +1836,7 @@ Data contract:
           pillars: canonicalPillars as Record<string, { stem: string; branch: string }>,
           dayMasterStem,
           rootBranches: [...new Set(rootBranches)],
-          strength,
+          strength: strength as BaziGroundTruth['strength'],
         };
       }
       if (free_only) {
@@ -2021,6 +2041,8 @@ Write natural, fluent English plain text. Address the reader as "you". Chinese c
     if (_outLang === 'en') {
       if (service === 'bazi') {
         prompt += '\n\n================ OUTPUT LANGUAGE: ENGLISH (HIGHEST PRIORITY) ================\nWrite the entire answer in fluent English. Use section markers exactly as Section 1:, Section 2:, and so on. The only Chinese permitted is raw Ganzhi or Four-Pillar characters such as 甲午, each with a short English gloss in parentheses on first use. Output no Chinese sentences.';
+      } else if (service === 'zhanbu') {
+        prompt += '\n\n================ OUTPUT LANGUAGE: ENGLISH ONLY (HIGHEST PRIORITY) ================\nWrite the entire interpretation in natural, polished English. Translate every hexagram name, heading, judgment, and moving-line text into English. Do not display Chinese characters or Chinese sentences. Use four clear numbered sections: 1. Original Hexagram, 2. Moving Line, 3. Resulting Hexagram, 4. Judgment and Practical Advice. Treat the reading as a reflective framework, not a guaranteed prediction.';
       } else {
         prompt += '\n\n================ OUTPUT LANGUAGE: ENGLISH (HIGHEST PRIORITY) ================\nRegardless of the Chinese wording above, write your ENTIRE answer in fluent English, including translating every section header into English. The only Chinese permitted is raw hexagram / pillar characters (e.g. 火地晋), each with a short English gloss in parentheses. Output ZERO Chinese sentences.';
       }
@@ -2044,7 +2066,88 @@ Write natural, fluent English plain text. Address the reader as "you". Chinese c
       return buildSseResponseFromText(localizeBaziSectionMarkers(finalText, _outLang), CORS, _outLang !== 'en');
     }
 
-    if ((service === 'hepan' && stream === true) || (service === 'bazi' && stream === true) || (service === 'zhanbu' && stream === true)) {
+    if (service === 'zhanbu' && stream === true) {
+      const savedDecisionReading = String(tradeOrder?.analysis || '').trim();
+      if (savedDecisionReading) {
+        return buildSseResponseFromText(savedDecisionReading, CORS, false);
+      }
+      const runApiKey = String(Deno.env.get('RUNAPI_API_KEY') || '').trim();
+      const runApiModel = String(Deno.env.get('RUNAPI_DECISION_MODEL') || 'claude-sonnet-4-6').trim();
+      const runApiBase = String(Deno.env.get('RUNAPI_BASE_URL') || 'https://runapi.co/v1').trim().replace(/\/+$/, '');
+      if (!runApiKey) {
+        return new Response(JSON.stringify({ error: 'decision_model_not_configured' }), {
+          status: 503,
+          headers: { 'Content-Type': 'application/json', ...CORS },
+        });
+      }
+      const decisionSystem = `You are Tengyunzi's English I Ching interpretation editor. Follow the supplied cast exactly and never change its upper trigram, lower trigram, moving line, original hexagram, or resulting hexagram. Write a coherent, thoughtful interpretation grounded in the traditional structure while remaining honest about uncertainty. Use the user's real question throughout the analysis. Do not claim certainty, guarantee outcomes, or replace medical, legal, financial, safety, or other qualified professional advice. Output English only, with no Chinese characters.`;
+      const runApiResponse = await fetch(`${runApiBase}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${runApiKey}`,
+        },
+        body: JSON.stringify({
+          model: runApiModel,
+          max_tokens: maxTokens,
+          temperature: 0.2,
+          stream: true,
+          messages: [
+            { role: 'system', content: decisionSystem },
+            { role: 'user', content: prompt },
+          ],
+        }),
+      });
+      if (!runApiResponse.ok || !runApiResponse.body) {
+        const details = await runApiResponse.text();
+        console.error('RunAPI decision model failed', runApiResponse.status, details.slice(0, 400));
+        return new Response(JSON.stringify({ error: 'decision_model_unavailable' }), {
+          status: 502,
+          headers: { 'Content-Type': 'application/json', ...CORS },
+        });
+      }
+      const [clientStream, persistenceStream] = runApiResponse.body.tee();
+      const persistDecisionReading = (async () => {
+        const reader = persistenceStream.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let full = '';
+        while (true) {
+          const chunk = await reader.read();
+          if (chunk.done) break;
+          buffer += decoder.decode(chunk.value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const value = line.slice(6).trim();
+            if (!value || value === '[DONE]') continue;
+            try {
+              full += JSON.parse(value).choices?.[0]?.delta?.content || '';
+            } catch {
+              // Ignore malformed provider heartbeat chunks.
+            }
+          }
+        }
+        if (full.trim() && trade_no) {
+          await supabase.from('orders').update({ analysis: full.trim() }).eq('trade_no', trade_no).eq('paid', true);
+        }
+      })();
+      try {
+        (globalThis as any).EdgeRuntime?.waitUntil?.(persistDecisionReading);
+      } catch {
+        // The stream returned to the client remains usable even when waitUntil is unavailable.
+      }
+      return new Response(clientStream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          ...CORS,
+        },
+      });
+    }
+
+    if ((service === 'hepan' && stream === true) || (service === 'bazi' && stream === true)) {
       const dsStream = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {
