@@ -7,6 +7,7 @@
   const intakeApi = `${SUPABASE_URL}/functions/v1/feng-shui-intake`;
   const paypalApi = `${SUPABASE_URL}/functions/v1/paypal`;
   const fileInput = form.elements.floor_plans;
+  const fileTrigger = form.querySelector('[data-file-trigger]');
   const fileStatus = form.querySelector('[data-file-status]');
   const status = form.querySelector('[data-feng-shui-status]');
   const submit = form.querySelector('[type="submit"]');
@@ -40,6 +41,7 @@
     return /^(localhost|127\.0\.0\.1)$/i.test(location.hostname) ? 'https://www.tengyunzi.com' : location.origin;
   }
 
+  fileTrigger.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', updateFileStatus);
 
   form.addEventListener('submit', async (event) => {

@@ -97,13 +97,7 @@
       padding: 22px;
     }
     .file-drop input {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip: rect(0 0 0 0);
-      clip-path: inset(50%);
-      white-space: nowrap;
+      display: none;
     }
     .file-upload-button {
       width: fit-content;
@@ -121,7 +115,7 @@
       cursor: pointer;
     }
     .file-drop:hover .file-upload-button { background: var(--blue-dark); }
-    .file-drop input:focus-visible + .file-upload-button {
+    .file-upload-button:focus-visible {
       outline: 3px solid rgba(31,122,184,.22);
       outline-offset: 3px;
     }
@@ -251,13 +245,13 @@
             </div>
           </fieldset>
           <label class="path-field wide"><span>Main question</span><small>Describe what is happening now and what you hope to adjust. Avoid only writing “wealth” or “health.”</small><textarea name="question" minlength="20" required></textarea></label>
-          <label class="file-drop wide">
+          <div class="file-drop wide">
             <strong>Upload the complete floor plan</strong>
             <span class="path-disclaimer">1–4 files · PDF, PNG, JPG, or WebP · 8 MB per file · 20 MB total</span>
-            <input name="floor_plans" type="file" accept="application/pdf,image/png,image/jpeg,image/webp,.pdf,.png,.jpg,.jpeg,.webp" multiple required>
-            <span class="file-upload-button">Choose floor plan files</span>
-            <span class="file-status" data-file-status>No files selected.</span>
-          </label>
+            <input name="floor_plans" type="file" accept="application/pdf,image/png,image/jpeg,image/webp,.pdf,.png,.jpg,.jpeg,.webp" multiple hidden>
+            <button class="file-upload-button" type="button" data-file-trigger aria-describedby="floor-plan-status">Choose floor plan files</button>
+            <span class="file-status" id="floor-plan-status" data-file-status aria-live="polite">No files selected.</span>
+          </div>
           <label class="goal-option wide"><input type="checkbox" name="accuracy_confirmed" required><span>I confirm that the plan, orientation, doors, windows, and measurements are complete or clearly marked as approximate.</span></label>
           <button class="submit-button wide" type="submit">Continue to PayPal · $149</button>
           <p class="path-disclaimer wide">One-time payment. Manual English PDF delivered within 72 hours. This service does not guarantee career, wealth, health, or relationship outcomes.</p>
@@ -269,6 +263,6 @@
 
   <footer class="footer"><div class="shell">Tengyunzi Feng Shui is a traditional, educational spatial review. It does not replace architectural, structural, medical, legal, financial, or safety advice.</div></footer>
   <script src="./js/tengyunzi-shell.js?v=20260727paths"></script>
-  <script src="./js/feng-shui-order.js?v=20260727a"></script>
+  <script src="./js/feng-shui-order.js?v=20260727b"></script>
 </body>
 </html>
