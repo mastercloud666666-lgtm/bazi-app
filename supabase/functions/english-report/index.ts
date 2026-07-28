@@ -45,8 +45,8 @@ function reportTitle(input: JsonRecord): string {
   const month = Number(input.month || 0);
   const day = Number(input.day || 0);
   return year && month && day
-    ? `BaZi reading for ${new Date(Date.UTC(year, month - 1, day)).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}`
-    : 'Your BaZi reading';
+    ? `BaZi Destiny Book for ${new Date(Date.UTC(year, month - 1, day)).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}`
+    : 'Your BaZi Destiny Book';
 }
 
 function validateBirth(raw: unknown): { input?: JsonRecord; error?: string } {
@@ -335,7 +335,7 @@ Deno.serve(async (req) => {
         ...validated.input,
         chart_data: chartData,
         product_family: 'tengyunzi_ai',
-        product: 'Complete BaZi Reading',
+        product: 'BaZi Destiny Book',
         user_id: user.id,
         email,
         report_id: reportId,
@@ -511,7 +511,7 @@ Deno.serve(async (req) => {
       chart_data: chartData,
       order_service: 'bazi',
       product_family: 'tengyunzi_ai',
-      product: 'Complete BaZi Reading',
+      product: 'BaZi Destiny Book',
       user_id: user.id,
       email,
       report_id: reportId,
@@ -519,7 +519,7 @@ Deno.serve(async (req) => {
       payment_option_id: 'english_report',
       payment_option: {
         id: 'english_report',
-        title: 'Complete BaZi Reading',
+        title: 'BaZi Destiny Book',
         fee: pricing!.ai_price,
         currency: 'USD',
       },

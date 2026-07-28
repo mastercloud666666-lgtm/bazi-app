@@ -15,6 +15,7 @@ import {
 import {
   analyzeAnnualInteractions,
   analyzeNatalInteractions,
+  assessClassicalSpecialPattern,
   assessDayMasterStrength,
   balancingElementGuidance,
   charPolarity,
@@ -23,7 +24,10 @@ import {
   shenShaForChart,
   tenGod,
   tenGodEnglish,
+  timingAssessment,
   timingPosture,
+  tombStorageContacts,
+  traditionalReferenceProfile,
   weightedTenGodProfile,
 } from '../_shared/bazi-rules.mjs';
 import {
@@ -33,6 +37,7 @@ import {
   englishBaziBlueprint,
 } from '../_shared/english-report-structure.mjs';
 import { deduplicateReportSections } from '../_shared/report-quality.mjs';
+import { resolveModelRole } from '../_shared/model-roles.mjs';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -192,12 +197,13 @@ Master section blueprint for paid BAZI personality report（这是一份基于�
 `;
 
 const BAZI_STANDARD_BLUEPRINT_EN = `
-Master section blueprint for the paid English BaZi report. This is a standard Four Pillars interpretation, not a personality-test or psychotherapy report.
+Master section blueprint for the paid English BaZi Life Pattern Book. This is a cohesive traditional BaZi life reading, not a personality test, psychotherapy report, or collection of disconnected symbolic definitions.
 ${englishBaziBlueprint()}
 `;
 
 type BaziGroundTruth = {
   allowedGanzhi: string[];
+  gender: string;
   hourKnown: boolean;
   elementRoles: Record<string, string>;
   stemCounts: Record<string, number>;
@@ -219,6 +225,30 @@ type BaziGroundTruth = {
     pressureScore: number;
     seasonRole: string;
     rootBranches: string[];
+  };
+  specialPattern: {
+    pattern: string;
+    label: string;
+    qualified: boolean;
+    classicalPriority: boolean;
+    evidence: string[];
+    disqualifiers: string[];
+    elementGuidance: {
+      favorable: string[];
+      conditional: string[];
+      caution: string[];
+      stronglyUnfavorable: string[];
+      explanation: string;
+    } | null;
+    classicalBasis: {
+      work: string;
+      chapter: string;
+      verse: string;
+      verseEnglish: string;
+      application: string;
+      sourceNoteEnglish: string;
+      attributionStatus: string;
+    } | null;
   };
 };
 
@@ -247,7 +277,7 @@ const HIDDEN_STEMS: Record<string, string[]> = {
   申: ['庚', '壬', '戊'], 酉: ['辛'], 戌: ['戊', '辛', '丁'], 亥: ['壬', '甲'],
 };
 const TEN_GOD_ENGLISH: Record<string, string> = {
-  比肩: 'Friend', 劫财: 'Rob Wealth', 食神: 'Eating God', 伤官: 'Hurting Officer',
+  比肩: 'Companion', 劫财: 'Rob Wealth', 食神: 'Eating God', 伤官: 'Hurting Officer',
   偏财: 'Indirect Wealth', 正财: 'Direct Wealth', 七杀: 'Seven Killings', 正官: 'Direct Officer',
   偏印: 'Indirect Resource', 正印: 'Direct Resource',
 };
@@ -306,7 +336,7 @@ function formatEnglishTenGodFacts(raw: unknown, hourKnown: boolean): string {
     if (name !== 'day' && stem) {
       const god = tenGodName(dayStem, stem);
       if (god) {
-        signatures.push(`${name} stem ${stem}=${god} (${TEN_GOD_ENGLISH[god]})`);
+        signatures.push(`${name} stem ${stem}=${TEN_GOD_ENGLISH[god]}`);
       }
     }
   }
@@ -316,7 +346,7 @@ function formatEnglishTenGodFacts(raw: unknown, hourKnown: boolean): string {
   }]));
   const ranked = weightedTenGodProfile(canonicalPillars)
     .filter((item: Record<string, unknown>) => Number(item.percentage || 0) > 0)
-    .map((item: Record<string, unknown>) => `${item.name} (${item.english})=${item.percentage}% [visible ${Number(item.visible || 0).toFixed(2)}, hidden ${Number(item.hidden || 0).toFixed(2)}]`);
+    .map((item: Record<string, unknown>) => `${item.english}=${item.percentage}% [visible ${Number(item.visible || 0).toFixed(2)}, hidden ${Number(item.hidden || 0).toFixed(2)}]`);
   const elements = canonicalElementProfile(canonicalPillars);
   const dayElement = STEM_ELEMENTS[dayStem] || '';
   const rootBranches = names
@@ -337,7 +367,43 @@ function formatEnglishTenGodFacts(raw: unknown, hourKnown: boolean): string {
 function formatEnglishShenShaFacts(raw: unknown, hourKnown: boolean): string {
   const rows = shenShaForChart(chartPillars(raw), { hourKnown });
   if (!rows.length) return 'Canonical symbolic stars (Shen Sha): none of the supported major markers are present in the supplied pillars.';
-  return `Canonical symbolic stars (Shen Sha):\n${rows.map((item) => `${item.pillar} pillar ${item.branch}: ${item.name} (${item.english}), derived from ${item.source}`).join('\n')}`;
+  return `Canonical symbolic stars (Shen Sha):\n${rows.map((item) => `${item.pillar} pillar ${item.branch}: ${item.english}, derived from ${item.source}`).join('\n')}`;
+}
+
+function formatEnglishTraditionalReferenceFacts(raw: unknown, gender: string, hourKnown: boolean): string {
+  const pillars = chartPillars(raw);
+  const profile = traditionalReferenceProfile(pillars, { gender, hourKnown });
+  const pillarRows = Object.entries(profile.pillarSymbolism).map(([name, value]: [string, any]) =>
+    `${name} pillar: stem family symbols=${value.stem.family.join('/')}; branch family symbols=${value.branch.family.join('/')}; stem body=${value.stem.body.join('/')}; branch body=${value.branch.body.join('/')}; palace=${value.palace.join('/')}`,
+  );
+  const voidRows = profile.void.affected.map((item: Record<string, unknown>) =>
+    `${item.pillar} branch ${item.branch} (${(item.roles as string[]).join('/') || 'unclassified role'})`,
+  );
+  const rooted = profile.exposureAndRooting
+    .filter((item: Record<string, unknown>) => item.referenceMultiplier === '>2')
+    .map((item: Record<string, unknown>) => item.element);
+  const tenGodDomains = Object.entries(profile.tenGodSymbolism).map(([role, value]: [string, any]) =>
+    `${role}: people=${value.people.join('/')}; matters=${value.matters.join('/')}; body=${value.body.join('/')}; places=${value.places.join('/')}`,
+  );
+  const fiveGhost = profile.fiveGhostWealth
+    ? `month branch ${profile.fiveGhostWealth.monthBranch} uses target ${profile.fiveGhostWealth.targetBranch}; placements=${profile.fiveGhostWealth.placements.map((item: Record<string, unknown>) => item.pillar).join(', ') || 'none'}`
+    : 'unavailable';
+  const yuanChen = profile.yuanChen
+    ? `target ${profile.yuanChen.branch}; basis=${profile.yuanChen.basis}; placements=${profile.yuanChen.placements.map((item: Record<string, unknown>) => item.pillar).join(', ') || 'none'}`
+    : 'unavailable';
+  const resourceOutput = profile.indirectResourceOvercomesEatingGod.present
+    ? `symbolic contact detected (${profile.indirectResourceOvercomesEatingGod.sourceElement} over ${profile.indirectResourceOvercomesEatingGod.targetElement}); bodily or event prediction prohibited`
+    : 'not detected';
+  return `Supplied Tengyunzi symbolic-reference layer:
+${pillarRows.join('\n')}
+Day-Pillar Xun Kong: ${profile.void.voidBranches.join(' and ') || 'unavailable'}; affected placements: ${voidRows.join('; ') || 'none'}.
+Elements both exposed and rooted under the supplied comparative reference: ${rooted.join(', ') || 'none'}.
+Traditional Ten-God domain candidates:
+${tenGodDomains.join('\n')}
+Five Ghost Wealth auxiliary marker: ${fiveGhost}.
+Yuan Chen auxiliary marker: ${yuanChen}.
+Indirect Resource-over-Eating God reference: ${resourceOutput}.
+These are symbolic reference candidates only. They are not verified biography, medical findings, or guaranteed events.`;
 }
 
 function formatEnglishAnnualInteractionFacts(
@@ -360,10 +426,19 @@ function formatEnglishAnnualInteractionFacts(
       luckGz: active?.gz || '',
       hourKnown,
     });
+    const tombContacts = tombStorageContacts({ incomingBranch: annualGz[1], natalPillars: pillars, hourKnown });
     const evidence = relations.length
-      ? relations.map((item: Record<string, unknown>) => `${item.label} ${item.source}-${item.target} [${item.scope}${item.pillar ? ` ${item.pillar}` : ''}]`).join('; ')
+      ? relations.map((item: Record<string, unknown>) => {
+        const transformation = item.transformation && typeof item.transformation === 'object'
+          ? ' [associated element only; transformation not proven]'
+          : '';
+        return `${item.label} ${item.source}-${item.target} [${item.scope}${item.pillar ? ` ${item.pillar}` : ''}]${transformation}`;
+      }).join('; ')
       : 'no supported major contact';
-    return `${year} ${annualGz}; active Luck Pillar ${active?.gz || 'not supplied'}; ${evidence}`;
+    const tombEvidence = tombContacts.length
+      ? `; tomb-storage contacts: ${tombContacts.map((item: Record<string, unknown>) => `${item.incomingBranch}-${item.tombBranch} ${item.contactType} [contact only]`).join(', ')}`
+      : '';
+    return `${year} ${annualGz}; active Luck Pillar ${active?.gz || 'not supplied'}; ${evidence}${tombEvidence}`;
   });
   return `Canonical annual interactions for the next five years:\n${rows.join('\n')}`;
 }
@@ -658,22 +733,25 @@ function findEnglishReportStructureViolations(
   if (requireComplete && (wordCount < ENGLISH_BAZI_REPORT_WORD_RANGE.min || wordCount > ENGLISH_BAZI_REPORT_WORD_RANGE.max)) {
     violations.push(`complete English report word count ${wordCount} is outside ${ENGLISH_BAZI_REPORT_WORD_RANGE.min}-${ENGLISH_BAZI_REPORT_WORD_RANGE.max}`);
   }
-  if (!requireComplete && (wordCount < expectedCount * 180 || wordCount > expectedCount * 340)) {
-    violations.push(`Section ${sectionStart}-${sectionEnd} word count ${wordCount} is outside ${expectedCount * 180}-${expectedCount * 340}`);
+  if (!requireComplete && (wordCount < expectedCount * 250 || wordCount > expectedCount * 800)) {
+    violations.push(`Section ${sectionStart}-${sectionEnd} word count ${wordCount} is outside ${expectedCount * 250}-${expectedCount * 800}`);
   }
   for (const section of ENGLISH_BAZI_REPORT_SECTIONS.filter((item) => item.number >= sectionStart && item.number <= sectionEnd)) {
     const escapedTitle = section.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(`第${section.number}段：\\s*${escapedTitle}(?:\\s|$)`, 'i');
     if (!pattern.test(normalized)) violations.push(`Section ${section.number} title must be "${section.title}"`);
   }
-  if (sectionStart <= 5 && sectionEnd >= 5) {
-    const sectionFive = normalized.match(/第5段：[\s\S]*?(?=第6段：|$)/)?.[0] || '';
-    if (!/provisional|candidate|school|method may weigh|traditions? may weigh/i.test(sectionFive)) {
-      violations.push('Section 5 must qualify useful elements as provisional balancing candidates and acknowledge school/method variation');
+  if (sectionStart <= 2 && sectionEnd >= 2) {
+    const sectionTwo = normalized.match(/第2段：[\s\S]*?(?=第3段：|$)/)?.[0] || '';
+    if (!/\bfavorable\b/i.test(sectionTwo) || !/\bunfavorable\b/i.test(sectionTwo)) {
+      violations.push('Section 2 must state explicit favorable and unfavorable Five Elements');
     }
   }
-  if (/inner child|family imprint|growth lesson|personality test|psychological profile|self-development/i.test(normalized)) {
+  if (/inner child|family imprint|growth lesson|personality test|psychological profile|self-development|reflection question|practical step|schedule one daily window|coaching/i.test(normalized)) {
     violations.push('retired psychology/self-development framing detected');
+  }
+  if (/SUPPORTED ADVANCE|SELECTIVE ADVANCE|HOLD & PROTECT|support score|pressure score|decision posture/i.test(normalized)) {
+    violations.push('retired support/pressure timing vocabulary detected');
   }
   return violations;
 }
@@ -702,34 +780,67 @@ function normalizeElementPresenceClaims(text: string, truth: BaziGroundTruth | n
 function replaceEnglishHealthSection(text: string, truth: BaziGroundTruth | null): string {
   if (!truth) return text;
   const normalized = normalizeSectionMarkers(String(text || ''));
-  const start = normalized.indexOf('第11段：');
+  const start = normalized.indexOf('第10段：');
   if (start < 0) return normalized;
-  const end = normalized.indexOf('第12段：', start);
-  const visible = Object.entries(truth.elementPresence)
-    .filter(([, state]) => state === 'visible')
-    .map(([element]) => `${element[0].toUpperCase()}${element.slice(1)}`);
-  const hiddenOnly = Object.entries(truth.elementPresence)
-    .filter(([, state]) => state === 'hidden_only')
-    .map(([element]) => `${element[0].toUpperCase()}${element.slice(1)}`);
-  const missing = Object.entries(truth.elementPresence)
-    .filter(([, state]) => state === 'not_present')
-    .map(([element]) => `${element[0].toUpperCase()}${element.slice(1)}`);
-  const healthSection = `第11段：Health Tendencies Through the Five Elements
-Traditional BaZi associates the Five Elements with broad bodily systems: Wood with the liver, gallbladder, tendons, and eyes; Fire with the heart and circulation; Earth with the spleen, stomach, and muscles; Metal with the lungs and skin; and Water with the kidneys and urinary system. These are historical correspondence categories used to describe elemental balance. They are not medical findings and do not identify a symptom, diagnosis, constitution, or future illness.
+  const end = normalized.indexOf('第11段：', start);
+  const profile = weightedTenGodProfile(truth.pillars, { hourKnown: truth.hourKnown }) as Array<Record<string, unknown>>;
+  const elementShares = ['wood', 'fire', 'earth', 'metal', 'water'].map((element) => {
+    const percentage = profile
+      .filter((item) => item.element === element)
+      .reduce((sum, item) => sum + Number(item.exactPercentage || 0), 0);
+    const level = percentage === 0
+      ? 'absent'
+      : percentage < 5
+        ? 'very low'
+        : percentage < 15
+          ? 'low'
+          : percentage <= 35
+            ? 'moderate'
+            : 'highly concentrated';
+    return { element, label: capitalizeElement(element), percentage, level };
+  });
+  const shareText = elementShares
+    .map((item) => `${item.label} ${item.percentage.toFixed(1)}% (${item.level})`)
+    .join('; ');
+  const highest = [...elementShares].sort((a, b) => b.percentage - a.percentage)[0];
+  const controlTarget: Record<string, string> = {
+    wood: 'Earth',
+    fire: 'Metal',
+    earth: 'Water',
+    metal: 'Wood',
+    water: 'Fire',
+  };
+  const correspondence: Record<string, string> = {
+    Wood: 'liver, gallbladder, eyes, and tendons',
+    Fire: 'heart, small intestine, tongue, and blood vessels',
+    Earth: 'spleen, stomach, mouth, and muscles',
+    Metal: 'lungs, large intestine, nose, skin, and body hair',
+    Water: 'kidneys, bladder, ears, and bones',
+  };
+  const rankedAttention = [...elementShares]
+    .sort((a, b) => Math.abs(b.percentage - 20) - Math.abs(a.percentage - 20))
+    .map((item) => `${item.label} (${item.percentage.toFixed(1)}%): ${correspondence[item.label]}`)
+    .join('; ');
+  const healthSection = `第10段：Traditional Five-Element Body Correspondences
+This report's stated Ten-God weighting method gives the following relative Five-Element shares: ${shareText}. These percentages compare functions inside this chart; they are not physical-energy or medical measurements. Traditional BaZi treats both excess and deficiency as imbalance markers. A concentrated element makes its own correspondence group a primary attention area and can further restrain the element it controls; a very low or absent element marks a second form of imbalance.
 
-The chart evidence should therefore be read structurally. The Day Master is ${truth.dayMasterStem} ${STEM_ELEMENTS[truth.dayMasterStem] || ''}. Elements represented in the pillar stems or branch base elements are ${visible.join(', ') || 'none recorded'}. Elements found only among hidden stems are ${hiddenOnly.join(', ') || 'none'}, while elements not represented in the supplied chart are ${missing.join(', ') || 'none'}. This distinction matters because a hidden-only element is present but less exposed; it must not be described as completely absent.
+The traditional correspondence order for attention is ${rankedAttention}. ${highest.label} is the most concentrated element at ${highest.percentage.toFixed(1)}%; it traditionally corresponds to the ${correspondence[highest.label]}. ${highest.label} controls ${controlTarget[highest.element]}, so the ${controlTarget[highest.element]} correspondence group is also examined as the system receiving the strongest elemental restraint. This is the required connection between amount, the generation-control chain, and the body correspondence; it is more specific than merely listing which elements appear.
 
-In a standard BaZi reading, this section is limited to observing whether elemental functions are concentrated, restrained, supported, or underrepresented in the natal structure and later timing cycles. It does not convert those patterns into claims about the reader's organs, energy level, digestion, sleep, mood, fertility, or disease risk. Luck Pillars and annual years may change which element is emphasized, but they still do not provide a medical forecast. Use this chapter as a record of traditional Five-Element correspondence only. Personal health decisions should be based on qualified healthcare assessment rather than a BaZi chart.`;
+Chart favorability and bodily balance are separate judgments. A favorable element is not medically better in unlimited quantity, and an unfavorable or absent element does not prove that its associated organs are unhealthy or that the reader should add that element. The order above identifies traditional attention areas only; it does not diagnose symptoms, disease, constitution, or a future health event. Personal health decisions should be based on qualified medical assessment rather than a BaZi chart.`;
   return `${normalized.slice(0, start)}${healthSection}${end >= 0 ? `\n\n${normalized.slice(end)}` : ''}`.trim();
 }
 
-function replaceEnglishSection(text: string, number: number, title: string, body: string): string {
+function replaceEnglishSection(text: string, number: number, title: string, body: string, preserveOriginal = false): string {
   const normalized = normalizeSectionMarkers(text);
   const startMarker = `第${number}段：`;
   const start = normalized.indexOf(startMarker);
   if (start < 0) return normalized;
   const next = normalized.indexOf(`第${number + 1}段：`, start + startMarker.length);
-  const section = `${startMarker}${title}\n${body.trim()}`;
+  const original = normalized.slice(start + startMarker.length, next >= 0 ? next : normalized.length)
+    .replace(/^[^\n]*\n?/, '')
+    .trim();
+  const retained = preserveOriginal && original ? `\n\n${original}` : '';
+  const section = `${startMarker}${title}\n${body.trim()}${retained}`;
   return `${normalized.slice(0, start)}${section}${next >= 0 ? `\n\n${normalized.slice(next)}` : ''}`.trim();
 }
 
@@ -751,6 +862,7 @@ function relationEvidence(item: Record<string, unknown>): string {
 
 function replaceEnglishElementSection(text: string, truth: BaziGroundTruth): string {
   const profile = canonicalElementProfile(truth.pillars, { hourKnown: truth.hourKnown });
+  const tenGodProfile = weightedTenGodProfile(truth.pillars, { hourKnown: truth.hourKnown }) as Array<Record<string, unknown>>;
   const names = truth.hourKnown ? ['year', 'month', 'day', 'hour'] : ['year', 'month', 'day'];
   const hiddenRows = names.map((name) => {
     const pillar = truth.pillars[name];
@@ -760,12 +872,23 @@ function replaceEnglishElementSection(text: string, truth: BaziGroundTruth): str
   const visible = Object.entries(profile.visible).map(([element, count]) => `${capitalizeElement(element)} ${count}`).join(', ');
   const hiddenOnly = Object.entries(profile.presence).filter(([, state]) => state === 'hidden_only').map(([element]) => capitalizeElement(element));
   const absent = Object.entries(profile.presence).filter(([, state]) => state === 'not_present').map(([element]) => capitalizeElement(element));
+  const tenGodText = tenGodProfile
+    .filter((item) => Number(item.percentage) > 0)
+    .map((item) => {
+      const visible = Number(item.visible) > 0;
+      const hidden = Number(item.hidden) > 0;
+      const source = visible && hidden ? 'visible and hidden' : visible ? 'visible only' : 'hidden only';
+      return `${item.english} ${item.percentage}% (${source})`;
+    })
+    .join('; ');
   const body = `The visible pillar layer contains ${visible}. These counts combine Heavenly Stems with the base element of each Earthly Branch; they are not stem-only counts. ${hiddenOnly.length ? `${hiddenOnly.join(', ')} ${hiddenOnly.length === 1 ? 'appears' : 'appear'} only in hidden stems.` : 'No element is limited to hidden stems.'} ${absent.length ? `${absent.join(', ')} ${absent.length === 1 ? 'is' : 'are'} not represented in the supplied chart.` : 'Every Five-Element category is represented either visibly or in hidden stems.'}
 
 The canonical hidden stems are fixed by branch: ${hiddenRows.join('; ')}. A hidden stem is part of the branch structure but is less exposed than a Heavenly Stem. It must not be counted as an additional visible pillar, and it must not be invented from the branch's base element.
 
-For this chart, the distinction matters because visible emphasis and hidden support answer different questions. Visible counts show what is directly present in the four pillars. Hidden stems show the internal composition through which Ten Gods, rooting, and seasonal support are assessed. A hidden stem can contribute to a Ten-God weighting or provide a root without becoming a visible stem. Conversely, a branch's base element does not erase its internal stems. This chapter records those calculated layers only; strength and useful-element conclusions are made in the following structural chapter.`;
-  return replaceEnglishSection(text, 3, 'Five Elements and Hidden Stems', body);
+The weighted Ten-God profile is ${tenGodText}. These percentages measure relative emphasis inside the stated weighting method; they do not assign a percentage of the person's life. The leading Ten Gods identify the chart's dominant traditional functions - Companion, Output, Wealth, Officer, or Resource - and the later life-domain chapters must derive their judgments from this same ranking.
+
+Visible emphasis and hidden structure answer different questions. Visible counts show what is directly present in the four pillars. Hidden stems show the internal composition through which Ten Gods, rooting, and seasonal command are assessed. A hidden stem can contribute to a Ten-God weighting or provide a root without becoming a visible stem. This chapter therefore establishes the full Five-Element and Ten-God energy structure used throughout the rest of the book.`;
+  return replaceEnglishSection(text, 3, 'Five Elements, Ten Gods, and Energy Structure', body, true);
 }
 
 function replaceEnglishChartFoundationSections(text: string, truth: BaziGroundTruth): string {
@@ -783,8 +906,8 @@ function replaceEnglishChartFoundationSections(text: string, truth: BaziGroundTr
 
 In standard BaZi, each position provides a different frame: ${names.map((name) => `${name[0].toUpperCase()}${name.slice(1)} represents ${pillarLabels[name]}`).join('; ')}. These are traditional chart positions, not verified biographical facts. The Month Branch is given priority when evaluating seasonal qi, while the Day Stem remains the reference point for Ten-God relationships.
 
-${repeats.length ? `The natal chart contains exact whole-pillar repeats: ${repeats.map((item) => `${item.source} across ${(item.pillars as string[]).join(' and ')}`).join('; ')}. These are calculated Fu Yin contacts and are analyzed in Section 6.` : 'No exact whole-pillar repeat is present in the supplied pillars.'} At this foundation stage, no claim is made about temperament or future events. The direct facts are the four pillar positions, the ${truth.dayMasterStem} Day Master, their Yin-Yang polarity, and their Five-Element and Ten-God mappings.`;
-  let output = replaceEnglishSection(text, 1, 'Four Pillars and Day Master', sectionOne);
+${repeats.length ? `The natal chart contains exact whole-pillar repeats: ${repeats.map((item) => `${item.source} across ${(item.pillars as string[]).join(' and ')}`).join('; ')}. These are calculated Fu Yin contacts and are analyzed in Section 4.` : 'No exact whole-pillar repeat is present in the supplied pillars.'} The governing structural verdict is ${truth.specialPattern.qualified ? truth.specialPattern.label : `${truth.strength.label} under the ordinary Day-Master method`}. All later career, wealth, relationship, health-correspondence, Luck-Cycle, and annual conclusions must follow this same verdict rather than restarting the chart from a different assumption.`;
+  let output = replaceEnglishSection(text, 1, 'Chart Structure and General Verdict', sectionOne, true);
 
   const monthBranch = truth.pillars.month.branch;
   const monthElement = BRANCH_ELEMENTS[monthBranch] || 'Unknown';
@@ -794,104 +917,82 @@ ${repeats.length ? `The natal chart contains exact whole-pillar repeats: ${repea
   const officerElement = Object.keys(truth.elementRoles).find((element) => truth.elementRoles[element] === 'Officer') || 'Unknown';
   const outputElement = Object.keys(truth.elementRoles).find((element) => truth.elementRoles[element] === 'Output') || 'Unknown';
   const wealthElement = Object.keys(truth.elementRoles).find((element) => truth.elementRoles[element] === 'Wealth') || 'Unknown';
+  const specialPriorityText = truth.specialPattern.qualified
+    ? `The classical special-pattern detector takes priority here: ${truth.specialPattern.label}. Its evidence is ${truth.specialPattern.evidence.join('; ')} Ordinary weak-Day-Master balancing is recorded only as a subsidiary calculation and must not be used to replace the special-pattern verdict.`
+    : 'No supplied classical special pattern qualifies, so the ordinary strength assessment remains the working structural method.';
   const sectionTwo = `Seasonal qi is read from the Month Branch ${monthBranch}, whose base element is ${monthElement}. This report does not infer a lunar month number from the Gregorian birth month. For the ${truth.dayMasterStem} ${dayElement} Day Master, ${officerElement} is Officer and controls the Day Master, ${resourceElement} is Resource and produces it, ${outputElement} is Output and is produced by it, and ${wealthElement} is Wealth and is controlled by it.
 
 The rooting check finds same-element roots in: ${roots}. ${truth.rootBranches.length ? `The Day Master can take root through the listed branches because their canonical hidden stems contain ${dayElement}.` : `None of the supplied branches contains a canonical hidden ${dayElement} stem, so the Day Master has no same-element branch root.`} Rooting is only one part of strength. Visible Resource stems, hidden Resource, seasonal control, Output drains, and Wealth expenditure must also be compared.
 
-For this chart, the structural conclusion is a ${dayElement} Day Master under ${monthElement} seasonal command, with visible ${resourceElement} Resource support and ${truth.rootBranches.length ? 'a recorded branch root' : 'no same-element branch root'}. Under the report's stated scoring method, support is ${truth.strength.supportScore.toFixed(2)}, drain-and-control pressure is ${truth.strength.pressureScore.toFixed(2)}, and the working strength assessment is ${truth.strength.label}. This describes chart structure, not the person's character. Different classical schools may weight seasonal regulation and transformation conditions differently, but the underlying season, roots, support, drains, and controls remain calculated facts.`;
-  output = replaceEnglishSection(output, 2, 'Seasonal Qi and Day Master Strength', sectionTwo);
+For this chart, the ordinary strength calculation records support ${truth.strength.supportScore.toFixed(2)}, drain-and-control pressure ${truth.strength.pressureScore.toFixed(2)}, and a result of ${truth.strength.label}. ${specialPriorityText} This describes chart structure, not the person's character.`;
+  output = replaceEnglishSection(output, 2, 'Day Master, Pattern, and Favorable Elements', sectionTwo);
   return output;
 }
 
 function replaceEnglishTenGodAndStructureSections(text: string, truth: BaziGroundTruth): string {
-  const profile = weightedTenGodProfile(truth.pillars, { hourKnown: truth.hourKnown });
-  const nonZero = profile.filter((item: Record<string, unknown>) => Number(item.percentage) > 0) as Array<Record<string, unknown>>;
-  const profileText = nonZero.map((item) => `${item.name} (${item.english}) ${item.percentage}%${Number(item.visible) > 0 ? ', visible and hidden' : ', hidden only'}`).join('; ');
-  const visibleStems = (truth.hourKnown ? ['year', 'month', 'day', 'hour'] : ['year', 'month', 'day'])
-    .filter((name) => name !== 'day')
-    .map((name) => `${name} stem ${truth.pillars[name].stem}: ${tenGodEnglish(tenGod(truth.dayMasterStem, truth.pillars[name].stem))}`)
-    .join('; ');
-  const sectionFour = `The Ten Gods are relational labels calculated from the ${truth.dayMasterStem} Day Master; they are not separate deities or fixed identities. The visible non-Day stems map as follows: ${visibleStems}. Branch contributions are calculated from canonical hidden stems with position and hidden-stem weights.
-
-The weighted profile is ${profileText}. A percentage shows relative emphasis inside this report's stated weighting method. It does not mean that a Ten God controls the same percentage of a person's life, and a hidden-only Ten God should not be described as a visible stem.
-
-Traditional functions are kept distinct: Companion concerns same-element agency and peers; Output is what the Day Master produces; Wealth is what the Day Master controls; Officer is what controls the Day Master; Resource is what produces the Day Master. Direct and Indirect forms are separated by polarity. The leading functions provide evidence for later career, wealth, and relationship chapters, but those life-topic interpretations remain contextual. The calculated facts here are each stem mapping, each branch's canonical hidden stems, and the resulting weighted profile.`;
-  let output = replaceEnglishSection(text, 4, 'Ten Gods in the Natal Chart', sectionFour);
-
+  const guidance = balancingElementGuidance(
+    String(STEM_ELEMENTS[truth.dayMasterStem] || '').toLowerCase(),
+    truth.strength,
+    truth.specialPattern,
+  );
+  const favorable = guidance.favorable.map(capitalizeElement).join(' and ') || 'none';
+  const unfavorable = guidance.caution.map(capitalizeElement).join(' and ') || 'none';
+  const conditional = guidance.conditional.map(capitalizeElement).join(' and ') || 'none';
   const resource = Object.keys(truth.elementRoles).find((element) => truth.elementRoles[element] === 'Resource') || 'Unknown';
-  const companion = Object.keys(truth.elementRoles).find((element) => truth.elementRoles[element] === 'Companion') || 'Unknown';
   const outputElement = Object.keys(truth.elementRoles).find((element) => truth.elementRoles[element] === 'Output') || 'Unknown';
   const wealth = Object.keys(truth.elementRoles).find((element) => truth.elementRoles[element] === 'Wealth') || 'Unknown';
   const officer = Object.keys(truth.elementRoles).find((element) => truth.elementRoles[element] === 'Officer') || 'Unknown';
-  const strengthLogic = truth.strength.classification === 'weak'
-    ? `The first balancing question is whether ${resource} Resource and ${companion} Companion can sustain the Day Master before ${outputElement} Output, ${wealth} Wealth, and ${officer} Officer demands are added.`
-    : truth.strength.classification === 'strong'
-      ? `The first balancing question is how ${outputElement} Output, ${wealth} Wealth, or ${officer} Officer can channel the Day Master's available force without adding unnecessary ${resource} Resource or ${companion} Companion reinforcement.`
-      : 'The support and pressure sides are comparatively close under this method, so no element should be selected from strength alone.';
-  const candidateLogic = truth.strength.classification === 'weak'
-    ? `${resource} Resource and ${companion} Companion are provisional support candidates. ${outputElement} Output is conditional because it is produced by the Day Master. ${wealth} Wealth and ${officer} Officer require caution until support is sufficient.`
-    : truth.strength.classification === 'strong'
-      ? `${outputElement} Output, ${wealth} Wealth, and ${officer} Officer are provisional regulating candidates. Additional ${resource} Resource or ${companion} Companion can reinforce an already strong Day Master and therefore requires caution.`
-      : `${resource} Resource, ${companion} Companion, ${outputElement} Output, ${wealth} Wealth, and ${officer} Officer must be judged through seasonal regulation, exact combinations, and the chart's distribution rather than a simple strong-versus-weak rule.`;
-  const sectionFive = `The chart structure is assessed from the Month Branch, Day Master strength, roots, support, drains, controls, and the Ten-God distribution. The ${STEM_ELEMENTS[truth.dayMasterStem]} Day Master is assessed as ${truth.strength.label}. ${strengthLogic}
+  const companion = Object.keys(truth.elementRoles).find((element) => truth.elementRoles[element] === 'Companion') || 'Unknown';
 
-Under this strength method, ${candidateLogic} These are balancing categories, not a claim that every appearance of an element is automatically favorable or unfavorable. Quantity, position, season, and transformation conditions still matter.
+  const body = truth.specialPattern.qualified && truth.specialPattern.classicalBasis && truth.specialPattern.elementGuidance
+    ? `The governing pattern is ${truth.specialPattern.label}. This special-pattern judgment takes priority over the ordinary Day-Master result recorded in Section 1. The chart qualifies because ${truth.specialPattern.evidence.join('; ')} Day-Master roots are recorded as facts, but roots alone do not cancel a qualified Follow-the-Child pattern.
 
-No definitive Yong Shen is asserted. A classical seasonal-regulation method may prioritize a different element from a strength-balancing method, and transformation conditions must be verified rather than assumed. The conclusion is deliberately provisional and tied to the stated calculation. It is a supported structural interpretation, not a universal school verdict or a promise about favorable events.`;
-  output = replaceEnglishSection(output, 5, 'Chart Structure, Useful Elements, and Unfavorable Elements', sectionFive);
-  return output;
+The classical basis is introduced once here. ${truth.specialPattern.classicalBasis.sourceNoteEnglish} ${truth.specialPattern.classicalBasis.attributionStatus} In its chapter on following structures, the rule is translated as: “${truth.specialPattern.classicalBasis.verseEnglish}” In this rule, ${outputElement} Output is the child and ${wealth} Wealth is what the child produces. The quotation and source note are not repeated later in the book.
+
+The verdict is explicit. Favorable elements are ${favorable}. ${outputElement} is favorable because it carries the governing current away from the Day Master, and ${wealth} is favorable because Output produces Wealth and completes that current. Unfavorable elements are ${unfavorable}. ${resource} Resource is the strongest unfavorable element because it controls Output and reverses the structure; ${officer} Officer is unfavorable because it conflicts with Output and redirects Wealth. ${conditional} is conditional: ${companion} can feed Output, but excess Companion can obstruct the current or compete for Wealth. These element judgments govern every later chapter.`
+    : `No supplied classical special pattern qualifies, so the ordinary strength method governs this chart. The ${STEM_ELEMENTS[truth.dayMasterStem]} Day Master is ${truth.strength.label}; the judgment uses the Month Branch, canonical roots, visible and hidden Resource, Output drains, Wealth expenditure, and Officer control together.
+
+Under this stated method, the favorable elements are ${favorable}; the unfavorable elements are ${unfavorable}; and ${conditional} is conditional. Favorable means the element performs the balancing or regulating function required by this chart. Unfavorable means it reinforces the chart's existing imbalance or adds the wrong type of control or drain. Conditional means its result depends on quantity, position, season, and whether a valid transformation occurs.
+
+This is the report's definite Yong-Shen and Xi-Ji verdict under its declared method, not a list of candidates. Other classical schools may prioritize seasonal regulation differently, but this book does not switch methods between chapters. Career, wealth, relationship, Luck-Cycle, and annual judgments below all follow the favorable and unfavorable elements stated here.`;
+  return replaceEnglishSection(text, 2, 'Day Master, Pattern, and Favorable Elements', body);
 }
 
 function replaceEnglishNatalSection(text: string, truth: BaziGroundTruth): string {
   const contacts = analyzeNatalInteractions(truth.pillars, { hourKnown: truth.hourKnown }) as Array<Record<string, unknown>>;
   const evidence = contacts.length ? contacts.map(relationEvidence).join('; ') : 'No canonical stem or branch contacts are present among the supplied natal pillars.';
   const fuYin = contacts.filter((item) => item.type === 'fu_yin');
+  const reference = traditionalReferenceProfile(truth.pillars, { gender: truth.gender, hourKnown: truth.hourKnown });
+  const voidAffected = reference.void.affected.map((item: Record<string, unknown>) => `${item.pillar} Branch ${item.branch}`).join(', ') || 'none';
   const body = `Natal interaction analysis compares the supplied pillar stems and branches directly. The calculated contacts are: ${evidence}.
 
 Repeated stems and repeated branches are recorded separately from combinations, clashes, harms, breaks, punishments, and meetings. ${fuYin.length ? `This chart contains ${fuYin.length} exact whole-pillar repeat${fuYin.length === 1 ? '' : 's'}, so Fu Yin is present: ${fuYin.map((item) => `${item.source} across ${(item.pillars as string[]).join(' and ')}`).join('; ')}.` : 'No exact whole-pillar repeat is present, so Fu Yin is not assigned.'} Fu Yin here means an exact same Ganzhi pillar occurs in two natal positions. It does not by itself prove a fixed event, biography, or outcome.
 
-These contacts describe how chart components are linked before Luck Pillars or annual years are added. A repeat can concentrate a theme, while a clash or combination describes a different structural relation. Stem repeat, branch repeat, and Fu Yin are therefore listed as separate calculated facts even when they arise from the same pair of pillars. The calculation does not treat one branch as both members of a pair, does not call ordinary repetition self-punishment, and does not infer an interaction that is absent from the canonical relation list. Interpretation should begin with the exact contacts above and remain secondary to season, Day Master strength, and the Ten-God structure.`;
-  return replaceEnglishSection(text, 6, 'Stems, Branches, and Natal Interactions', body);
+The Day Pillar belongs to a Xun whose Void branches are ${reference.void.voidBranches.join(' and ') || 'not available'}. Affected natal placements are ${voidAffected}. Void is a secondary traditional modifier of availability or durability; it does not erase a branch or prove loss.
+
+Each combination is recorded as a contact unless the canonical calculation explicitly confirms transformation. Repetition, Fu Yin, clash, harm, break, punishment, meeting, and Void remain distinct. Their interpretation follows the governing pattern and favorable-element verdict established in Section 2.`;
+  return replaceEnglishSection(text, 4, 'Stem-Branch Relations, Repetition, and Void', body);
 }
 
 function replaceEnglishLifeTopicSections(text: string, truth: BaziGroundTruth): string {
-  const stars = shenShaForChart(truth.pillars, { hourKnown: truth.hourKnown });
-  const starRows = stars.map((item) => `${item.name} (${item.english}) at the ${item.pillar} Branch ${item.branch}, derived from ${item.source}; it ${SHEN_SHA_STANDARD_SCOPE[item.name] || 'is retained as a secondary traditional marker'}`);
-  const sectionSeven = `${starRows.length ? `The supported Shen Sha in this chart are: ${starRows.join('. ')}.` : 'None of the supported major Shen Sha in this report is present in the supplied natal branches.'}
-
-Shen Sha are derived lookup markers. Their locations and reference pillars are calculated, but their meanings are secondary to seasonal qi, Day Master strength, Ten Gods, useful-element analysis, and direct stem-branch interactions. Repetition can increase the prominence of a marker, yet it does not convert that marker into a guaranteed event. Travel Horse does not prove travel, Peach Blossom does not prove a relationship, and Canopy Star does not establish a fixed disposition or profession. This chapter therefore records only the supported markers, their natal locations, their derivation source, and their conventional scope.`;
-  let output = replaceEnglishSection(text, 7, 'Shen Sha: Secondary Symbolic Stars', sectionSeven);
-
   const profile = weightedTenGodProfile(truth.pillars, { hourKnown: truth.hourKnown }) as Array<Record<string, unknown>>;
   const pct = (name: string) => Number(profile.find((item) => item.name === name)?.percentage || 0);
   const resourcePct = pct('偏印') + pct('正印');
   const officerPct = pct('七杀') + pct('正官');
   const outputPct = pct('食神') + pct('伤官');
   const wealthPct = pct('偏财') + pct('正财');
-  const currentLuck = truth.luckPillars.find((item) => item.year <= truth.currentYear && item.year + 9 >= truth.currentYear);
-  const visibleNames = truth.hourKnown ? ['year', 'month', 'hour'] : ['year', 'month'];
-  const visibleResource = visibleNames
-    .filter((name) => /Resource/.test(tenGodEnglish(tenGod(truth.dayMasterStem, truth.pillars[name].stem))))
-    .map((name) => `${name} stem ${truth.pillars[name].stem}`);
-  const visibleOfficer = visibleNames
-    .filter((name) => /Officer|Seven Killings/.test(tenGodEnglish(tenGod(truth.dayMasterStem, truth.pillars[name].stem))))
-    .map((name) => `${name} stem ${truth.pillars[name].stem}`);
-  const resourceElement = Object.keys(truth.elementRoles).find((element) => truth.elementRoles[element] === 'Resource') || 'Unknown';
-  const companionElement = Object.keys(truth.elementRoles).find((element) => truth.elementRoles[element] === 'Companion') || 'Unknown';
   const outputElement = Object.keys(truth.elementRoles).find((element) => truth.elementRoles[element] === 'Output') || 'Unknown';
   const wealthElement = Object.keys(truth.elementRoles).find((element) => truth.elementRoles[element] === 'Wealth') || 'Unknown';
-  const officerElement = Object.keys(truth.elementRoles).find((element) => truth.elementRoles[element] === 'Officer') || 'Unknown';
-  const careerLoad = truth.strength.classification === 'weak'
-    ? `Career responsibility is easier to carry when ${resourceElement} Resource and ${companionElement} Companion support are available; heavy ${officerElement} Officer pressure or ${wealthElement} Wealth obligations should be judged against that support. ${outputElement} Output is conditional because it draws from the Day Master.`
-    : truth.strength.classification === 'strong'
-      ? `${outputElement} Output, ${wealthElement} Wealth, and ${officerElement} Officer can provide channels for an already strong Day Master, while additional ${resourceElement} Resource or ${companionElement} Companion may over-reinforce the structure.`
-      : 'Career load cannot be reduced to one favorable role under the comparatively balanced result; seasonal regulation and the exact Luck-Pillar contacts carry more weight.';
-  const sectionEight = `Career is read from chart structure and Ten-God functions. In the weighted Ten-God profile, Resource accounts for ${resourcePct}%, Officer and Seven Killings for ${officerPct}%, Output for ${outputPct}%, and Wealth for ${wealthPct}%. Visible Resource stems occur at ${visibleResource.join(', ') || 'none'}; visible Officer stems occur at ${visibleOfficer.join(', ') || 'none'}. Hidden-stem contributions remain part of the profile but are not presented as visible stems. The standard occupational themes of a Resource-Officer emphasis include knowledge, qualifications, research, documentation, rules, supervision, and risk control.
+  const guidance = balancingElementGuidance(String(STEM_ELEMENTS[truth.dayMasterStem] || '').toLowerCase(), truth.strength, truth.specialPattern);
+  const favorable = guidance.favorable.map(capitalizeElement).join(' and ') || 'none';
+  const unfavorable = guidance.caution.map(capitalizeElement).join(' and ') || 'none';
+  let output = text;
+  const careerBody = `Career judgment follows the governing ${truth.specialPattern.qualified ? truth.specialPattern.label : truth.strength.label} structure. The weighted Ten-God distribution contains Output ${outputPct}%, Wealth ${wealthPct}%, Officer ${officerPct}%, and Resource ${resourcePct}%. Favorable elements are ${favorable}; unfavorable elements are ${unfavorable}.
 
-The Day Master is assessed as ${truth.strength.label}. ${careerLoad}
+The most suitable work is the work that lets the favorable Ten-God functions operate. ${truth.specialPattern.qualified ? `${outputElement} Output favors creation, communication, production, technical delivery, design, teaching, or any role that turns ability into a visible result. ${wealthElement} Wealth favors commerce, pricing, transactions, resource allocation, client ownership, and converting output into revenue.` : `The exact occupational emphasis follows the favorable elements above and the strongest Ten Gods in the weighted profile.`} The unsuitable route is one dominated by the unfavorable elements, especially when it blocks the chart's governing current rather than merely adding a manageable duty.
 
-${currentLuck ? `The active Luck Pillar is ${currentLuck.gz} (${currentLuck.year}-${currentLuck.year + 9}). Its stem maps to ${tenGodEnglish(tenGod(truth.dayMasterStem, currentLuck.gz[0]))}, so current career timing must be read by comparing that added function and its branch contacts with the natal structure.` : 'No active Luck Pillar was supplied for the report year.'} This chapter identifies traditional work functions and load conditions; it does not select a guaranteed profession, employer, title, or outcome.`;
-  output = replaceEnglishSection(output, 8, 'Career and Suitable Work Environments', sectionEight);
+These are explicit traditional career modes, not a promise of a particular title or employer. Industry names are secondary; the operating function matters more.`;
+  output = replaceEnglishSection(output, 7, 'Career and Best Modes of Development', careerBody, true);
 
   const wealthLocations: string[] = [];
   for (const name of truth.hourKnown ? BAZI_PILLAR_NAMES : BAZI_PILLAR_NAMES.slice(0, 3)) {
@@ -901,29 +1002,29 @@ ${currentLuck ? `The active Luck Pillar is ${currentLuck.gz} (${currentLuck.year
       if (god === '偏财' || god === '正财') wealthLocations.push(`${name} Branch ${truth.pillars[name].branch} hidden stem ${stem} ${tenGodEnglish(god)}`);
     }
   }
-  const wealthCapacity = truth.strength.classification === 'weak'
-    ? `${resourceElement} Resource and ${companionElement} Companion support must be sufficient before sustained ${wealthElement} Wealth activity is treated as easy to carry.`
-    : truth.strength.classification === 'strong'
-      ? `${wealthElement} Wealth can act as one channel for the Day Master's available force, provided season and interactions do not block that pathway.`
-      : `${wealthElement} Wealth must be judged together with seasonal regulation and current timing because the strength result does not favor a simple support-or-drain conclusion.`;
-  const sectionNine = `For the ${truth.dayMasterStem} Day Master, ${wealthElement} is the Wealth element. The weighted chart contains ${wealthPct}% Wealth, located at ${wealthLocations.join('; ') || 'no visible or canonical hidden Wealth position'}. A branch's base element and its hidden Wealth stems are recorded separately; neither should be mistaken for cash, salary, or a guaranteed asset.
+  const wealthBody = `For the ${truth.dayMasterStem} Day Master, ${wealthElement} is Wealth. Wealth accounts for ${wealthPct}% of the weighted Ten-God profile and appears at ${wealthLocations.join('; ') || 'no visible or canonical hidden Wealth position'}. Hidden Wealth is structurally present but is not described as a visible stem or guaranteed money.
 
-In standard BaZi, Wealth is what the Day Master controls. The Day Master is assessed as ${truth.strength.label}. ${wealthCapacity} ${outputElement} Output can generate ${wealthElement} Wealth, but the actual pathway depends on whether Output is visible, hidden, seasonally usable, or activated by timing.
+The financial path follows the same element verdict: ${favorable} is favorable and ${unfavorable} is unfavorable. ${truth.specialPattern.qualified ? `The central route is ${outputElement} Output producing ${wealthElement} Wealth. Income is therefore most coherent when knowledge, skill, communication, products, or delivery are converted into transactions and retained value.` : `${outputElement} Output can generate ${wealthElement} Wealth, but whether that pathway helps depends on the ordinary strength verdict in Section 2.`}
 
-Wealth timing is evaluated when Luck Pillars or annual stems and branches introduce Wealth, Output, support, or direct contacts with the natal chart. The annual evidence is listed in Sections 13 and 14. This chapter describes the traditional Wealth structure and carrying capacity; it does not predict income level, investment returns, debt, inheritance, or business success.`;
-  output = replaceEnglishSection(output, 9, 'Wealth Pattern and Resource Management', sectionNine);
+Luck Cycles and annual years can activate this route through Wealth, Output, or direct natal contacts. They do not guarantee income, investment return, debt, inheritance, or business success.`;
+  output = replaceEnglishSection(output, 8, 'Wealth Structure and Financial Path', wealthBody, true);
 
   const spouse = truth.pillars.day;
   const spouseHidden = (HIDDEN_STEMS[spouse.branch] || []).map((stem) => `${stem} ${tenGodEnglish(tenGod(truth.dayMasterStem, stem))}`).join(', ');
   const dayContacts = (analyzeNatalInteractions(truth.pillars, { hourKnown: truth.hourKnown }) as Array<Record<string, unknown>>)
     .filter((item) => Array.isArray(item.pillars) ? (item.pillars as string[]).includes('day') : item.pillar === 'day')
     .map(relationEvidence);
-  const sectionTen = `For a female chart, the traditional partner stars are Direct Officer and Seven Killings, both belonging to Metal for a ${truth.dayMasterStem} Wood Day Master. Their weighted shares are Direct Officer ${pct('正官')}% and Seven Killings ${pct('七杀')}%. In this natal chart they are carried in canonical hidden stems rather than displayed as non-Day Heavenly Stems. Hidden presence is structurally valid but is not the same as a visible partner star.
+  const female = /^f|女/i.test(truth.gender);
+  const male = /^m|男/i.test(truth.gender);
+  const partnerGods = female ? ['正官', '七杀'] : male ? ['正财', '偏财'] : [];
+  const partnerLabel = female ? 'Direct Officer and Seven Killings' : male ? 'Direct Wealth and Indirect Wealth' : 'the partner-star convention selected by gender';
+  const partnerPct = partnerGods.reduce((sum, god) => sum + pct(god), 0);
+  const relationshipBody = `For this ${female ? 'female' : male ? 'male' : 'unspecified-gender'} chart, the traditional partner stars are ${partnerLabel}, accounting for ${partnerPct}% of the weighted profile. The Spouse Palace is the Day Branch ${spouse.branch}; its canonical hidden stems are ${spouseHidden || 'none recorded'}.
 
-The Spouse Palace is the Day Branch ${spouse.branch}. Its canonical hidden stems are ${spouseHidden || 'none recorded'}. The natal contacts involving the Day Pillar or Day Branch are ${dayContacts.join('; ') || 'no supported direct contact'}. These contacts describe the structure of the Spouse Palace. They do not by themselves prove a spouse's age, occupation, temperament, location, marital status, or a fixed relationship event.
+The exact natal contacts involving the Day Pillar or Day Branch are ${dayContacts.join('; ') || 'no supported direct contact'}. The favorable elements are ${favorable}; the unfavorable elements are ${unfavorable}. A partner-star or Spouse-Palace activation is favorable only when it agrees with the governing element current and does not become favorable merely because it concerns relationship symbolism.
 
-Relationship timing requires the natal Officer stars and Spouse Palace to be compared with each Luck Pillar and annual year. A combination, clash, repeat, harm, break, or punishment is recorded as an activation, not automatically as marriage or separation. Sections 13 and 14 provide those calculated contacts. This chapter therefore establishes the partner-star element, visibility, Spouse Palace contents, and natal interactions before any timing interpretation is attempted.`;
-  return replaceEnglishSection(output, 10, 'Relationships, Partner Star, and Spouse Palace', sectionTen);
+Relationship timing compares the partner stars and Spouse Palace with each Luck Cycle and annual year. Combination, clash, repeat, harm, break, or punishment means activation, not automatic marriage or separation.`;
+  return replaceEnglishSection(output, 9, 'Marriage and Intimate Relationships', relationshipBody, true);
 }
 
 function replaceEnglishDirectionSection(text: string, truth: BaziGroundTruth): string {
@@ -936,59 +1037,83 @@ Direction controls sequence only. Reverse does not mean a backward life, delayed
   return replaceEnglishSection(text, 12, 'Luck Pillar Direction and Starting Age', body);
 }
 
-function annualRows(truth: BaziGroundTruth): Array<{ year: number; gz: string; luck: string; god: string; posture: string; contacts: string }> {
-  const guidance = balancingElementGuidance(String(STEM_ELEMENTS[truth.dayMasterStem] || '').toLowerCase(), truth.strength);
+function explicitTimingRating(assessment: Record<string, unknown>): string {
+  const support = Number(assessment.supportScore || 0);
+  const pressure = Number(assessment.pressureScore || 0);
+  if (support >= pressure + 3) return 'Favorable';
+  if (support > pressure) return 'Moderately Favorable';
+  if (pressure >= support + 3) return 'Unfavorable';
+  if (pressure > support) return 'Moderately Unfavorable';
+  return 'Neutral';
+}
+
+function annualRows(truth: BaziGroundTruth): Array<{ year: number; gz: string; luck: string; god: string; rating: string; elementVerdict: string; reason: string; contacts: string }> {
+  const guidance = balancingElementGuidance(
+    String(STEM_ELEMENTS[truth.dayMasterStem] || '').toLowerCase(),
+    truth.strength,
+    truth.specialPattern,
+  );
   return Array.from({ length: 5 }, (_, offset) => truth.currentYear + offset).map((year) => {
     const gz = ganzhiForYear(year);
     const luck = truth.luckPillars.find((item) => item.year <= year && item.year + 9 >= year)?.gz || '';
     const interactions = analyzeAnnualInteractions({ annualGz: gz, natalPillars: truth.pillars, luckGz: luck, hourKnown: truth.hourKnown }) as Array<Record<string, unknown>>;
     const god = tenGodEnglish(tenGod(truth.dayMasterStem, gz[0]));
-    const posture = timingPosture(interactions, god, {
+    const assessment = timingAssessment(interactions, {
       ...guidance,
       annualElement: String(STEM_ELEMENTS[gz[0]] || '').toLowerCase(),
     });
+    const annualElement = String(STEM_ELEMENTS[gz[0]] || '').toLowerCase();
+    const elementVerdict = guidance.favorable.includes(annualElement)
+      ? 'favorable'
+      : guidance.caution.includes(annualElement)
+        ? 'unfavorable'
+        : 'conditional';
     return {
       year,
       gz,
       luck,
       god,
-      posture,
+      rating: explicitTimingRating(assessment),
+      elementVerdict,
+      reason: assessment.postureReason,
       contacts: interactions.length ? interactions.map(relationEvidence).join('; ') : 'no supported major stem-branch contact',
     };
   });
 }
 
 function replaceEnglishLuckPillarsSection(text: string, truth: BaziGroundTruth): string {
+  const guidance = balancingElementGuidance(String(STEM_ELEMENTS[truth.dayMasterStem] || '').toLowerCase(), truth.strength, truth.specialPattern);
   const rows = truth.luckPillars.map((item) => {
     const stemGod = tenGodEnglish(tenGod(truth.dayMasterStem, item.gz[0]));
     const hidden = (HIDDEN_STEMS[item.gz[1]] || []).map((stem) => `${stem} ${tenGodEnglish(tenGod(truth.dayMasterStem, stem))}`).join(', ');
     const contacts = analyzeAnnualInteractions({ annualGz: item.gz, natalPillars: truth.pillars, hourKnown: truth.hourKnown }) as Array<Record<string, unknown>>;
     const structuralContacts = contacts.length ? contacts.map(relationEvidence).join('; ') : 'no supported major contact with the natal pillars';
-    return `${item.gz}, ages ${item.age}-${item.age + 9} (${item.year}-${item.year + 9}). The Luck-Pillar stem maps to ${stemGod || 'an unclassified Ten God'}; branch ${item.gz[1]} contains ${hidden || 'no recorded hidden stems'}. Contacts with the natal chart: ${structuralContacts}.`;
+    const assessment = timingAssessment(contacts, { ...guidance, annualElement: String(STEM_ELEMENTS[item.gz[0]] || '').toLowerCase() });
+    return `${item.gz}, ages ${item.age}-${item.age + 9} (${item.year}-${item.year + 9}) — ${explicitTimingRating(assessment)}. The stem maps to ${stemGod || 'an unclassified Ten God'}; the branch contains ${hidden || 'no recorded hidden stems'}. Exact natal contacts: ${structuralContacts}. Reason: ${assessment.postureReason}`;
   });
   const current = truth.luckPillars.find((item) => item.year <= truth.currentYear && item.year + 9 >= truth.currentYear);
-  const body = `The calculated ten-year Luck Pillars are read in the supplied ${truth.luckDirection.toLowerCase()} sequence. ${current ? `At the report date, the active pillar is ${current.gz}, covering ${current.year}-${current.year + 9}.` : 'No active Luck Pillar could be matched to the report year.'} Each pillar is compared with the natal chart; it is not interpreted in isolation.
+  const first = truth.luckPillars[0];
+  const body = `The calculated Luck Cycles (Da Yun) run in ${truth.luckDirection.toLowerCase()} order under the supplied rule: ${truth.luckBasis}. The starting age is ${truth.startAge}. ${first ? `The first cycle is ${first.gz}, beginning at age ${first.age} in ${first.year}.` : ''} ${current ? `At the report date, the active cycle is ${current.gz}, covering ${current.year}-${current.year + 9}.` : 'No active cycle could be matched to the report year.'}
 
 ${rows.join('\n\n')}
 
-A Luck Pillar changes the timing context but does not replace the natal chart. Its stem adds a visible Ten-God function for the decade, its branch carries a base element and canonical hidden stems, and its exact contacts can repeat, combine, clash, harm, break, punish, or complete a meeting with natal branches. The list above records those contacts without turning them into guaranteed events. Years near a Luck-Pillar boundary should be checked against the stated start year rather than inferred from age alone.`;
-  return replaceEnglishSection(text, 13, 'Ten-Year Luck Pillars', body);
+A Luck Cycle changes timing but does not replace the natal structure. Each rating follows the same favorable and unfavorable elements declared in Section 2 plus the exact contacts listed above.`;
+  return replaceEnglishSection(text, 11, 'Ten-Year Luck Cycles', body);
 }
 
 function replaceEnglishTimingSections(text: string, truth: BaziGroundTruth): string {
   const rows = annualRows(truth);
-  const annualBody = rows.map((row) => `${row.year} ${row.gz}. The annual stem maps to ${row.god || 'an unclassified Ten God'} for the ${truth.dayMasterStem} Day Master, and the active Luck Pillar is ${row.luck || 'not supplied'}. Calculated contacts: ${row.contacts}. Planning posture: ${row.posture}. ${row.posture === 'ADVANCE' ? 'Move defined work forward, while keeping scope and evidence clear.' : row.posture === 'DEFEND' ? 'Protect time, liquidity, and decision quality; avoid treating pressure as proof that an irreversible move is required.' : 'Maintain a measured pace, verify assumptions, and preserve flexibility.'}`).join('\n\n');
-  let output = replaceEnglishSection(text, 14, 'Annual Outlook for the Next Five Years', `${annualBody}\n\nThese labels describe structural timing, not guaranteed events. A contact can emphasize a topic without proving that a particular career, financial, relationship, or health event will occur.`);
-  const grouped = rows.reduce((map, row) => {
-    (map[row.posture] ||= []).push(String(row.year));
-    return map;
-  }, {} as Record<string, string[]>);
-  const summaryBody = `The five-year timing sequence is calculated as follows: ADVANCE: ${(grouped.ADVANCE || []).join(', ') || 'none in this window'}; STEADY: ${(grouped.STEADY || []).join(', ') || 'none in this window'}; DEFEND: ${(grouped.DEFEND || []).join(', ') || 'none in this window'}. These postures come from the annual Ten God and the exact natal or Luck-Pillar contacts listed in Section 14.
+  const annualBody = rows.map((row) => `${row.year} ${row.gz} — ${row.rating}. The annual stem is ${row.god || 'an unclassified Ten God'} and its element is ${row.elementVerdict} for this chart. The active Luck Cycle is ${row.luck || 'not supplied'}. Exact contacts: ${row.contacts}. Reason: ${row.reason}`).join('\n\n');
+  let output = replaceEnglishSection(text, 12, 'Annual Reading: Next Five Years', `${annualBody}\n\nThe ratings are traditional structural judgments, not guaranteed events. Each is tied to the same governing pattern and element verdict used throughout this book.`);
+  const guidance = balancingElementGuidance(String(STEM_ELEMENTS[truth.dayMasterStem] || '').toLowerCase(), truth.strength, truth.specialPattern);
+  const profile = weightedTenGodProfile(truth.pillars, { hourKnown: truth.hourKnown }) as Array<Record<string, unknown>>;
+  const leaders = profile.filter((item) => Number(item.percentage) > 0).slice(0, 3).map((item) => `${item.english} ${item.percentage}%`).join(', ');
+  const summaryBody = `The governing verdict is ${truth.specialPattern.qualified ? truth.specialPattern.label : truth.strength.label}. Favorable elements are ${guidance.favorable.map(capitalizeElement).join(' and ') || 'none'}; unfavorable elements are ${guidance.caution.map(capitalizeElement).join(' and ') || 'none'}; conditional elements are ${guidance.conditional.map(capitalizeElement).join(' and ') || 'none'}. The leading Ten-God functions are ${leaders || 'not available'}.
 
-ADVANCE means the annual element or a completed supportive contact aligns with the provisional balancing candidates and can justify moving a defined plan forward. STEADY means the year is conditional or does not require either acceleration or retreat; maintain pace and review results. DEFEND means clashes, harms, punishments, or other pressure contacts make reversibility and resource protection more important. None of the three labels predicts success or failure.
+Career should use the favorable functions named in Section 7. Wealth follows the route defined in Section 8. Relationship judgment follows the partner star, Spouse Palace, and the same element verdict in Section 9. The body-correspondence chapter remains a Five-Element balance reading and does not convert chart favorability into a medical conclusion.
 
-Use the sequence as a calendar for decision discipline. Compare each year with the active ten-year Luck Pillar, then return to the natal chart's useful-element hypothesis and Ten-God structure. Real decisions still depend on facts outside the chart, including finances, health, law, relationships, location, and opportunity. The highest-confidence statements are the calculated pillars, dates, Ten-God mappings, and contacts. Structural weighting is supported interpretation, while the planning posture is a contextual synthesis rather than a forecast. Recheck the timing analysis when the active Luck Pillar or calendar year changes.`;
-  output = replaceEnglishSection(output, 15, 'Timing Priorities and Practical Summary', summaryBody);
+The Luck-Cycle and annual ratings in Sections 11 and 12 are the final timing verdicts for the supplied period. They do not override the natal pattern and do not guarantee a specific event.`;
+  output = replaceEnglishSection(output, 13, 'Final Synthesis', summaryBody);
   return output;
 }
 
@@ -1000,14 +1125,13 @@ function applyDeterministicEnglishSections(text: string, truth: BaziGroundTruth 
   output = replaceEnglishNatalSection(output, truth);
   output = replaceEnglishLifeTopicSections(output, truth);
   output = replaceEnglishHealthSection(output, truth);
-  output = replaceEnglishDirectionSection(output, truth);
   output = replaceEnglishLuckPillarsSection(output, truth);
   output = replaceEnglishTimingSections(output, truth);
   return output;
 }
 
 function groundTruthCorrection(violations: string[]): string {
-  return `\n\nGROUND-TRUTH CORRECTION (MANDATORY): The previous draft was rejected for ${violations.join('; ')}. Regenerate this section range from scratch. Copy chart and timing facts only from the canonical data block. Keep combined element totals separate from stem counts and branch counts. Do not introduce any Ganzhi pair that is not explicitly listed there. Follow the supplied Five-Element generation and control cycles exactly. Use the supplied Day Master rooting check exactly. If the birth hour is unknown, do not infer an Hour Pillar. For Section 11, use only traditional non-diagnostic correspondences and do not predict symptoms or disease. For Section 12, state only the supplied direction, its gender/polarity rule, and the supplied starting age; do not explain a solar-term or day-count calculation and do not interpret direction as personality.`;
+  return `\n\nGROUND-TRUTH CORRECTION (MANDATORY): The previous draft was rejected for ${violations.join('; ')}. Regenerate this section range from scratch. Copy chart and timing facts only from the canonical data block. Keep combined element totals separate from stem counts and branch counts. Do not introduce any Ganzhi pair that is not explicitly listed there. Follow the supplied Five-Element generation and control cycles exactly. Use the supplied Day Master rooting check exactly. If the birth hour is unknown, do not infer an Hour Pillar. For Section 10, state all five weighted element shares, identify excess and deficiency, connect the leading excess to the element it controls, and keep the content within non-diagnostic traditional correspondences. Do not predict symptoms or disease. For Section 11, state only the supplied direction, its gender/polarity rule, the supplied starting age, and the explicit rating for each Luck Cycle.`;
 }
 
 function cleanAnalysisText(rawAnalysis: string): string {
@@ -1050,6 +1174,7 @@ function cleanAnalysisText(rawAnalysis: string): string {
 
 async function requestDeepSeekCompletion(prompt: string, maxTokens: number, systemMessage: string) {
   const deepSeekKey = String(Deno.env.get('DEEPSEEK_API_KEY') || '').trim();
+  const deepSeekModel = String(Deno.env.get('DEEPSEEK_MODEL') || 'deepseek-v4-pro').trim();
   let deepSeekFailure = 'deepseek_not_configured';
 
   if (deepSeekKey) {
@@ -1060,9 +1185,10 @@ async function requestDeepSeekCompletion(prompt: string, maxTokens: number, syst
         'Authorization': `Bearer ${deepSeekKey}`,
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: deepSeekModel,
         max_tokens: maxTokens,
-        temperature: 0,
+        reasoning_effort: 'high',
+        thinking: { type: 'enabled' },
         messages: [
           { role: 'system', content: systemMessage },
           { role: 'user', content: prompt }
@@ -1084,6 +1210,65 @@ async function requestDeepSeekCompletion(prompt: string, maxTokens: number, syst
   } catch (error) {
     const claudeFailure = error instanceof Error ? error.message : String(error);
     throw new Error(`${deepSeekFailure}; ${claudeFailure}`);
+  }
+}
+
+async function requestRunApiRoleCompletion(
+  role: 'baziAnalysis' | 'classicsInterpreter' | 'englishWriter' | 'routineQA' | 'advancedQA',
+  prompt: string,
+  maxTokens: number,
+  systemMessage: string,
+  jsonMode = false,
+) {
+  const apiKey = String(Deno.env.get('RUNAPI_API_KEY') || '').trim();
+  if (!apiKey) throw new Error('runapi_not_configured');
+  const baseUrl = String(Deno.env.get('RUNAPI_BASE_URL') || 'https://runapi.co/v1').replace(/\/+$/, '');
+  const config = resolveModelRole(role, (name: string) => Deno.env.get(name) || '');
+  const body: Record<string, unknown> = {
+    model: config.model,
+    max_tokens: maxTokens,
+    messages: [
+      { role: 'system', content: systemMessage },
+      { role: 'user', content: prompt },
+    ],
+  };
+  if (config.reasoningEffort) body.reasoning_effort = config.reasoningEffort;
+  if (typeof config.thinking === 'boolean') body.thinking = { type: config.thinking ? 'enabled' : 'disabled' };
+  if (jsonMode) body.response_format = { type: 'json_object' };
+
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`runapi_${role}_failed_${response.status}: ${errorText.slice(0, 500)}`);
+  }
+  const data = await response.json();
+  const content = String(data?.choices?.[0]?.message?.content || '').trim();
+  if (!content) throw new Error(`runapi_${role}_empty_response`);
+  return { analysis: cleanAnalysisText(content), provider: `runapi:${config.model}`, model: config.model };
+}
+
+function parseJsonObject(text: string): Record<string, unknown> | null {
+  const normalized = String(text || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+  try {
+    const parsed = JSON.parse(normalized);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+  } catch (_error) {
+    const start = normalized.indexOf('{');
+    const end = normalized.lastIndexOf('}');
+    if (start < 0 || end <= start) return null;
+    try {
+      const parsed = JSON.parse(normalized.slice(start, end + 1));
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+    } catch (_nestedError) {
+      return null;
+    }
   }
 }
 
@@ -1183,24 +1368,111 @@ async function generatePaidBaziTierReport(
   const tierTokenCap = tier === 'basic' ? 4200 : (tier === 'pro' ? 6200 : 7000);
 
   const generateRange = async (start: number, end: number, extra = ''): Promise<string> => {
-    const rangePrompt = prompt + buildSectionRangeConstraint(start, end) + `\nFor this range, keep each section between 220 and 300 English words. Prefer chart evidence over repetition.` + extra;
-    let pass = await requestDeepSeekCompletion(
-      rangePrompt,
-      Math.min(getVipRangeMaxTokens(start, end), tierTokenCap),
-      systemMessage
-    );
+    const rangePrompt = prompt + buildSectionRangeConstraint(start, end) + `\nFor this range, keep each section between 400 and 600 English words. Prefer chart evidence over repetition.` + extra;
+    const tokenLimit = Math.min(getVipRangeMaxTokens(start, end), tierTokenCap);
+    const runApiEnabled = Boolean(String(Deno.env.get('RUNAPI_API_KEY') || '').trim());
+    let confirmedAnalysis: Record<string, unknown> | null = null;
+    if (runApiEnabled) {
+      const analyst = await requestRunApiRoleCompletion(
+        'baziAnalysis',
+        `${rangePrompt}
+
+You are the structural BaZi analyst, not the final writer. Return JSON only with:
+- natal_thesis
+- calculated_evidence_used
+- structural_judgments
+- life_topic_findings
+- timing_findings
+- confidence_and_limits
+Do not recalculate or alter any supplied pillar, Ten-God percentage, interaction, Luck-Pillar range, annual score, or decision label.`,
+        Math.min(tokenLimit, 5200),
+        'Analyze only from the supplied deterministic chart facts. Preserve every number and relation exactly. Return valid JSON.',
+        true,
+      );
+      confirmedAnalysis = parseJsonObject(analyst.analysis);
+      if (!confirmedAnalysis) throw new Error('runapi_baziAnalysis_invalid_json');
+    }
+    const writerPrompt = confirmedAnalysis
+      ? `${rangePrompt}
+
+CONFIRMED STRUCTURAL ANALYSIS JSON:
+${JSON.stringify(confirmedAnalysis)}
+
+Write the requested English report sections as one continuous Life Pattern Book. Use the confirmed analysis as interpretation evidence, but copy all calculated facts only from the original supplied chart data. Do not expose JSON or internal workflow labels.`
+      : rangePrompt;
+    let pass = runApiEnabled
+      ? await requestRunApiRoleCompletion('englishWriter', writerPrompt, tokenLimit, systemMessage)
+      : await requestDeepSeekCompletion(rangePrompt, tokenLimit, systemMessage);
     pass.analysis = normalizeElementPresenceClaims(pass.analysis, groundTruth);
     pass.analysis = applyDeterministicEnglishSections(pass.analysis, groundTruth);
+
+    if (runApiEnabled) {
+      const qaResponse = await requestRunApiRoleCompletion(
+        'routineQA',
+        `Audit the report range below against the supplied source constraints. Check only numeric consistency, missing evidence, terminology, duplicate wording, empty punctuation, section conflict, English grammar, and format. Do not rewrite the report and do not invent BaZi conclusions.
+
+REPORT RANGE:
+${pass.analysis}
+
+Return JSON only: {"issues":[{"severity":"P0|P1|P2","location":"...","problem":"...","repair_rule":"..."}],"requires_advanced_review":false}.`,
+        1800,
+        'You are a deterministic report QA checker. Return valid JSON only.',
+        true,
+      );
+      const qa = parseJsonObject(qaResponse.analysis);
+      const issues = Array.isArray(qa?.issues) ? qa.issues : [];
+      if (issues.length && qa?.requires_advanced_review === true) {
+        const advanced = await requestRunApiRoleCompletion(
+          'advancedQA',
+          `Resolve only the listed cross-section logic conflicts. Return repair instructions as JSON; do not rewrite the report.
+
+ISSUES:
+${JSON.stringify(issues)}
+
+REPORT:
+${pass.analysis}`,
+          1800,
+          'Review BaZi evidence chains without changing deterministic chart facts. Return valid JSON only.',
+          true,
+        );
+        const repair = parseJsonObject(advanced.analysis);
+        pass = await requestRunApiRoleCompletion(
+          'englishWriter',
+          `${writerPrompt}
+
+REPAIR INSTRUCTIONS:
+${JSON.stringify(repair || { issues })}
+
+Rewrite only the requested section range and preserve every calculated fact and shared annual label.`,
+          tokenLimit,
+          systemMessage,
+        );
+        pass.analysis = normalizeElementPresenceClaims(pass.analysis, groundTruth);
+        pass.analysis = applyDeterministicEnglishSections(pass.analysis, groundTruth);
+      } else if (issues.some((item: Record<string, unknown>) => item?.severity === 'P0')) {
+        pass = await requestRunApiRoleCompletion(
+          'englishWriter',
+          `${writerPrompt}
+
+ROUTINE QA REPAIRS:
+${JSON.stringify(issues)}
+
+Rewrite only the requested range. Repair these issues without changing deterministic chart facts.`,
+          tokenLimit,
+          systemMessage,
+        );
+        pass.analysis = normalizeElementPresenceClaims(pass.analysis, groundTruth);
+        pass.analysis = applyDeterministicEnglishSections(pass.analysis, groundTruth);
+      }
+    }
     let violations = findGroundTruthViolations(pass.analysis, groundTruth);
     if (sectionCount === ENGLISH_BAZI_REPORT_SECTION_COUNT) {
       violations.push(...findEnglishReportStructureViolations(pass.analysis, start, end, false));
     }
     if (violations.length) {
-      pass = await requestDeepSeekCompletion(
-        rangePrompt + groundTruthCorrection(violations),
-        Math.min(getVipRangeMaxTokens(start, end), tierTokenCap),
-        systemMessage
-      );
+      pass = runApiEnabled
+        ? await requestRunApiRoleCompletion('englishWriter', writerPrompt + groundTruthCorrection(violations), tokenLimit, systemMessage)
+        : await requestDeepSeekCompletion(rangePrompt + groundTruthCorrection(violations), tokenLimit, systemMessage);
       pass.analysis = normalizeElementPresenceClaims(pass.analysis, groundTruth);
       pass.analysis = applyDeterministicEnglishSections(pass.analysis, groundTruth);
       violations = findGroundTruthViolations(pass.analysis, groundTruth);
@@ -1208,11 +1480,18 @@ async function generatePaidBaziTierReport(
         violations.push(...findEnglishReportStructureViolations(pass.analysis, start, end, false));
       }
       if (violations.length) {
-        pass = await requestDeepSeekCompletion(
-          rangePrompt + groundTruthCorrection(violations) + '\nThis is the final repair attempt. Remove every rejected claim rather than paraphrasing it.',
-          Math.min(getVipRangeMaxTokens(start, end), tierTokenCap),
-          systemMessage
-        );
+        pass = runApiEnabled
+          ? await requestRunApiRoleCompletion(
+            'englishWriter',
+            writerPrompt + groundTruthCorrection(violations) + '\nThis is the final repair attempt. Remove every rejected claim rather than paraphrasing it.',
+            tokenLimit,
+            systemMessage,
+          )
+          : await requestDeepSeekCompletion(
+            rangePrompt + groundTruthCorrection(violations) + '\nThis is the final repair attempt. Remove every rejected claim rather than paraphrasing it.',
+            tokenLimit,
+            systemMessage,
+          );
         pass.analysis = normalizeElementPresenceClaims(pass.analysis, groundTruth);
         pass.analysis = applyDeterministicEnglishSections(pass.analysis, groundTruth);
         violations = findGroundTruthViolations(pass.analysis, groundTruth);
@@ -1279,7 +1558,7 @@ Deno.serve(async (req) => {
   if (!isAllowedRequestOrigin(req, allowedOrigins)) {
     return new Response(JSON.stringify({
       error: 'origin_not_allowed',
-      message: 'This request came from an unrecognised origin and was rejected.',
+      message: '非法来源请求已被拒绝。',
     }), {
       status: 403,
       headers: { ...CORS, 'Content-Type': 'application/json' },
@@ -1362,14 +1641,14 @@ Deno.serve(async (req) => {
     if (service === 'bazi' && free_only === true && !isTrustedInternalCall) {
       const tsOk = await verifyTurnstile((body as Record<string, unknown>).turnstile_token);
       if (!tsOk) {
-        return new Response(JSON.stringify({ error: 'turnstile_failed', message: 'Verification failed. Please try again.' }), {
+        return new Response(JSON.stringify({ error: 'turnstile_failed', message: '人机验证未通过，请重试。' }), {
           status: 403, headers: { ...CORS, 'Content-Type': 'application/json' },
         });
       }
     }
 
     const tradeNoSafe = String(trade_no || '').trim();
-    if (tradeNoSafe && /^(bazi|hepan|zhanbu)-[a-z0-9_-]{4,140}$/i.test(tradeNoSafe)) {
+    if (tradeNoSafe && /^(bazi|hepan)-[a-z0-9_-]{4,140}$/i.test(tradeNoSafe)) {
       const perTradeMaxRequests = readEnvNumber('RATE_LIMIT_ANALYZE_MAX_REQUESTS_PER_TRADE', DEFAULT_RATE_LIMIT_MAX_REQUESTS_PER_TRADE, 2, 200);
       const perTradeResult = await consumeRateLimit(supabase, {
         scope: `${rateScope}:trade`,
@@ -1411,13 +1690,13 @@ Deno.serve(async (req) => {
       Number.isFinite(requestedSectionEnd) &&
       requestedSectionStart >= 1 &&
       requestedSectionEnd >= requestedSectionStart;
-    let tradeOrder: { paid?: boolean; birth_input?: string | null; analysis?: string | null } | null = null;
+    let tradeOrder: { paid?: boolean; birth_input?: string | null } | null = null;
     let tradeBirth: Record<string, any> = {};
 
     if (trade_no) {
       const { data } = await supabase
         .from('orders')
-        .select('paid,birth_input,analysis')
+        .select('paid,birth_input')
         .eq('trade_no', trade_no)
         .maybeSingle();
       tradeOrder = data || null;
@@ -1448,7 +1727,7 @@ Deno.serve(async (req) => {
     // 会员默认给完整版（vip）
     if (isActiveMember && !resolvedPaymentOptionId) resolvedPaymentOptionId = 'vip';
 
-    const requiresPaidOrder = ((service === 'bazi' && !free_only) || service === 'hepan' || service === 'zhanbu') && !isActiveMember;
+    const requiresPaidOrder = ((service === 'bazi' && !free_only) || service === 'hepan') && !isActiveMember;
     if (requiresPaidOrder) {
       if (!trade_no) {
         return new Response(JSON.stringify({ error: 'trade_no is required for paid analyze' }), {
@@ -1486,38 +1765,18 @@ Deno.serve(async (req) => {
     } else if (service === 'zhanbu') {
       const tsOk = await verifyTurnstile((body as Record<string, unknown>).turnstile_token);
       if (!tsOk) {
-        return new Response(JSON.stringify({ error: 'turnstile_failed', message: 'Verification failed. Please try again.' }), {
+        return new Response(JSON.stringify({ error: 'turnstile_failed', message: '人机验证未通过，请重试。' }), {
           status: 403, headers: { ...CORS, 'Content-Type': 'application/json' },
         });
       }
-      const storedCast = tradeBirth?.decision_cast && typeof tradeBirth.decision_cast === 'object'
-        ? tradeBirth.decision_cast
-        : {};
-      const storedValues = Array.isArray(storedCast?.values)
-        ? storedCast.values.map((value: unknown) => Number(value)).slice(0, 3)
-        : [];
-      if (
-        String(tradeBirth?.order_service || '').trim().toLowerCase() !== 'zhanbu'
-        || storedValues.length !== 3
-        || !storedValues.every((value: number, index: number) =>
-          Number.isInteger(value) && value >= 1 && value <= (index === 2 ? 6 : 8))
-      ) {
-        return new Response(JSON.stringify({ error: 'paid_cast_not_ready' }), {
-          status: 409,
-          headers: { 'Content-Type': 'application/json', ...CORS },
-        });
-      }
-      const question = String(tradeBirth?.question || '').trim().slice(0, 1200);
-      const category = String(tradeBirth?.category || '').trim().slice(0, 80) || 'Decision and direction';
-      const method = 'gaodao';
-      const [number1, number2, number3] = storedValues;
-      const { ke_month, ke_day, ke_hour } = body;
+      const { question, method, category, number1, number2, number3, ke_month, ke_day, ke_hour } = body;
 
       if (method === 'gaodao') {
         // 周易六十四卦：摇卦三次 -> 上卦(1-8)、下卦(1-8)、动爻(1-6)
-        const n1 = Number(number1);
-        const n2 = Number(number2);
-        const n3 = Number(number3);
+        const ri = (max: number) => Math.floor(Math.random() * max) + 1;
+        const n1 = Number(number1) || ri(8);
+        const n2 = Number(number2) || ri(8);
+        const n3 = Number(number3) || ri(6);
         // 先天八卦数 1..8 -> [名, 自下而上三爻 bottom,mid,top]
         const TRI: Record<number, [string, number[]]> = {
           1: ['乾', [1, 1, 1]], 2: ['兑', [1, 1, 0]], 3: ['离', [1, 0, 1]], 4: ['震', [1, 0, 0]],
@@ -1771,6 +2030,11 @@ Quote the Classical Chinese source texts accurately. End with one separate line:
       const chartFacts = formatEnglishChartFacts((body as Record<string, unknown>).chart_data, hour_known !== false);
       const tenGodFacts = formatEnglishTenGodFacts((body as Record<string, unknown>).chart_data, hour_known !== false);
       const shenShaFacts = formatEnglishShenShaFacts((body as Record<string, unknown>).chart_data, hour_known !== false);
+      const traditionalReferenceFacts = formatEnglishTraditionalReferenceFacts(
+        (body as Record<string, unknown>).chart_data,
+        String(gender || ''),
+        hour_known !== false,
+      );
       const annualInteractionFacts = formatEnglishAnnualInteractionFacts(
         (body as Record<string, unknown>).chart_data,
         String(dayun_text || ''),
@@ -1780,17 +2044,23 @@ Quote the Classical Chinese source texts accurately. End with one separate line:
       const canonicalDirection = wantsEnglish
         ? canonicalLuckDirection(String(chartPillars((body as Record<string, unknown>).chart_data).year?.stem || ''), String(gender || ''))
         : null;
+      const promptCanonicalPillars = chartPillars((body as Record<string, unknown>).chart_data);
+      const promptSpecialPattern = wantsEnglish
+        ? assessClassicalSpecialPattern(promptCanonicalPillars, { hourKnown: hour_known !== false })
+        : null;
       const canonicalDataBlock = wantsEnglish ? `
 NON-NEGOTIABLE CANONICAL DATA:
 ${chartFacts}
 ${tenGodFacts}
 ${shenShaFacts}
+${traditionalReferenceFacts}
 ${annualInteractionFacts}
 Luck Pillar direction: ${canonicalDirection?.direction}. Basis: ${canonicalDirection?.basis}.
 Luck Pillar starting age: ${start_age}
 Luck Pillars: ${dayun_text}
 Structural markers: ${special_years_text}
 Calendar-year Ganzhi reference: ${calendarYearFacts}
+Classical special-pattern assessment: ${JSON.stringify(promptSpecialPattern)}
 
 Data contract:
 1. The canonical data above is authoritative. Never recalculate or replace the Four Pillars, Five-Element counts, Luck Pillars, ages, start years, or structural markers.
@@ -1800,12 +2070,16 @@ Data contract:
 5. Keep combined element totals separate from stem counts and branch counts. Never describe a combined total as if every item were a stem or every item were a branch. In the supplied presence check, "visible" includes both pillar stems and the base element of an Earthly Branch; it is not limited to stems.
 6. The Five-Element generation cycle is Wood -> Fire -> Earth -> Metal -> Water -> Wood. The control cycle is Wood -> Earth -> Water -> Fire -> Metal -> Wood. Follow these active relations exactly. Fire is Wood's Output; it does not generate Wood. Wood controls Earth; Earth does not control Wood.
 7. Follow the supplied Day Master rooting check exactly. A Day Master has a root only where an Earthly Branch contains a hidden stem of the same element.
-8. Section 4 must explicitly analyze the supplied Ten-God profile. Section 7 must cover the supplied symbolic stars one by one, naming the pillar and source for each marker.
+8. Section 3 must explicitly analyze the supplied Ten-God profile. Supported symbolic stars may appear only as secondary evidence in Sections 5-6, with pillar and source named; they must not become a standalone chapter.
 9. If a requested conclusion is not supported by the canonical data, state a narrower conclusion instead of filling the gap.
-10. In Section 11, list traditional Five-Element correspondences only as historical associations, then discuss balance in general terms. Do not personalize symptoms, organ strain, disease risk, diet, treatment, or medical outcomes, and do not tell the reader what their body will feel or do.
-11. The supplied Luck Pillar direction and starting age are final. In Section 12, state the direction rule and the supplied age only. Do not name a solar term, count days, describe preceding/next nodes, explain how the starting age was derived, or interpret direction as personality or life style.
-12. No definitive Yong Shen is supplied. In Section 5, present useful and unfavorable elements as provisional structural balancing candidates, explain the strength logic, and acknowledge that classical schools can weigh seasonal regulation differently.
-13. In Sections 6 and 14-15, use only the supplied canonical natal and annual interactions. Do not infer extra combinations, clashes, harms, breaks, punishments, meetings, Fu Yin, or Fan Yin. A repeated branch alone is not Fu Yin; Fu Yin requires an exact repeated whole pillar. Canonical self-punishment is limited to 辰辰, 午午, 酉酉, and 亥亥; repeated 戌 or 申 is not self-punishment.` : '';
+10. In Section 10, print the relative share of Wood, Fire, Earth, Metal, and Water. Identify excess and deficiency and connect the leading excess to the element it controls. Keep chart favorability separate from bodily balance. Do not personalize symptoms, disease risk, diet, treatment, or medical outcomes.
+11. The supplied Luck-Cycle direction and starting age are final. In Section 11, state the direction rule and supplied age, then give every cycle an explicit Favorable, Moderately Favorable, Neutral, Moderately Unfavorable, or Unfavorable rating. Do not explain a solar-term or day-count calculation or interpret direction as personality.
+12. Classical special-pattern detection takes priority over ordinary strong/weak balancing. If classicalPriority=true, Section 2 must name the pattern, give its supplied classical basis once, and apply its explicit element guidance. Do not revert to ordinary weak-Day-Master balancing. When no special pattern qualifies, Section 2 must still state a definite favorable/unfavorable verdict under this report's declared method.
+12a. Reserve the first mention of a classical book for Section 2. Include the English source note, historical period, approximate Common Era dates, authorship or attribution, and each commentator's role. Quote only the supplied English translation. Give the quotation and source note once; do not repeat either later.
+13. In Sections 4, 11, and 12, use only supplied canonical interactions. Do not infer extra combinations, clashes, harms, breaks, punishments, meetings, Fu Yin, or Fan Yin. A repeated branch alone is not Fu Yin; Fu Yin requires an exact repeated whole pillar. Canonical self-punishment is limited to 辰辰, 午午, 酉酉, and 亥亥; repeated 戌 or 申 is not self-punishment.
+14. A combine, Three Harmony, Half Harmony, Arch Harmony, or Three Meeting is a relationship contact unless the canonical data explicitly says transformation is complete. "Associated with Fire" does not mean "transformed into Fire." Never turn the supplied relative energy multipliers into scientific measurements or print them as guaranteed event severity.
+15. Xun Kong, Five Ghost Wealth, Yuan Chen, Lu, body-position maps, family-position maps, and tomb-storage contacts are secondary lineage-specific symbols. They may refine an already-supported interpretation but may not establish biography, wealth, marriage, illness, injury, legal trouble, imprisonment, self-harm, or death.
+16. The restricted severity and traditional medical correspondences are never customer predictions. Do not diagnose, personalize symptoms, forecast bodily events, or reproduce fatalistic source phrases.` : '';
       if (wantsEnglish) {
         const elementRoles = tenGodElementRoles(chartDayMasterElement((body as Record<string, unknown>).chart_data));
         const positionCounts = chartPositionElementCounts((body as Record<string, unknown>).chart_data, hour_known !== false);
@@ -1817,18 +2091,20 @@ Data contract:
           .map((pillar) => String(pillar?.branch || ''))
           .filter((branch) => (HIDDEN_STEMS[branch] || []).some((stem) => STEM_ELEMENTS[stem] === dayMasterElement));
         const strength = assessDayMasterStrength(canonicalPillars, { hourKnown: hour_known !== false });
+        const specialPattern = assessClassicalSpecialPattern(canonicalPillars, { hourKnown: hour_known !== false });
         const parsedLuckPillars = String(dayun_text || '').split('|').map((item) => {
           const match = item.trim().match(/^(\S+) from age (\d+) \((\d+)\)$/);
           return match ? { gz: match[1], age: Number(match[2]), year: Number(match[3]) } : null;
         }).filter(Boolean) as Array<{ gz: string; age: number; year: number }>;
         baziGroundTruth = {
           allowedGanzhi: collectGanzhi(bazi_str, dayun_text, special_years_text, calendarYearFacts),
+          gender: String(gender || ''),
           hourKnown: hour_known !== false,
           elementRoles,
           stemCounts: positionCounts.stemCounts,
           branchCounts: positionCounts.branchCounts,
           elementPresence,
-          luckDirection: canonicalDirection!.direction as 'Forward' | 'Reverse',
+          luckDirection: canonicalDirection!.direction,
           luckBasis: canonicalDirection!.basis,
           startAge: Number(start_age),
           luckPillars: parsedLuckPillars,
@@ -1837,6 +2113,7 @@ Data contract:
           dayMasterStem,
           rootBranches: [...new Set(rootBranches)],
           strength: strength as BaziGroundTruth['strength'],
+          specialPattern,
         };
       }
       if (free_only) {
@@ -1889,8 +2166,8 @@ Structural markers: ${special_years_text}
 Next five calendar years: ${nextFiveYears}
 
 Writing principles:
-1. Write a standard BaZi interpretation. Do not frame the report as psychology, coaching, a personality test, therapy, or self-development.
-2. In every section use this order: finding, chart evidence, traditional meaning, practical implication, confidence or limitation.
+1. Write a cohesive traditional BaZi Destiny Book. Do not frame it as psychology, coaching, therapy, self-development, or a glossary of isolated symbols.
+2. In every section use this order: explicit verdict, exact chart evidence, traditional meaning, and the boundary of what that evidence can establish.
 3. Name the exact stem, branch, hidden stem, Ten God, or interaction that supports each important conclusion. Never invent an unsupported relation.
 4. Define a specialist term in plain English on first use while retaining its standard name, for example "Day Master", "Direct Wealth", or "Luck Pillar (Da Yun)".
 5. Keep visible elements separate from hidden stems. "No visible Fire" must not become "Fire is absent" when Fire exists in hidden stems.
@@ -1898,7 +2175,10 @@ Writing principles:
 7. Treat Shen Sha as secondary evidence. It must never override season, Day Master strength, Ten Gods, or stem-branch structure.
 8. Discuss career, wealth, relationships, health correspondences, and timing in traditional BaZi terms, but do not guarantee wealth, marriage, illness, accidents, or specific events. In health content, do not predict symptoms, organ strain, disease risk, diet, or treatment.
 9. When discussing a Wood Day Master and Earth, say that Wood may expend energy controlling Earth. Never say Earth controls Wood or drains Wood by controlling it. Fire is Wood's Output and does not generate, nourish, or strengthen Wood.
-10. Write fluent English prose without Markdown, poetry, vague filler, repeated introductions, or a closing blessing.`
+10. Test special patterns before applying ordinary Day-Master balancing. Section 2 must name the governing pattern and state exactly which Five Elements are favorable, unfavorable, and conditional. Do not call them candidates, available, supportive, pressuring, or merely useful.
+11. Treat the 13 chapters as one continuous book. Later chapters must follow the same pattern and favorable-element verdict without restarting the reading or repeating the classical quotation.
+12. Give every Luck Cycle and annual year one explicit rating: Favorable, Moderately Favorable, Neutral, Moderately Unfavorable, or Unfavorable. Never print support scores, pressure scores, decision postures, Supported Advance, Selective Advance, or Hold & Protect.
+13. Do not add reflection questions, practical-step boxes, generic routines, wellness coaching, or filler. Write fluent English prose without Markdown, poetry, repeated introductions, or a closing blessing.`
         : `客户生辰：${year}年${month}月${day}日${hour}时，${gender}命，八字：${bazi_str}，当前年份：${currentYear}年。
 
 以下大运和特殊年份数据已由专业软件算好，请直接使用，不要自行重算：
@@ -1925,7 +2205,7 @@ Writing principles:
       prompt += `
 
 ${englishBazi ? 'Output rule override for BaZi:' : 'Output rule override for BAZI:'}
-${englishBazi ? 'Use this standard BaZi section blueprint and keep the section order strictly.' : 'Use this exact section blueprint and keep section order strictly.'}
+${englishBazi ? 'Use this BaZi Destiny Book blueprint and keep the chapter order strictly.' : 'Use this exact section blueprint and keep section order strictly.'}
 ${englishBazi ? BAZI_STANDARD_BLUEPRINT_EN : BAZI_SECTION_BLUEPRINT_24}
 ${englishBazi ? 'Begin every section on a new line with “Section N:”. Do not use Markdown, bullets, tables, repeated introductions, or a closing blessing.' : '每一段必须以“第X段：”单独起行。\n禁止 Markdown、禁止列表符号、禁止表格、禁止重复开场、禁止收尾祝福语。'}
 `;
@@ -1946,9 +2226,12 @@ ${englishBazi ? 'Begin every section on a new line with “Section N:”. Do not
 Complete-report constraints:
 1. Write all ${ENGLISH_BAZI_REPORT_SECTION_COUNT} sections without skipping any section.
 2. Target ${ENGLISH_BAZI_REPORT_WORD_RANGE.min.toLocaleString('en-US')}-${ENGLISH_BAZI_REPORT_WORD_RANGE.max.toLocaleString('en-US')} English words across the complete report.
-3. Do not add psychology chapters or generic motivational filler. Spend the word count on chart evidence and standard BaZi interpretation.
-4. The interpretation must remain internally consistent from beginning to end.
-5. Section titles must match the supplied blueprint exactly.` : `
+3. Do not add psychology chapters or generic motivational filler. Spend the word count on chart evidence and traditional BaZi interpretation.
+4. Before writing, determine the governing pattern under the special-pattern-first rule, then fix the exact favorable and unfavorable elements. Do not output this planning instruction.
+5. Make that verdict visible through the prose: Sections 1-4 establish it; Sections 5-10 apply it to life domains; Sections 11-13 show how Da Yun and Liu Nian modify it.
+6. The interpretation must remain internally consistent from beginning to end. Career, wealth, relationships, and timing cannot use mutually incompatible strength or useful-element assumptions.
+7. Each later chapter must add new chart evidence or a new application. Do not restart with a generic definition, repeat the same conclusion merely to fill space, or write thirteen isolated essays.
+8. Section titles must match the supplied blueprint exactly.` : `
 
 统一基准约束（用于三档一致性）：
 1. 必须完整写出第1段到第24段，不能跳段。
@@ -2008,7 +2291,7 @@ Free-preview constraint: Write only Sections 1-3. Do not output Section 4 or lat
 "你人缘不错"→必须说"你正官配印，做事有分寸、让人放心，容易在需要信任的关系里被依赖"；
 凡下判断，必须回扣到具体干支、十神或五行结构，并落到"所以你是个怎样的人 / 适合怎样的方式"，不得用"可能""也许""有一定概率"等虚词搪塞，也不得转成运势预测。`;
 
-    const SYSTEM_MSG_EN = `You are an experienced practitioner and researcher of standard BaZi (Four Pillars of Destiny), including Heavenly Stems, Earthly Branches, hidden stems, seasonal qi, Day Master strength, Ten Gods, chart structure, useful elements, natal interactions, Shen Sha, Luck Pillars, and annual timing.
+    const SYSTEM_MSG_EN = `You are an experienced practitioner and researcher of traditional BaZi (Four Pillars of Destiny). You write a cohesive BaZi Destiny Book, not a generic AI report.
 
 Write for an English-speaking reader who may be new to BaZi. Preserve standard terminology, explain it briefly on first use, and show the chart evidence behind each conclusion. Do not convert BaZi into MBTI, psychology, coaching, therapy, or generic self-help. Do not guarantee specific events, wealth, marriage dates, illness, accidents, or prescribe charms and luck remedies.
 
@@ -2017,17 +2300,19 @@ Apply the Ten-God relationships correctly:
 - Officer and Seven Killings are the element that controls the Day Master.
 - Resource is the element that produces the Day Master.
 - Output is the element produced by the Day Master.
-- Companion is the same element as the Day Master, with polarity distinguishing Friend and Rob Wealth.
+- Companion is the same element as the Day Master, with polarity distinguishing Companion and Rob Wealth.
 
 Keep the interpretation inside standard BaZi categories. Every important conclusion must point back to a visible stem, branch, canonical hidden stem, Ten-God relationship, elemental balance, or supplied Luck-Pillar context. Explain the traditional structural meaning and its practical limit without converting it into a personality profile or generic self-help.
 
-Use calibrated confidence. Structural observations may be direct, but biographical claims must remain hypotheses. In family and relationship sections, never state that a mother, father, partner, or childhood definitely had a specific trait or event based only on a pillar. Phrase these as patterns to compare with lived experience, clearly separate chart symbolism from verified history, and include a useful exception or alternative expression when context can change the result.
+Build the entire book around one governing natal thesis. Test classical special patterns before ordinary Day-Master balancing. State the governing pattern and exact favorable, unfavorable, and conditional Five Elements in Section 2, then derive every later conclusion from that verdict. The book must read as one continuous interpretation rather than thirteen independent essays.
 
-Within each section, begin with the structural finding, then state the chart evidence, traditional meaning, practical boundary, and confidence level. Do not repeat the same chart fact merely to add length. Keep terminology consistent: 比肩 is Friend or Peer, 劫财 is Rob Wealth, 食神 is Eating God, 伤官 is Hurting Officer, 偏财 is Indirect Wealth, 正财 is Direct Wealth, 七杀 is Seven Killings, 正官 is Direct Officer, 偏印 is Indirect Resource, and 正印 is Direct Resource.
+Structural verdicts must be direct. Biographical claims still remain traditional indications rather than verified facts. Never fill uncertainty with vague language. If a conclusion is supported, state it; if the canonical data cannot support it, omit it or state the exact limit.
 
-For Section 4, use the canonical weighted Ten-God profile and distinguish visible stems from canonical hidden stems. For Section 7, treat Shen Sha as a secondary symbolic layer: cover only the canonical markers supplied in the prompt, state each pillar and derivation source, and never turn a marker into a guaranteed event or good/bad verdict.
+Within each section, begin with the verdict, then state exact chart evidence, traditional meaning, and boundary. Keep terminology consistent: 比肩 is Companion, 劫财 is Rob Wealth, 食神 is Eating God, 伤官 is Hurting Officer, 偏财 is Indirect Wealth, 正财 is Direct Wealth, 七杀 is Seven Killings, 正官 is Direct Officer, 偏印 is Indirect Resource, and 正印 is Direct Resource.
 
-Write natural, fluent English plain text. Address the reader as "you". Chinese characters are permitted for raw Four-Pillar, Ganzhi, Ten-God, and Shen Sha labels when immediately paired with English. Do not use Markdown, tables, poetry, quotations from classical texts, filler, or a ceremonial conclusion.`;
+Section 3 uses the canonical weighted Five-Element and Ten-God profiles. Shen Sha are secondary evidence inside Sections 5-6, never a standalone chapter. Section 10 gives exact element percentages and non-diagnostic correspondences. Sections 11-12 use only explicit Favorable-to-Unfavorable ratings; never expose support/pressure scores or decision-posture labels.
+
+The only classical quotation permitted is the supplied English translation in Section 2, introduced once with the supplied provenance note. Do not repeat it. Write natural English plain text. The only Chinese characters permitted are necessary Heavenly Stem and Earthly Branch characters in calculated Ganzhi. Do not use Markdown, tables, poetry, reflection questions, practical-step boxes, generic routines, filler, or a ceremonial conclusion.`;
 
     // 按界面语言输出：en→英文，zh-Hant→繁体，其余保持简体
     const _outLang = (body as Record<string, unknown>).lang;
@@ -2041,8 +2326,6 @@ Write natural, fluent English plain text. Address the reader as "you". Chinese c
     if (_outLang === 'en') {
       if (service === 'bazi') {
         prompt += '\n\n================ OUTPUT LANGUAGE: ENGLISH (HIGHEST PRIORITY) ================\nWrite the entire answer in fluent English. Use section markers exactly as Section 1:, Section 2:, and so on. The only Chinese permitted is raw Ganzhi or Four-Pillar characters such as 甲午, each with a short English gloss in parentheses on first use. Output no Chinese sentences.';
-      } else if (service === 'zhanbu') {
-        prompt += '\n\n================ OUTPUT LANGUAGE: ENGLISH ONLY (HIGHEST PRIORITY) ================\nWrite the entire interpretation in natural, polished English. Translate every hexagram name, heading, judgment, and moving-line text into English. Do not display Chinese characters or Chinese sentences. Use four clear numbered sections: 1. Original Hexagram, 2. Moving Line, 3. Resulting Hexagram, 4. Judgment and Practical Advice. Treat the reading as a reflective framework, not a guaranteed prediction.';
       } else {
         prompt += '\n\n================ OUTPUT LANGUAGE: ENGLISH (HIGHEST PRIORITY) ================\nRegardless of the Chinese wording above, write your ENTIRE answer in fluent English, including translating every section header into English. The only Chinese permitted is raw hexagram / pillar characters (e.g. 火地晋), each with a short English gloss in parentheses. Output ZERO Chinese sentences.';
       }
@@ -2148,6 +2431,7 @@ Write natural, fluent English plain text. Address the reader as "you". Chinese c
     }
 
     if ((service === 'hepan' && stream === true) || (service === 'bazi' && stream === true)) {
+      const deepSeekStreamingModel = String(Deno.env.get('DEEPSEEK_STREAM_MODEL') || 'deepseek-v4-flash').trim();
       const dsStream = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -2155,9 +2439,9 @@ Write natural, fluent English plain text. Address the reader as "you". Chinese c
           'Authorization': `Bearer ${Deno.env.get('DEEPSEEK_API_KEY')}`,
         },
         body: JSON.stringify({
-          model: 'deepseek-chat',
+          model: deepSeekStreamingModel,
           max_tokens: maxTokens,
-          temperature: 0,
+          thinking: { type: 'disabled' },
           stream: true,
           messages: [
             { role: 'system', content: SYSTEM_MSG_L },

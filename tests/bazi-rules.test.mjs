@@ -3,17 +3,30 @@ import assert from 'node:assert/strict';
 import {
   analyzeAnnualInteractions,
   analyzeNatalInteractions,
+  assessClassicalSpecialPattern,
   assessDayMasterStrength,
   balancingElementGuidance,
   charPolarity,
+  energyMagnitude,
   elementProfile,
+  exposureAndRootingProfile,
+  fiveGhostWealthMarker,
   hiddenStemWeights,
+  indirectResourceOvercomesEatingGodProfile,
   luckDirection,
+  pillarSymbolism,
+  relationEnergyReference,
   shenShaForChart,
   tenGod,
   tenGodElementRoles,
+  timingAssessment,
   timingPosture,
+  tombStorageContacts,
+  traditionalReferenceProfile,
+  voidAnalysis,
+  voidBranchesForPillar,
   weightedTenGodProfile,
+  yuanChenMarker,
 } from '../supabase/functions/_shared/bazi-rules.mjs';
 
 const NATAL_1994 = {
@@ -95,6 +108,41 @@ test('balancing guidance changes with the assessed Day Master strength', () => {
   assert.deepEqual(strong.caution.sort(), ['water', 'wood']);
 });
 
+test('classical pattern priority detects the 1988 戊土 chart as Cong Er before ordinary weak balancing', () => {
+  const chart = {
+    year: { stem: '戊', branch: '辰' },
+    month: { stem: '庚', branch: '申' },
+    day: { stem: '戊', branch: '申' },
+    hour: { stem: '庚', branch: '申' },
+  };
+  const strength = assessDayMasterStrength(chart);
+  const pattern = assessClassicalSpecialPattern(chart);
+  const guidance = balancingElementGuidance('earth', strength, pattern);
+
+  assert.equal(strength.classification, 'weak');
+  assert.equal(pattern.pattern, 'cong_er');
+  assert.equal(pattern.qualified, true);
+  assert.deepEqual(pattern.elementGuidance.favorable, ['metal', 'water']);
+  assert.deepEqual(pattern.elementGuidance.stronglyUnfavorable, ['fire']);
+  assert.deepEqual(guidance.favorable, ['metal', 'water']);
+  assert.deepEqual(guidance.conditional, ['earth']);
+  assert.deepEqual(guidance.caution, ['wood', 'fire']);
+  assert.equal(guidance.basis, 'classical-special-pattern');
+});
+
+test('Resource breaks Cong Er and forces the chart back to ordinary analysis', () => {
+  const chartWithResource = {
+    year: { stem: '丙', branch: '辰' },
+    month: { stem: '庚', branch: '申' },
+    day: { stem: '戊', branch: '申' },
+    hour: { stem: '庚', branch: '申' },
+  };
+  const pattern = assessClassicalSpecialPattern(chartWithResource);
+  assert.equal(pattern.qualified, false);
+  assert.equal(pattern.pattern, 'standard');
+  assert.ok(pattern.disqualifiers.some((item) => item.includes('Resource')));
+});
+
 test('Luck Pillar direction follows Yang-male/Yin-female forward rule', () => {
   assert.deepEqual(luckDirection('甲', 'female'), {
     forward: false,
@@ -155,6 +203,17 @@ test('all Six Combines use the standard associated element', () => {
     }).find((item) => item.type === 'six_combine');
     assert.equal(combine?.resultingElement, expectedElement, `${annualGz}/${natalGz}`);
   }
+});
+
+test('the supplied 午未 Fire association is retained as a school variant without replacing the canonical Earth association', () => {
+  const relation = analyzeAnnualInteractions({
+    annualGz: '甲午',
+    natalPillars: { year: { stem: '乙', branch: '未' } },
+    hourKnown: false,
+  }).find((item) => item.type === 'six_combine');
+  assert.equal(relation.resultingElement, 'earth');
+  assert.equal(relation.schoolVariants[0].associatedElement, 'fire');
+  assert.equal(relation.schoolVariants[0].canonicalElementRetained, 'earth');
 });
 
 test('punishment and self-punishment are distinguished', () => {
@@ -233,11 +292,105 @@ test('1994 sample annual contacts no longer show impossible four-way labels', ()
   assert.equal(types(y2030).has('six_combine'), false);
   assert.equal(types(y2030).has('six_harm'), false);
   assert.equal(types(y2030).has('six_break'), false);
-  assert.equal(timingPosture(y2030, 'Seven Killings'), 'DEFEND');
+  assert.equal(timingPosture(y2030, 'Seven Killings'), 'HOLD & PROTECT');
 });
 
 test('timing posture uses chart-specific favorable elements instead of treating every Wealth year as advance', () => {
   const guidance = balancingElementGuidance('wood', { classification: 'weak' });
   assert.equal(timingPosture([], 'Indirect Wealth', { ...guidance, annualElement: 'earth' }), 'STEADY');
-  assert.equal(timingPosture([], 'Indirect Resource', { ...guidance, annualElement: 'water' }), 'ADVANCE');
+  assert.equal(timingPosture([], 'Indirect Resource', { ...guidance, annualElement: 'water' }), 'SUPPORTED ADVANCE');
+});
+
+test('annual assessment exposes support, pressure, change, and one shared decision posture', () => {
+  const guidance = balancingElementGuidance('wood', { classification: 'weak' });
+  const interactions = analyzeAnnualInteractions({ annualGz: '丙午', natalPillars: NATAL_1994, luckGz: '己巳' });
+  const assessment = timingAssessment(interactions, { ...guidance, annualElement: 'fire' });
+  assert.equal(assessment.supportLevel, 'LOW');
+  assert.match(assessment.pressureLevel, /^(MEDIUM|HIGH)$/);
+  assert.match(assessment.changeIntensity, /^(MEDIUM|HIGH)$/);
+  assert.equal(assessment.decisionPosture, 'SELECTIVE ADVANCE');
+  assert.equal(assessment.confidence, 'MEDIUM');
+  assert.match(assessment.postureReason, /reversible|stage/i);
+});
+
+test('pillar symbolism preserves the supplied family, palace, and body-position map', () => {
+  assert.deepEqual(pillarSymbolism('year').stem.body, ['head']);
+  assert.deepEqual(pillarSymbolism('month').branch.body, ['abdomen']);
+  assert.deepEqual(pillarSymbolism('day').palace, ['spouse palace', 'partnership palace']);
+  assert.deepEqual(pillarSymbolism('hour').stem.family, ['eldest or first child']);
+});
+
+test('Day-Pillar Xun Kong returns canonical void branches and affected symbolic roles', () => {
+  assert.deepEqual(voidBranchesForPillar('甲子'), ['戌', '亥']);
+  assert.deepEqual(voidBranchesForPillar('甲戌'), ['申', '酉']);
+  const result = voidAnalysis(NATAL_1994);
+  assert.deepEqual(result.voidBranches, ['申', '酉']);
+  assert.deepEqual(result.affected.map((item) => item.pillar).sort(), ['hour', 'month']);
+  assert.equal(result.affected.every((item) => item.roles.length > 0), true);
+  assert.match(result.interpretation, /does not mean literal nonexistence/i);
+});
+
+test('Tengyunzi relation-energy references remain relative and do not assert completed transformation', () => {
+  assert.equal(relationEnergyReference('three_harmony', { hasStemCatalyst: true }).relativeMultiplier, 15);
+  assert.deepEqual(relationEnergyReference('three_harmony', { hasStemCatalyst: false }).relativeMultiplier, [7, 8]);
+  assert.equal(relationEnergyReference('three_meeting', { hasStemCatalyst: true }).magnitude, 'extreme');
+  assert.equal(energyMagnitude(5), 'medium');
+
+  const relations = analyzeAnnualInteractions({
+    annualGz: '丙午',
+    natalPillars: { year: { stem: '甲', branch: '寅' }, day: { stem: '乙', branch: '戌' } },
+    hourKnown: false,
+  });
+  const harmony = relations.find((item) => item.type === 'three_harmony');
+  assert.equal(harmony.transformation.status, 'contact_only');
+  assert.equal(harmony.transformation.conditionsEvaluated, false);
+  assert.equal(harmony.energyReference.relativeMultiplier, 15);
+});
+
+test('exposure and rooting profile records the supplied two-times reference without replacing raw facts', () => {
+  const profile = exposureAndRootingProfile(NATAL_1994);
+  const water = profile.find((item) => item.element === 'water');
+  assert.equal(water.exposedStems.length, 2);
+  assert.equal(water.roots.length, 2);
+  assert.equal(water.referenceMultiplier, '>2');
+});
+
+test('tomb-storage contacts distinguish a contact from proven release', () => {
+  const contacts = tombStorageContacts({
+    incomingBranch: '辰',
+    natalPillars: { day: { stem: '甲', branch: '戌' } },
+    hourKnown: false,
+  });
+  assert.equal(contacts[0].contactType, 'clash');
+  assert.equal(contacts[0].status, 'contact_only');
+  assert.match(contacts[0].interpretation, /requires full-chart/i);
+});
+
+test('Five Ghost Wealth and Yuan Chen use the supplied lookup tables as auxiliary markers', () => {
+  assert.equal(fiveGhostWealthMarker('寅').targetBranch, '午');
+  assert.equal(yuanChenMarker('甲', '寅', 'male').branch, '酉');
+  assert.equal(yuanChenMarker('乙', '卯', 'male').branch, '申');
+  assert.equal(yuanChenMarker('乙', '卯', 'female').branch, '戌');
+});
+
+test('traditional reference profile keeps medical and fatalistic associations out of customer output', () => {
+  const profile = traditionalReferenceProfile(NATAL_1994, { gender: 'female' });
+  assert.equal(profile.fiveElementCorrespondences.wood.organ, 'liver');
+  assert.equal(profile.safeguards.noMedicalDiagnosis, true);
+  assert.equal(profile.safeguards.noDeathOrSelfHarmPrediction, true);
+  assert.equal(profile.safeguards.restrictedSeverityAssociationsCustomerVisible, false);
+});
+
+test('Indirect Resource overcoming Eating God is detected only as a restricted symbolic contact', () => {
+  const result = indirectResourceOvercomesEatingGodProfile({
+    year: { stem: '壬', branch: '子' },
+    month: { stem: '丙', branch: '午' },
+    day: { stem: '甲', branch: '寅' },
+    hour: { stem: '乙', branch: '卯' },
+  });
+  assert.equal(result.present, true);
+  assert.equal(result.sourceElement, 'water');
+  assert.equal(result.targetElement, 'fire');
+  assert.equal(result.customerVisiblePredictionAllowed, false);
+  assert.match(result.interpretation, /does not establish bodily harm/i);
 });

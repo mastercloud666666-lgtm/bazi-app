@@ -3,21 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#f6fafd">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Tengyunzi">
-  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
-  <script src="/js/pwa-register.js" defer></script>
   <title>My Readings | Tengyunzi</title>
   <meta name="robots" content="noindex,nofollow">
   <link rel="stylesheet" href="./tengyunzi-fonts.css?v=20260722seo1">
 
   <link rel="stylesheet" href="./tengyunzi-clean.css?v=20260714a">
   <link rel="stylesheet" href="./tengyunzi-shell.css?v=20260715nav">
-  <link rel="stylesheet" href="./tengyunzi-product.css?v=20260725delete1">
+  <link rel="stylesheet" href="./tengyunzi-product.css?v=20260714a">
 </head>
 <body>
   <header class="nav">
@@ -42,7 +34,7 @@
       <div class="shell">
         <span class="kicker">Your account</span>
         <h1>My Readings</h1>
-        <p>Every free preview and complete report connected to your email, in one place.</p>
+        <p>Every free preview and BaZi Destiny Book connected to your email, in one place.</p>
       </div>
     </section>
 
@@ -62,7 +54,7 @@
           <div class="account-metrics">
             <div class="account-metric"><span>All readings</span><strong data-metric="all">0</strong></div>
             <div class="account-metric"><span>Free previews</span><strong data-metric="free">0</strong></div>
-            <div class="account-metric"><span>Complete reports</span><strong data-metric="paid">0</strong></div>
+            <div class="account-metric"><span>Destiny Books</span><strong data-metric="paid">0</strong></div>
           </div>
           <div class="account-list-head">
             <h2>Reading history</h2>
@@ -73,28 +65,6 @@
             </div>
           </div>
           <div class="reading-list" data-reading-list><div class="account-empty">Loading your readings...</div></div>
-
-          <section class="account-danger" aria-labelledby="delete-account-title">
-            <h2 id="delete-account-title">Delete your account</h2>
-            <p>
-              This permanently removes your account, your BaZi charts and readings, and your
-              email subscriptions. Purchase records are kept for accounting with your personal
-              details stripped out. It cannot be undone.
-            </p>
-            <button class="button danger" type="button" data-delete-open>Delete account</button>
-
-            <form class="account-danger-confirm" data-delete-form hidden>
-              <label class="field">
-                <span>Type <strong>DELETE</strong> to confirm</span>
-                <input type="text" name="confirm" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="DELETE" required>
-              </label>
-              <div class="account-danger-actions">
-                <button class="button danger" type="submit" data-delete-submit>Permanently delete</button>
-                <button class="button" type="button" data-delete-cancel>Keep my account</button>
-              </div>
-              <p class="account-danger-message" data-delete-message aria-live="polite"></p>
-            </form>
-          </section>
         </section>
       </div>
     </section>
@@ -104,6 +74,6 @@
 
   <script src="./js/tengyunzi-auth.js" data-tengyunzi-auth></script>
   <script src="./js/tengyunzi-shell.js"></script>
-  <script src="./js/tengyunzi-account.js?v=20260725delete1"></script>
+  <script src="./js/tengyunzi-account.js?v=20260714a"></script>
 </body>
 </html>

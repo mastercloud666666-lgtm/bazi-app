@@ -29,6 +29,265 @@ export const TEN_GODS = [
   { name: '正印', english: 'Direct Resource', meaning: 'Learning, support, and restoration' },
 ];
 
+// Supplied Tengyunzi teaching references. These are symbolic correspondences, not
+// verified biography, medical diagnosis, or guaranteed-event rules.
+export const PILLAR_SYMBOLISM = Object.freeze({
+  year: Object.freeze({
+    stem: Object.freeze({
+      family: ['father', 'paternal lineage'],
+      social: ['family origin'],
+      body: ['head'],
+    }),
+    branch: Object.freeze({
+      family: ['mother', 'maternal lineage'],
+      social: ['ancestral environment'],
+      body: ['arms'],
+    }),
+    palace: Object.freeze(['ancestral palace', 'family origin']),
+  }),
+  month: Object.freeze({
+    stem: Object.freeze({
+      family: ['father', 'older siblings'],
+      social: ['senior peers', 'older-brother-like contacts'],
+      body: ['chest'],
+    }),
+    branch: Object.freeze({
+      family: ['mother', 'younger siblings'],
+      social: ['peer network', 'sibling-like contacts'],
+      body: ['abdomen'],
+    }),
+    palace: Object.freeze(['parents palace', 'siblings palace', 'social-relations palace']),
+  }),
+  day: Object.freeze({
+    stem: Object.freeze({
+      family: ['self'],
+      social: ['self'],
+      body: ['lower abdomen'],
+    }),
+    branch: Object.freeze({
+      family: ['spouse', "spouse's family"],
+      social: ['intimate partnership'],
+      body: ['buttocks'],
+    }),
+    palace: Object.freeze(['spouse palace', 'partnership palace']),
+  }),
+  hour: Object.freeze({
+    stem: Object.freeze({
+      family: ['eldest or first child'],
+      social: ['later-life projects'],
+      body: ['thighs'],
+    }),
+    branch: Object.freeze({
+      family: ['later children'],
+      social: ['legacy and descendants'],
+      body: ['calves'],
+    }),
+    palace: Object.freeze(['children palace', 'legacy palace']),
+  }),
+});
+
+export const TEN_GOD_SYMBOLISM = Object.freeze({
+  Resource: Object.freeze({
+    tenGods: ['正印', '偏印'],
+    function: ['supports the Day Master', 'channels Officer pressure', 'can restrain Output'],
+    utility: ['source of support', 'protection', 'learning and credentials'],
+    kinship: ['mother', 'elders', 'maternal or extended-family figures'],
+    people: ['elders', 'teachers', 'mentors'],
+    matters: ['culture', 'education', 'status credentials', 'documents', 'authority seals'],
+    body: ['hair', 'skin'],
+    places: ['schools', 'hospitals', 'academic institutions'],
+  }),
+  Wealth: Object.freeze({
+    tenGods: ['正财', '偏财'],
+    function: ['is controlled by the Day Master', 'can drain an under-supported Day Master', 'can restrain Resource'],
+    utility: ['means of livelihood', 'managed resources', 'possessions and exchange'],
+    kinship: ['father', 'wife or partner in some traditional male-chart schools'],
+    people: ['subordinates', 'workers', 'service providers'],
+    matters: ['money', 'property', 'trade', 'managed assets'],
+    body: ['essence and blood', 'breathing function'],
+    places: ['business premises', 'banks', 'exchanges'],
+  }),
+  Officer: Object.freeze({
+    tenGods: ['正官', '七杀'],
+    function: ['controls the Day Master', 'creates standards and pressure', 'can produce Resource'],
+    utility: ['identity and position', 'duty', 'constraint and institutional authority'],
+    kinship: ['husband or partner in some traditional female-chart schools', 'children in some lineage-specific rules'],
+    people: ['leaders', 'officials', 'teachers', 'enforcement figures'],
+    matters: ['office', 'rank', 'law', 'discipline', 'illness symbolism'],
+    body: ['injury symbolism', 'illness symbolism'],
+    places: ['government institutions', 'courts', 'prisons'],
+  }),
+  Companion: Object.freeze({
+    tenGods: ['比肩', '劫财'],
+    function: ['shares the Day Master element', 'supports agency', 'competes for Wealth'],
+    utility: ['help and alliance when favorable', 'competition and resource-sharing when unfavorable'],
+    kinship: ['brothers', 'sisters'],
+    people: ['friends', 'peers', 'partners', 'competitors'],
+    matters: ['cooperation', 'competition', 'mutual help', 'shared resources'],
+    body: ['hands', 'feet', 'limbs'],
+    places: ['sports grounds', 'competitive venues', 'team environments'],
+  }),
+  Output: Object.freeze({
+    tenGods: ['伤官', '食神'],
+    function: ['is produced by the Day Master', 'expresses skill and ideas', 'can restrain Officer'],
+    utility: ['expression', 'spiritual or creative pursuit', 'work products and reputation'],
+    kinship: ['children', 'students', 'younger generations'],
+    people: ['students', 'juniors', 'apprentices'],
+    matters: ['expression', 'enjoyment', 'performance', 'creative work'],
+    body: ['mouth', 'tongue', 'bodily openings'],
+    places: ['entertainment venues', 'markets', 'performance spaces'],
+  }),
+});
+
+export const FIVE_ELEMENT_CORRESPONDENCES = Object.freeze({
+  wood: Object.freeze({
+    organ: 'liver', bowel: 'gallbladder', season: 'spring', emotion: 'anger',
+    senseOrgan: 'eyes', taste: 'sour', tissue: 'tendons',
+    traditionalFunctions: ['coursing and discharge', 'stores blood'],
+    fluids: ['tears'],
+  }),
+  fire: Object.freeze({
+    organ: 'heart', bowel: 'small intestine', season: 'summer', emotion: 'joy',
+    senseOrgan: 'tongue', taste: 'bitter', tissue: 'vessels',
+    traditionalFunctions: ['governs blood and vessels', 'houses spirit'],
+    fluids: ['sweat'],
+  }),
+  earth: Object.freeze({
+    organ: 'spleen', bowel: 'stomach', season: 'late summer', emotion: 'pensiveness',
+    senseOrgan: 'mouth', taste: 'sweet', tissue: 'flesh',
+    traditionalFunctions: ['transformation and transportation', 'raises the clear', 'contains blood'],
+    fluids: ['saliva'],
+  }),
+  metal: Object.freeze({
+    organ: 'lungs', bowel: 'large intestine', season: 'autumn', emotion: 'grief',
+    senseOrgan: 'nose', taste: 'pungent', tissue: 'skin and body hair',
+    traditionalFunctions: ['governs qi and respiration', 'diffuses and descends', 'regulates water passages'],
+    fluids: ['nasal mucus'],
+  }),
+  water: Object.freeze({
+    organ: 'kidneys', bowel: 'bladder', season: 'winter', emotion: 'fear',
+    senseOrgan: 'ears', taste: 'salty', tissue: 'bones',
+    traditionalFunctions: ['stores essence', 'governs growth and reproduction', 'governs water'],
+    fluids: ['spittle'],
+  }),
+});
+
+export const VOID_ROLE_ASSOCIATIONS = Object.freeze({
+  Companion: Object.freeze({
+    domains: ['siblings', 'friends', 'colleagues', 'peers', 'partnership support', 'hands and feet symbolism'],
+    traditionalReading: 'connection, support, or collaboration may be less available or less durable',
+  }),
+  Output: Object.freeze({
+    domains: ['children', 'subordinates', 'students', 'apprentices', 'expression and projects'],
+    traditionalReading: 'continuity, expression, or generational connection may feel less direct',
+  }),
+  Resource: Object.freeze({
+    domains: ['mother', 'elders', 'education', 'applications', 'contracts', 'documents and credentials'],
+    traditionalReading: 'support, approval, or documentation may be delayed, returned, or less tangible',
+  }),
+  Wealth: Object.freeze({
+    domains: ['father', 'money', 'assets', 'resource retention', 'wife symbolism in some male-chart schools'],
+    traditionalReading: 'resources may circulate without accumulating or require stronger retention systems',
+  }),
+  Officer: Object.freeze({
+    domains: ['position', 'institutional authority', 'career title', 'husband symbolism in some female-chart schools', 'children symbolism in some male-chart schools'],
+    traditionalReading: 'formal recognition, role stability, or institutional support may be reduced or delayed',
+  }),
+});
+
+export const TENGYUNZI_ENERGY_SCALE = Object.freeze({
+  exposedFromBranch: Object.freeze({ multiplier: '>2', condition: 'a branch element is exposed through a matching Heavenly Stem' }),
+  rootedStem: Object.freeze({ multiplier: '>2', condition: 'a Heavenly Stem has a matching root in an Earthly Branch' }),
+  three_harmony: Object.freeze({ withStemCatalyst: 15, withoutStemCatalyst: Object.freeze([7, 8]) }),
+  half_harmony: Object.freeze({ withStemCatalyst: 10, withoutStemCatalyst: 5 }),
+  six_combine: Object.freeze({ withStemCatalyst: 10, withoutStemCatalyst: 5 }),
+  three_meeting: Object.freeze({ withStemCatalyst: 20, withoutStemCatalyst: 10 }),
+  punishment_chou_wei_xu: Object.freeze({ withStemCatalyst: 15, withoutStemCatalyst: Object.freeze([7, 8]) }),
+  punishment_yin_si_shen: Object.freeze({ withStemCatalyst: 10, withoutStemCatalyst: 5 }),
+  self_punishment: Object.freeze({ withStemCatalyst: 10, withoutStemCatalyst: 5 }),
+  tomb_clash: Object.freeze({ withStemCatalyst: 10, withoutStemCatalyst: 5 }),
+});
+
+export const ENERGY_MAGNITUDE_BANDS = Object.freeze([
+  Object.freeze({ min: 1, max: 3, label: 'small' }),
+  Object.freeze({ min: 3, max: 7, label: 'medium' }),
+  Object.freeze({ min: 10, max: 15, label: 'large' }),
+  Object.freeze({ min: 20, max: Infinity, label: 'extreme' }),
+]);
+
+// Retained for source fidelity only. These claims must never be emitted as a
+// diagnosis, sentence of death, imprisonment prediction, self-harm claim, or
+// guaranteed event. Customer reports may use only the neutral category name.
+export const RESTRICTED_TRADITIONAL_SEVERITY_ASSOCIATIONS = Object.freeze({
+  seven_killings_attacks_self: Object.freeze({
+    small: ['authority friction'], medium: ['illness symbolism'],
+    large: ['confinement or legal symbolism'], extreme: ['mortality symbolism'],
+  }),
+  hurting_officer_attacks_officer: Object.freeze({
+    small: ['verbal dispute'], medium: ['open conflict'],
+    large: ['legal dispute symbolism'], extreme: ['self-injury symbolism'],
+  }),
+  indirect_resource_overcomes_eating_god: Object.freeze({
+    small: ['low mood or self-talk symbolism'], medium: ['sleep or psychological-distress symbolism'],
+    large: ['self-harm symbolism'], extreme: ['harm-to-self-or-others symbolism'],
+  }),
+  rob_wealth_attacks_wealth: Object.freeze({
+    small: ['minor resource loss'], medium: ['major resource loss'],
+    large: ['major loss and family-strain symbolism'], extreme: ['severe loss and spouse-or-father strain symbolism'],
+  }),
+  calamity_or_confinement: Object.freeze({
+    small: ['illness symbolism'], medium: ['confinement symbolism'],
+    large: ['injury and confinement symbolism'], extreme: ['mortality symbolism'],
+  }),
+  blood_blade: Object.freeze({
+    small: ['minor injury symbolism'], medium: ['significant bleeding-event symbolism'],
+    large: ['disability symbolism'], extreme: ['mortality symbolism'],
+  }),
+});
+
+export const INDIRECT_RESOURCE_OVERCOMES_OUTPUT = Object.freeze({
+  metal_over_wood: Object.freeze(['limb-injury symbolism']),
+  wood_over_earth: Object.freeze(['abdominal-procedure or bleeding symbolism']),
+  earth_over_water: Object.freeze(['sudden external-injury symbolism']),
+  water_over_fire: Object.freeze(['water danger', 'sexual-health symbolism', 'food-poisoning symbolism']),
+  fire_over_metal: Object.freeze(['fracture', 'burn', 'skin-condition symbolism']),
+});
+
+export const TOMB_STORAGE_BRANCHES = Object.freeze(['辰', '戌', '丑', '未']);
+export const TOMB_STORAGE_CONTACTS = Object.freeze({
+  辰: Object.freeze({ clash: '戌', harm: '卯', break: '丑', combine: '酉' }),
+  戌: Object.freeze({ clash: '辰', harm: '酉', break: '未', combine: '卯' }),
+  丑: Object.freeze({ clash: '未', harm: '午', break: '辰', combine: '子' }),
+  未: Object.freeze({ clash: '丑', harm: '子', break: '戌', combine: '午' }),
+});
+
+export const FIVE_GHOST_WEALTH_BY_MONTH_BRANCH = Object.freeze({
+  子: '辰', 丑: '巳', 寅: '午', 卯: '未', 辰: '申', 巳: '酉',
+  午: '戌', 未: '亥', 申: '子', 酉: '丑', 戌: '寅', 亥: '卯',
+});
+
+// The supplied image describes 午未 as Fire, while the canonical Six-Combine
+// association used by this engine is Earth. Preserve the lineage variant without
+// silently replacing the canonical calculation.
+export const SIX_COMBINE_SCHOOL_VARIANTS = Object.freeze({
+  午未: Object.freeze(['fire']),
+});
+
+export const YUAN_CHEN_BY_YEAR_BRANCH = Object.freeze({
+  子: Object.freeze({ yinMaleYangFemale: '巳', yangMaleYinFemale: '未' }),
+  丑: Object.freeze({ yinMaleYangFemale: '午', yangMaleYinFemale: '申' }),
+  寅: Object.freeze({ yinMaleYangFemale: '未', yangMaleYinFemale: '酉' }),
+  卯: Object.freeze({ yinMaleYangFemale: '申', yangMaleYinFemale: '戌' }),
+  辰: Object.freeze({ yinMaleYangFemale: '酉', yangMaleYinFemale: '亥' }),
+  巳: Object.freeze({ yinMaleYangFemale: '戌', yangMaleYinFemale: '子' }),
+  午: Object.freeze({ yinMaleYangFemale: '亥', yangMaleYinFemale: '丑' }),
+  未: Object.freeze({ yinMaleYangFemale: '子', yangMaleYinFemale: '寅' }),
+  申: Object.freeze({ yinMaleYangFemale: '丑', yangMaleYinFemale: '卯' }),
+  酉: Object.freeze({ yinMaleYangFemale: '寅', yangMaleYinFemale: '辰' }),
+  戌: Object.freeze({ yinMaleYangFemale: '卯', yangMaleYinFemale: '巳' }),
+  亥: Object.freeze({ yinMaleYangFemale: '辰', yangMaleYinFemale: '午' }),
+});
+
 export const SHEN_SHA_ENGLISH = Object.freeze({
   天乙贵人: 'Heavenly Nobleman', 文昌贵人: 'Scholar Star', 禄神: 'Prosperity Star', 羊刃: 'Blade Star',
   桃花: 'Peach Blossom', 驿马: 'Travel Horse', 华盖: 'Canopy Star', 将星: 'General Star',
@@ -50,6 +309,13 @@ const SHEN_SHA_GROUPS = [
   { branches: ['亥', '卯', '未'], peach: '子', yima: '巳', huagai: '未', jiangxing: '卯' },
   { branches: ['巳', '酉', '丑'], peach: '午', yima: '亥', huagai: '丑', jiangxing: '酉' },
 ];
+
+export const LU_POSITION_MEANINGS = Object.freeze({
+  year: 'Traditional emphasis on family resources, early environment, and inherited support.',
+  month: 'Traditional emphasis on resources and opportunity during education or early career.',
+  day: 'Traditional emphasis on personally managed resources and middle-life livelihood.',
+  hour: 'Traditional emphasis on later-life resources, projects, children, or legacy.',
+});
 
 export const PILLAR_WEIGHTS = { year: 0.85, month: 1.35, day: 1, hour: 0.9 };
 export const HIDDEN_STEM_WEIGHTS = [0.6, 0.3, 0.1];
@@ -96,6 +362,224 @@ export function tenGodElementRoles(dayMasterElement) {
   }));
 }
 
+export function symbolicRoleForTenGod(name) {
+  return Object.entries(TEN_GOD_SYMBOLISM)
+    .find(([, value]) => value.tenGods.includes(name))?.[0] || '';
+}
+
+export function pillarSymbolism(pillarName) {
+  return PILLAR_SYMBOLISM[pillarName] || null;
+}
+
+export function voidBranchesForPillar(gz) {
+  const stem = String(gz || '')[0] || '';
+  const branch = String(gz || '')[1] || '';
+  const cycleIndex = Array.from({ length: 60 }, (_, index) => ({
+    index,
+    stem: STEMS[index % 10],
+    branch: BRANCHES[index % 12],
+  })).find((item) => item.stem === stem && item.branch === branch)?.index;
+  if (!Number.isInteger(cycleIndex)) return [];
+  const xunStart = Math.floor(cycleIndex / 10) * 10;
+  const used = new Set(Array.from({ length: 10 }, (_, offset) => BRANCHES[(xunStart + offset) % 12]));
+  return BRANCHES.filter((item) => !used.has(item));
+}
+
+export function voidAnalysis(pillars, options = {}) {
+  const hourKnown = options.hourKnown !== false;
+  const dayStem = String(pillars?.day?.stem || '');
+  const dayBranch = String(pillars?.day?.branch || '');
+  const voidBranches = voidBranchesForPillar(`${dayStem}${dayBranch}`);
+  const names = hourKnown ? ['year', 'month', 'day', 'hour'] : ['year', 'month', 'day'];
+  const affected = names.flatMap((pillar) => {
+    const branch = String(pillars?.[pillar]?.branch || '');
+    if (!voidBranches.includes(branch)) return [];
+    const gods = [...new Set((HIDDEN_STEMS[branch] || []).map((stem) => tenGod(dayStem, stem)).filter(Boolean))];
+    const roles = [...new Set(gods.map(symbolicRoleForTenGod).filter(Boolean))];
+    return [{
+      pillar,
+      branch,
+      tenGods: gods,
+      roles,
+      symbolism: roles.map((role) => ({
+        role,
+        ...VOID_ROLE_ASSOCIATIONS[role],
+      })),
+    }];
+  });
+  return {
+    basis: 'Day Pillar Xun Kong',
+    dayPillar: `${dayStem}${dayBranch}`,
+    voidBranches,
+    affected,
+    interpretation: 'Traditional void indicates reduced visibility, availability, or durability; it does not mean literal nonexistence or guarantee loss.',
+  };
+}
+
+export function indirectResourceOvercomesEatingGodProfile(pillars, options = {}) {
+  const hourKnown = options.hourKnown !== false;
+  const dayStem = String(pillars?.day?.stem || '');
+  const entries = pillarEntries(pillars, hourKnown);
+  const occurrences = entries.flatMap((entry) => {
+    const visible = entry.name !== 'day' && entry.stem
+      ? [{ pillar: entry.name, layer: 'visible', stem: entry.stem, tenGod: tenGod(dayStem, entry.stem) }]
+      : [];
+    const hidden = (HIDDEN_STEMS[entry.branch] || []).map((stem) => ({
+      pillar: entry.name,
+      layer: 'hidden',
+      stem,
+      tenGod: tenGod(dayStem, stem),
+    }));
+    return [...visible, ...hidden];
+  });
+  const indirectResource = occurrences.filter((item) => item.tenGod === '偏印');
+  const eatingGod = occurrences.filter((item) => item.tenGod === '食神');
+  if (!indirectResource.length || !eatingGod.length) {
+    return {
+      present: false,
+      status: 'not_detected',
+      indirectResource,
+      eatingGod,
+      restrictedAssociations: [],
+    };
+  }
+  const sourceElement = charElement(indirectResource[0].stem);
+  const targetElement = charElement(eatingGod[0].stem);
+  const key = `${sourceElement}_over_${targetElement}`;
+  return {
+    present: true,
+    status: 'symbolic_contact_only',
+    indirectResource,
+    eatingGod,
+    sourceElement,
+    targetElement,
+    restrictedAssociations: INDIRECT_RESOURCE_OVERCOMES_OUTPUT[key] || [],
+    interpretation: 'The supplied school treats simultaneous Indirect Resource and Eating God as a possible Resource-over-Output tension. Presence alone does not establish bodily harm or an event.',
+    customerVisiblePredictionAllowed: false,
+  };
+}
+
+export function relationEnergyReference(type, options = {}) {
+  let key = type;
+  if (type === 'punishment') {
+    const group = String(options.group || '');
+    key = group === '丑未戌' ? 'punishment_chou_wei_xu'
+      : group === '寅巳申' ? 'punishment_yin_si_shen'
+        : '';
+  }
+  if (type === 'six_clash' && ['辰戌', '戌辰', '丑未', '未丑'].includes(String(options.pair || ''))) {
+    key = 'tomb_clash';
+  }
+  const rule = TENGYUNZI_ENERGY_SCALE[key];
+  if (!rule) return null;
+  const raw = options.hasStemCatalyst ? rule.withStemCatalyst : rule.withoutStemCatalyst;
+  const range = Array.isArray(raw) ? raw : [raw, raw];
+  const representative = range.reduce((sum, value) => sum + value, 0) / range.length;
+  return {
+    method: 'Tengyunzi relative teaching scale',
+    hasStemCatalyst: Boolean(options.hasStemCatalyst),
+    relativeMultiplier: raw,
+    magnitude: energyMagnitude(representative),
+    disclaimer: 'A comparative symbolic scale, not a physical measurement and not proof that transformation has completed.',
+  };
+}
+
+export function energyMagnitude(value) {
+  const score = Number(value);
+  if (!Number.isFinite(score) || score < 0) return 'unknown';
+  const found = ENERGY_MAGNITUDE_BANDS.find((band) => score >= band.min && score <= band.max);
+  if (found) return found.label;
+  if (score > 7 && score < 10) return 'medium-high';
+  if (score > 15 && score < 20) return 'very large';
+  return score === 0 ? 'none' : 'unknown';
+}
+
+export function fiveGhostWealthMarker(monthBranch) {
+  const target = FIVE_GHOST_WEALTH_BY_MONTH_BRANCH[String(monthBranch || '')] || '';
+  return target ? {
+    monthBranch: String(monthBranch),
+    targetBranch: target,
+    name: 'Five Ghost Wealth marker',
+    interpretation: 'A lineage-specific auxiliary marker for opportunistic or windfall-style exchange, traditionally paired with caution around disputes and unreliable counterparties.',
+    evidenceLevel: 'auxiliary',
+  } : null;
+}
+
+export function yuanChenMarker(yearStem, yearBranch, gender) {
+  const table = YUAN_CHEN_BY_YEAR_BRANCH[String(yearBranch || '')];
+  const polarity = STEM_POLARITY[String(yearStem || '')] || '';
+  const normalized = String(gender || '').trim().toLowerCase();
+  const male = ['男', 'male', 'm', 'man'].includes(normalized);
+  const female = ['女', 'female', 'f', 'woman'].includes(normalized);
+  if (!table || !polarity || (!male && !female)) return null;
+  const yangMaleYinFemale = (male && polarity === 'yang') || (female && polarity === 'yin');
+  return {
+    name: 'Yuan Chen',
+    english: 'Yuan Chen / Great Depletion marker',
+    branch: yangMaleYinFemale ? table.yangMaleYinFemale : table.yinMaleYangFemale,
+    basis: yangMaleYinFemale ? 'Yang-year male or Yin-year female table' : 'Yin-year male or Yang-year female table',
+    evidenceLevel: 'auxiliary',
+    interpretation: 'A lineage-specific depletion or complication marker; it cannot independently establish loss, illness, or an event.',
+  };
+}
+
+export function traditionalReferenceProfile(pillars, options = {}) {
+  const hourKnown = options.hourKnown !== false;
+  const entries = pillarEntries(pillars, hourKnown);
+  const fiveGhost = fiveGhostWealthMarker(pillars?.month?.branch);
+  const fiveGhostPlacements = fiveGhost
+    ? entries.filter((entry) => entry.branch === fiveGhost.targetBranch)
+      .map((entry) => ({ pillar: entry.name, branch: entry.branch }))
+    : [];
+  const yuanChen = yuanChenMarker(pillars?.year?.stem, pillars?.year?.branch, options.gender);
+  const yuanChenPlacements = yuanChen
+    ? entries.filter((entry) => entry.branch === yuanChen.branch)
+      .map((entry) => ({ pillar: entry.name, branch: entry.branch }))
+    : [];
+  return {
+    methodology: 'Tengyunzi supplied-reference layer',
+    pillarSymbolism: Object.fromEntries(entries.map((entry) => [entry.name, PILLAR_SYMBOLISM[entry.name]])),
+    void: voidAnalysis(pillars, { hourKnown }),
+    exposureAndRooting: exposureAndRootingProfile(pillars, { hourKnown }),
+    tenGodSymbolism: TEN_GOD_SYMBOLISM,
+    indirectResourceOvercomesEatingGod: indirectResourceOvercomesEatingGodProfile(pillars, { hourKnown }),
+    fiveGhostWealth: fiveGhost ? { ...fiveGhost, placements: fiveGhostPlacements } : null,
+    yuanChen: yuanChen ? { ...yuanChen, placements: yuanChenPlacements } : null,
+    fiveElementCorrespondences: FIVE_ELEMENT_CORRESPONDENCES,
+    safeguards: {
+      symbolicNotBiographicalFact: true,
+      noMedicalDiagnosis: true,
+      noGuaranteedEvents: true,
+      noDeathOrSelfHarmPrediction: true,
+      restrictedSeverityAssociationsCustomerVisible: false,
+    },
+  };
+}
+
+export function tombStorageContacts({ incomingBranch, natalPillars, hourKnown = true }) {
+  const branch = String(incomingBranch || '');
+  if (!BRANCH_ELEMENT[branch]) return [];
+  const entries = pillarEntries(natalPillars, hourKnown);
+  const presentBranches = new Set([branch, ...entries.map((entry) => entry.branch)]);
+  return entries.flatMap((entry) => {
+    if (!TOMB_STORAGE_BRANCHES.includes(entry.branch)) return [];
+    const rules = TOMB_STORAGE_CONTACTS[entry.branch];
+    const contactType = Object.entries(rules).find(([, target]) => target === branch)?.[0] || '';
+    const triplePunishment = ['丑', '未', '戌'].every((member) => presentBranches.has(member));
+    if (!contactType && !triplePunishment) return [];
+    return [{
+      type: 'tomb_storage_contact',
+      label: 'Tomb-storage activation contact',
+      incomingBranch: branch,
+      tombBranch: entry.branch,
+      pillar: entry.name,
+      contactType: triplePunishment && ['丑', '未', '戌'].includes(entry.branch) ? 'three_punishment' : contactType,
+      status: 'contact_only',
+      interpretation: 'The supplied school treats clash, harm, break, combine, or full 丑未戌 punishment as a possible opening contact. Whether stored qi is actually released requires full-chart strength and transformation review.',
+    }];
+  });
+}
+
 export function shenShaForChart(pillars, options = {}) {
   const hourKnown = options.hourKnown !== false;
   const yearStem = String(pillars?.year?.stem || '');
@@ -134,7 +618,9 @@ export function shenShaForChart(pillars, options = {}) {
     if (HONG_LUAN_BY_BRANCH[yearBranch] === branch) add(pillar, branch, '红鸾', 'Year Branch');
     if (TIAN_XI_BY_BRANCH[yearBranch] === branch) add(pillar, branch, '天喜', 'Year Branch');
   }
-  return results;
+  return results.map((item) => item.name === '禄神'
+    ? { ...item, positionMeaning: LU_POSITION_MEANINGS[item.pillar] || '' }
+    : item);
 }
 
 function largestRemainder(values, target = 100) {
@@ -216,6 +702,27 @@ export function elementProfile(pillars, options = {}) {
   return { stems, branches, visible, hidden, presence };
 }
 
+export function exposureAndRootingProfile(pillars, options = {}) {
+  const hourKnown = options.hourKnown !== false;
+  const entries = pillarEntries(pillars, hourKnown);
+  return ELEMENTS.map((element) => {
+    const exposedStems = entries.filter((entry) => STEM_ELEMENT[entry.stem] === element)
+      .map((entry) => ({ pillar: entry.name, stem: entry.stem }));
+    const roots = entries.flatMap((entry) => (HIDDEN_STEMS[entry.branch] || [])
+      .filter((stem) => STEM_ELEMENT[stem] === element)
+      .map((stem) => ({ pillar: entry.name, branch: entry.branch, hiddenStem: stem })));
+    return {
+      element,
+      exposedStems,
+      roots,
+      branchQiExposed: exposedStems.length > 0 && roots.length > 0,
+      stemRooted: exposedStems.length > 0 && roots.length > 0,
+      referenceMultiplier: exposedStems.length > 0 && roots.length > 0 ? '>2' : '1',
+      method: 'Tengyunzi exposure-and-rooting reference',
+    };
+  });
+}
+
 export function assessDayMasterStrength(pillars, options = {}) {
   const hourKnown = options.hourKnown !== false;
   const names = hourKnown ? ['year', 'month', 'day', 'hour'] : ['year', 'month', 'day'];
@@ -279,7 +786,146 @@ export function assessDayMasterStrength(pillars, options = {}) {
   };
 }
 
-export function balancingElementGuidance(dayMasterElement, strengthAssessment) {
+/**
+ * Detects classical special patterns before ordinary strong/weak balancing.
+ *
+ * The Cong Er (从儿 / Follow-the-Child) branch follows the 顺局 chapter of
+ * Di Tian Sui Chan Wei:
+ * - Output must command the Month Branch and form the dominant current.
+ * - Wealth must be present so "the child produces its child" (食伤生财).
+ * - Resource must not break the current; exposed Officer also counts against it.
+ * - Companion roots do not by themselves disqualify Cong Er because Companion
+ *   can continue to produce Output.
+ *
+ * This detector deliberately returns the evidence and failure conditions so a
+ * model cannot silently fall back to ordinary weak-Day-Master balancing.
+ */
+export function assessClassicalSpecialPattern(pillars, options = {}) {
+  const hourKnown = options.hourKnown !== false;
+  const dayStem = String(pillars?.day?.stem || '');
+  const dayElement = STEM_ELEMENT[dayStem] || '';
+  const roles = tenGodElementRoles(dayElement);
+  const monthElement = BRANCH_ELEMENT[pillars?.month?.branch] || '';
+  if (!dayElement || !Object.keys(roles).length) {
+    return {
+      pattern: 'unknown',
+      label: 'Unavailable',
+      qualified: false,
+      classicalPriority: false,
+      evidence: [],
+      disqualifiers: ['Day Master or Month Branch is unavailable.'],
+    };
+  }
+
+  const roleElement = (wantedRole) => Object.entries(roles)
+    .find(([, role]) => role === wantedRole)?.[0] || '';
+  const outputElement = roleElement('Output');
+  const wealthElement = roleElement('Wealth');
+  const officerElement = roleElement('Officer');
+  const resourceElement = roleElement('Resource');
+  const companionElement = roleElement('Companion');
+  const profile = weightedTenGodProfile(pillars, { hourKnown });
+  const byNames = (...names) => profile
+    .filter((item) => names.includes(item.name))
+    .reduce((sum, item) => sum + Number(item.exactPercentage || 0), 0);
+  const outputShare = byNames('食神', '伤官');
+  const wealthShare = byNames('偏财', '正财');
+  const officerShare = byNames('七杀', '正官');
+  const resourceShare = byNames('偏印', '正印');
+  const names = hourKnown ? ['year', 'month', 'day', 'hour'] : ['year', 'month', 'day'];
+  const visibleRoleCount = (element) => names
+    .filter((name) => name !== 'day')
+    .filter((name) => STEM_ELEMENT[pillars?.[name]?.stem] === element).length;
+  const hiddenRoleCount = (element) => names.reduce((sum, name) => sum
+    + (HIDDEN_STEMS[pillars?.[name]?.branch] || [])
+      .filter((stem) => STEM_ELEMENT[stem] === element).length, 0);
+
+  const outputCommandsMonth = monthElement === outputElement;
+  const outputDominant = outputShare >= 45;
+  const outputExposed = visibleRoleCount(outputElement) > 0;
+  const wealthPresent = visibleRoleCount(wealthElement) + hiddenRoleCount(wealthElement) > 0;
+  const resourcePresent = visibleRoleCount(resourceElement) + hiddenRoleCount(resourceElement) > 0;
+  const officerExposed = visibleRoleCount(officerElement) > 0;
+  const officerMinorAndHidden = !officerExposed && officerShare <= 10;
+  const qualified = outputCommandsMonth
+    && outputDominant
+    && outputExposed
+    && wealthPresent
+    && !resourcePresent
+    && officerMinorAndHidden;
+
+  const evidence = [
+    outputCommandsMonth ? 'Output commands the Month Branch (食伤在提纲).' : '',
+    outputDominant ? `Output is the dominant Ten-God current (${outputShare.toFixed(1)}%).` : '',
+    outputExposed ? 'Output is exposed on a non-Day Heavenly Stem.' : '',
+    wealthPresent ? `Wealth is present (${wealthShare.toFixed(1)}%), completing 食伤生财.` : '',
+    !resourcePresent ? 'Resource is absent in both visible and hidden layers, so no 印星破局 is present.' : '',
+    officerMinorAndHidden ? `Officer is hidden and minor (${officerShare.toFixed(1)}%), not an exposed counter-current.` : '',
+  ].filter(Boolean);
+  const disqualifiers = [
+    !outputCommandsMonth ? 'Output does not command the Month Branch.' : '',
+    !outputDominant ? 'Output does not dominate the chart current.' : '',
+    !outputExposed ? 'Output is not exposed.' : '',
+    !wealthPresent ? 'Wealth is absent, so “the child produces its child” is not completed.' : '',
+    resourcePresent ? 'Resource is present and can overcome Output.' : '',
+    officerExposed ? 'Officer is exposed and opposes the Output current.' : '',
+    !officerMinorAndHidden && !officerExposed ? 'Hidden Officer is too strong to remain a minor impurity.' : '',
+  ].filter(Boolean);
+
+  return {
+    pattern: qualified ? 'cong_er' : 'standard',
+    label: qualified ? 'Cong Er / Follow-the-Child (从儿格、顺局)' : 'No qualifying special pattern detected',
+    qualified,
+    classicalPriority: qualified,
+    dayMasterElement: dayElement,
+    monthElement,
+    roleElements: {
+      companion: companionElement,
+      output: outputElement,
+      wealth: wealthElement,
+      officer: officerElement,
+      resource: resourceElement,
+    },
+    roleShares: {
+      output: outputShare,
+      wealth: wealthShare,
+      officer: officerShare,
+      resource: resourceShare,
+    },
+    evidence,
+    disqualifiers,
+    elementGuidance: qualified ? {
+      favorable: [outputElement, wealthElement],
+      conditional: [companionElement],
+      caution: [officerElement],
+      stronglyUnfavorable: [resourceElement],
+      explanation: 'Follow the dominant Output → Wealth current. Resource reverses and attacks Output; Officer is the secondary counter-current. Companion is conditional because it can feed Output, but excessive dry Companion may bury Output or seize Wealth.',
+    } : null,
+    classicalBasis: qualified ? {
+      work: '《滴天髓阐微》',
+      chapter: '顺局',
+      verse: '一出门来只见儿，吾儿成气构门闾；从儿不管身强弱，只要吾儿又得儿。',
+      verseEnglish: 'Once outside the gate, only the child is seen; when the child forms the current, it establishes the household. In Follow-the-Child, do not judge by whether the self is strong or weak; what matters is that the child in turn produces its own child.',
+      application: 'Month-command Output is the child; Wealth is the child of Output. Companion roots alone do not cancel the pattern when they continue to produce Output.',
+      sourceNoteEnglish: 'Di Tian Sui (Dripping Heavenly Essence) is traditionally attributed to the otherwise obscure Song-dynasty figure Jing Tu; its exact composition year is uncertain. The received early commentary is traditionally attributed to Liu Ji (1311–1375), a scholar, strategist, writer, and founding statesman of the Ming dynasty. Di Tian Sui Chan Wei is the expanded Qing-dynasty exposition prepared during the Daoguang reign (1821–1850) by Ren Tieqiao, a scholar and professional practitioner of Chinese fate calculation, commonly dated 1773–1840.',
+      attributionStatus: 'Traditional attribution; the original composition date and Jing Tu biography are not securely documented.',
+    } : null,
+  };
+}
+
+export function balancingElementGuidance(dayMasterElement, strengthAssessment, specialPattern = null) {
+  if (specialPattern?.qualified && specialPattern?.elementGuidance) {
+    return {
+      favorable: [...specialPattern.elementGuidance.favorable],
+      caution: [
+        ...specialPattern.elementGuidance.caution,
+        ...specialPattern.elementGuidance.stronglyUnfavorable,
+      ],
+      conditional: [...specialPattern.elementGuidance.conditional],
+      pattern: specialPattern.pattern,
+      basis: 'classical-special-pattern',
+    };
+  }
   const roles = tenGodElementRoles(dayMasterElement);
   const byRoles = (...wanted) => Object.entries(roles)
     .filter(([, role]) => wanted.includes(role))
@@ -361,6 +1007,41 @@ function pillarEntries(pillars, hourKnown = true) {
     .filter((pillar) => pillar.stem && pillar.branch);
 }
 
+function decorateInteraction(item, stems) {
+  const resultingElement = String(item.resultingElement || '');
+  const hasStemCatalyst = Boolean(resultingElement)
+    && stems.some((stem) => STEM_ELEMENT[stem] === resultingElement);
+  const pair = `${item.source || ''}${item.target || ''}`;
+  const energyReference = relationEnergyReference(item.type, {
+    hasStemCatalyst,
+    group: item.group,
+    pair,
+  });
+  const transformation = resultingElement ? {
+    status: 'contact_only',
+    associatedElement: resultingElement,
+    stemCatalystPresent: hasStemCatalyst,
+    conditionsEvaluated: false,
+    note: 'The relationship is present, but seasonal command, rooting, obstruction, competition, and break conditions have not been fully resolved; do not state that transformation completed.',
+  } : undefined;
+  const normalizedPair = [String(item.source || ''), String(item.target || '')].sort().join('');
+  const schoolVariants = item.type === 'six_combine'
+    ? SIX_COMBINE_SCHOOL_VARIANTS[normalizedPair] || []
+    : [];
+  return {
+    ...item,
+    ...(transformation ? { transformation } : {}),
+    ...(schoolVariants.length ? {
+      schoolVariants: schoolVariants.map((element) => ({
+        associatedElement: element,
+        source: 'supplied Tengyunzi image reference',
+        canonicalElementRetained: resultingElement,
+      })),
+    } : {}),
+    ...(energyReference ? { energyReference } : {}),
+  };
+}
+
 export function analyzeNatalInteractions(pillars, options = {}) {
   const entries = pillarEntries(pillars, options.hourKnown !== false);
   const results = [];
@@ -412,7 +1093,8 @@ export function analyzeNatalInteractions(pillars, options = {}) {
   }
 
   const key = (item) => [item.type, item.source, item.target, (item.pillars || []).join(','), item.resultingElement || ''].join('|');
-  return [...new Map(results.map((item) => [key(item), item])).values()];
+  const unique = [...new Map(results.map((item) => [key(item), item])).values()];
+  return unique.map((item) => decorateInteraction(item, entries.map((entry) => entry.stem)));
 }
 
 export function analyzeAnnualInteractions({ annualGz, natalPillars, luckGz = '', hourKnown = true }) {
@@ -476,18 +1158,65 @@ export function analyzeAnnualInteractions({ annualGz, natalPillars, luckGz = '',
   }
 
   const key = (item) => [item.type, item.scope, item.pillar || '', item.source, item.target, item.resultingElement || ''].join('|');
-  return [...new Map(results.map((item) => [key(item), item])).values()];
+  const unique = [...new Map(results.map((item) => [key(item), item])).values()];
+  return unique.map((item) => decorateInteraction(item, [annualStem, ...targets.map((target) => target.stem)]));
 }
 
-export function timingPosture(interactions, stemGod = '', options = {}) {
+export function timingAssessment(interactions, options = {}) {
   const types = new Set(interactions.map((item) => item.type));
-  if (['fan_yin', 'six_clash', 'punishment', 'self_punishment', 'six_harm'].some((type) => types.has(type))) return 'DEFEND';
   const favorable = new Set(options.favorableElements || options.favorable || []);
+  const conditional = new Set(options.conditionalElements || options.conditional || []);
   const annualElement = String(options.annualElement || '').toLowerCase();
+  const favorableAnnual = Boolean(annualElement && favorable.has(annualElement));
+  const conditionalAnnual = Boolean(annualElement && conditional.has(annualElement));
   const supportiveResult = interactions.some((item) =>
     ['three_harmony', 'three_meeting', 'six_combine', 'half_harmony'].includes(item.type)
       && favorable.has(String(item.resultingElement || '').toLowerCase()));
-  if ((annualElement && favorable.has(annualElement)) || supportiveResult) return 'ADVANCE';
-  if (!favorable.size && ['three_harmony', 'three_meeting', 'six_combine', 'half_harmony'].some((type) => types.has(type))) return 'ADVANCE';
-  return 'STEADY';
+  const supportScore = (favorableAnnual ? 2 : conditionalAnnual ? 1 : 0) + (supportiveResult ? 1 : 0);
+  const pressureScore = interactions.reduce((score, item) => score + (
+    ['fan_yin', 'six_clash', 'punishment', 'self_punishment'].includes(item.type) ? 2
+      : ['six_harm', 'six_break', 'stem_clash'].includes(item.type) ? 1
+        : 0
+  ), 0);
+  const changeScore = interactions.reduce((score, item) => score + (
+    ['three_harmony', 'three_meeting', 'six_combine', 'half_harmony', 'fan_yin', 'fu_yin', 'six_clash'].includes(item.type) ? 2
+      : ['stem_combine', 'stem_clash', 'branch_repeat', 'stem_repeat', 'punishment', 'six_harm', 'six_break'].includes(item.type) ? 1
+        : 0
+  ), 0);
+  const level = (score) => score >= 4 ? 'HIGH' : score >= 2 ? 'MEDIUM' : 'LOW';
+  const decisionPosture = pressureScore >= 3
+    ? supportScore > 0 ? 'SELECTIVE ADVANCE' : 'HOLD & PROTECT'
+    : supportScore >= 2
+      ? pressureScore > 0 ? 'SELECTIVE ADVANCE' : 'SUPPORTED ADVANCE'
+      : supportScore > 0 ? 'SELECTIVE ADVANCE' : 'STEADY';
+  const supportBasis = [
+    favorableAnnual ? `the annual ${annualElement[0].toUpperCase()}${annualElement.slice(1)} element is a favorable support signal` : '',
+    conditionalAnnual ? `the annual ${annualElement[0].toUpperCase()}${annualElement.slice(1)} element is a conditional support signal` : '',
+    supportiveResult ? 'a combination resolves into a favorable element' : '',
+  ].filter(Boolean).join(' and ');
+  const postureReason = decisionPosture === 'SUPPORTED ADVANCE'
+    ? 'Support is clear and material pressure is absent, so a defined plan can move forward.'
+    : decisionPosture === 'SELECTIVE ADVANCE' && pressureScore >= 3
+      ? `${supportBasis || 'At least one support signal remains'}, but pressure is high; use reversible steps, narrow scope, and explicit limits.`
+      : decisionPosture === 'SELECTIVE ADVANCE'
+        ? 'Support and pressure coexist; stage commitments and preserve reversal options.'
+        : decisionPosture === 'HOLD & PROTECT'
+          ? 'Pressure outweighs structural support; protect time, liquidity, and decision quality.'
+          : 'Neither acceleration nor protection dominates; maintain pace and verify assumptions.';
+  return {
+    supportLevel: level(supportScore),
+    pressureLevel: level(pressureScore),
+    changeIntensity: level(changeScore),
+    decisionPosture,
+    confidence: interactions.length >= 2 ? 'MEDIUM' : 'LOW',
+    supportScore,
+    pressureScore,
+    changeScore,
+    postureReason,
+    supportBasis: supportBasis || 'no favorable or conditional support signal is counted',
+  };
+}
+
+export function timingPosture(interactions, stemGod = '', options = {}) {
+  return timingAssessment(interactions, options).decisionPosture;
 }

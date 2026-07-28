@@ -8,21 +8,19 @@
   const ADMIN_TOKEN_KEY = 'tengyunzi_admin_session_token';
   const elementNames = { '木': 'wood', '火': 'fire', '土': 'earth', '金': 'metal', '水': 'water' };
   const reportConfidence = {
-    1: ['CALCULATED', 'Direct Four-Pillar data'],
-    2: ['SUPPORTED', 'Season, roots, support, drains, and controls'],
-    3: ['CALCULATED', 'Visible elements and canonical hidden stems'],
-    4: ['CALCULATED', 'Day-Master Ten-God mapping'],
-    5: ['SUPPORTED', 'Balancing interpretation; schools may differ'],
-    6: ['CALCULATED', 'Canonical natal contacts only'],
-    7: ['CONTEXTUAL', 'Secondary Shen Sha evidence'],
-    8: ['CONTEXTUAL', 'Career expression depends on lived context'],
-    9: ['CONTEXTUAL', 'Wealth symbolism is not a financial outcome'],
-    10: ['CONTEXTUAL', 'Relationship symbolism is not verified biography'],
-    11: ['CONTEXTUAL', 'Traditional, non-diagnostic correspondence'],
-    12: ['CALCULATED', 'Direction and starting age from calculator'],
-    13: ['SUPPORTED', 'Calculated cycles with conditional interpretation'],
-    14: ['SUPPORTED', 'Calculated contacts with conditional outcomes'],
-    15: ['CONTEXTUAL', 'Planning synthesis, not a guarantee'],
+    1: ['SUPPORTED', 'Four Pillars plus governing chart verdict'],
+    2: ['SUPPORTED', 'Pattern and explicit favorable-element judgment'],
+    3: ['CALCULATED', 'Weighted Five-Element and Ten-God structure'],
+    4: ['CALCULATED', 'Canonical contacts, repetition, Fu Yin, and Void'],
+    5: ['SUPPORTED', 'Capability derived from the governing pattern'],
+    6: ['CONTEXTUAL', 'Kinship symbols are not verified biography'],
+    7: ['CONTEXTUAL', 'Career modes follow the element verdict'],
+    8: ['CONTEXTUAL', 'Wealth structure is not a financial guarantee'],
+    9: ['CONTEXTUAL', 'Relationship symbols are not guaranteed events'],
+    10: ['CONTEXTUAL', 'Traditional Five-Element body correspondence'],
+    11: ['SUPPORTED', 'Calculated Luck Cycles and structural ratings'],
+    12: ['SUPPORTED', 'Calculated annual contacts and explicit ratings'],
+    13: ['SUPPORTED', 'Synthesis of the same governing pattern'],
   };
 
   const form = document.querySelector('[data-report-form]');
@@ -270,7 +268,7 @@
       }
     }
 
-    const label = report.access_type === 'paid' ? 'Complete standard BaZi reading' : 'Free BaZi preview';
+    const label = report.access_type === 'paid' ? 'BaZi Destiny Book' : 'Free BaZi preview';
     document.querySelector('[data-report-label]').textContent = label;
     document.querySelector('[data-report-title]').textContent = report.access_type === 'paid' ? 'Your Complete BaZi Reading' : 'Your BaZi Preview';
     reportStage.classList.add('is-visible');
@@ -338,7 +336,7 @@
     }
     clearReport();
     setBusy(freeButton, true, 'Generating your preview...');
-    setBusy(paidButton, true, 'Complete report');
+    setBusy(paidButton, true, 'Destiny Book');
     setStatus('Reading your chart. This can take about a minute.', 'success');
     try {
       const data = await reportApi('create_free', currentPayload);
@@ -535,7 +533,7 @@
   if (adminTestMode) {
     paidButton.textContent = 'Generate administrator test report';
     paidButton.dataset.defaultText = paidButton.textContent;
-    setStatus('Administrator test mode is active. The complete report can be generated without PayPal.', 'success');
+    setStatus('Administrator test mode is active. The complete Destiny Book can be generated without PayPal.', 'success');
   }
   const hasBirthParams = ['year', 'month', 'day'].every((name) => initialParams.get(name));
   if (hasBirthParams) {

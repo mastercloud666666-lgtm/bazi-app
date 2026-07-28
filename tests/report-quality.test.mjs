@@ -11,15 +11,15 @@ import {
 
 const root = path.resolve(import.meta.dirname, '..');
 
-test('all 15 standard chapters have an explicit confidence tier', () => {
-  assert.equal(Object.keys(REPORT_CONFIDENCE).length, 15);
-  for (let number = 1; number <= 15; number += 1) {
+test('all 13 standard chapters have an explicit confidence tier', () => {
+  assert.equal(Object.keys(REPORT_CONFIDENCE).length, 13);
+  for (let number = 1; number <= 13; number += 1) {
     const confidence = confidenceForSection(number);
     assert.match(confidence.level, /^(CALCULATED|SUPPORTED|CONTEXTUAL)$/);
     assert.ok(confidence.label);
     assert.ok(confidence.note);
   }
-  assert.equal(confidenceForSection(1).level, 'CALCULATED');
+  assert.equal(confidenceForSection(1).level, 'SUPPORTED');
   assert.equal(confidenceForSection(7).level, 'CONTEXTUAL');
   assert.equal(confidenceForSection(13).level, 'SUPPORTED');
 });
@@ -74,7 +74,7 @@ test('shared report sentence splitting keeps decimal evidence in one sentence', 
 
 test('frontend exposes the same confidence levels and standard chapter count', () => {
   const source = fs.readFileSync(path.join(root, 'public', 'js', 'tengyunzi-report.js'), 'utf8');
-  for (let number = 1; number <= 15; number += 1) {
+  for (let number = 1; number <= 13; number += 1) {
     assert.match(source, new RegExp(`\\b${number}: \\['${confidenceForSection(number).level}'`));
   }
   assert.match(source, /Reading depth/);
