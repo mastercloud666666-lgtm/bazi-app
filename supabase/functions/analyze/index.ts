@@ -1916,49 +1916,13 @@ Quote the Classical Chinese source texts accurately. End with one separate line:
       }
 
     } else if (service === 'fengshui') {
-      const { location, concern, description, image_base64 } = body;
-
-      // 如果有户型图，先用视觉模型读图，再做环境布局分析
-      let layoutDesc = '';
-      if (image_base64) {
-        try {
-          const visionRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${Deno.env.get('DEEPSEEK_API_KEY')}`,
-            },
-            body: JSON.stringify({
-              model: 'deepseek-vl2',
-              max_tokens: 800,
-              messages: [{
-                role: 'user',
-                content: [
-                  { type: 'image_url', image_url: { url: image_base64 } },
-                  { type: 'text', text: '这是一张户型图。请仔细描述：1. 图上标注的东南西北方向；2. 大门/入口在哪个方向；3. 各功能区（客厅、卧室、厨房、卫生间、阳台）的位置和朝向；4. 特殊格局（穿堂风、开门见灶/卫等）。只描述图上实际能看到的，不要推断。' }
-                ],
-              }],
-            }),
-          });
-          const vd = await visionRes.json();
-          layoutDesc = vd.choices?.[0]?.message?.content || '';
-        } catch (_) { /* 视觉识别失败则仅凭文字分析 */ }
-      }
-
-      const layoutSection = layoutDesc
-        ? `\n\n户型图识别结果（以此为准）：\n${layoutDesc}`
-        : '';
-      prompt = `客户情况：${description}${layoutSection}
-地点：${location || '未说明'}
-主要关切：${concern}
-
-请从环境布局角度分析并给出实用建议：
-1. 主要问题在哪里（具体说是哪个方位或格局，有户型图的按图说）
-2. 对家运/事业/健康有什么影响
-3. 具体改善方法（3-5条，说清楚怎么做）
-4. 注意事项
-
-用口语，像一个走访过的环境布局顾问在给你当面说，不写标题符号，实用为主，直接从分析开始。`;
+      return new Response(JSON.stringify({
+        error: 'fengshui_endpoint_moved',
+        message: 'Use the dedicated /functions/v1/fengshui-audit endpoint. It separates floor-plan extraction from the fixed residential rule engine and returns an English report.',
+      }), {
+        status: 410,
+        headers: { 'Content-Type': 'application/json', ...CORS },
+      });
 
     } else if (service === 'hepan') {
       let man_bazi_str = String(body?.man_bazi_str || '').trim();

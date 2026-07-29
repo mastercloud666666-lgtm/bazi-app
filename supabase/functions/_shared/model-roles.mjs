@@ -26,6 +26,12 @@ export const MODEL_ROLES = Object.freeze({
     thinking: true,
     optional: true,
   }),
+  fengshuiVision: Object.freeze({
+    env: 'RUNAPI_FENGSHUI_VISION_MODEL',
+    preferred: 'gpt-5.1',
+    fallback: 'gpt-5',
+    reasoningEffort: 'high',
+  }),
 });
 
 export function resolveModelRole(role, readEnv = () => '') {

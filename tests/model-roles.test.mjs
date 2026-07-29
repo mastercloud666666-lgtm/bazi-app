@@ -17,6 +17,7 @@ test('standard paid report separates analysis, writing, and routine QA', () => {
   assert.equal(MODEL_ROLES.routineQA.preferred, 'deepseek-v4-flash');
   assert.equal(MODEL_ROLES.advancedQA.optional, true);
   assert.equal(MODEL_ROLES.classicsInterpreter.optional, true);
+  assert.equal(MODEL_ROLES.fengshuiVision.preferred, 'gpt-5.1');
 });
 
 test('model roles can be overridden without changing source', () => {
