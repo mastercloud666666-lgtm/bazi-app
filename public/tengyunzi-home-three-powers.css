@@ -90,12 +90,12 @@ body.three-powers-home {
 }
 
 .three-powers-home .nav-links {
-  gap: 24px;
+  gap: 10px;
 }
 
 .three-powers-home .nav-links a {
   color: var(--home-ink);
-  font-size: 0.82rem;
+  font-size: 0.74rem;
   font-weight: 700;
 }
 
@@ -104,17 +104,31 @@ body.three-powers-home {
   color: var(--home-blue);
 }
 
-.three-powers-home .nav-links a[href="#sign-in"] {
-  display: none;
-}
-
 .three-powers-home .nav-links .nav-cta {
   min-height: 42px;
   border: 0;
   border-radius: 999px;
   background: var(--home-ink);
   color: #fff;
-  padding-inline: 22px;
+  padding-inline: 15px;
+}
+
+@media (min-width: 981px) and (max-width: 1120px) {
+  .three-powers-home .brand-copy {
+    display: none;
+  }
+
+  .three-powers-home .nav-links {
+    gap: 8px;
+  }
+
+  .three-powers-home .nav-links a {
+    font-size: 0.72rem;
+  }
+
+  .three-powers-home .nav-links .nav-cta {
+    padding-inline: 12px;
+  }
 }
 
 .powers-hero {
