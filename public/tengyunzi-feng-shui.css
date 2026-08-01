@@ -188,6 +188,27 @@ body { background: #f7fafb; color: var(--feng-ink); }
 }
 .feng-form-copy { position: sticky; top: 100px; }
 .feng-form-copy > p:not(.feng-kicker) { color: var(--feng-muted); font-size: 16px; line-height: 1.75; }
+.feng-ai-price {
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid #9fc4d1;
+  background: rgba(255,255,255,.72);
+}
+.feng-ai-price div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+}
+.feng-ai-price span {
+  color: var(--feng-deep);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.feng-ai-price strong { color: var(--feng-blue); font-size: 28px; line-height: 1; }
+.feng-ai-price p { margin: 11px 0 0; color: var(--feng-muted); font-size: 12px; line-height: 1.65; }
 .feng-form-copy ul { margin: 28px 0 0; padding: 0; list-style: none; }
 .feng-form-copy li {
   position: relative;

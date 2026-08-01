@@ -21,6 +21,16 @@ const MAX_FACILITIES = 40;
 const MAX_WINDOWS_PER_ROOM = 12;
 const RATE_WINDOW_SECONDS = 3600;
 const RATE_MAX_REQUESTS = 4;
+const CREATE_RATE_WINDOW_SECONDS = 300;
+const CREATE_RATE_MAX_REQUESTS = 4;
+const STATUS_RATE_MAX_REQUESTS = 40;
+const PRODUCT = 'Tengyunzi AI Residential Feng Shui Audit';
+const OPTION_ID = 'feng_shui_ai';
+const AMOUNT = '49.90';
+const CURRENCY = 'USD';
+const BUCKET = 'feng-shui-intakes';
+const ORDER_SERVICE = 'fengshui_ai';
+const TRADE_NO_PATTERN = /^fs-ai-\d{13}-[a-f0-9]{18}$/i;
 
 function asString(value: unknown, max = 1000): string {
   return typeof value === 'string' ? value.trim().slice(0, max) : '';
@@ -222,6 +232,92 @@ function validateImageDataUrl(value: unknown): string {
   return dataUrl;
 }
 
+function parseBirth(value: unknown): Record<string, unknown> {
+  if (!value) return {};
+  if (typeof value === 'object' && !Array.isArray(value)) return value as Record<string, unknown>;
+  if (typeof value !== 'string') return {};
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+      ? parsed as Record<string, unknown>
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function parseStoredAnalysis(value: unknown): Record<string, unknown> | null {
+  const parsed = parseBirth(value);
+  return parsed.schema_version === 'fengshui-audit-v1' && parsed.ok === true ? parsed : null;
+}
+
+function tradeNo(): string {
+  return `fs-ai-${Date.now()}-${crypto.randomUUID().replaceAll('-', '').slice(0, 18)}`;
+}
+
+function sanitizeContext(value: unknown): Record<string, unknown> {
+  const source = value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+  const northEdge = asString(source.northEdge || source.north_edge, 20).toLowerCase();
+  return {
+    northEdge: ['top', 'right', 'bottom', 'left'].includes(northEdge) ? northEdge : '',
+    wholeHouseFacing: asDirection(source.wholeHouseFacing || source.whole_house_facing),
+    floor: asInteger(source.floor, 1, 200, 1),
+    household: sanitizeHousehold(source.household),
+    occupants: sanitizeOccupants(source.occupants, asInteger(source.floor, 1, 200, 1)),
+    assignmentNotes: asString(source.assignmentNotes || source.assignment_notes, 1800),
+  };
+}
+
+function imageDataUrlToBlob(dataUrl: string): { blob: Blob; extension: string; contentType: string } {
+  const match = /^data:image\/(png|jpe?g|webp);base64,([\s\S]+)$/i.exec(dataUrl);
+  if (!match) throw new Error('invalid_image_data_url');
+  const subtype = match[1].toLowerCase() === 'jpeg' ? 'jpg' : match[1].toLowerCase();
+  const contentType = subtype === 'jpg' ? 'image/jpeg' : `image/${subtype}`;
+  const binary = atob(match[2].replace(/\s+/g, ''));
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+  return { blob: new Blob([bytes], { type: contentType }), extension: subtype, contentType };
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  const chunkSize = 0x8000;
+  let binary = '';
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
+  }
+  return btoa(binary);
+}
+
+async function storedFloorPlanDataUrl(
+  supabase: ReturnType<typeof createClient>,
+  birth: Record<string, unknown>,
+): Promise<string> {
+  const intake = birth.feng_shui_ai && typeof birth.feng_shui_ai === 'object' && !Array.isArray(birth.feng_shui_ai)
+    ? birth.feng_shui_ai as Record<string, unknown>
+    : {};
+  const floorPlan = intake.floor_plan && typeof intake.floor_plan === 'object' && !Array.isArray(intake.floor_plan)
+    ? intake.floor_plan as Record<string, unknown>
+    : {};
+  const bucket = asString(floorPlan.bucket, 100);
+  const objectPath = asString(floorPlan.path, 500);
+  const contentType = asString(floorPlan.content_type, 100);
+  if (bucket !== BUCKET || !objectPath.startsWith('ai/') || !contentType.startsWith('image/')) {
+    throw new Error('stored_floor_plan_missing');
+  }
+  const { data, error } = await supabase.storage.from(bucket).download(objectPath);
+  if (error || !data) throw new Error(`stored_floor_plan_download_failed:${error?.message || 'missing'}`);
+  const bytes = new Uint8Array(await data.arrayBuffer());
+  return `data:${contentType};base64,${bytesToBase64(bytes)}`;
+}
+
+function isFengShuiAiOrder(birth: Record<string, unknown>): boolean {
+  return asString(birth.order_service, 60).toLowerCase() === ORDER_SERVICE
+    && asString(birth.product_family, 80).toLowerCase() === 'tengyunzi_fengshui_ai'
+    && asString(birth.payment_option_id, 80).toLowerCase() === OPTION_ID;
+}
+
 function buildVisionPrompt(context: Record<string, unknown>): string {
   const floor = asInteger(context.floor, 1, 200, 1);
   const northEdge = asString(context.northEdge || context.north_edge, 20).toLowerCase();
@@ -353,73 +449,224 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const context = body?.context && typeof body.context === 'object' && !Array.isArray(body.context)
-      ? body.context as Record<string, unknown>
-      : {};
-    const suppliedFacts = body?.layout_facts && typeof body.layout_facts === 'object' && !Array.isArray(body.layout_facts)
-      ? body.layout_facts as Record<string, unknown>
-      : null;
-    let extraction = {
-      provider: 'supplied-layout-facts',
-      usage: null as unknown,
-    };
-    let rawFacts: Record<string, unknown>;
+    const action = asString(body?.action, 40).toLowerCase();
+    if (!['create', 'status', 'analyze'].includes(action)) {
+      return json(req, { error: 'unsupported_action' }, 400, allowedOrigins);
+    }
 
-    if (suppliedFacts) {
-      rawFacts = suppliedFacts;
-    } else {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL');
-      const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-      if (!supabaseUrl || !serviceRoleKey) {
-        return json(req, { error: 'missing_supabase_env' }, 500, allowedOrigins);
-      }
-      const supabase = createClient(supabaseUrl, serviceRoleKey);
-      const identifier = await buildRateLimitIdentifier(req);
-      const rate = await consumeRateLimit(supabase, {
-        scope: 'fengshui-audit',
-        identifier,
-        windowSeconds: RATE_WINDOW_SECONDS,
-        maxRequests: RATE_MAX_REQUESTS,
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!supabaseUrl || !serviceRoleKey) {
+      return json(req, { error: 'missing_supabase_env' }, 500, allowedOrigins);
+    }
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const rate = await consumeRateLimit(supabase, {
+      scope: `fengshui-audit:${action}`,
+      identifier: await buildRateLimitIdentifier(req),
+      windowSeconds: action === 'analyze' ? RATE_WINDOW_SECONDS : CREATE_RATE_WINDOW_SECONDS,
+      maxRequests: action === 'analyze'
+        ? RATE_MAX_REQUESTS
+        : (action === 'status' ? STATUS_RATE_MAX_REQUESTS : CREATE_RATE_MAX_REQUESTS),
+    });
+    if (!rate.allowed) {
+      return tooManyRequestsResponse(req, allowedOrigins, {
+        message: action === 'analyze'
+          ? 'Too many floor-plan analyses. Please try again later.'
+          : 'Too many Feng Shui audit requests. Please try again later.',
+        retryAfterSeconds: rate.retryAfterSeconds,
+        scope: `fengshui-audit:${action}`,
+        currentCount: rate.currentCount,
       });
-      if (!rate.allowed) {
-        return tooManyRequestsResponse(req, allowedOrigins, {
-          message: 'Too many floor-plan analyses. Please try again later.',
-          retryAfterSeconds: rate.retryAfterSeconds,
-          scope: 'fengshui-audit',
-          currentCount: rate.currentCount,
-        });
-      }
+    }
 
+    if (action === 'create') {
+      const context = sanitizeContext(body?.context);
+      if (!context.northEdge || !context.wholeHouseFacing) {
+        return json(req, {
+          error: 'orientation_required',
+          message: 'Confirm the North edge and whole-house facing before checkout.',
+        }, 400, allowedOrigins);
+      }
       const imageDataUrl = validateImageDataUrl(body?.image_base64 || body?.image_data_url);
       if (!imageDataUrl) {
         return json(req, {
           error: 'floor_plan_required',
-          message: 'Upload a floor plan or provide normalized layout facts.',
+          message: 'Upload one residential floor plan before checkout.',
         }, 400, allowedOrigins);
       }
-      const vision = await extractLayoutFacts(imageDataUrl, context);
-      rawFacts = vision.facts;
-      extraction = { provider: vision.provider, usage: vision.usage };
+
+      const orderReference = tradeNo();
+      const image = imageDataUrlToBlob(imageDataUrl);
+      const objectPath = `ai/${orderReference}/floor-plan.${image.extension}`;
+      const { error: uploadError } = await supabase.storage.from(BUCKET).upload(objectPath, image.blob, {
+        contentType: image.contentType,
+        cacheControl: '3600',
+        upsert: false,
+      });
+      if (uploadError) throw new Error(`floor_plan_upload_failed:${uploadError.message}`);
+
+      const birthInput = {
+        order_service: ORDER_SERVICE,
+        product_family: 'tengyunzi_fengshui_ai',
+        product: PRODUCT,
+        lang: 'en',
+        payment_option_id: OPTION_ID,
+        payment_option: {
+          id: OPTION_ID,
+          title: PRODUCT,
+          fee: AMOUNT,
+          currency: CURRENCY,
+        },
+        feng_shui_ai: {
+          context,
+          floor_plan: {
+            bucket: BUCKET,
+            path: objectPath,
+            content_type: image.contentType,
+            size: image.blob.size,
+          },
+          created_at: new Date().toISOString(),
+        },
+      };
+      const { error: orderError } = await supabase.from('orders').insert({
+        trade_no: orderReference,
+        birth_input: JSON.stringify(birthInput),
+        paid: false,
+        analysis: null,
+      });
+      if (orderError) {
+        await supabase.storage.from(BUCKET).remove([objectPath]);
+        throw new Error(`order_create_failed:${orderError.message}`);
+      }
+      return json(req, {
+        ok: true,
+        trade_no: orderReference,
+        option_id: OPTION_ID,
+        service: ORDER_SERVICE,
+        amount: AMOUNT,
+        currency: CURRENCY,
+      }, 200, allowedOrigins);
     }
 
-    const layoutFacts = sanitizeLayoutFacts(rawFacts, context);
-    const audit = buildFengShuiAudit(layoutFacts);
-    const englishAudit = toEnglishDeliveryAudit(audit);
-    const requiresReview = (
-      !audit.wholeHouse.resolved
-      || layoutFacts.extractionConfidence < 0.72
-      || layoutFacts.unresolved.length > 0
-      || audit.roomMicroPatterns.some((room: Record<string, unknown>) => room.resolved === false)
-    );
+    const orderReference = asString(body?.trade_no, 180);
+    if (!TRADE_NO_PATTERN.test(orderReference)) {
+      return json(req, { error: 'invalid_trade_no' }, 400, allowedOrigins);
+    }
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('paid,birth_input,analysis')
+      .eq('trade_no', orderReference)
+      .maybeSingle();
+    if (orderError || !order) return json(req, { error: 'order_not_found' }, 404, allowedOrigins);
+    const birth = parseBirth(order.birth_input);
+    if (!isFengShuiAiOrder(birth)) {
+      return json(req, { error: 'invalid_order_service' }, 400, allowedOrigins);
+    }
+    const cachedReport = parseStoredAnalysis(order.analysis);
 
-    return json(req, {
-      ok: true,
-      schema_version: 'fengshui-audit-v1',
-      layout_facts: layoutFacts,
-      audit: englishAudit,
-      extraction,
-      requires_manual_verification: requiresReview,
-    }, 200, allowedOrigins);
+    if (action === 'status') {
+      const analysisState = parseBirth(order.analysis);
+      return json(req, {
+        ok: true,
+        trade_no: orderReference,
+        paid: order.paid === true,
+        report_ready: order.paid === true && Boolean(cachedReport),
+        report_generating: order.paid === true && analysisState.state === 'generating',
+        report: order.paid === true ? cachedReport : null,
+      }, 200, allowedOrigins);
+    }
+
+    if (order.paid !== true) {
+      return json(req, {
+        error: 'payment_required',
+        message: 'Complete the one-time US$49.90 payment before analysis.',
+      }, 402, allowedOrigins);
+    }
+    if (cachedReport) return json(req, cachedReport, 200, allowedOrigins);
+
+    const existingState = parseBirth(order.analysis);
+    if (existingState.state === 'generating') {
+      const startedAt = new Date(asString(existingState.started_at, 80)).getTime();
+      if (Number.isFinite(startedAt) && Date.now() - startedAt < 5 * 60 * 1000) {
+        return json(req, {
+          error: 'audit_in_progress',
+          message: 'Your paid audit is already being generated. Please try again shortly.',
+        }, 409, allowedOrigins);
+      }
+      await supabase
+        .from('orders')
+        .update({ analysis: null })
+        .eq('trade_no', orderReference)
+        .eq('analysis', order.analysis);
+    }
+
+    const generationMarker = JSON.stringify({
+      state: 'generating',
+      started_at: new Date().toISOString(),
+    });
+    const { data: claimed } = await supabase
+      .from('orders')
+      .update({ analysis: generationMarker })
+      .eq('trade_no', orderReference)
+      .eq('paid', true)
+      .is('analysis', null)
+      .select('trade_no')
+      .maybeSingle();
+    if (!claimed) {
+      const { data: latest } = await supabase
+        .from('orders')
+        .select('analysis')
+        .eq('trade_no', orderReference)
+        .maybeSingle();
+      const latestReport = parseStoredAnalysis(latest?.analysis);
+      if (latestReport) return json(req, latestReport, 200, allowedOrigins);
+      return json(req, {
+        error: 'audit_in_progress',
+        message: 'Your paid audit is already being generated. Please try again shortly.',
+      }, 409, allowedOrigins);
+    }
+
+    try {
+      const intake = birth.feng_shui_ai && typeof birth.feng_shui_ai === 'object' && !Array.isArray(birth.feng_shui_ai)
+        ? birth.feng_shui_ai as Record<string, unknown>
+        : {};
+      const context = sanitizeContext(intake.context);
+      const imageDataUrl = await storedFloorPlanDataUrl(supabase, birth);
+      const vision = await extractLayoutFacts(imageDataUrl, context);
+      const layoutFacts = sanitizeLayoutFacts(vision.facts, context);
+      const audit = buildFengShuiAudit(layoutFacts);
+      const response = {
+        ok: true,
+        schema_version: 'fengshui-audit-v1',
+        trade_no: orderReference,
+        layout_facts: layoutFacts,
+        audit: toEnglishDeliveryAudit(audit),
+        extraction: {
+          provider: vision.provider,
+          usage: vision.usage,
+        },
+        requires_manual_verification: (
+          !audit.wholeHouse.resolved
+          || layoutFacts.extractionConfidence < 0.72
+          || layoutFacts.unresolved.length > 0
+          || audit.roomMicroPatterns.some((room: Record<string, unknown>) => room.resolved === false)
+        ),
+      };
+      const { error: storeError } = await supabase
+        .from('orders')
+        .update({ analysis: JSON.stringify(response) })
+        .eq('trade_no', orderReference)
+        .eq('paid', true);
+      if (storeError) throw new Error(`audit_store_failed:${storeError.message}`);
+      return json(req, response, 200, allowedOrigins);
+    } catch (error) {
+      await supabase
+        .from('orders')
+        .update({ analysis: null })
+        .eq('trade_no', orderReference)
+        .eq('analysis', generationMarker);
+      throw error;
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     const publicError = message === 'image_too_large'
@@ -432,7 +679,6 @@ Deno.serve(async (req) => {
     return json(req, {
       error: 'fengshui_audit_failed',
       message: publicError,
-      details: message.slice(0, 500),
     }, 500, allowedOrigins);
   }
 });

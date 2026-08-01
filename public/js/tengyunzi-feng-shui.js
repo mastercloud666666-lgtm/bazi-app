@@ -4,6 +4,11 @@
   if (!window.TengyunziAuth) return;
 
   const API = `${window.TengyunziAuth.SUPABASE_URL}/functions/v1/fengshui-audit`;
+  const PAYPAL_API = `${window.TengyunziAuth.SUPABASE_URL}/functions/v1/paypal`;
+  const TRADE_KEY = 'tengyunzi_fengshui_ai_trade_no';
+  const OPTION_ID = 'feng_shui_ai';
+  const SERVICE = 'fengshui_ai';
+  const PRICE = '$49.90';
   const form = document.getElementById('fengshui-audit-form');
   const fileInput = document.getElementById('floor-plan');
   const dropzone = document.getElementById('floor-plan-dropzone');
@@ -15,6 +20,7 @@
   const status = document.querySelector('[data-audit-status]');
   const results = document.querySelector('[data-audit-results]');
   let compressedImage = '';
+  let activeTradeNo = '';
 
   function setStatus(message, state = '') {
     if (!status) return;
@@ -22,11 +28,41 @@
     status.dataset.state = state;
   }
 
-  function setBusy(busy) {
+  function setBusy(busy, busyText = 'Working…') {
     if (!submitButton) return;
     if (!submitButton.dataset.defaultText) submitButton.dataset.defaultText = submitButton.textContent;
     submitButton.disabled = busy;
-    submitButton.textContent = busy ? 'Reading the floor plan…' : submitButton.dataset.defaultText;
+    submitButton.textContent = busy ? busyText : submitButton.dataset.defaultText;
+  }
+
+  function headers() {
+    return {
+      'Content-Type': 'application/json',
+      apikey: window.TengyunziAuth.SUPABASE_ANON,
+      Authorization: `Bearer ${window.TengyunziAuth.SUPABASE_ANON}`,
+    };
+  }
+
+  async function post(url, payload) {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.error) {
+      const error = new Error(data.message || data.error || 'request_failed');
+      error.code = data.error || 'request_failed';
+      error.details = data;
+      throw error;
+    }
+    return data;
+  }
+
+  function checkoutOrigin() {
+    return /^(localhost|127\.0\.0\.1)$/i.test(location.hostname)
+      ? 'https://www.tengyunzi.com'
+      : location.origin;
   }
 
   function numberValue(name) {
@@ -305,17 +341,9 @@
     results.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  form?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    setStatus('');
-    if (!form.reportValidity()) return;
-    if (!compressedImage) {
-      setStatus('Upload a residential floor plan.', 'error');
-      return;
-    }
-
+  function auditContext() {
     const data = new FormData(form);
-    const context = {
+    return {
       northEdge: String(data.get('north_edge') || ''),
       wholeHouseFacing: String(data.get('whole_facing') || ''),
       floor: numberValue('floor') || 1,
@@ -327,32 +355,190 @@
       },
       assignmentNotes: String(data.get('assignment_notes') || '').trim(),
     };
+  }
 
-    setBusy(true);
-    setStatus('Extracting visible layout facts, then applying the fixed rule engine…');
+  function rememberTrade(orderReference) {
+    activeTradeNo = orderReference || '';
+    if (activeTradeNo) localStorage.setItem(TRADE_KEY, activeTradeNo);
+  }
+
+  function markResumeCheckout(orderReference, message) {
+    rememberTrade(orderReference);
+    setBusy(false);
+    submitButton.dataset.mode = 'resume';
+    submitButton.dataset.defaultText = `Resume PayPal · ${PRICE}`;
+    submitButton.textContent = submitButton.dataset.defaultText;
+    setStatus(message || 'Your floor plan is saved. Resume PayPal when you are ready.', 'error');
+  }
+
+  async function openPayPal(orderReference) {
+    setBusy(true, 'Opening secure PayPal…');
+    setStatus(`Opening the secure one-time ${PRICE} checkout…`);
     try {
-      const response = await fetch(API, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          apikey: window.TengyunziAuth.SUPABASE_ANON,
-          Authorization: `Bearer ${window.TengyunziAuth.SUPABASE_ANON}`,
-        },
-        body: JSON.stringify({
-          image_base64: compressedImage,
-          context,
-        }),
+      const checkout = await post(PAYPAL_API, {
+        action: 'create',
+        trade_no: orderReference,
+        option_id: OPTION_ID,
+        service: SERVICE,
+        origin: checkoutOrigin(),
       });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok || result.ok !== true) {
-        throw new Error(result.message || 'The residential audit could not be completed.');
-      }
-      renderAudit(result);
-      setStatus('Audit complete.', 'success');
+      if (!checkout.approve_url) throw new Error('PayPal did not return a checkout link.');
+      location.assign(checkout.approve_url);
     } catch (error) {
-      setStatus(error.message || 'The residential audit could not be completed.', 'error');
-    } finally {
+      markResumeCheckout(
+        orderReference,
+        error.message || 'PayPal checkout could not be opened. You have not been charged.',
+      );
+    }
+  }
+
+  async function generatePaidAudit(orderReference) {
+    setBusy(true, 'Generating your paid audit…');
+    setStatus('Payment confirmed. GPT-5.1 is reading the plan, then the fixed rule engine will produce your English report.');
+    try {
+      const report = await post(API, {
+        action: 'analyze',
+        trade_no: orderReference,
+      });
+      renderAudit(report);
+      submitButton.dataset.defaultText = 'Audit purchased';
+      submitButton.textContent = 'Audit purchased';
+      submitButton.disabled = true;
+      submitButton.dataset.mode = 'complete';
+      setStatus('Paid audit complete. Print or save the report as a PDF.', 'success');
+      return true;
+    } catch (error) {
       setBusy(false);
+      submitButton.dataset.defaultText = 'Retry paid audit';
+      submitButton.textContent = submitButton.dataset.defaultText;
+      submitButton.dataset.mode = 'generate';
+      setStatus(
+        error.code === 'audit_in_progress'
+          ? 'Your paid audit is still being generated. Select “Retry paid audit” shortly.'
+          : (error.message || 'Your payment is preserved. Retry the audit without paying again.'),
+        'error',
+      );
+      return false;
+    }
+  }
+
+  async function restoreOrder(orderReference, generateWhenPaid = true) {
+    if (!orderReference) return false;
+    try {
+      const state = await post(API, {
+        action: 'status',
+        trade_no: orderReference,
+      });
+      rememberTrade(orderReference);
+      if (!state.paid) return false;
+      history.replaceState(null, '', `${location.pathname}?trade_no=${encodeURIComponent(orderReference)}#audit`);
+      if (state.report_ready && state.report) {
+        renderAudit(state.report);
+        submitButton.dataset.defaultText = 'Audit purchased';
+        submitButton.textContent = 'Audit purchased';
+        submitButton.disabled = true;
+        submitButton.dataset.mode = 'complete';
+        setStatus('Paid audit restored. Print or save the report as a PDF.', 'success');
+        return true;
+      }
+      if (generateWhenPaid) return generatePaidAudit(orderReference);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function handlePaymentReturn() {
+    const params = new URLSearchParams(location.search);
+    const paymentState = params.get('pp');
+    const orderReference = params.get('trade_no') || localStorage.getItem(TRADE_KEY) || '';
+    if (!orderReference) return;
+    rememberTrade(orderReference);
+
+    if (paymentState === 'cancel') {
+      history.replaceState(null, '', `${location.pathname}?trade_no=${encodeURIComponent(orderReference)}#audit`);
+      markResumeCheckout(orderReference, 'PayPal checkout was cancelled. You have not been charged.');
+      return;
+    }
+
+    if (paymentState === '1') {
+      const paypalOrderId = params.get('token');
+      if (!paypalOrderId) {
+        setStatus('The PayPal return could not be matched to this audit.', 'error');
+        return;
+      }
+      setBusy(true, 'Confirming payment…');
+      setStatus('Confirming your PayPal payment…');
+      if (await restoreOrder(orderReference)) return;
+      try {
+        await post(PAYPAL_API, {
+          action: 'capture',
+          paypal_order_id: paypalOrderId,
+          trade_no: orderReference,
+          origin: checkoutOrigin(),
+        });
+        history.replaceState(null, '', `${location.pathname}?trade_no=${encodeURIComponent(orderReference)}#audit`);
+        await generatePaidAudit(orderReference);
+      } catch (error) {
+        setBusy(false);
+        submitButton.dataset.defaultText = 'Confirm payment again';
+        submitButton.textContent = submitButton.dataset.defaultText;
+        submitButton.dataset.mode = 'restore';
+        setStatus(
+          'Payment could not be confirmed. If PayPal charged you, retry confirmation or contact support with your order reference.',
+          'error',
+        );
+      }
+      return;
+    }
+
+    setBusy(true, 'Checking saved audit…');
+    setStatus('Checking your saved Feng Shui audit…');
+    const restored = await restoreOrder(orderReference);
+    if (!restored) {
+      markResumeCheckout(orderReference, 'Your saved audit is awaiting payment.');
+    }
+  }
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    setStatus('');
+    const mode = submitButton.dataset.mode || 'checkout';
+    if (mode === 'complete') return;
+    if (mode === 'resume' && activeTradeNo) {
+      await openPayPal(activeTradeNo);
+      return;
+    }
+    if ((mode === 'generate' || mode === 'restore') && activeTradeNo) {
+      if (!(await restoreOrder(activeTradeNo))) {
+        setStatus('Payment has not been confirmed for this audit.', 'error');
+        setBusy(false);
+      }
+      return;
+    }
+    if (!form.reportValidity()) return;
+    if (!compressedImage) {
+      setStatus('Upload a residential floor plan.', 'error');
+      return;
+    }
+
+    setBusy(true, 'Saving audit securely…');
+    setStatus('Saving the compressed floor plan before secure checkout…');
+    try {
+      const order = await post(API, {
+        action: 'create',
+        image_base64: compressedImage,
+        context: auditContext(),
+      });
+      rememberTrade(order.trade_no);
+      await openPayPal(order.trade_no);
+    } catch (error) {
+      setBusy(false);
+      setStatus(error.message || 'The secure audit checkout could not be prepared.', 'error');
     }
   });
+
+  submitButton.dataset.mode = 'checkout';
+  submitButton.dataset.defaultText = submitButton.textContent;
+  handlePaymentReturn();
 })();
