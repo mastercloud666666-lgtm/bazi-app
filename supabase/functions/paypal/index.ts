@@ -27,6 +27,7 @@ const USD_PRICE: Record<string, string> = {
   english_report: '9.99',
   personal_reading: '99.00',
   feng_shui: '149.00',
+  feng_shui_ai: '49.90',
   core_chart: '49.00', reading: '135.00', forecast: '88.00', forecast_core: '128.00', bundle: '169.00',
 };
 const OVERSEAS_DISABLED = new Set(['consult']);
@@ -117,6 +118,7 @@ function resolveOneTimePriceKey(service: string, optionId: string, birth: Record
   ) {
     return TENGYUNZI_MANUAL_OPTIONS.has(normalizedOption) ? normalizedOption : 'personal_reading';
   }
+  if (normalizedService === 'fengshui_ai') return 'feng_shui_ai';
   if (normalizedService === 'zhanbu') return 'zhanbu';
   if (normalizedService === 'hepan') return 'hepan';
   return normalizedOption || 'basic';
@@ -569,7 +571,9 @@ Deno.serve(async (req) => {
       const token = await ppToken();
       const retPage = service === 'tengyunzi_manual'
         ? 'tengyunzi-order-success.html'
-        : (service === 'zhanbu' ? 'tengyunzi-decision.html' : 'tengyunzi-report.html');
+        : (service === 'zhanbu'
+          ? 'tengyunzi-decision.html'
+          : (service === 'fengshui_ai' ? 'tengyunzi-feng-shui.html' : 'tengyunzi-report.html'));
       const returnUrl = `${origin}/${retPage}?trade_no=${encodeURIComponent(tradeNo)}&pp=1`;
       const cancelUrl = `${origin}/${retPage}?trade_no=${encodeURIComponent(tradeNo)}&pp=cancel`;
       const res = await fetch(`${PP_BASE}/v2/checkout/orders`, {
@@ -778,8 +782,9 @@ Deno.serve(async (req) => {
 
       const orderService = birth?.order_service === 'hepan' ? 'hepan'
         : (birth?.order_service === 'zhanbu' ? 'zhanbu'
-          : (birth?.order_service === 'pdf' || optionId === 'pdf' ? 'pdf'
-            : (birth?.order_service === 'consult' || optionId === 'consult' ? 'consult' : 'bazi')));
+          : (birth?.order_service === 'fengshui_ai' ? 'fengshui_ai'
+            : (birth?.order_service === 'pdf' || optionId === 'pdf' ? 'pdf'
+              : (birth?.order_service === 'consult' || optionId === 'consult' ? 'consult' : 'bazi'))));
 
       if (isTengyunziManualBirth(birth)) {
         await supabase
@@ -823,8 +828,13 @@ Deno.serve(async (req) => {
         });
       }
 
-      // pdf/consult/zhanbu 无需在此生成报告（占卜的解读在用户摇卦时才生成）
-      if (orderService === 'pdf' || orderService === 'consult' || orderService === 'zhanbu') {
+      // These services generate or fulfil only after the paid customer returns to their dedicated page.
+      if (
+        orderService === 'pdf'
+        || orderService === 'consult'
+        || orderService === 'zhanbu'
+        || orderService === 'fengshui_ai'
+      ) {
         return json({ ok: true, paid: true, service: orderService });
       }
 

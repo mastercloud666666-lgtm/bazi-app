@@ -134,6 +134,7 @@
     }
   </style>
   <link rel="stylesheet" href="./tengyunzi-shell.css?v=20260727paths">
+  <link rel="stylesheet" href="./tengyunzi-feng-shui.css?v=20260801fs2">
 </head>
 <body>
   <header class="nav">
@@ -151,7 +152,7 @@
           <h1>Your actual floor plan, read by Tengyunzi.</h1>
           <p class="path-lead">This is a personal, manual analysis—not an automated score. Tengyunzi reviews the complete layout, facing direction, dimensions, rooms, doors, windows, occupants, and the changes you want the space to support.</p>
           <div class="manual-price"><strong>$149</strong><span>One-time payment<br>English PDF within 72 hours</span></div>
-          <div class="path-actions"><a class="button" href="#order">Order Manual Review</a><a class="button secondary" href="#requirements">What you need</a></div>
+          <div class="path-actions"><a class="button" href="#order">Order Manual Review</a><a class="button secondary" href="#requirements">What you need</a><a class="button secondary" href="#audit">Run Rule-Based Audit</a></div>
         </div>
         <div class="plan-board" aria-label="Illustrative floor plan showing rooms, doors, windows, and facing direction">
           <div class="plan-outline">
@@ -259,10 +260,166 @@
         </form>
       </div>
     </section>
+
+    <section class="feng-method" id="automated-audit">
+      <div class="shell">
+        <div class="feng-section-head">
+          <p>Rule-based option</p>
+          <h2>Run a direction-first residential audit.</h2>
+          <span>The image model extracts visible geometry only. Whole-home sitting and facing, room micro-patterns, household palaces, Five-Element relations, and adjustment types are calculated by a fixed rule engine.</span>
+        </div>
+        <div class="feng-method-grid">
+          <article><b>Whole home</b><h3>Main opening sets the facing</h3><p>The opposite direction becomes the sitting side. Their Five-Element relation determines the whole-house pattern.</p></article>
+          <article><b>Bedrooms</b><h3>Bedhead sets the sitting</h3><p>The wall behind the pillows is sitting. The bed-foot direction is facing. Doors and secondary windows become energy points.</p></article>
+          <article><b>Rooms without beds</b><h3>Largest window comes first</h3><p>The largest window sets facing. If there is no window, the door sets facing. Smaller openings remain energy points.</p></article>
+          <article><b>Household palaces</b><h3>People are assigned by family role</h3><p>An only son is treated as the eldest son. Floor-specific effects apply only to people living on the analysed floor.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="feng-audit" id="audit">
+      <div class="shell feng-audit-grid">
+        <div class="feng-form-copy">
+          <p class="feng-kicker">Floor-plan intake</p>
+          <h2>Give the engine facts it cannot safely guess.</h2>
+          <p>A clear plan should show the outside wall, room labels, doors, windows, beds, and the confirmed North direction. Add room-assignment notes when the drawing does not identify who sleeps where.</p>
+          <div class="feng-ai-price" aria-label="AI residential Feng Shui audit price">
+            <div><span>AI residential audit</span><strong>US$49.90</strong></div>
+            <p>One-time PayPal payment. Includes the English online report and a print-ready PDF view. Analysis begins only after payment is confirmed.</p>
+          </div>
+          <ul>
+            <li>Use one floor plan per audit.</li>
+            <li>Choose the floor where the listed occupants actually live.</li>
+            <li>Use the largest balcony or window wall for whole-house facing.</li>
+            <li>Do not upload personal documents or photographs of people.</li>
+          </ul>
+        </div>
+
+        <form class="feng-form" id="fengshui-audit-form" novalidate>
+          <div class="feng-field feng-field-wide">
+            <label for="floor-plan">Residential floor plan</label>
+            <button class="feng-upload" id="floor-plan-dropzone" type="button" aria-describedby="floor-plan-hint">
+              <span class="feng-upload-mark" aria-hidden="true">+</span>
+              <span><strong data-upload-title>Choose a JPG, PNG, or WebP plan</strong><small id="floor-plan-hint">The image is compressed in your browser before analysis.</small></span>
+            </button>
+            <input id="floor-plan" name="floor_plan" type="file" accept="image/png,image/jpeg,image/webp" required hidden>
+            <figure class="feng-preview" data-floor-plan-preview hidden>
+              <img alt="Uploaded residential floor plan preview">
+              <figcaption><span data-file-name></span><button type="button" data-remove-plan>Remove</button></figcaption>
+            </figure>
+          </div>
+
+          <div class="feng-field">
+            <label for="north-edge">Which image edge is North?</label>
+            <select id="north-edge" name="north_edge" required>
+              <option value="">Select one</option>
+              <option value="top">Top edge</option>
+              <option value="right">Right edge</option>
+              <option value="bottom">Bottom edge</option>
+              <option value="left">Left edge</option>
+            </select>
+          </div>
+
+          <div class="feng-field">
+            <label for="whole-facing">Main opening / whole-house facing</label>
+            <select id="whole-facing" name="whole_facing" required>
+              <option value="">Select one</option>
+              <option value="north">North</option>
+              <option value="northeast">Northeast</option>
+              <option value="east">East</option>
+              <option value="southeast">Southeast</option>
+              <option value="south">South</option>
+              <option value="southwest">Southwest</option>
+              <option value="west">West</option>
+              <option value="northwest">Northwest</option>
+            </select>
+            <small>Use the largest balcony or window wall, not the entrance door, unless it is truly the largest opening.</small>
+          </div>
+
+          <div class="feng-field">
+            <label for="floor-number">Analysed floor</label>
+            <input id="floor-number" name="floor" type="number" min="1" max="200" value="1" required>
+          </div>
+
+          <fieldset class="feng-household">
+            <legend>People living on this floor</legend>
+            <label>Married men<input name="married_men" type="number" min="0" max="12" value="1"></label>
+            <label>Married women<input name="married_women" type="number" min="0" max="12" value="1"></label>
+            <label>Sons<input name="sons" type="number" min="0" max="12" value="1"></label>
+            <label>Daughters<input name="daughters" type="number" min="0" max="12" value="0"></label>
+          </fieldset>
+
+          <div class="feng-field feng-field-wide">
+            <label for="assignment-notes">Room assignments and visible corrections</label>
+            <textarea id="assignment-notes" name="assignment_notes" rows="5" maxlength="1800" placeholder="Example: The southeast bedroom is used by husband and wife. The southwest bedroom is used by our only son. The marked basin in the center is not a toilet."></textarea>
+          </div>
+
+          <label class="feng-confirm feng-field-wide">
+            <input name="confirm_plan" type="checkbox" required>
+            <span>I have confirmed the North edge and whole-house facing. I understand that unclear doors, windows, bedheads, or room boundaries will be marked for manual verification.</span>
+          </label>
+
+          <div class="feng-submit-row feng-field-wide">
+            <button class="button primary" type="submit" data-audit-submit>Pay &amp; Analyse · $49.90</button>
+            <p class="feng-form-status" data-audit-status role="status" aria-live="polite"></p>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="feng-results" data-audit-results hidden aria-live="polite">
+      <div class="shell">
+        <div class="feng-results-head">
+          <div>
+            <p class="feng-kicker">Residential audit</p>
+            <h2>Your rule-based floor-plan findings</h2>
+          </div>
+          <div class="feng-results-actions">
+            <span class="feng-review-badge" data-review-badge></span>
+            <button class="button" type="button" data-print-audit>Print / Save PDF</button>
+          </div>
+        </div>
+
+        <div class="feng-summary-grid" data-whole-house></div>
+
+        <section class="feng-result-section">
+          <div class="feng-result-heading"><span>01</span><div><h3>Priority actions</h3><p>Structural problems and room energy adjustments are intentionally separated.</p></div></div>
+          <div class="feng-result-list" data-priorities></div>
+        </section>
+
+        <section class="feng-result-section">
+          <div class="feng-result-heading"><span>02</span><div><h3>Whole-home palace findings</h3><p>These conclusions use the whole-floor Tai Ji center and the occupants living on this floor.</p></div></div>
+          <div class="feng-result-list" data-structural-findings></div>
+        </section>
+
+        <section class="feng-result-section">
+          <div class="feng-result-heading"><span>03</span><div><h3>Room micro-patterns</h3><p>Bedrooms use the bedhead. Rooms without beds use the largest window, then the door.</p></div></div>
+          <div class="feng-room-grid" data-room-patterns></div>
+        </section>
+
+        <section class="feng-result-section">
+          <div class="feng-result-heading"><span>04</span><div><h3>Residence hexagrams</h3><p>The person trigram is placed above the room-palace trigram. Only verified traditional verdicts are expanded automatically.</p></div></div>
+          <div class="feng-result-list" data-residence-hexagrams></div>
+        </section>
+
+        <section class="feng-verification" data-verification-section hidden>
+          <h3>Manual verification required</h3>
+          <p data-verification-copy></p>
+        </section>
+
+        <div class="feng-endnote">
+          <p data-external-note></p>
+          <p data-safety-note></p>
+          <a class="button" href="./tengyunzi-contact.html#contact">Request Manual Adjustment</a>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer class="footer"><div class="shell">Tengyunzi Feng Shui is a traditional, educational spatial review. It does not replace architectural, structural, medical, legal, financial, or safety advice.</div></footer>
   <script src="./js/tengyunzi-shell.js?v=20260727paths"></script>
   <script src="./js/feng-shui-order.js?v=20260727b"></script>
+  <script src="./js/tengyunzi-auth.js?v=20260730fs1"></script>
+  <script src="./js/tengyunzi-feng-shui.js?v=20260801fs2"></script>
 </body>
 </html>
