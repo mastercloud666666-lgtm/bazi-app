@@ -160,6 +160,7 @@ body:has(.auth-layer) {
 @media (max-width: 980px) {
   .nav .nav-inner {
     position: relative;
+    gap: 10px;
   }
 
   .nav-mobile-cta {
@@ -167,6 +168,7 @@ body:has(.auth-layer) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex: 0 0 auto;
     margin-left: auto;
     border: 1px solid var(--blue, #1f7ab8);
     border-radius: 999px;
@@ -175,6 +177,7 @@ body:has(.auth-layer) {
     padding: 0 15px;
     font-size: 0.86rem;
     font-weight: 800;
+    white-space: nowrap;
   }
 
   .nav-menu-toggle {
