@@ -21,7 +21,7 @@
   const aboutLink = nav.querySelector('a[href*="tengyunzi-about.html"]');
   const pathwayLinks = [
     { href: 'tengyunzi-feng-shui.html#top', label: 'Feng Shui' },
-    { href: 'tengyunzi-decision.html#top', label: 'Decision' }
+    { href: 'tengyunzi-decision.html#top', label: 'I Ching' }
   ];
   pathwayLinks.forEach(({ href, label }) => {
     if (nav.querySelector(`a[href*="${href.split('#')[0]}"]`)) return;
@@ -31,6 +31,9 @@
     if (aboutLink) nav.insertBefore(link, aboutLink);
     else nav.appendChild(link);
   });
+
+  const iChingLink = nav.querySelector('a[href*="tengyunzi-decision.html"]');
+  if (iChingLink) iChingLink.textContent = 'I Ching';
 
   const primaryCta = nav.querySelector('.nav-cta');
   if (primaryCta) {
