@@ -46,6 +46,11 @@
       "permanent": true
     },
     {
+      "source": "/blog.html",
+      "destination": "/tengyunzi-blog.html",
+      "permanent": true
+    },
+    {
       "source": "/blog",
       "destination": "/tengyunzi-blog.html",
       "permanent": true
