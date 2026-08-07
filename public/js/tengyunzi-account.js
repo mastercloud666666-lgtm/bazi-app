@@ -55,7 +55,7 @@
       const main = document.createElement('span');
       main.className = 'reading-row-main';
       const title = document.createElement('strong');
-      title.textContent = report.access_type === 'paid' ? 'BaZi Destiny Book' : 'Free BaZi Preview';
+      title.textContent = report.access_type === 'paid' ? 'BaZi Reading' : 'Free BaZi Preview';
       const subtitle = document.createElement('span');
       subtitle.textContent = birthLabel(report);
       main.append(title, subtitle);

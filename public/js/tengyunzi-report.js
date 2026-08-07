@@ -268,7 +268,7 @@
       }
     }
 
-    const label = report.access_type === 'paid' ? 'BaZi Destiny Book' : 'Free BaZi preview';
+    const label = report.access_type === 'paid' ? 'BaZi Reading' : 'Free BaZi preview';
     document.querySelector('[data-report-label]').textContent = label;
     document.querySelector('[data-report-title]').textContent = report.access_type === 'paid' ? 'Your Complete BaZi Reading' : 'Your BaZi Preview';
     reportStage.classList.add('is-visible');
@@ -336,7 +336,7 @@
     }
     clearReport();
     setBusy(freeButton, true, 'Generating your preview...');
-    setBusy(paidButton, true, 'Destiny Book');
+    setBusy(paidButton, true, 'BaZi Reading');
     setStatus('Reading your chart. This can take about a minute.', 'success');
     try {
       const data = await reportApi('create_free', currentPayload);
@@ -533,7 +533,7 @@
   if (adminTestMode) {
     paidButton.textContent = 'Generate administrator test report';
     paidButton.dataset.defaultText = paidButton.textContent;
-    setStatus('Administrator test mode is active. The complete Destiny Book can be generated without PayPal.', 'success');
+    setStatus('Administrator test mode is active. The complete BaZi Reading can be generated without PayPal.', 'success');
   }
   const hasBirthParams = ['year', 'month', 'day'].every((name) => initialParams.get(name));
   if (hasBirthParams) {
