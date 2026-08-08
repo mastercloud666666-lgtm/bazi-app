@@ -25,11 +25,29 @@ test('the existing Feng Shui page contains both manual and rule-based services',
   assert.match(page, /id="fengshui-audit-form"/);
   assert.match(page, /US\$49\.90/);
   assert.match(page, /Pay &amp; Analyse · \$49\.90/);
+  assert.match(page, /tengyunzi-feng-shui-whats-inside\.html#ai-report/);
+  assert.match(page, /tengyunzi-feng-shui-whats-inside\.html#personal-review/);
   assert.match(read('public/sitemap.xml'), /tengyunzi-feng-shui\.html/);
   const redirects = read('vercel.json');
   assert.match(redirects, /fengshui/);
   assert.match(redirects, /jiaju-fengshui/);
   assert.match(redirects, /tengyunzi-feng-shui\.html/);
+});
+
+test('Feng Shui has an English-only report contents page for both service levels', () => {
+  const page = read('public/tengyunzi-feng-shui-whats-inside.html');
+  assert.doesNotMatch(page, /[\u3400-\u9fff]/);
+  assert.match(page, /What's inside your floor-plan report/);
+  assert.match(page, /Ten connected parts/);
+  assert.match(page, /Whole-House Sitting and Facing/);
+  assert.match(page, /Tai Ji Center and Eight-Sector Overlay/);
+  assert.match(page, /Doors, Windows, and Energy Points/);
+  assert.match(page, /Residence Hexagram/);
+  assert.match(page, /US\$49\.90/);
+  assert.match(page, /US\$149/);
+  assert.match(page, /English online report with print-ready PDF view/);
+  assert.match(page, /Personal English PDF by email within 72 hours/);
+  assert.match(read('public/sitemap.xml'), /tengyunzi-feng-shui-whats-inside\.html/);
 });
 
 test('Feng Shui endpoint keeps vision extraction separate from rule judgment', () => {
