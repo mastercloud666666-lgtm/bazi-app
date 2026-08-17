@@ -128,6 +128,133 @@ const PERSON_ROLE_TO_TRIGRAM = Object.freeze({
   youngest_daughter: 'dui',
 });
 
+const PERSON_ROLE_PROFILE = Object.freeze({
+  father: Object.freeze({
+    label: 'Father', expectedDirection: 'northwest',
+    domains: Object.freeze(['family authority', 'responsibility', 'marriage', 'career leadership']),
+  }),
+  married_man: Object.freeze({
+    label: 'Married man', expectedDirection: 'northwest',
+    domains: Object.freeze(['family authority', 'responsibility', 'marriage', 'career leadership']),
+  }),
+  husband: Object.freeze({
+    label: 'Husband', expectedDirection: 'northwest',
+    domains: Object.freeze(['family authority', 'responsibility', 'marriage', 'career leadership']),
+  }),
+  eldest_son: Object.freeze({
+    label: 'Eldest son', expectedDirection: 'east',
+    domains: Object.freeze(['initiative', 'growth', 'family responsibility', 'career development']),
+  }),
+  middle_son: Object.freeze({
+    label: 'Middle son', expectedDirection: 'north',
+    domains: Object.freeze(['adaptability', 'family position', 'responsibility', 'work direction']),
+  }),
+  youngest_son: Object.freeze({
+    label: 'Youngest son', expectedDirection: 'northeast',
+    domains: Object.freeze(['learning', 'independence', 'family position', 'future direction']),
+  }),
+  mother: Object.freeze({
+    label: 'Mother', expectedDirection: 'southwest',
+    domains: Object.freeze(['household authority', 'responsibility', 'marriage', 'family coordination']),
+  }),
+  married_woman: Object.freeze({
+    label: 'Married woman', expectedDirection: 'southwest',
+    domains: Object.freeze(['household authority', 'responsibility', 'marriage', 'family coordination']),
+  }),
+  wife: Object.freeze({
+    label: 'Wife', expectedDirection: 'southwest',
+    domains: Object.freeze(['household authority', 'responsibility', 'marriage', 'family coordination']),
+  }),
+  eldest_daughter: Object.freeze({
+    label: 'Eldest daughter', expectedDirection: 'southeast',
+    domains: Object.freeze(['growth', 'communication', 'family responsibility', 'career development']),
+  }),
+  middle_daughter: Object.freeze({
+    label: 'Middle daughter', expectedDirection: 'south',
+    domains: Object.freeze(['visibility', 'expression', 'family position', 'social development']),
+  }),
+  youngest_daughter: Object.freeze({
+    label: 'Youngest daughter', expectedDirection: 'west',
+    domains: Object.freeze(['expression', 'relationships', 'family position', 'future development']),
+  }),
+});
+
+export const DESTINY_TIMING_GEOGRAPHY_FRAMEWORK = Object.freeze({
+  label: 'Destiny, Timing, and Geography',
+  layers: Object.freeze([
+    Object.freeze({
+      key: 'destiny',
+      label: 'Destiny',
+      conclusion: 'Birth establishes the resident\u2019s baseline conditions and latent tendencies.',
+    }),
+    Object.freeze({
+      key: 'timing',
+      label: 'Timing',
+      conclusion: 'Conditions unfold through time together with the resident\u2019s choices and actions.',
+    }),
+    Object.freeze({
+      key: 'geography',
+      label: 'Geography',
+      conclusion: 'The long-term residential environment can strengthen or weaken an existing tendency.',
+    }),
+  ]),
+  mechanism: Object.freeze([
+    'Residential position changes the person\u2019s repeated spatial experience.',
+    'Repeated experience influences feelings and thought patterns.',
+    'Repeated thoughts influence habits and choices.',
+    'Habits and choices influence life outcomes over time.',
+  ]),
+  judgmentSequence: Object.freeze([
+    'Confirm observable floor-plan facts and the whole-floor Tai Ji center.',
+    'Identify the long-term resident and the actual palace used by that person.',
+    'Decide whether household role and residential position are aligned.',
+    'Place the person trigram above the room-palace trigram and apply only an approved hexagram verdict.',
+    'Cross-check the conclusion against observable authority, responsibility, relationship, and work patterns.',
+  ]),
+  adjustmentScope: Object.freeze([
+    'room assignment',
+    'household responsibility',
+    'relationship boundaries',
+    'behaviour and personal choice',
+  ]),
+  boundary: 'The residence does not replace natal conditions, timing, or personal choice, and it does not guarantee a fixed outcome.',
+});
+
+export const PERSONAL_BED_PLACEMENT_METHOD = Object.freeze({
+  label: 'Personal bed-placement sequence',
+  sequence: Object.freeze([
+    'Choose the bedroom by its whole-home palace and the long-term resident\u2019s household role.',
+    'Use the resident\u2019s verified natal Zi Wei chart to select an applicable auspicious or resolving star for the bed-foot direction.',
+    'Check that the bed axis does not sit on a compass-palace boundary.',
+  ]),
+  physicalChecks: Object.freeze([
+    'bedhead supported by a solid wall rather than a window, glass, or light partition',
+    'bed-foot not directly aligned with the bedroom door or toilet door',
+    'bedhead wall not shared directly with a toilet, shower, or stove when another wall is available',
+    'no structural beam directly above the bed',
+    'no persistent strong airflow directed at the head',
+  ]),
+  requirement: 'A personalized bed-foot direction requires a verified birth time and natal Zi Wei chart; it cannot be generated from the floor plan alone.',
+});
+
+const SPACE_FUNCTION_PROFILE = Object.freeze({
+  kitchen: Object.freeze({
+    label: 'Kitchen',
+    symbolism: Object.freeze(['knife', 'fire', 'cutting']),
+    conclusion: 'A kitchen carries knife, fire, and cutting symbolism.',
+  }),
+  living_room: Object.freeze({
+    label: 'Living room',
+    symbolism: Object.freeze(['guests', 'external exchange', 'household social activity']),
+    conclusion: 'A living room represents guests, external exchange, and household social activity.',
+  }),
+  toilet: Object.freeze({
+    label: 'Toilet',
+    symbolism: Object.freeze(['discharge', 'waste', 'disputes', 'legal friction']),
+    conclusion: 'A toilet carries discharge and waste symbolism and is traditionally associated with disputes or legal friction.',
+  }),
+});
+
 const TRIGRAM_CHINESE = Object.freeze({
   qian: '乾', dui: '兑', li: '离', zhen: '震',
   xun: '巽', kan: '坎', gen: '艮', kun: '坤',
@@ -218,6 +345,10 @@ const STRUCTURAL_ASSOCIATIONS = Object.freeze({
 
 function cleanString(value) {
   return typeof value === 'string' ? value.trim() : '';
+}
+
+function normalizePersonRole(value) {
+  return cleanString(value).toLowerCase().replace(/[\s-]+/g, '_');
 }
 
 function cleanNonNegativeInteger(value) {
@@ -377,6 +508,86 @@ function officerDrainDirections(pointElement, facingElement) {
     }));
 }
 
+export function analyzeBedPlacement(room = {}) {
+  const bedHead = normalizeDirection(room.bedHead || room.bed_head);
+  if (!bedHead) {
+    return {
+      applicable: false,
+      status: 'no_bed_resolved',
+      physicalIssues: [],
+    };
+  }
+
+  const support = cleanString(room.bedHeadSupport || room.bed_head_support)
+    .toLowerCase().replace(/[\s-]+/g, '_');
+  const footTarget = cleanString(room.bedFootTarget || room.bed_foot_target)
+    .toLowerCase().replace(/[\s-]+/g, '_');
+  const backsOnto = cleanString(room.bedHeadBacksOnto || room.bed_head_backs_onto)
+    .toLowerCase().replace(/[\s-]+/g, '_');
+  const axisValue = Number(room.bedAxisDegrees ?? room.bed_axis_degrees);
+  const bedAxisDegrees = Number.isFinite(axisValue)
+    ? ((axisValue % 360) + 360) % 360
+    : null;
+  const physicalIssues = [];
+
+  if (['window', 'glass', 'light_partition', 'partition'].includes(support)) {
+    physicalIssues.push({
+      code: 'bedhead_without_solid_wall',
+      conclusion: 'The bedhead is not supported by a solid wall. Move it to a solid wall before refining its direction.',
+    });
+  }
+  if (['door', 'toilet_door'].includes(footTarget)) {
+    physicalIssues.push({
+      code: 'bedfoot_directly_aligned_with_door',
+      conclusion: `The bed-foot is directly aligned with the ${footTarget === 'toilet_door' ? 'toilet door' : 'bedroom door'}. Reposition the bed when the room allows.`,
+    });
+  }
+  if (['toilet', 'shower', 'stove'].includes(backsOnto)) {
+    physicalIssues.push({
+      code: 'bedhead_shared_service_wall',
+      conclusion: `The bedhead wall directly backs onto a ${backsOnto}. Use another solid wall when the room allows.`,
+    });
+  }
+  if (room.overheadBeam === true || room.overhead_beam === true) {
+    physicalIssues.push({
+      code: 'beam_above_bed',
+      conclusion: 'A structural beam is directly above the bed. Move the bed out from under it when possible.',
+    });
+  }
+  if (room.directAirflowAtHead === true || room.direct_airflow_at_head === true) {
+    physicalIssues.push({
+      code: 'direct_airflow_at_bedhead',
+      conclusion: 'Persistent strong airflow reaches the head position. Redirect the airflow or move the bed.',
+    });
+  }
+
+  return {
+    applicable: true,
+    status: physicalIssues.length ? 'physical_adjustment_required' : 'physical_layout_retained',
+    physicalIssues,
+    personalizedFootDirection: {
+      status: 'requires_verified_natal_chart',
+      conclusion: PERSONAL_BED_PLACEMENT_METHOD.requirement,
+    },
+    compassBoundaryCheck: {
+      status: bedAxisDegrees === null ? 'exact_bearing_required' : 'manual_boundary_check_required',
+      bedAxisDegrees,
+      conclusion: bedAxisDegrees === null
+        ? 'Record the exact bed axis before checking whether it crosses a compass-palace boundary.'
+        : 'The exact bed axis is recorded; check it against the selected school\u2019s compass-palace boundaries before final placement.',
+    },
+    adjustment: physicalIssues.length
+      ? {
+          type: 'bed_reposition',
+          conclusion: 'Correct the stated physical bed conditions first, then calculate the personalized bed-foot direction from the resident\u2019s natal chart.',
+        }
+      : {
+          type: 'personal_natal_review',
+          conclusion: PERSONAL_BED_PLACEMENT_METHOD.requirement,
+        },
+  };
+}
+
 export function analyzeRoomMicroPattern(room = {}) {
   const orientation = resolveRoomOrientation(room);
   if (!orientation.sitting || !orientation.facing) {
@@ -448,6 +659,7 @@ export function analyzeRoomMicroPattern(room = {}) {
     },
     relation,
     energyPoints,
+    bedPlacement: analyzeBedPlacement(room),
     conclusion: `${sittingProfile.label} sitting and ${facingProfile.label} facing form a ${relation?.label || 'five-element pattern'}.`,
     adjustment,
   };
@@ -499,6 +711,76 @@ function normalizedFacilities(input = {}) {
     sector: normalizeDirection(facility?.sector),
     floor: Number(facility?.floor) || Number(input.floor) || 1,
   })).filter((facility) => facility.type && facility.sector);
+}
+
+function normalizeSpaceFunction(value) {
+  const normalized = cleanString(value).toLowerCase().replace(/[\s-]+/g, '_');
+  if (['bathroom', 'washroom', 'wc'].includes(normalized)) return 'toilet';
+  if (['living', 'lounge', 'sitting_room'].includes(normalized)) return 'living_room';
+  return SPACE_FUNCTION_PROFILE[normalized] ? normalized : '';
+}
+
+export function analyzeFunctionalSpaces(input = {}) {
+  const spaces = [];
+  const rooms = Array.isArray(input.rooms) ? input.rooms : [];
+  for (const room of rooms) {
+    const type = normalizeSpaceFunction(room?.roomType || room?.room_type || room?.type);
+    const sector = normalizeDirection(room?.sector);
+    if (!type || !sector) continue;
+    spaces.push({
+      id: cleanString(room?.id),
+      name: cleanString(room?.name) || SPACE_FUNCTION_PROFILE[type].label,
+      type,
+      sector,
+      floor: Number(room?.floor) || Number(input.floor) || 1,
+    });
+  }
+  for (const facility of normalizedFacilities(input)) {
+    const type = normalizeSpaceFunction(facility.type);
+    if (!type) continue;
+    spaces.push({
+      id: facility.id,
+      name: SPACE_FUNCTION_PROFILE[type].label,
+      type,
+      sector: facility.sector,
+      floor: facility.floor,
+    });
+  }
+
+  const seen = new Set();
+  const findings = [];
+  for (const space of spaces) {
+    const key = `${space.floor}:${space.sector}:${space.type}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const profile = SPACE_FUNCTION_PROFILE[space.type];
+    const palace = DIRECTION_PROFILE[space.sector];
+    const palaceRole = cleanString(palace.familyRole).replaceAll('_', ' ') || 'whole-home center';
+    const isSouthwestLivingRoom = space.type === 'living_room' && space.sector === 'southwest';
+    const handledBySpecificRule = (
+      (space.type === 'kitchen' && ['north', 'northwest'].includes(space.sector))
+      || (space.type === 'toilet' && ['north', 'east'].includes(space.sector))
+    );
+    findings.push({
+      code: `${space.type}_space_symbolism`,
+      type: space.type,
+      label: profile.label,
+      sector: space.sector,
+      floor: space.floor,
+      symbolism: [...profile.symbolism],
+      palaceRole,
+      status: isSouthwestLivingRoom ? 'favorable_placement' : 'symbolic_layer_recorded',
+      reportable: !handledBySpecificRule,
+      conclusions: [
+        profile.conclusion,
+        `${palace.label} palace corresponds to ${palaceRole}; interpret the room function together with that household role.`,
+        ...(isSouthwestLivingRoom
+          ? ['A living room in Southwest Kun is a suitable placement and may be retained.']
+          : []),
+      ],
+    });
+  }
+  return findings;
 }
 
 export function analyzeStructuralPalaces(input = {}) {
@@ -619,22 +901,69 @@ export function analyzeStructuralPalaces(input = {}) {
   return { occupants, facilities, issues, favorable };
 }
 
+export function analyzeRolePosition(personRole, palaceDirection) {
+  const role = normalizePersonRole(personRole);
+  const profile = PERSON_ROLE_PROFILE[role];
+  const actualDirection = normalizeDirection(palaceDirection);
+  const actualPalace = DIRECTION_PROFILE[actualDirection];
+  if (!profile || !actualPalace || actualDirection === 'center') return null;
+
+  const expectedPalace = DIRECTION_PROFILE[profile.expectedDirection];
+  const aligned = actualDirection === profile.expectedDirection;
+  const status = aligned ? 'role_position_aligned' : 'role_position_mismatch';
+  const conclusions = aligned
+    ? [
+        `${profile.label} occupies the ${actualPalace.label} palace assigned to this household role.`,
+        'Role and position are aligned. Long-term use supports clear standing and responsibility for this person in the household.',
+      ]
+    : [
+        `${profile.label} occupies the ${actualPalace.label} palace, while this household role is assigned to the ${expectedPalace.label} palace.`,
+        'Role and position do not align. The residential pattern weakens or redirects this person\u2019s assigned standing and responsibility in the household.',
+        `Primary domains: ${profile.domains.join(', ')}.`,
+      ];
+
+  return {
+    personRole: role,
+    personLabel: profile.label,
+    actualDirection,
+    actualPalace: actualPalace.label,
+    expectedDirection: profile.expectedDirection,
+    expectedPalace: expectedPalace.label,
+    status,
+    label: aligned ? 'Role and position aligned' : 'Role-position mismatch',
+    geographicEffect: aligned ? 'supports_assigned_role' : 'weakens_or_redirects_assigned_role',
+    reviewDomains: [...profile.domains],
+    conclusions,
+    adjustment: aligned
+      ? {
+          type: 'keep',
+          conclusion: 'The long-term room assignment may be retained.',
+        }
+      : {
+          type: 'manual_service',
+          conclusion: `Prefer long-term room use in the ${expectedPalace.label} sector. Also restore clear household responsibilities and relationship boundaries in the stated domains. If reassignment is impractical, seek a manual adjustment.`,
+        },
+  };
+}
+
 export function residenceHexagram(personRole, palaceDirection) {
-  const personTrigram = PERSON_ROLE_TO_TRIGRAM[cleanString(personRole)];
+  const role = normalizePersonRole(personRole);
+  const personTrigram = PERSON_ROLE_TO_TRIGRAM[role];
   const palace = DIRECTION_PROFILE[normalizeDirection(palaceDirection)];
   const roomTrigram = palace?.trigram;
   if (!personTrigram || !roomTrigram || roomTrigram === 'center') return null;
   const name = HEXAGRAM_NAMES[personTrigram]?.[roomTrigram] || '';
   return {
-    personRole: cleanString(personRole),
+    personRole: role,
     personTrigram,
     personTrigramChinese: TRIGRAM_CHINESE[personTrigram],
     palaceDirection: palace.key,
     roomTrigram,
     roomTrigramChinese: TRIGRAM_CHINESE[roomTrigram],
     name,
+    rolePosition: analyzeRolePosition(role, palace.key),
     verdict: RESIDENCE_VERDICTS[name] || {
-      label: name,
+      label: 'Traditional person-to-palace combination',
       judgment: '',
       conclusions: [],
       adjustmentType: 'manual_review_if_needed',
@@ -709,6 +1038,7 @@ export function buildFengShuiAudit(input = {}) {
     .map((room) => analyzeRoomMicroPattern(room));
   const structural = analyzeStructuralPalaces(input);
   const residence = analyzeResidenceAssignments(input);
+  const functionalSpaces = analyzeFunctionalSpaces(input);
   const priorities = [
     ...structural.issues.map((issue) => ({
       type: 'structural',
@@ -726,6 +1056,24 @@ export function buildFengShuiAudit(input = {}) {
         headline: `${room.name}: ${room.relation?.label || 'room imbalance'}`,
         adjustment: room.adjustment,
       })),
+    ...roomResults
+      .filter((room) => room.bedPlacement?.physicalIssues?.length > 0)
+      .map((room) => ({
+        type: 'bed_placement',
+        priority: 75,
+        code: 'bed_physical_placement_issue',
+        headline: `${room.name}: correct the physical bed placement`,
+        adjustment: room.bedPlacement.adjustment,
+      })),
+    ...residence
+      .filter((item) => item.rolePosition?.status === 'role_position_mismatch')
+      .map((item) => ({
+        type: 'role_position',
+        priority: 65,
+        code: 'role_position_mismatch',
+        headline: `${item.rolePosition.personLabel} in ${item.rolePosition.actualPalace}: role-position mismatch`,
+        adjustment: item.rolePosition.adjustment,
+      })),
   ].sort((left, right) => right.priority - left.priority);
 
   return {
@@ -735,7 +1083,15 @@ export function buildFengShuiAudit(input = {}) {
     roomMicroPatterns: roomResults,
     structuralIssues: structural.issues,
     favorableStructuralFindings: structural.favorable,
+    functionalSpaceFindings: functionalSpaces,
+    destinyTimingGeography: DESTINY_TIMING_GEOGRAPHY_FRAMEWORK,
+    personalBedPlacementMethod: PERSONAL_BED_PLACEMENT_METHOD,
     residenceHexagrams: residence,
+    rolePositionFindings: residence.map((item) => ({
+      roomId: item.roomId,
+      roomName: item.roomName,
+      ...item.rolePosition,
+    })),
     priorities,
     externalScopeNote: 'This report does not assess external Feng Shui. Request a manual service for the surrounding environment.',
     safetyNote: 'Body correspondences are traditional references and are not medical diagnoses.',
