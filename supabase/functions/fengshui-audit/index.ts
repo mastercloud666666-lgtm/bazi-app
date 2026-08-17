@@ -46,6 +46,20 @@ function asArea(value: unknown): number {
   return Number.isFinite(parsed) && parsed > 0 ? Math.min(parsed, 1_000_000) : 0;
 }
 
+function asDegrees(value: unknown): number | null {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? ((parsed % 360) + 360) % 360 : null;
+}
+
+function asOptionalBoolean(value: unknown): boolean | null {
+  return typeof value === 'boolean' ? value : null;
+}
+
+function asBedFact(value: unknown, allowed: string[]): string {
+  const normalized = asString(value, 60).toLowerCase().replace(/[\s-]+/g, '_');
+  return allowed.includes(normalized) ? normalized : 'unknown';
+}
+
 function asDirection(value: unknown): string {
   return normalizeDirection(asString(value, 40));
 }
@@ -131,6 +145,18 @@ function sanitizeRooms(value: unknown, fallbackFloor: number) {
       floor: asInteger(source.floor, 1, 200, fallbackFloor),
       bedHead: asDirection(source.bedHead || source.bed_head),
       bedFoot: asDirection(source.bedFoot || source.bed_foot),
+      bedHeadSupport: asBedFact(source.bedHeadSupport || source.bed_head_support, [
+        'solid_wall', 'window', 'glass', 'light_partition', 'partition', 'unknown',
+      ]),
+      bedFootTarget: asBedFact(source.bedFootTarget || source.bed_foot_target, [
+        'clear', 'door', 'toilet_door', 'unknown',
+      ]),
+      bedHeadBacksOnto: asBedFact(source.bedHeadBacksOnto || source.bed_head_backs_onto, [
+        'none', 'toilet', 'shower', 'stove', 'unknown',
+      ]),
+      overheadBeam: asOptionalBoolean(source.overheadBeam ?? source.overhead_beam),
+      directAirflowAtHead: asOptionalBoolean(source.directAirflowAtHead ?? source.direct_airflow_at_head),
+      bedAxisDegrees: asDegrees(source.bedAxisDegrees ?? source.bed_axis_degrees),
       mainWindow: asDirection(source.mainWindow || source.main_window),
       windows: sanitizeWindows(source.windows),
       door: asDirection(source.door || source.mainDoor || source.main_door),
@@ -349,6 +375,12 @@ Return one JSON object only, using this shape:
       "floor": ${floor},
       "bedHead": "direction or unknown",
       "bedFoot": "direction or unknown",
+      "bedHeadSupport": "solid_wall|window|glass|light_partition|unknown",
+      "bedFootTarget": "clear|door|toilet_door|unknown",
+      "bedHeadBacksOnto": "none|toilet|shower|stove|unknown",
+      "overheadBeam": null,
+      "directAirflowAtHead": null,
+      "bedAxisDegrees": null,
       "door": "direction or unknown",
       "windows": [{"direction":"direction", "area": 0}],
       "occupantRoles": ["husband|wife|eldest_son|middle_son|youngest_son|eldest_daughter|middle_daughter|youngest_daughter"],
@@ -380,7 +412,10 @@ EXTRACTION RULES
 6. Do not infer a missing corner from furniture or an internal recess. Use the exterior building footprint.
 7. Do not invent doors, windows, occupants, compass directions, missing corners, or room labels.
 8. If North is not confirmed and not visible, mark directional fields unknown.
-9. Do not write advice, Five-Element relations, hexagrams, auspicious claims, or health claims.`;
+9. Do not write advice, Five-Element relations, hexagrams, auspicious claims, or health claims.
+10. Record occupantRoles only for long-term bedroom or principal-workroom assignments stated in the notes or visibly labelled on the plan. Brief room use is not a residential assignment.
+11. When the household has one son and that son's room is identified, use eldest_son. When it has one daughter and that daughter's room is identified, use eldest_daughter.
+12. Record bed support, door alignment, shared service walls, beams, airflow, and axis degrees only when visibly marked or supplied in the notes. Otherwise use unknown or null.`;
 }
 
 async function extractLayoutFacts(

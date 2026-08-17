@@ -243,6 +243,14 @@
         [item.conclusion],
       ));
     }
+    for (const item of audit.functionalSpaceFindings || []) {
+      if (item.reportable === false) continue;
+      nodes.push(resultCard(
+        `${titleCase(item.sector)} · ${titleCase(item.status || 'space function')}`,
+        `${item.label} · ${titleCase(item.palaceRole || 'palace role')}`,
+        item.conclusions || [],
+      ));
+    }
     if (!nodes.length) nodes.push(resultCard('Status', 'No structural conclusion was resolved', [
       'The uploaded plan did not contain enough verified palace or facility facts.',
     ]));
@@ -281,6 +289,9 @@
         facts.appendChild(fact);
       }
       card.appendChild(facts);
+      for (const issue of room.bedPlacement?.physicalIssues || []) {
+        card.appendChild(paragraph(issue.conclusion || '', 'feng-adjustment'));
+      }
       card.appendChild(paragraph(room.adjustment?.conclusion || room.conclusion || ''));
       return card;
     });
@@ -297,14 +308,59 @@
 
   function renderResidence(audit) {
     const target = document.querySelector('[data-residence-hexagrams]');
-    const nodes = (audit.residenceHexagrams || []).map((item) => resultCard(
-      `${titleCase(item.personRole)} · ${titleCase(item.palaceDirection)}`,
-      item.verdict?.label || 'Manual traditional review',
-      item.verdict?.conclusions?.length
-        ? item.verdict.conclusions
-        : ['This person-over-palace combination is recorded, but no automatic verdict has been approved for publication.'],
-      item.verdict?.adjustmentType === 'manual_service' ? 'Seek a manual adjustment for long-term room assignment.' : '',
-    ));
+    const framework = audit.destinyTimingGeography || {};
+    const mechanism = Array.isArray(framework.mechanism) ? framework.mechanism : [];
+    const nodes = [];
+    if (mechanism.length) {
+      const judgmentSequence = Array.isArray(framework.judgmentSequence)
+        ? framework.judgmentSequence
+        : [];
+      nodes.push(resultCard(
+        'Method · Destiny, Timing, and Geography',
+        'Residence can strengthen or weaken an existing tendency',
+        [
+          mechanism.join(' → '),
+          judgmentSequence.length ? `Judgment order: ${judgmentSequence.join(' → ')}` : '',
+          framework.boundary || '',
+        ],
+      ));
+    }
+    const hasResolvedBed = (audit.roomMicroPatterns || [])
+      .some((room) => room.bedPlacement?.applicable === true);
+    const bedMethod = audit.personalBedPlacementMethod || {};
+    if (hasResolvedBed && Array.isArray(bedMethod.sequence)) {
+      nodes.push(resultCard(
+        'Bed-placement method',
+        'Choose the room before choosing the bed-foot direction',
+        [
+          ...bedMethod.sequence,
+          Array.isArray(bedMethod.physicalChecks)
+            ? `Physical checks: ${bedMethod.physicalChecks.join('; ')}.`
+            : '',
+        ],
+        bedMethod.requirement || '',
+      ));
+    }
+    for (const item of audit.residenceHexagrams || []) {
+      const rolePosition = item.rolePosition || {};
+      const specificConclusions = item.verdict?.conclusions || [];
+      const conclusions = [
+        ...(rolePosition.conclusions || []),
+        ...specificConclusions,
+      ];
+      const labels = [rolePosition.label, item.verdict?.label].filter(Boolean);
+      const adjustment = rolePosition.adjustment?.type === 'manual_service'
+        ? rolePosition.adjustment.conclusion
+        : item.verdict?.adjustmentType === 'manual_service'
+          ? 'Seek a manual adjustment for long-term room assignment.'
+          : rolePosition.adjustment?.conclusion || '';
+      nodes.push(resultCard(
+        `${rolePosition.personLabel || titleCase(item.personRole)} · ${titleCase(item.palaceDirection)} · ${item.roomName || 'Room'}`,
+        labels.join(' · ') || 'Person-to-palace position',
+        conclusions.length ? conclusions : ['The person-to-palace position has been recorded.'],
+        adjustment,
+      ));
+    }
     if (!nodes.length) nodes.push(resultCard('Status', 'No occupant-to-room assignment was resolved', [
       'Add room-assignment notes and ensure bedroom labels are readable.',
     ]));

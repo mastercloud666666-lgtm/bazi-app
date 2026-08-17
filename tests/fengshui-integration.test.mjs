@@ -42,7 +42,7 @@ test('Feng Shui has an English-only report contents page for both service levels
   assert.match(page, /Whole-House Sitting and Facing/);
   assert.match(page, /Tai Ji Center and Eight-Sector Overlay/);
   assert.match(page, /Doors, Windows, and Energy Points/);
-  assert.match(page, /Residence Hexagram/);
+  assert.match(page, /Destiny, Geography, and Residence Hexagram/);
   assert.match(page, /US\$49\.90/);
   assert.match(page, /US\$149/);
   assert.match(page, /English online report with print-ready PDF view/);
@@ -61,6 +61,23 @@ test('Feng Shui endpoint keeps vision extraction separate from rule judgment', (
   assert.match(endpoint, /action === 'status'/);
   assert.match(endpoint, /action === 'analyze'/);
   assert.doesNotMatch(endpoint, /body\?\.layout_facts/);
+  assert.match(endpoint, /long-term bedroom or principal-workroom assignments/);
+  assert.match(endpoint, /bedHeadSupport/);
+  assert.match(endpoint, /bedAxisDegrees/);
+});
+
+test('the ordinary residential report includes role-position logic outside Qi Men', () => {
+  const rules = read('supabase/functions/_shared/fengshui-rules.mjs');
+  const client = read('public/js/tengyunzi-feng-shui.js');
+  assert.match(rules, /DESTINY_TIMING_GEOGRAPHY_FRAMEWORK/);
+  assert.match(rules, /role_position_mismatch/);
+  assert.match(rules, /Residential position changes/);
+  assert.match(rules, /PERSONAL_BED_PLACEMENT_METHOD/);
+  assert.match(rules, /SPACE_FUNCTION_PROFILE/);
+  assert.match(rules, /knife, fire, and cutting symbolism/);
+  assert.match(client, /Residence can strengthen or weaken an existing tendency/);
+  assert.match(client, /Choose the room before choosing the bed-foot direction/);
+  assert.doesNotMatch(rules, /qimen|Qi Men/i);
 });
 
 test('legacy analyze service cannot produce the retired free-form Feng Shui report', () => {

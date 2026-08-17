@@ -91,7 +91,7 @@
     }
   </style>
   <link rel="stylesheet" href="./tengyunzi-shell.css?v=20260727paths">
-  <link rel="stylesheet" href="./tengyunzi-feng-shui.css?v=20260802services">
+  <link rel="stylesheet" href="./tengyunzi-feng-shui.css?v=20260816qimen3">
 </head>
 <body>
   <header class="nav">
@@ -142,7 +142,107 @@
           </article>
         </div>
 
-        <p class="feng-service-note">One-time PayPal payment · Residential interior analysis · External Feng Shui is available through personal consultation.</p>
+        <p class="feng-service-note">One-time PayPal payment · Residential interior analysis · External Feng Shui is available through personal consultation. <a href="#qimen">Build an Hour-School Qi Men chart</a>.</p>
+      </div>
+    </section>
+
+    <section class="qimen-section" id="qimen">
+      <div class="shell">
+        <div class="qimen-intro-grid">
+          <header class="qimen-intro">
+            <span class="feng-kicker">Qi Men Dun Jia · Hour-School chart</span>
+            <h2>A complete time chart, built from the solar-term boundary.</h2>
+            <p>Enter a local civil date and time. The chart calculates the Yin or Yang Dun, Ju number, Xun Head, Chief, Envoy, Heaven and Earth plates, Nine Stars, Eight Gates, Eight Spirits, hour void, Travel Horse, door pressure, and instrument punishment.</p>
+            <dl class="qimen-method-ledger">
+              <div><dt>Ju method</dt><dd>Chai Bu solar-term method</dd></div>
+              <div><dt>Chart system</dt><dd>Hour-School rotating chart</dd></div>
+              <div><dt>Time basis</dt><dd>Entered local civil time</dd></div>
+            </dl>
+          </header>
+
+          <form class="qimen-form" data-qimen-form novalidate>
+            <div class="qimen-form-head">
+              <span>Chart input</span>
+              <strong>Date and time</strong>
+            </div>
+            <div class="qimen-field qimen-date-field">
+              <label for="qimen-date">Local date</label>
+              <div class="qimen-date-control">
+                <input id="qimen-date" name="qimen_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" maxlength="10" aria-describedby="qimen-date-format" required>
+                <button class="qimen-date-trigger" type="button" data-qimen-date-trigger aria-haspopup="dialog" aria-expanded="false">Calendar</button>
+              </div>
+              <small id="qimen-date-format">Format: YYYY-MM-DD</small>
+              <div class="qimen-calendar" data-qimen-calendar role="dialog" aria-label="Choose a date" hidden>
+                <header class="qimen-calendar-head">
+                  <button type="button" data-qimen-calendar-prev aria-label="Previous month">Prev</button>
+                  <strong data-qimen-calendar-month></strong>
+                  <button type="button" data-qimen-calendar-next aria-label="Next month">Next</button>
+                </header>
+                <div class="qimen-calendar-weekdays" aria-hidden="true">
+                  <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                </div>
+                <div class="qimen-calendar-days" data-qimen-calendar-days></div>
+                <footer class="qimen-calendar-foot">
+                  <button type="button" data-qimen-calendar-clear>Clear</button>
+                  <button type="button" data-qimen-calendar-today>Today</button>
+                </footer>
+              </div>
+            </div>
+            <div class="qimen-field">
+              <label for="qimen-time">Local time</label>
+              <input id="qimen-time" name="qimen_time" type="text" inputmode="numeric" autocomplete="off" placeholder="HH:MM" pattern="[0-9]{2}:[0-9]{2}" maxlength="5" aria-describedby="qimen-time-format" required>
+              <small id="qimen-time-format">24-hour format: HH:MM</small>
+            </div>
+            <div class="qimen-form-actions">
+              <button class="button primary" type="submit" data-qimen-submit>Build Hour-School Chart</button>
+              <button class="qimen-now" type="button" data-qimen-now>Use current time</button>
+            </div>
+            <p class="qimen-form-note">This first framework uses local civil time and does not apply longitude-based true-solar-time correction.</p>
+            <p class="qimen-status" data-qimen-status role="status" aria-live="polite"></p>
+          </form>
+        </div>
+
+        <div class="qimen-empty" data-qimen-empty aria-hidden="true">
+          <div class="qimen-empty-grid">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+          <p><span>Ready to calculate</span><strong>Your Nine-Palace chart will open below the form.</strong></p>
+        </div>
+
+        <section class="qimen-results" data-qimen-results hidden aria-live="polite">
+          <header class="qimen-results-head">
+            <div><span>Calculated chart</span><h2>Hour-School Qi Men Dun Jia</h2></div>
+            <p>Choose any palace to read its Star, Gate, Spirit, stems, element relation, and active pattern markers.</p>
+          </header>
+          <div class="qimen-summary" data-qimen-summary></div>
+          <div class="qimen-workspace">
+            <div class="qimen-chart-scroll"><div class="qimen-grid" data-qimen-grid aria-label="Qi Men Dun Jia Nine-Palace chart"></div></div>
+            <aside class="qimen-detail" data-qimen-detail></aside>
+          </div>
+          <div class="qimen-convention">
+            <strong>Calculation convention</strong>
+            <p>Tian Qin remains at the center and is referenced through Kun only when a directional palace is required. Eight Spirits use Chief, Soaring Serpent, Great Yin, Six Harmony, White Tiger, Black Tortoise, Nine Earth, and Nine Heaven.</p>
+          </div>
+        </section>
+
+        <section class="qimen-reference" aria-labelledby="qimen-reference-title">
+          <header class="qimen-reference-head">
+            <span>Interpretation framework</span>
+            <h2 id="qimen-reference-title">Every Star, Gate, Spirit, and Star-Gate pairing.</h2>
+            <p>The reference layer uses direct meanings, supported uses, and stated risks. It does not replace a clear conclusion with general mood language.</p>
+          </header>
+          <div class="qimen-symbol-library" data-qimen-symbol-library></div>
+
+          <div class="qimen-combination-explorer">
+            <div class="qimen-combination-controls">
+              <span>72 Star-Gate combinations</span>
+              <h3>Inspect any pairing.</h3>
+              <label><span>Nine Star</span><select id="qimen-combination-star"></select></label>
+              <label><span>Eight Gate</span><select id="qimen-combination-gate"></select></label>
+            </div>
+            <div class="qimen-combination-result" data-qimen-combination></div>
+          </div>
+        </section>
       </div>
     </section>
 
@@ -335,7 +435,7 @@
           <label class="path-field wide"><span>Main question</span><small>Describe what is happening now and what you hope to adjust. Avoid only writing “wealth” or “health.”</small><textarea name="question" minlength="20" required></textarea></label>
           <div class="file-drop wide">
             <strong>Upload the complete floor plan</strong>
-            <span class="path-disclaimer">1–4 files · PDF, PNG, JPG, or WebP · 8 MB per file · 20 MB total</span>
+            <span class="path-disclaimer">1 to 4 files · PDF, PNG, JPG, or WebP · 8 MB per file · 20 MB total</span>
             <input name="floor_plans" type="file" accept="application/pdf,image/png,image/jpeg,image/webp,.pdf,.png,.jpg,.jpeg,.webp" multiple hidden>
             <button class="file-upload-button" type="button" data-file-trigger aria-describedby="floor-plan-status">Choose floor plan files</button>
             <span class="file-status" id="floor-plan-status" data-file-status aria-live="polite">No files selected.</span>
@@ -379,7 +479,7 @@
         </section>
 
         <section class="feng-result-section">
-          <div class="feng-result-heading"><span>04</span><div><h3>Residence hexagrams</h3><p>The person trigram is placed above the room-palace trigram. Only verified traditional verdicts are expanded automatically.</p></div></div>
+          <div class="feng-result-heading"><span>04</span><div><h3>Destiny, place, bed method, and residence hexagrams</h3><p>Each long-term occupant is checked against the palace assigned to that household role. Bedroom palace comes before personal bed-foot direction, and only verified person-to-palace verdicts are added.</p></div></div>
           <div class="feng-result-list" data-residence-hexagrams></div>
         </section>
 
@@ -401,6 +501,8 @@
   <script src="./js/tengyunzi-shell.js?v=20260727paths"></script>
   <script src="./js/feng-shui-order.js?v=20260727b"></script>
   <script src="./js/tengyunzi-auth.js?v=20260730fs1"></script>
-  <script src="./js/tengyunzi-feng-shui.js?v=20260801fs2"></script>
+  <script src="./js/tengyunzi-feng-shui.js?v=20260817tianji1"></script>
+  <script src="./js/lunar.js?v=20260816qimen1"></script>
+  <script type="module" src="./js/tengyunzi-qimen.mjs?v=20260816qimen3"></script>
 </body>
 </html>
